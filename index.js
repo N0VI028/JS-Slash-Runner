@@ -31,6 +31,8 @@ import {
 
 import { POPUP_TYPE, callGenericPopup } from "../../../../scripts/popup.js";
 
+import { isMobile } from '../../../../scripts/RossAscends-mods.js';
+
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
 
@@ -977,16 +979,13 @@ function onVolumeSliderWheelEvent(e) {
   slider.val(newVal).trigger("input");
 }
 
-function isMobileDevice() {
-  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
 
 function handleLongPress(volumeControlId, iconId) {
   const volumeControl = document.getElementById(volumeControlId);
   const icon = document.getElementById(iconId);
   let pressTimer;
 
-  if (isMobileDevice()) {
+  if (isMobile()) {
     icon.addEventListener("touchstart", (e) => {
       pressTimer = setTimeout(() => {
         volumeControl.style.display = "block";
