@@ -165,6 +165,10 @@ function loadSettings() {
 }
 
 async function renderMessagesInIframes() {
+  if (!$('#activate_setting').prop('checked')) {
+    return;
+  }
+
   const chatContainer = document.getElementById("chat");
 
   const messages = chatContainer.querySelectorAll(".mes");
@@ -341,7 +345,6 @@ async function handleIframeCommand(event) {
 
       const currentVariables = chat_metadata.variables;
 
-
       for (let key in newVariables) {
         if (newVariables.hasOwnProperty(key)) {
           currentVariables[key] = newVariables[key];
@@ -378,9 +381,18 @@ async function onExtensionToggle() {
 
   const context = getContext();
   if (isEnabled) {
+    events.forEach((eventType) => {
+      setTimeout(() => {
+        renderMessagesInIframes();
+      }, 100);
+    });
     renderMessagesInIframes();
     window.addEventListener("message", handleIframeCommand);
   } else {
+    events.forEach((eventType) => {
+      eventSource.removeListener(eventType, renderMessagesInIframes);
+    });
+    console.log("Event listeners removed");
     window.removeEventListener("message", handleIframeCommand);
     context.reloadCurrentChat();
   }
@@ -409,16 +421,7 @@ eventSource.on(event_types.CHAT_CHANGED, async () => {
   await refreshAudioResources();
 });
 
-events.forEach((eventType) => {
-  eventSource.on(eventType, () => {
-    setTimeout(() => {
-      renderMessagesInIframes();
-    }, 500);
-  });
-});
-
 async function onEnabledClick() {
-  const context = getContext();
   const isEnabled = Boolean($("#audio_enabled").prop("checked"));
   extension_settings[extensionName].audio_setting = isEnabled;
 
