@@ -387,9 +387,11 @@ async function onExtensionToggle() {
   const context = getContext();
   if (isEnabled) {
     events.forEach((eventType) => {
-      setTimeout(() => {
-        renderMessagesInIframes();
-      }, 100);
+      eventSource.on(eventType, () => {
+        setTimeout(() => {
+          renderMessagesInIframes();
+        }, 100);
+      });
     });
     renderMessagesInIframes();
     window.addEventListener("message", handleIframeCommand);
@@ -397,7 +399,6 @@ async function onExtensionToggle() {
     events.forEach((eventType) => {
       eventSource.removeListener(eventType, renderMessagesInIframes);
     });
-    console.log("Event listeners removed");
     window.removeEventListener("message", handleIframeCommand);
     context.reloadCurrentChat();
   }
