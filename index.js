@@ -69,6 +69,11 @@ const defaultSettings = {
 };
 
 function loadSettings() {
+  extension_settings[extensionName] = extension_settings[extensionName] || {};
+  if (Object.keys(extension_settings[extensionName]).length === 0) {
+      Object.assign(extension_settings[extensionName], defaultSettings);
+      saveSettingsDebounced();
+  }
   if (extension_settings[extensionName].audio === undefined)
     extension_settings[extensionName].audio = {};
 
