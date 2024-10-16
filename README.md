@@ -49,9 +49,9 @@ triggerSlash(commandText);
 - `commandText`：一个字符串，表示要执行的 Slash 命令。
 #### 示例
 **触发 `/echo` 命令**：
-   ```javascript
-   triggerSlash('/echo hello!');
-   ```
+```javascript
+triggerSlash('/echo hello!');
+```
 执行 SillyTavern后页面将会弹出提示语 `hello!`
 ### 变量操作
 扩展提供了两个函数用于获取和设置局部变量，这两个函数分别是 `getVariables()` 和 `setVariables()`。这些函数允许 `iframe` 中的脚本与主页面进行交互，从而实现持久化的状态管理。
