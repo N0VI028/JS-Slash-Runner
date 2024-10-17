@@ -223,9 +223,6 @@ async function renderMessagesInIframes() {
         !extractedText.includes("<body>") ||
         !extractedText.includes("</body>")
       ) {
-        console.warn(
-          `跳过不包含 <body> 和 </body> 标签的代码块，mesid: ${messageId}, index: ${index}`
-        );
         return;
       }
       /*       const hasCodeTag = /<code>[\s\S]*?<\/code>/.test(extractedText);
@@ -857,6 +854,9 @@ async function refreshAudioResources() {
 }
 
 function updateBGMSelect() {
+  if (!$("#audio_enabled").is(":checked")) {
+    return;
+  }
   const bgmSelect = $("#audio_bgm_select");
   bgmSelect.empty();
 
@@ -879,6 +879,9 @@ function updateBGMSelect() {
 }
 
 function updateAmbientSelect() {
+  if (!$("#audio_enabled").is(":checked")) {
+    return;
+  }
   const ambientSelect = $("#audio_ambient_select");
   ambientSelect.empty();
 
