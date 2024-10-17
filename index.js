@@ -4,7 +4,7 @@ import {
   saveSettingsDebounced,
   chat_metadata,
   updateMessageBlock,
-  addCopyToCodeBlocks,
+  // addCopyToCodeBlocks,
 } from "../../../../script.js";
 
 import {
@@ -219,11 +219,20 @@ async function renderMessagesInIframes() {
     const mesTextWidth = mesTextContainer.clientWidth - paddingRight;
     codeElements.forEach((codeElement, index) => {
       let extractedText = extractTextFromCode(codeElement);
-      const hasCodeTag = /<code>[\s\S]*?<\/code>/.test(extractedText);
+      if (
+        !extractedText.includes("<body>") ||
+        !extractedText.includes("</body>")
+      ) {
+        console.warn(
+          `跳过不包含 <body> 和 </body> 标签的代码块，mesid: ${messageId}, index: ${index}`
+        );
+        return;
+      }
+      /*       const hasCodeTag = /<code>[\s\S]*?<\/code>/.test(extractedText);
 
       if (hasCodeTag) {
         extractedText = formatCodeBlocks(extractedText);
-      }
+      } */
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index}`;
       iframe.style.width = "100%";
@@ -298,10 +307,10 @@ async function renderMessagesInIframes() {
         doc.open();
         doc.write(iframeContent);
         doc.close();
-        if (hasCodeTag) {
+        /*         if (hasCodeTag) {
           addCopyToCodeBlocks(doc.body);
           injectStylesIntoIframe(iframe);
-        }
+        } */
         observeIframeContent(iframe);
       };
 
@@ -314,6 +323,7 @@ window.addEventListener("message", function (event) {
   if (event.data === "domContentLoaded") {
     const iframe = event.source.frameElement;
     adjustIframeHeight(iframe);
+    adjustIframeWidth(iframe);
   }
 });
 
@@ -359,7 +369,7 @@ function extractTextFromCode(codeElement) {
   return textContent;
 }
 
-function formatCodeBlocks(extractedText) {
+/* function formatCodeBlocks(extractedText) {
   extractedText = extractedText.replace(
     /<code>([\s\S]*?)<\/code>/g,
     function (match, codeContent) {
@@ -404,9 +414,9 @@ function formatCodeBlocks(extractedText) {
   );
 
   return extractedText;
-}
+} */
 
-function injectStylesIntoIframe(iframe) {
+/* function injectStylesIntoIframe(iframe) {
   const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
   const head = iframeDoc.head || iframeDoc.getElementsByTagName("head")[0];
 
@@ -418,7 +428,7 @@ function injectStylesIntoIframe(iframe) {
     link.href = stylesheet.href;
     head.appendChild(link);
   });
-}
+} */
 
 async function handleIframeCommand(event) {
   if (event.data) {

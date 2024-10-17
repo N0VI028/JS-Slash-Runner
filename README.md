@@ -10,7 +10,7 @@
 
 此扩展允许你在SillyTavern中运行外部JavaScript代码。由于SillyTavern默认不支持直接执行JavaScript代码，这个扩展通过使用iframe来隔离和执行脚本，从而让你在某些受限的上下文中运行外部脚本。
 #### 使用方法
-使用代码块包裹需要渲染的代码部分,如果需要在界面中再原样显示嵌套的代码块，请使用`<code>`标签包裹代码块部分。
+使用代码块包裹需要渲染的代码部分,如果代码块中没有同时存在`<body>`和`</body>`标签，则不进行渲染。
 #### 示例
 ```html
 <html>
@@ -27,12 +27,6 @@
   </head>
   <body>
     <h1>欢迎使用脚本注入功能！</h1>
-    <code>
-    function changeColor() {
-            var paragraph = document.getElementById("text");
-            paragraph.style.color = "#" + Math.floor(Math.random()*16777215).toString(16);
-    }
-    </code>
     <button onclick="showMessage()">点击我</button>
     <script>
       function showMessage() {
