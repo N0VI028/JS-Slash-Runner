@@ -59,7 +59,7 @@ triggerSlash('/echo hello!');
 ```
 执行后SillyTavern页面将会弹出提示语 `hello!`
 ### 变量操作
-扩展提供了两个函数用于获取和设置局部变量，这两个函数分别是 `getVariables()` 和 `setVariables()`。这些函数允许 `iframe` 中的脚本与主页面进行交互，从而实现持久化的状态管理。
+扩展提供了两个函数用于获取和设置SillyTavern中绑定到聊天的局部变量，这两个函数分别是 `getVariables()` 和 `setVariables()`。这些函数允许 `iframe` 中的脚本与主页面进行交互，从而实现持久化的状态管理。
 #### 1. `getVariables()` 函数
 
 - **功能**：获取当前聊天的局部变量并传递给 `iframe` 中的代码，该函数返回一个Promise，调用者可以使用 `.then()` 或 `async/await` 语法来处理异步结果。
@@ -183,7 +183,7 @@ exampleUsage();
 #### 3.选择音频
 
 ```
-audioselect [type=bgm|ambient] url
+/audioselect [type=bgm|ambient] url
 ```
 
 选择指定的音频并播放
