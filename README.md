@@ -1,6 +1,6 @@
 ## 脚本注入
 
-> 参考阡濯的[【SillyTavern / ST酒馆】html代码注入器](https://greasyfork.org/zh-CN/scripts/503174-sillytavern-st%E9%85%92%E9%A6%86-html%E4%BB%A3%E7%A0%81%E6%B3%A8%E5%85%A5%E5%99%A8)
+> 参考：阡濯的[【SillyTavern / ST酒馆】html代码注入器](https://greasyfork.org/zh-CN/scripts/503174-sillytavern-st%E9%85%92%E9%A6%86-html%E4%BB%A3%E7%A0%81%E6%B3%A8%E5%85%A5%E5%99%A8)
 
 ---
 
@@ -8,9 +8,9 @@
 
 ---
 
-此扩展允许您在SillyTavern中运行外部JavaScript代码。由于SillyTavern默认不支持直接执行JavaScript代码，这个扩展通过使用iframe来隔离和执行脚本，从而让您在某些受限的上下文中运行外部脚本。
+此扩展允许你在SillyTavern中运行外部JavaScript代码。由于SillyTavern默认不支持直接执行JavaScript代码，这个扩展通过使用iframe来隔离和执行脚本，从而让你在某些受限的上下文中运行外部脚本。
 #### 使用方法
-使用代码块包裹需要渲染的代码部分。
+使用代码块包裹需要渲染的代码部分,如果需要在界面中再原样显示嵌套的代码块，请使用`<code>`标签包裹代码块部分。
 #### 示例
 ```html
 <html>
@@ -26,8 +26,13 @@
     </style>
   </head>
   <body>
-    <h1>欢迎使用 JS 注入功能！</h1>
-    <p>点击按钮显示一条消息：</p>
+    <h1>欢迎使用脚本注入功能！</h1>
+    <code>
+    function changeColor() {
+            var paragraph = document.getElementById("text");
+            paragraph.style.color = "#" + Math.floor(Math.random()*16777215).toString(16);
+    }
+    </code>
     <button onclick="showMessage()">点击我</button>
     <script>
       function showMessage() {
@@ -37,6 +42,8 @@
   </body>
 </html>
 ```
+- **说明**：
+  - body标签的父容器宽度已设定为聊天框的宽度，即对于body的宽度设定为width:50%时，将使其宽度以及iframe的宽度设定为聊天框的一半。你还可以使用`var(--parent-width)`来基于聊天框宽度设定样式。
 
 ### Quick Reply触发
 

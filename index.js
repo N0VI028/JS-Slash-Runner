@@ -4,6 +4,7 @@ import {
   saveSettingsDebounced,
   chat_metadata,
   updateMessageBlock,
+  addCopyToCodeBlocks,
 } from "../../../../script.js";
 
 import {
@@ -31,7 +32,7 @@ import {
 
 import { POPUP_TYPE, callGenericPopup } from "../../../../scripts/popup.js";
 
-import { isMobile } from '../../../../scripts/RossAscends-mods.js';
+import { isMobile } from "../../../../scripts/RossAscends-mods.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -73,8 +74,8 @@ const defaultSettings = {
 function loadSettings() {
   extension_settings[extensionName] = extension_settings[extensionName] || {};
   if (Object.keys(extension_settings[extensionName]).length === 0) {
-      Object.assign(extension_settings[extensionName], defaultSettings);
-      saveSettingsDebounced();
+    Object.assign(extension_settings[extensionName], defaultSettings);
+    saveSettingsDebounced();
   }
   if (extension_settings[extensionName].audio === undefined)
     extension_settings[extensionName].audio = {};
@@ -172,7 +173,7 @@ function loadSettings() {
 }
 
 async function renderMessagesInIframes() {
-  if (!$('#activate_setting').prop('checked')) {
+  if (!$("#activate_setting").prop("checked")) {
     return;
   }
 
@@ -213,72 +214,83 @@ async function renderMessagesInIframes() {
     if (!codeElements.length) {
       return;
     }
-
+    const computedStyle = window.getComputedStyle(mesTextContainer);
+    const paddingRight = parseFloat(computedStyle.paddingRight);
+    const mesTextWidth = mesTextContainer.clientWidth - paddingRight;
     codeElements.forEach((codeElement, index) => {
-      const existingIframe = document.getElementById(
-        `message-iframe-${messageId}-${index}`
-      );
-      if (existingIframe || codeElement.dataset.processed) {
-        return;
+      let extractedText = extractTextFromCode(codeElement);
+      const hasCodeTag = /<code>[\s\S]*?<\/code>/.test(extractedText);
+
+      if (hasCodeTag) {
+        extractedText = formatCodeBlocks(extractedText);
       }
-
-      codeElement.dataset.processed = "true";
-      const extractedText = extractTextFromCode(codeElement);
-
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index}`;
       iframe.style.width = "100%";
       iframe.style.border = "none";
 
       const iframeContent = `
-            <html>
-                <head>
-                    <style>
-                        html, body {
-                            margin: 0;
-                            padding: 0;
-                            overflow: hidden;
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${extractedText}
-                    <script>
-                        window.addEventListener('load', function() {
-                            window.parent.postMessage('loaded', '*');
-                        });
-                    </script>
-                    <script>
-                    function triggerSlash(commandText) {
-                      window.parent.postMessage({ request: 'command', commandText: commandText }, '*');
-                      console.log('Sent command to parent:', commandText);
-                    }
-                    function requestVariables() {
-                      return new Promise((resolve, reject) => {
-                        function handleMessage(event) {
-                          if (event.data && event.data.variables) {
-                            window.removeEventListener('message', handleMessage);
-                            resolve(event.data.variables);
-                          }
-                        }
-                        window.addEventListener('message', handleMessage);
-                        window.parent.postMessage({ request: 'getVariables' }, '*');
-                      });
-                    }
-                    async function getVariables() {
-                        const variables = await requestVariables();
-                        return variables;
-                    }
-                    function setVariables(newVariables) {
-                      if (typeof newVariables === 'object' && newVariables !== null) {
-                        window.parent.postMessage({ request: 'setVariables', data: newVariables }, '*');
-                      } else {
-                        console.error("setVariables expects an object");
-                      }
-                    }
-                    </script>
-                </body>
-            </html>
+      <html>
+      <head>
+        <style>
+              :root {
+                --parent-width: ${mesTextWidth}px;
+            }
+            html {
+              width: var(--parent-width); 
+          }
+                  html, body {
+                      margin: 0;
+                      padding: 0;
+                      overflow: hidden;
+                      max-width: var(--parent-width);
+                  }
+        </style>
+      </head>
+      <body>
+        ${extractedText}
+        <script>
+          window.addEventListener("DOMContentLoaded", function () {
+            window.parent.postMessage("domContentLoaded", "*");
+          });
+        </script>
+        <script>
+          function triggerSlash(commandText) {
+            window.parent.postMessage(
+              { request: "command", commandText: commandText },
+              "*"
+            );
+            console.log("Sent command to parent:", commandText);
+          }
+          function requestVariables() {
+            return new Promise((resolve, reject) => {
+              function handleMessage(event) {
+                if (event.data && event.data.variables) {
+                  window.removeEventListener("message", handleMessage);
+                  resolve(event.data.variables);
+                }
+              }
+              window.addEventListener("message", handleMessage);
+              window.parent.postMessage({ request: "getVariables" }, "*");
+            });
+          }
+          async function getVariables() {
+            const variables = await requestVariables();
+            return variables;
+          }
+          function setVariables(newVariables) {
+            if (typeof newVariables === "object" && newVariables !== null) {
+              window.parent.postMessage(
+                { request: "setVariables", data: newVariables },
+                "*"
+              );
+            } else {
+              console.error("setVariables expects an object");
+            }
+          }
+        </script>
+      </body>
+    </html>
         `;
 
       iframe.onload = function () {
@@ -286,11 +298,10 @@ async function renderMessagesInIframes() {
         doc.open();
         doc.write(iframeContent);
         doc.close();
-        adjustIframeHeight(iframe);
-        setTimeout(() => {
-          adjustIframeHeight(iframe);
-        }, 300);
-
+        if (hasCodeTag) {
+          addCopyToCodeBlocks(doc.body);
+          injectStylesIntoIframe(iframe);
+        }
         observeIframeContent(iframe);
       };
 
@@ -299,7 +310,41 @@ async function renderMessagesInIframes() {
     });
   });
 }
+window.addEventListener("message", function (event) {
+  if (event.data === "domContentLoaded") {
+    const iframe = event.source.frameElement;
+    adjustIframeHeight(iframe);
+  }
+});
 
+function adjustIframeWidth(iframe) {
+  const doc = iframe.contentWindow.document;
+  const contentWidth = doc.body.scrollWidth;
+  const parentWidth = iframe.parentElement.clientWidth;
+
+  iframe.style.width = Math.min(contentWidth, parentWidth) + "px";
+}
+
+function adjustIframeHeight(iframe) {
+  const doc = iframe.contentWindow.document;
+  const body = doc.body;
+  const html = doc.documentElement;
+  const bodyHeight = body.scrollHeight || body.offsetHeight;
+
+  html.style.height = bodyHeight + "px";
+  iframe.style.height = bodyHeight + "px";
+}
+
+function observeIframeContent(iframe) {
+  const doc = iframe.contentWindow.document.body;
+
+  const resizeObserver = new ResizeObserver(() => {
+    adjustIframeWidth(iframe);
+    adjustIframeHeight(iframe);
+  });
+
+  resizeObserver.observe(doc);
+}
 function extractTextFromCode(codeElement) {
   let textContent = "";
 
@@ -314,21 +359,65 @@ function extractTextFromCode(codeElement) {
   return textContent;
 }
 
-function adjustIframeHeight(iframe) {
-  if (iframe.contentWindow.document.body) {
-    const height = iframe.contentWindow.document.documentElement.scrollHeight;
-    iframe.style.height = height + "px";
-  }
+function formatCodeBlocks(extractedText) {
+  extractedText = extractedText.replace(
+    /<code>([\s\S]*?)<\/code>/g,
+    function (match, codeContent) {
+      const processedContent = codeContent.replace(
+        /"(.+?)"|(\u201C.+?\u201D)/g,
+        function (quoteMatch, p1, p2) {
+          if (p1) {
+            return `"${p1}"`;
+          } else if (p2) {
+            return `"${p2.replace(/\u201C|\u201D/g, "")}"`;
+          } else {
+            return quoteMatch;
+          }
+        }
+      );
+      return `<code>${processedContent}</code>`;
+    }
+  );
+
+  extractedText = extractedText.replaceAll("$", "$$");
+  extractedText = extractedText.replaceAll("$", "$$");
+  extractedText = extractedText.replace(
+    /<code(.*)>[\s\S]*?<\/code>/g,
+    function (match) {
+      return match.replace(/\n/gm, "\u0000");
+    }
+  );
+  extractedText = extractedText.replace(/\u0000/g, "\n");
+
+  extractedText = extractedText.replace(
+    /<code(.*)>[\s\S]*?<\/code>/g,
+    function (match) {
+      return match.replace(/&/g, "&");
+    }
+  );
+
+  extractedText = extractedText.replace(
+    /<code>([\s\S]*?)<\/code>/g,
+    function (match, codeContent) {
+      return `<pre><code>${codeContent.trim()}</code></pre>`;
+    }
+  );
+
+  return extractedText;
 }
 
-function observeIframeContent(iframe) {
-  const doc = iframe.contentWindow.document.body;
+function injectStylesIntoIframe(iframe) {
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+  const head = iframeDoc.head || iframeDoc.getElementsByTagName("head")[0];
 
-  const resizeObserver = new ResizeObserver(() => {
-    adjustIframeHeight(iframe);
+  const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+
+  stylesheets.forEach((stylesheet) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = stylesheet.href;
+    head.appendChild(link);
   });
-
-  resizeObserver.observe(doc);
 }
 
 async function handleIframeCommand(event) {
@@ -978,7 +1067,6 @@ function onVolumeSliderWheelEvent(e) {
 
   slider.val(newVal).trigger("input");
 }
-
 
 function handleLongPress(volumeControlId, iconId) {
   const volumeControl = document.getElementById(volumeControlId);
