@@ -1,6 +1,8 @@
 ## 脚本注入
 
-> 参考：阡濯的[【SillyTavern / ST酒馆】html代码注入器](https://greasyfork.org/zh-CN/scripts/503174-sillytavern-st%E9%85%92%E9%A6%86-html%E4%BB%A3%E7%A0%81%E6%B3%A8%E5%85%A5%E5%99%A8)
+> 参考：
+阡濯的[【SillyTavern / ST酒馆】html代码注入器](https://greasyfork.org/zh-CN/scripts/503174-sillytavern-st%E9%85%92%E9%A6%86-html%E4%BB%A3%E7%A0%81%E6%B3%A8%E5%85%A5%E5%99%A8)
+酒馆官方扩展 [Dynamic Audio](https://github.com/SillyTavern/Extension-Audio)
 
 ---
 
@@ -10,9 +12,10 @@
 
 此扩展允许你在SillyTavern中运行外部JavaScript代码。由于SillyTavern默认不支持直接执行JavaScript代码，这个扩展通过使用iframe来隔离和执行脚本，从而让你在某些受限的上下文中运行外部脚本。
 #### 使用方法
-使用代码块包裹需要渲染的代码部分,如果代码块中没有同时存在`<body>`和`</body>`标签，则不进行渲染。
+使用代码块包裹需要渲染的代码部分，如果代码块中没有同时存在`<body>`和`</body>`标签，则不进行渲染。
 #### 示例
-```html
+````html
+```
 <html>
   <head>
     <style>
@@ -36,6 +39,7 @@
   </body>
 </html>
 ```
+````
 - **说明**：
   - body标签的父容器宽度已设定为聊天框的宽度，即对于body的宽度设定为width:50%时，将使其宽度以及iframe的宽度设定为聊天框的一半。你还可以使用`var(--parent-width)`来基于聊天框宽度设定样式。
 
@@ -53,7 +57,7 @@ triggerSlash(commandText);
 ```javascript
 triggerSlash('/echo hello!');
 ```
-执行 SillyTavern后页面将会弹出提示语 `hello!`
+执行后SillyTavern页面将会弹出提示语 `hello!`
 ### 变量操作
 扩展提供了两个函数用于获取和设置局部变量，这两个函数分别是 `getVariables()` 和 `setVariables()`。这些函数允许 `iframe` 中的脚本与主页面进行交互，从而实现持久化的状态管理。
 #### 1. `getVariables()` 函数
@@ -76,8 +80,7 @@ exampleUsage();
 ```
 
 - **说明**：
-  - 主页面会向 `iframe` 返回当前的局部变量。
-  - 变量会显示在浏览器的控制台中。
+  - SillyTavern会向 `iframe` 返回当前的局部变量。
 
 #### 2. `setVariables(newVariables)`函数
 
@@ -111,13 +114,13 @@ exampleUsage();
 
 - **说明**：
   - 如果键名一致，则更新值；如果不一致，则新增变量。
-  - 主页面会更新这些局部变量，之后可以通过 `getVariables()` 函数再次获取到这些变量。
+  - SillyTavern会更新这些局部变量，之后可以通过 `getVariables()` 函数再次获取到这些变量。
 
 ## 播放器功能
 
 用于解决iframe之间难以继承播放进度的问题，变量操作的延伸功能。
 
-### 基于酒馆扩展[Dynamic Audio](https://github.com/SillyTavern/Extension-Audio)的改动
+### 基于Dynamic Audio的改动
 
 - :wastebasket: 删除根据表情图切歌的功能
 
@@ -144,9 +147,7 @@ exampleUsage();
 #### 1.播放器控制
 
 ```
-
 /audioenable [type=bgm|ambient] [state=true|flase]?
-
 ```
 
 控制音乐播放器或音效播放器的开启与关闭。
@@ -162,9 +163,7 @@ exampleUsage();
 #### 2.导入音频
 
 ```
-
 /audioimport [type=bgm|ambient]  [play=true|flase]? url
-
 ```
 
 导入音频链接到播放列表并播放
@@ -184,9 +183,7 @@ exampleUsage();
 #### 3.选择音频
 
 ```
-
 audioselect [type=bgm|ambient] url
-
 ```
 
 选择指定的音频并播放
@@ -200,9 +197,7 @@ audioselect [type=bgm|ambient] url
 #### 4.播放或暂停
 
 ```
-
 /audioplay [type=bgm|ambient] [play=true|flase]?
-
 ```
 
 - type:音乐或音效
