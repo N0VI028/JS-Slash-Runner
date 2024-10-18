@@ -205,3 +205,15 @@ exampleUsage();
 - play:播放或暂停，不填写默认为true [可选]
 
 例：`/audioplay type=ambient play=false`
+
+#### 5.模式切换
+
+```
+/audiomode [type=bgm|ambient] [mode=repeat|random|single|stop]
+```
+
+- type:音乐或音效
+
+- mode:播放模式，分别是列表循环、随机播放、单曲循环、播完停止
+
+例：`/audiomode type=ambient mode=random`

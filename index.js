@@ -1519,7 +1519,120 @@ jQuery(async () => {
     `,
     })
   );
+  SlashCommandParser.addCommandObject(
+    SlashCommand.fromProps({
+      name: "audiomode",
+      callback: toggleAudioMode,
+      namedArgumentList: [
+        SlashCommandNamedArgument.fromProps({
+          name: "type",
+          description: "选择控制的播放器 (bgm 或 ambient)",
+          typeList: [ARGUMENT_TYPE.STRING],
+          enumList: [
+            new SlashCommandEnumValue(
+              "bgm",
+              null,
+              enumTypes.enum,
+              enumIcons.file
+            ),
+            new SlashCommandEnumValue(
+              "ambient",
+              null,
+              enumTypes.enum,
+              enumIcons.file
+            ),
+          ],
+          isRequired: true,
+        }),
+        SlashCommandNamedArgument.fromProps({
+          name: "mode",
+          description: "选择播放模式",
+          typeList: [ARGUMENT_TYPE.STRING],
+          enumList: [
+            new SlashCommandEnumValue(
+              "repeat",
+              null,
+              enumTypes.enum,
+              enumIcons.loop
+            ),
+            new SlashCommandEnumValue(
+              "random",
+              null,
+              enumTypes.enum,
+              enumIcons.shuffle
+            ),
+            new SlashCommandEnumValue(
+              "single",
+              null,
+              enumTypes.enum,
+              enumIcons.redo
+            ),
+            new SlashCommandEnumValue(
+              "stop",
+              null,
+              enumTypes.enum,
+              enumIcons.stop
+            ),
+          ],
+          isRequired: true,
+        }),
+      ],
+      helpString: `
+        <div>
+            切换音乐播放器或音效播放器的播放模式。
+        </div>
+        <div>
+            <strong>Example:</strong>
+            <ul>
+                <li>
+                    <pre><code>/audiomode type=bgm mode=repeat</code></pre>
+                    将音乐播放器的模式设置为循环播放。
+                </li>
+                <li>
+                    <pre><code>/audiomode type=ambient mode=random</code></pre>
+                    将音效播放器的模式设置为随机播放。
+                </li>
+            </ul>
+        </div>
+      `,
+    })
+  );
 });
+
+async function toggleAudioMode(args) {
+  const type = args.type.toLowerCase();
+  const mode = args.mode.toLowerCase();
+
+  if (!["bgm", "ambient"].includes(type) || !["repeat", "random", "single", "stop"].includes(mode)) {
+    console.warn("WARN: Invalid arguments for /audiomode command");
+    return "";
+  }
+
+  if (type === "bgm") {
+    extension_settings[extensionName].audio.bgm_mode = mode;
+    const iconMap = {
+      repeat: "fa-repeat",
+      random: "fa-random",
+      single: "fa-redo-alt",
+      stop: "fa-cancel",
+    };
+    $("#audio_bgm_mode_icon").removeClass("fa-repeat fa-random fa-redo-alt fa-cancel");
+    $("#audio_bgm_mode_icon").addClass(iconMap[mode]);
+  } else if (type === "ambient") {
+    extension_settings[extensionName].audio.ambient_mode = mode;
+    const iconMap = {
+      repeat: "fa-repeat",
+      random: "fa-random",
+      single: "fa-redo-alt",
+      stop: "fa-cancel",
+    };
+    $("#audio_ambient_mode_icon").removeClass("fa-repeat fa-random fa-redo-alt fa-cancel");
+    $("#audio_ambient_mode_icon").addClass(iconMap[mode]);
+  }
+
+  saveSettingsDebounced();
+  return "";
+}
 
 async function togglePlayer(args, value) {
   const state = args.state ? args.state.toLowerCase() : "true";
