@@ -437,7 +437,19 @@ async function handleIframeCommand(event) {
         chat_metadata.variables = {};
       }
       const variables = chat_metadata?.variables || {};
-
+      for (const key in variables) {
+        if (
+          variables.hasOwnProperty(key) &&
+          typeof variables[key] === "string"
+        ) {
+          try {
+            const parsedValue = JSON.parse(variables[key]);
+            if (Array.isArray(parsedValue)) {
+              variables[key] = parsedValue;
+            }
+          } catch (e) {}
+        }
+      }
       event.source.postMessage({ variables: variables }, "*");
     } else if (event.data.request === "setVariables") {
       const newVariables = event.data.data;
@@ -1603,7 +1615,10 @@ async function toggleAudioMode(args) {
   const type = args.type.toLowerCase();
   const mode = args.mode.toLowerCase();
 
-  if (!["bgm", "ambient"].includes(type) || !["repeat", "random", "single", "stop"].includes(mode)) {
+  if (
+    !["bgm", "ambient"].includes(type) ||
+    !["repeat", "random", "single", "stop"].includes(mode)
+  ) {
     console.warn("WARN: Invalid arguments for /audiomode command");
     return "";
   }
@@ -1616,7 +1631,9 @@ async function toggleAudioMode(args) {
       single: "fa-redo-alt",
       stop: "fa-cancel",
     };
-    $("#audio_bgm_mode_icon").removeClass("fa-repeat fa-random fa-redo-alt fa-cancel");
+    $("#audio_bgm_mode_icon").removeClass(
+      "fa-repeat fa-random fa-redo-alt fa-cancel"
+    );
     $("#audio_bgm_mode_icon").addClass(iconMap[mode]);
   } else if (type === "ambient") {
     extension_settings[extensionName].audio.ambient_mode = mode;
@@ -1626,7 +1643,9 @@ async function toggleAudioMode(args) {
       single: "fa-redo-alt",
       stop: "fa-cancel",
     };
-    $("#audio_ambient_mode_icon").removeClass("fa-repeat fa-random fa-redo-alt fa-cancel");
+    $("#audio_ambient_mode_icon").removeClass(
+      "fa-repeat fa-random fa-redo-alt fa-cancel"
+    );
     $("#audio_ambient_mode_icon").addClass(iconMap[mode]);
   }
 
