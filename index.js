@@ -233,6 +233,8 @@ async function renderMessagesInIframes() {
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index}`;
       iframe.style.width = "100%";
+      iframe.style.maxWidth = "100%";
+      iframe.style.margin = "0 auto";
       iframe.style.border = "none";
 
       const iframeContent = `
@@ -258,6 +260,14 @@ async function renderMessagesInIframes() {
         <script>
           window.addEventListener("DOMContentLoaded", function () {
             window.parent.postMessage("domContentLoaded", "*");
+          });
+        </script>
+        <script>
+          window.addEventListener("message", function (event) {
+            if (event.data.request === "updateWidth") {
+            const newWidth = event.data.newWidth;
+            document.documentElement.style.setProperty("--parent-width", newWidth + "px");
+            }
           });
         </script>
         <script>
@@ -344,13 +354,22 @@ function adjustIframeHeight(iframe) {
 
 function observeIframeContent(iframe) {
   const doc = iframe.contentWindow.document.body;
-
+  const mesElement = iframe.parentElement;
   const resizeObserver = new ResizeObserver(() => {
     adjustIframeWidth(iframe);
     adjustIframeHeight(iframe);
   });
 
   resizeObserver.observe(doc);
+  const mesResizeObserver = new ResizeObserver(() => {
+    const mesTextWidth = mesElement.clientWidth;
+    iframe.contentWindow.postMessage(
+      { request: "updateWidth", newWidth: mesTextWidth },
+      "*"
+    );
+  });
+
+  mesResizeObserver.observe(mesElement); 
 }
 function extractTextFromCode(codeElement) {
   let textContent = "";
