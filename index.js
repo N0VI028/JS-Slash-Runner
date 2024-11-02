@@ -4,7 +4,6 @@ import {
   saveSettingsDebounced,
   chat_metadata,
   updateMessageBlock,
-  // addCopyToCodeBlocks,
 } from "../../../../script.js";
 
 import {
@@ -210,7 +209,7 @@ async function renderMessagesInIframes() {
       return;
     }
 
-    const codeElements = mesTextContainer.querySelectorAll("code[class]");
+    const codeElements = mesTextContainer.querySelectorAll("pre");
     if (!codeElements.length) {
       return;
     }
@@ -225,16 +224,9 @@ async function renderMessagesInIframes() {
       ) {
         return;
       }
-      /*       const hasCodeTag = /<code>[\s\S]*?<\/code>/.test(extractedText);
-
-      if (hasCodeTag) {
-        extractedText = formatCodeBlocks(extractedText);
-      } */
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index}`;
-      iframe.style.width = "100%";
-      iframe.style.maxWidth = "100%";
-      iframe.style.margin = "0 auto";
+      iframe.style.margin = "5px auto";
       iframe.style.border = "none";
 
       const iframeContent = `
@@ -314,10 +306,6 @@ async function renderMessagesInIframes() {
         doc.open();
         doc.write(iframeContent);
         doc.close();
-        /*         if (hasCodeTag) {
-          addCopyToCodeBlocks(doc.body);
-          injectStylesIntoIframe(iframe);
-        } */
         observeIframeContent(iframe);
       };
 
@@ -329,48 +317,58 @@ async function renderMessagesInIframes() {
 window.addEventListener("message", function (event) {
   if (event.data === "domContentLoaded") {
     const iframe = event.source.frameElement;
-    adjustIframeHeight(iframe);
     adjustIframeWidth(iframe);
+    adjustIframeHeight(iframe);
   }
 });
-
 function adjustIframeWidth(iframe) {
   const doc = iframe.contentWindow.document;
-  const contentWidth = doc.body.scrollWidth;
-  const parentWidth = iframe.parentElement.clientWidth;
-
-  iframe.style.width = Math.min(contentWidth, parentWidth) + "px";
+  const bodyWidth = doc.body.scrollWidth;
+  iframe.style.width = bodyWidth + 6 + "px";
 }
-
 function adjustIframeHeight(iframe) {
   const doc = iframe.contentWindow.document;
-  const body = doc.body;
-  const html = doc.documentElement;
-  const bodyHeight = body.scrollHeight || body.offsetHeight;
+  const newHeight = doc.body.scrollHeight;
+  const currentHeight = parseFloat(iframe.style.height) || 0;
 
-  html.style.height = bodyHeight + "px";
-  iframe.style.height = bodyHeight + "px";
+  if (Math.abs(currentHeight - newHeight) > 1) {
+    iframe.style.height = newHeight + 6 + "px";
+  }
 }
 
 function observeIframeContent(iframe) {
+  if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body) {
+    return;
+  }
+
   const doc = iframe.contentWindow.document.body;
   const mesElement = iframe.parentElement;
+
   const resizeObserver = new ResizeObserver(() => {
     adjustIframeWidth(iframe);
     adjustIframeHeight(iframe);
   });
 
   resizeObserver.observe(doc);
+
   const mesResizeObserver = new ResizeObserver(() => {
-    const mesTextWidth = mesElement.clientWidth;
-    iframe.contentWindow.postMessage(
-      { request: "updateWidth", newWidth: mesTextWidth },
-      "*"
-    );
+    const computedStyle = window.getComputedStyle(mesElement);
+    const paddingLeft = parseFloat(computedStyle.paddingLeft);
+    const paddingRight = parseFloat(computedStyle.paddingRight);
+
+    const mesTextWidth = mesElement.clientWidth - paddingLeft - paddingRight;
+
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(
+        { request: "updateWidth", newWidth: mesTextWidth },
+        "*"
+      );
+    }
   });
 
-  mesResizeObserver.observe(mesElement); 
+  mesResizeObserver.observe(mesElement);
 }
+
 function extractTextFromCode(codeElement) {
   let textContent = "";
 
@@ -385,66 +383,7 @@ function extractTextFromCode(codeElement) {
   return textContent;
 }
 
-/* function formatCodeBlocks(extractedText) {
-  extractedText = extractedText.replace(
-    /<code>([\s\S]*?)<\/code>/g,
-    function (match, codeContent) {
-      const processedContent = codeContent.replace(
-        /"(.+?)"|(\u201C.+?\u201D)/g,
-        function (quoteMatch, p1, p2) {
-          if (p1) {
-            return `"${p1}"`;
-          } else if (p2) {
-            return `"${p2.replace(/\u201C|\u201D/g, "")}"`;
-          } else {
-            return quoteMatch;
-          }
-        }
-      );
-      return `<code>${processedContent}</code>`;
-    }
-  );
 
-  extractedText = extractedText.replaceAll("$", "$$");
-  extractedText = extractedText.replaceAll("$", "$$");
-  extractedText = extractedText.replace(
-    /<code(.*)>[\s\S]*?<\/code>/g,
-    function (match) {
-      return match.replace(/\n/gm, "\u0000");
-    }
-  );
-  extractedText = extractedText.replace(/\u0000/g, "\n");
-
-  extractedText = extractedText.replace(
-    /<code(.*)>[\s\S]*?<\/code>/g,
-    function (match) {
-      return match.replace(/&/g, "&");
-    }
-  );
-
-  extractedText = extractedText.replace(
-    /<code>([\s\S]*?)<\/code>/g,
-    function (match, codeContent) {
-      return `<pre><code>${codeContent.trim()}</code></pre>`;
-    }
-  );
-
-  return extractedText;
-} */
-
-/* function injectStylesIntoIframe(iframe) {
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-  const head = iframeDoc.head || iframeDoc.getElementsByTagName("head")[0];
-
-  const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
-
-  stylesheets.forEach((stylesheet) => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = stylesheet.href;
-    head.appendChild(link);
-  });
-} */
 
 async function handleIframeCommand(event) {
   if (event.data) {
