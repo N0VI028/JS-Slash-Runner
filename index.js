@@ -719,6 +719,15 @@ async function onBGMCooldownInput() {
 }
 
 async function playAudio(type) {
+  if (!extension_settings[extensionName].audio_setting) {
+    return;
+  }
+  if (type === "bgm" && !extension_settings[extensionName].audio.bgm_enabled) {
+    return;
+  }
+  if (type === "ambient" && !extension_settings[extensionName].audio.ambient_enabled) {
+    return;
+  }
   const audioElement = $(`#audio_${type}`)[0];
   const playPauseIcon = $(`#audio_${type}_play_pause_icon`);
 
