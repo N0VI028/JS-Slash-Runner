@@ -383,8 +383,6 @@ function extractTextFromCode(codeElement) {
   return textContent;
 }
 
-
-
 async function handleIframeCommand(event) {
   if (event.data) {
     if (event.data.request === "command") {
@@ -1643,13 +1641,13 @@ async function togglePlayer(args, value) {
 }
 
 async function togglePlayPauseCommand(args, value) {
-  if (!args?.type || !args?.action) {
+  if (!args?.type) {
     console.warn("WARN: Missing arguments for /audioplaypause command");
     return "";
   }
 
   const type = args.type.toLowerCase();
-  const play = args.action.toLowerCase();
+  const play = args.play ? args.play.toLowerCase() : "true";
 
   if (type === "bgm") {
     if (play === "true") {
@@ -1675,13 +1673,13 @@ async function handleAudioImportCommand(args, text) {
   }
 
   const type = args.type.toLowerCase();
+  const play = args.play ? args.play.toLowerCase() : "true";
 
   const urlArray = text
     .split(",")
     .map((url) => url.trim())
     .filter((url) => url !== "")
     .filter((url, index, self) => self.indexOf(url) === index);
-
   if (urlArray.length === 0) {
     console.warn("WARN: Invalid or empty URLs provided.");
     return "";
@@ -1709,7 +1707,7 @@ async function handleAudioImportCommand(args, text) {
     updateAmbientSelect();
   }
 
-  if (args.play && urlArray[0]) {
+  if (play === "true" && urlArray[0]) {
     const selectedUrl = urlArray[0];
     if (type === "bgm") {
       extension_settings[extensionName].audio.bgm_selected = selectedUrl;
