@@ -50,6 +50,7 @@ const events = [
   event_types.CHAT_CHANGED,
   event_types.MESSAGE_SWIPED,
   event_types.MESSAGE_UPDATED,
+  event_types.MESSAGE_DELETED,
 ];
 
 const defaultSettings = {
