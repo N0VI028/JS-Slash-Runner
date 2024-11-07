@@ -920,7 +920,7 @@ async function updateBGM(isUserInput = false, newChat = false) {
 
   const audio = $("#audio_bgm")[0];
 
-  if (audio.src === audio_url && !bgmEnded) {
+  if (decodeURIComponent(audio.src) === decodeURIComponent(audio_url) && !bgmEnded) {
     return;
   }
   bgmEnded = false;
@@ -980,7 +980,8 @@ async function updateAmbient(isUserInput = false) {
   }
 
   const audio = $("#audio_ambient")[0];
-  if (audio.src === audio_url && !ambientEnded) {
+
+  if (decodeURIComponent(audio.src) === decodeURIComponent(audio_url) && !ambientEnded) {
     return;
   }
 
