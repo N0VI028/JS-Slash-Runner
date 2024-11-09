@@ -167,3 +167,12 @@ padding-right: 5px;
 #enable_ambient:not(:checked) ~ .ambient-toggle-off {
     display: inline-block;
 }
+
+.audio-url-label {
+    align-items: center;
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 10px;
+    padding: 0 5px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}

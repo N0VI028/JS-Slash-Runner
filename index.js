@@ -868,6 +868,16 @@ async function openUrlManagerPopup(type) {
   const urlManager = $(
     await renderExtensionTemplateAsync(`${extensionFolderPath}`, "urlManager")
   );
+  urlManager.prepend(`
+    <style>
+      #saved_audio_url.empty::after {
+        content: "暂无音频";
+        color: #999;
+        margin-top: 20px;
+        font-size: 12px;
+      }
+    </style>
+  `);
   const savedAudioUrl = urlManager.find("#saved_audio_url").empty();
   const urlTemplate = $(
     await renderExtensionTemplateAsync(`${extensionFolderPath}`, "urlTemplate")
@@ -881,14 +891,21 @@ async function openUrlManagerPopup(type) {
   let urlValue = chat_metadata.variables[typeKey];
   if (!urlValue) {
     console.warn(`No ${typeKey} found in chat_metadata.variables`);
-    return null;
-  }
+    urlValue = []; // 初始化为空数组，确保后续逻辑正常运行
 
-  try {
-    urlValue = JSON.parse(urlValue);
-  } catch (error) {
-    console.error(`Failed to parse ${typeKey}:`, error);
-    return null;
+    // 给 #saved_audio_url 添加 'empty' 类以显示提示文字
+    savedAudioUrl.addClass("empty");
+  } else {
+    try {
+      urlValue = JSON.parse(urlValue);
+      if (urlValue.length === 0) {
+        // 如果解析后数组为空，也添加 'empty' 类
+        savedAudioUrl.addClass("empty");
+      }
+    } catch (error) {
+      console.error(`Failed to parse ${typeKey}:`, error);
+      return null;
+    }
   }
 
   const updatedUrls = {};
@@ -960,6 +977,9 @@ async function openUrlManagerPopup(type) {
 
       urlHtml.remove();
       newUrlOrder = newUrlOrder.filter((url) => url !== currentUrl);
+      if (newUrlOrder.length === 0) {
+        savedAudioUrl.addClass("empty");
+      }
     });
 
     container.append(urlHtml);
@@ -977,6 +997,7 @@ async function openUrlManagerPopup(type) {
     }
 
     importedUrls = [...importedUrls, ...newUrls];
+    savedAudioUrl.removeClass("empty");
 
     newUrls.forEach((url) => {
       renderUrl(savedAudioUrl, url);
@@ -1000,7 +1021,6 @@ async function openUrlManagerPopup(type) {
   });
 
   if (result) {
-    chat_metadata.variables[typeKey] = JSON.stringify(newUrlOrder);
     for (let originalUrl in updatedUrls) {
       const newUrl = updatedUrls[originalUrl];
       const index = newUrlOrder.indexOf(originalUrl);
