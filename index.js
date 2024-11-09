@@ -12,7 +12,7 @@ import {
   getContext,
   saveMetadataDebounced,
 } from "../../../../scripts/extensions.js";
-
+import { getSortableDelay } from "../../../../scripts/utils.js";
 import { SlashCommandParser } from "../../../../scripts/slash-commands/SlashCommandParser.js";
 import { SlashCommand } from "../../../../scripts/slash-commands/SlashCommand.js";
 import {
@@ -194,9 +194,13 @@ async function renderMessagesInIframes() {
     );
 
     if (iframes.length > 0) {
-      iframes.forEach((iframe) => {
-        iframe.remove();
-      });
+      const iframeArray = Array.from(iframes);
+
+      await Promise.all(
+        iframeArray.map(async (iframe) => {
+          await destroyIframe(iframe);
+        })
+      );
       updateMessageBlock(messageId, message);
     }
   }
@@ -315,6 +319,42 @@ async function renderMessagesInIframes() {
     });
   });
 }
+
+function destroyIframe(iframe) {
+  return new Promise((resolve) => {
+    iframe.src = "about:blank";
+
+    let isResolved = false;
+
+    const timeoutDuration = 3000;
+    const timeout = setTimeout(() => {
+      if (!isResolved) {
+        iframe.remove();
+        isResolved = true;
+        resolve();
+      }
+    }, timeoutDuration);
+
+    iframe.onload = () => {
+      if (!isResolved) {
+        clearTimeout(timeout);
+        iframe.remove();
+        isResolved = true;
+        resolve();
+      }
+    };
+
+    if (iframe.src === "about:blank") {
+      if (!isResolved) {
+        clearTimeout(timeout);
+        iframe.remove();
+        isResolved = true;
+        resolve();
+      }
+    }
+  });
+}
+
 window.addEventListener("message", function (event) {
   if (event.data === "domContentLoaded") {
     const iframe = event.source.frameElement;
@@ -726,7 +766,10 @@ async function playAudio(type) {
   if (type === "bgm" && !extension_settings[extensionName].audio.bgm_enabled) {
     return;
   }
-  if (type === "ambient" && !extension_settings[extensionName].audio.ambient_enabled) {
+  if (
+    type === "ambient" &&
+    !extension_settings[extensionName].audio.ambient_enabled
+  ) {
     return;
   }
   const audioElement = $(`#audio_${type}`)[0];
@@ -771,7 +814,7 @@ async function togglePlayPause(type) {
   }
 }
 
-async function handleUrlImportClick(type) {
+async function handleUrlManagerClick(type) {
   if (!chat_metadata.variables) {
     chat_metadata.variables = {};
   }
@@ -780,7 +823,7 @@ async function handleUrlImportClick(type) {
     ? JSON.parse(chat_metadata.variables[type])
     : [];
 
-  const newUrls = await openUrlImportPopup();
+  const newUrls = await openUrlManagerPopup(type);
 
   if (!newUrls) {
     console.debug(`${type} URL导入已取消`);
@@ -801,12 +844,11 @@ async function handleUrlImportClick(type) {
 }
 
 async function openUrlImportPopup() {
-  const html = await renderExtensionTemplateAsync(
-    `${extensionFolderPath}`,
-    "importurl"
+  const input = await callGenericPopup(
+    "输入要导入的网络音频链接（每行一个）",
+    POPUP_TYPE.INPUT,
+    ""
   );
-
-  const input = await callGenericPopup(html, POPUP_TYPE.INPUT, "");
 
   if (!input) {
     console.debug("URL import cancelled");
@@ -822,12 +864,164 @@ async function openUrlImportPopup() {
   return Array.from(new Set(urlArray));
 }
 
+async function openUrlManagerPopup(type) {
+  const urlManager = $(
+    await renderExtensionTemplateAsync(`${extensionFolderPath}`, "urlManager")
+  );
+  const savedAudioUrl = urlManager.find("#saved_audio_url").empty();
+  const urlTemplate = $(
+    await renderExtensionTemplateAsync(`${extensionFolderPath}`, "urlTemplate")
+  );
+
+  if (!chat_metadata.variables) {
+    chat_metadata.variables = {};
+  }
+
+  const typeKey = type === "bgmurl" ? "bgmurl" : "ambienturl";
+  let urlValue = chat_metadata.variables[typeKey];
+  if (!urlValue) {
+    console.warn(`No ${typeKey} found in chat_metadata.variables`);
+    return null;
+  }
+
+  try {
+    urlValue = JSON.parse(urlValue);
+  } catch (error) {
+    console.error(`Failed to parse ${typeKey}:`, error);
+    return null;
+  }
+
+  const updatedUrls = {};
+  let newUrlOrder = [...urlValue];
+  let importedUrls = [];
+  function renderUrl(container, url) {
+    const urlHtml = urlTemplate.clone();
+    let fileName;
+    if (url.includes("/")) {
+      const parts = url.split("/");
+      fileName = parts[parts.length - 1] || parts[parts.length - 2];
+    } else {
+      fileName = url;
+    }
+
+    const id = fileName.replace(/\./g, "-");
+
+    urlHtml.attr("id", id);
+    urlHtml.find(".audio_url_name").text(fileName);
+
+    urlHtml.find(".audio_url_name").attr("data-url", url);
+
+    urlHtml.find(".edit_existing_url").on("click", async function () {
+      const currentUrl = urlHtml.find(".audio_url_name").attr("data-url");
+
+      if (!currentUrl) {
+        console.error("No URL found for this element.");
+        return;
+      }
+
+      const inputUrl = await callGenericPopup("", POPUP_TYPE.INPUT, currentUrl);
+
+      if (!inputUrl) {
+        return;
+      }
+
+      const newFileName = inputUrl.split("/").pop();
+
+      const newId = newFileName.replace(/\./g, "-");
+
+      urlHtml.attr("id", newId);
+      urlHtml.find(".audio_url_name").text(newFileName);
+      urlHtml.find(".audio_url_name").attr("data-url", inputUrl);
+
+      updatedUrls[currentUrl] = inputUrl;
+    });
+
+    urlHtml.find(".delete_regex").on("click", async function () {
+      const confirmDelete = await callGenericPopup(
+        "确认要删除此链接?此操作无法撤回",
+        POPUP_TYPE.CONFIRM
+      );
+
+      if (!confirmDelete) {
+        return;
+      }
+
+      const currentUrl = urlHtml.find(".audio_url_name").attr("data-url");
+
+      if (chat_metadata.variables && chat_metadata.variables[typeKey]) {
+        let urlList = JSON.parse(chat_metadata.variables[typeKey]);
+
+        urlList = urlList.filter((item) => item !== currentUrl);
+
+        chat_metadata.variables[typeKey] = JSON.stringify(urlList);
+
+        saveMetadataDebounced();
+      }
+
+      urlHtml.remove();
+      newUrlOrder = newUrlOrder.filter((url) => url !== currentUrl);
+    });
+
+    container.append(urlHtml);
+  }
+
+  urlValue.forEach((url) => {
+    renderUrl(savedAudioUrl, url);
+  });
+  urlManager.find("#import_button").on("click", async function () {
+    const newUrls = await openUrlImportPopup(typeKey);
+
+    if (!newUrls) {
+      console.debug(`${typeKey} URL导入已取消`);
+      return;
+    }
+
+    importedUrls = [...importedUrls, ...newUrls];
+
+    newUrls.forEach((url) => {
+      renderUrl(savedAudioUrl, url);
+      newUrlOrder.push(url);
+    });
+  });
+  savedAudioUrl.sortable({
+    delay: getSortableDelay(),
+    handle: ".drag-handle",
+    stop: function () {
+      newUrlOrder = [];
+      savedAudioUrl.find(".audio_url_name").each(function () {
+        const newUrl = $(this).attr("data-url");
+        newUrlOrder.push(newUrl);
+      });
+    },
+  });
+  const result = await callGenericPopup(urlManager, POPUP_TYPE.CONFIRM, "", {
+    okButton: `确认`,
+    cancelButton: `取消`,
+  });
+
+  if (result) {
+    chat_metadata.variables[typeKey] = JSON.stringify(newUrlOrder);
+    for (let originalUrl in updatedUrls) {
+      const newUrl = updatedUrls[originalUrl];
+      const index = newUrlOrder.indexOf(originalUrl);
+      if (index !== -1) {
+        newUrlOrder[index] = newUrl;
+      }
+    }
+    chat_metadata.variables[typeKey] = JSON.stringify(newUrlOrder);
+    saveMetadataDebounced();
+    if (typeKey === "bgmurl") {
+      updateBGMSelect();
+    } else if (typeKey === "ambienturl") {
+      updateAmbientSelect();
+    }
+  }
+}
+
 async function refreshAudioResources() {
   list_BGMS = await getBgmUrl();
   list_ambients = await getAmbientUrl();
-
   updateBGMSelect();
-
   updateAmbientSelect();
 }
 
@@ -920,7 +1114,10 @@ async function updateBGM(isUserInput = false, newChat = false) {
 
   const audio = $("#audio_bgm")[0];
 
-  if (decodeURIComponent(audio.src) === decodeURIComponent(audio_url) && !bgmEnded) {
+  if (
+    decodeURIComponent(audio.src) === decodeURIComponent(audio_url) &&
+    !bgmEnded
+  ) {
     return;
   }
   bgmEnded = false;
@@ -981,7 +1178,10 @@ async function updateAmbient(isUserInput = false) {
 
   const audio = $("#audio_ambient")[0];
 
-  if (decodeURIComponent(audio.src) === decodeURIComponent(audio_url) && !ambientEnded) {
+  if (
+    decodeURIComponent(audio.src) === decodeURIComponent(audio_url) &&
+    !ambientEnded
+  ) {
     return;
   }
 
@@ -1215,26 +1415,18 @@ jQuery(async () => {
     updateAmbient();
   });
 
-  $("#bgm_import_button").on("click", async () => {
-    await handleUrlImportClick("bgmurl");
+  $("#bgm_manager_button").on("click", async () => {
+    await handleUrlManagerClick("bgmurl");
     await refreshAudioResources();
   });
 
-  $("#ambient_import_button").on("click", async () => {
-    await handleUrlImportClick("ambienturl");
+  $("#ambient_manager_button").on("click", async () => {
+    await handleUrlManagerClick("ambienturl");
     await refreshAudioResources();
   });
 
   $("#audio_refresh_assets").on("click", async () => {
     await refreshAudioResources();
-  });
-
-  $("#bgm_import_button").on("click", () => {
-    handleUrlImportClick("bgmurl");
-  });
-
-  $("#ambient_import_button").on("click", async function () {
-    await handleUrlImportClick("ambienturl");
   });
 
   $("#audio_bgm_play_pause").on("click", async () => {
@@ -1281,7 +1473,6 @@ jQuery(async () => {
 
   initializeProgressBar("bgm");
   initializeProgressBar("ambient");
-
   SlashCommandParser.addCommandObject(
     SlashCommand.fromProps({
       name: "audioselect",

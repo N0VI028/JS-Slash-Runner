@@ -3,7 +3,7 @@ display: inline-block;
 margin: 5px 0;
 padding-right: 5px;
 }
-.import-button {
+.manager-button {
     margin-left: auto;
 }
 .fa-refresh{
@@ -102,9 +102,9 @@ padding-right: 5px;
 }
 
 .progress-div {
-    flex-grow: 1; /* 使进度条占满剩余的空间 */
+    flex-grow: 1; 
     display: flex;
-    align-items: center; /* 使进度条在垂直方向居中 */
+    align-items: center; 
 }
 
 .mute-div:hover + .vol,
