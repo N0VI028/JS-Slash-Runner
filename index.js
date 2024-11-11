@@ -44,14 +44,24 @@ let bgmEnded = true;
 let ambientEnded = true;
 let cooldownBGM = 0;
 
-const events = [
-  event_types.CHARACTER_MESSAGE_RENDERED,
-  event_types.USER_MESSAGE_RENDERED,
+const RENDER_MODES = {
+  FULL: "FULL",
+  INCREMENTAL: "INCREMENTAL",
+  PARTIAL: "PARTIAL",
+};
+
+const fullRenderEvents = [
   event_types.CHAT_CHANGED,
-  event_types.MESSAGE_SWIPED,
-  event_types.MESSAGE_UPDATED,
   event_types.MESSAGE_DELETED,
 ];
+
+const incrementalRenderEvents = [
+  event_types.MESSAGE_SWIPED,
+  event_types.CHARACTER_MESSAGE_RENDERED,
+  event_types.USER_MESSAGE_RENDERED,
+];
+
+const partialRenderEvents = [event_types.MESSAGE_EDITED];
 
 const defaultSettings = {
   activate_setting: false,
@@ -171,39 +181,57 @@ function loadSettings() {
     extension_settings[extensionName].audio.bgm_cooldown
   );
 }
+async function renderAllIframes() {
+  await renderMessagesInIframes(RENDER_MODES.FULL);
+}
 
-async function renderMessagesInIframes() {
+async function renderMessagesInIframes(
+  mode = RENDER_MODES.INCREMENTAL,
+  specificMesId = null
+) {
   if (!$("#activate_setting").prop("checked")) {
     return;
   }
 
   const chatContainer = document.getElementById("chat");
+  let messages;
 
-  const messages = chatContainer.querySelectorAll(".mes");
+  if (mode === RENDER_MODES.PARTIAL && specificMesId) {
+    const specificMessage = chatContainer.querySelector(`.mes[mesid="${specificMesId}"]`);
+    if (!specificMessage) {
+      console.warn(`未找到 mesid: ${specificMesId} 对应的消息元素。`);
+      return;
+    }
+    messages = [specificMessage];
+  } else {
+    messages = chatContainer.querySelectorAll(".mes");
+  }
   const context = getContext();
   const totalMessages = context.chat.length;
   const processDepth = parseInt($("#process_depth").val(), 10);
   const messagesToProcess =
     processDepth > 0 ? [...messages].slice(-processDepth) : messages;
   const messagesToCancel = totalMessages - processDepth;
-  for (let i = 0; i < messagesToCancel; i++) {
-    const message = context.chat[i];
-    const messageId = i;
-    const iframes = document.querySelectorAll(
-      `[id^="message-iframe-${messageId}-"]`
-    );
-
-    if (iframes.length > 0) {
-      const iframeArray = Array.from(iframes);
-
-      await Promise.all(
-        iframeArray.map(async (iframe) => {
-          await destroyIframe(iframe);
-        })
+  if (mode === RENDER_MODES.FULL) {
+    for (let i = 0; i < messagesToCancel; i++) {
+      const message = context.chat[i];
+      const messageId = i;
+      const iframes = document.querySelectorAll(
+        `[id^="message-iframe-${messageId}-"]`
       );
-      updateMessageBlock(messageId, message);
+
+      if (iframes.length > 0) {
+        const iframeArray = Array.from(iframes);
+        await Promise.all(
+          iframeArray.map(async (iframe) => {
+            await destroyIframe(iframe);
+          })
+        );
+        updateMessageBlock(messageId, message);
+      }
     }
   }
+
   const fragment = document.createDocumentFragment();
   messagesToProcess.forEach((message) => {
     const messageId = message.getAttribute("mesid");
@@ -227,6 +255,19 @@ async function renderMessagesInIframes() {
         !extractedText.includes("<body>") ||
         !extractedText.includes("</body>")
       ) {
+        return;
+      }
+
+      if (mode === RENDER_MODES.INCREMENTAL) {
+        const existingIframe = document.getElementById(
+          `message-iframe-${messageId}-${index}`
+        );
+        if (existingIframe) {
+          return;
+        }
+      }
+      if (mode === RENDER_MODES.PARTIAL && specificMesId && messageId !== specificMesId) {
+        console.warn(`跳过 mesid: ${messageId}，因为指定 mesid 为 ${specificMesId}`);
         return;
       }
       const iframe = document.createElement("iframe");
@@ -486,27 +527,76 @@ async function executeCommand(command) {
     console.error("Error executing slash command:", error);
   }
 }
+const handleFullRender = () => {
+  setTimeout(() => {
+    renderAllIframes();
+  }, 100);
+};
+
+const handleIncrementalRender = () => {
+  setTimeout(() => {
+    renderMessagesInIframes(RENDER_MODES.INCREMENTAL);
+  }, 100);
+};
+
+const handlePartialRender = (mesId) => {
+  const processDepth = parseInt($("#process_depth").val(), 10);
+  const context = getContext();
+  const totalMessages = context.chat.length;
+
+  if (processDepth > 0) {
+    const depthOffset = totalMessages - processDepth;
+    const messageIndex = parseInt(mesId, 10);
+
+    if (messageIndex < depthOffset) {
+      return;
+    }
+  }
+
+  setTimeout(() => {
+    renderMessagesInIframes(RENDER_MODES.PARTIAL, mesId);
+  }, 100);
+};
 
 async function onExtensionToggle() {
   const isEnabled = Boolean($("#activate_setting").prop("checked"));
   extension_settings[extensionName].activate_setting = isEnabled;
 
   const context = getContext();
+
   if (isEnabled) {
-    events.forEach((eventType) => {
-      eventSource.on(eventType, () => {
-        setTimeout(() => {
-          renderMessagesInIframes();
-        }, 100);
+    fullRenderEvents.forEach((eventType) => {
+      eventSource.on(eventType, handleFullRender);
+    });
+
+    await renderAllIframes();
+
+    incrementalRenderEvents.forEach((eventType) => {
+      eventSource.on(eventType, handleIncrementalRender);
+    });
+
+    partialRenderEvents.forEach((eventType) => {
+      eventSource.on(eventType, (mesId) => {
+        handlePartialRender(mesId);
       });
     });
-    renderMessagesInIframes();
+
     window.addEventListener("message", handleIframeCommand);
   } else {
-    events.forEach((eventType) => {
-      eventSource.removeListener(eventType, renderMessagesInIframes);
+    fullRenderEvents.forEach((eventType) => {
+      eventSource.removeListener(eventType, handleFullRender);
     });
+
+    incrementalRenderEvents.forEach((eventType) => {
+      eventSource.removeListener(eventType, handleIncrementalRender);
+    });
+
+    partialRenderEvents.forEach((eventType) => {
+      eventSource.removeListener(eventType, handlePartialRender);
+    });
+
     window.removeEventListener("message", handleIframeCommand);
+
     context.reloadCurrentChat();
   }
 
@@ -516,10 +606,11 @@ async function onExtensionToggle() {
 async function onDepthInput() {
   const processDepth = parseInt($("#process_depth").val(), 10);
   extension_settings[extensionName].process_depth = processDepth;
-  renderMessagesInIframes();
+
+  await renderAllIframes();
+
   saveSettingsDebounced();
 }
-
 eventSource.on(event_types.CHAT_CHANGED, async () => {
   const bgmPlayer = document.getElementById("audio_bgm");
   const ambientPlayer = document.getElementById("audio_ambient");
@@ -891,15 +982,13 @@ async function openUrlManagerPopup(type) {
   let urlValue = chat_metadata.variables[typeKey];
   if (!urlValue) {
     console.warn(`No ${typeKey} found in chat_metadata.variables`);
-    urlValue = []; // 初始化为空数组，确保后续逻辑正常运行
+    urlValue = [];
 
-    // 给 #saved_audio_url 添加 'empty' 类以显示提示文字
     savedAudioUrl.addClass("empty");
   } else {
     try {
       urlValue = JSON.parse(urlValue);
       if (urlValue.length === 0) {
-        // 如果解析后数组为空，也添加 'empty' 类
         savedAudioUrl.addClass("empty");
       }
     } catch (error) {
