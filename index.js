@@ -282,15 +282,13 @@ async function renderMessagesInIframes(
               :root {
                 --parent-width: ${mesTextWidth}px;
             }
-            html {
-              width: var(--parent-width); 
-          }
                   html, body {
                       margin: 0;
                       padding: 0;
                       overflow: hidden;
-                      max-width: var(--parent-width);
+                      max-width: var(--parent-width)!important;
                       width: var(--parent-width);
+                      box-sizing: border-box;
                   }
         </style>
       </head>
@@ -407,7 +405,7 @@ window.addEventListener("message", function (event) {
 function adjustIframeWidth(iframe) {
   const doc = iframe.contentWindow.document;
   const bodyWidth = doc.body.scrollWidth;
-  iframe.style.width = bodyWidth + "px";
+  iframe.style.width = bodyWidth + 6 + "px";
 }
 function adjustIframeHeight(iframe) {
   const doc = iframe.contentWindow.document;
@@ -415,7 +413,7 @@ function adjustIframeHeight(iframe) {
   const currentHeight = parseFloat(iframe.style.height) || 0;
 
   if (Math.abs(currentHeight - newHeight) > 1) {
-    iframe.style.height = newHeight + "px";
+    iframe.style.height = newHeight + 6 + "px";
   }
 }
 
