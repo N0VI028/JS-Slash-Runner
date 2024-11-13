@@ -274,6 +274,7 @@ async function renderMessagesInIframes(
       iframe.id = `message-iframe-${messageId}-${index}`;
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
+      iframe.style.width = "100%";
 
       const iframeContent = `
       <html>
@@ -398,18 +399,13 @@ function destroyIframe(iframe) {
 window.addEventListener("message", function (event) {
   if (event.data === "domContentLoaded") {
     const iframe = event.source.frameElement;
-    adjustIframeWidth(iframe);
     adjustIframeHeight(iframe);
   }
 });
-function adjustIframeWidth(iframe) {
-  const doc = iframe.contentWindow.document;
-  const bodyWidth = doc.body.scrollWidth;
-  iframe.style.width = bodyWidth + 6 + "px";
-}
+
 function adjustIframeHeight(iframe) {
   const doc = iframe.contentWindow.document;
-  const newHeight = doc.body.scrollHeight;
+  const newHeight = doc.documentElement.scrollHeight;
   const currentHeight = parseFloat(iframe.style.height) || 0;
 
   if (Math.abs(currentHeight - newHeight) > 1) {
@@ -426,7 +422,6 @@ function observeIframeContent(iframe) {
   const mesElement = iframe.parentElement;
 
   const resizeObserver = new ResizeObserver(() => {
-    adjustIframeWidth(iframe);
     adjustIframeHeight(iframe);
   });
 
