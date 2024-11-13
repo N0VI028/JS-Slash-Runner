@@ -290,6 +290,7 @@ async function renderMessagesInIframes(
                       padding: 0;
                       overflow: hidden;
                       max-width: var(--parent-width);
+                      width: var(--parent-width);
                   }
         </style>
       </head>
@@ -406,7 +407,7 @@ window.addEventListener("message", function (event) {
 function adjustIframeWidth(iframe) {
   const doc = iframe.contentWindow.document;
   const bodyWidth = doc.body.scrollWidth;
-  iframe.style.width = bodyWidth + 6 + "px";
+  iframe.style.width = bodyWidth + "px";
 }
 function adjustIframeHeight(iframe) {
   const doc = iframe.contentWindow.document;
@@ -414,7 +415,7 @@ function adjustIframeHeight(iframe) {
   const currentHeight = parseFloat(iframe.style.height) || 0;
 
   if (Math.abs(currentHeight - newHeight) > 1) {
-    iframe.style.height = newHeight + 6 + "px";
+    iframe.style.height = newHeight + "px";
   }
 }
 
