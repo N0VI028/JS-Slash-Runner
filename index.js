@@ -730,7 +730,6 @@ async function onTampermonkeyCompatibilityChange() {
     if (!tampermonkeyMessageListener) {
       tampermonkeyMessageListener = handleTampermonkeyMessages;
       window.addEventListener("message", tampermonkeyMessageListener);
-      document.querySelector(`input[name="display-mode"][value="${displayMode}"]`).checked = true;
       createGlobalAudioManager();
     }
   } else {
