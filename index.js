@@ -38,6 +38,7 @@ const extensionFolderPath = `third-party/${extensionName}`;
 
 const audioCache = {};
 
+let tampermonkeyMessageListener = null;
 let list_BGMS = null;
 let list_ambients = null;
 let bgmEnded = true;
@@ -65,6 +66,7 @@ const partialRenderEvents = [event_types.MESSAGE_EDITED];
 
 const defaultSettings = {
   activate_setting: false,
+  tampermonkey_compatibility: false,
   audio_setting: false,
   bgm_enabled: true,
   ambient_enabled: true,
@@ -98,7 +100,10 @@ function loadSettings() {
     extension_settings[extensionName].activate_setting
   );
   $("#process_depth").val(extension_settings[extensionName].process_depth || 0);
-
+  $("#tampermonkey_compatibility").prop(
+    "checked",
+    extension_settings[extensionName].tampermonkey_compatibility
+  );
   $("#audio_enabled").prop(
     "checked",
     extension_settings[extensionName].audio_setting
@@ -197,7 +202,9 @@ async function renderMessagesInIframes(
   let messages;
 
   if (mode === RENDER_MODES.PARTIAL && specificMesId) {
-    const specificMessage = chatContainer.querySelector(`.mes[mesid="${specificMesId}"]`);
+    const specificMessage = chatContainer.querySelector(
+      `.mes[mesid="${specificMesId}"]`
+    );
     if (!specificMessage) {
       console.warn(`未找到 mesid: ${specificMesId} 对应的消息元素。`);
       return;
@@ -266,16 +273,89 @@ async function renderMessagesInIframes(
           return;
         }
       }
-      if (mode === RENDER_MODES.PARTIAL && specificMesId && messageId !== specificMesId) {
-        console.warn(`跳过 mesid: ${messageId}，因为指定 mesid 为 ${specificMesId}`);
+      if (
+        mode === RENDER_MODES.PARTIAL &&
+        specificMesId &&
+        messageId !== specificMesId
+      ) {
+        console.warn(
+          `跳过 mesid: ${messageId}，因为指定 mesid 为 ${specificMesId}`
+        );
         return;
       }
+
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index}`;
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
       iframe.style.width = "100%";
+      let tampermonkeyScript = "";
+      if (extension_settings[extensionName].tampermonkey_compatibility) {
+        tampermonkeyScript = `
+        <script>
+        class AudioManager {
+            constructor() {
+                this.currentlyPlaying = null;
+            }
+            handlePlay(audio) {
+                if (this.currentlyPlaying && this.currentlyPlaying !== audio) {
+                    this.currentlyPlaying.pause();
+                }
+                window.parent.postMessage({
+                    type: 'audioPlay',
+                    iframeId: window.frameElement.id
+                }, '*');
 
+                this.currentlyPlaying = audio;
+            }
+            stopAll() {
+                if (this.currentlyPlaying) {
+                    this.currentlyPlaying.pause();
+                    this.currentlyPlaying = null;
+                }
+            }
+          }
+          const audioManager = new AudioManager();
+          document.querySelectorAll('.qr-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const buttonName = this.textContent.trim();
+                    window.parent.postMessage({type: 'buttonClick', name: buttonName}, '*');
+                });
+            });
+            document.querySelectorAll('.st-text').forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    window.parent.postMessage({type: 'textInput', text: this.value}, '*');
+                });
+                textarea.addEventListener('change', function() {
+                    window.parent.postMessage({type: 'textInput', text: this.value}, '*');
+                });
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                            window.parent.postMessage({type: 'textInput', text: textarea.value}, '*');
+                        }
+                    });
+                });
+                observer.observe(textarea, { attributes: true });
+            });
+              document.querySelectorAll('.st-send-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    window.parent.postMessage({type: 'sendClick'}, '*');
+                });
+            });
+            document.querySelectorAll('.st-audio').forEach(audio => {
+                audio.addEventListener('play', function() {
+                    audioManager.handlePlay(this);
+                });
+            });
+            window.addEventListener('message', function(event) {
+                if (event.data.type === 'stopAudio' &&
+                    event.data.iframeId !== window.frameElement.id) {
+                    audioManager.stopAll();
+                }
+            });
+        </script>
+      `;}
       const iframeContent = `
       <html>
       <head>
@@ -343,6 +423,7 @@ async function renderMessagesInIframes(
             }
           }
         </script>
+        ${tampermonkeyScript}
       </body>
     </html>
         `;
@@ -402,6 +483,51 @@ window.addEventListener("message", function (event) {
     adjustIframeHeight(iframe);
   }
 });
+
+function handleTampermonkeyMessages(event) {
+  if (event.data.type === "buttonClick") {
+    const buttonName = event.data.name;
+    jQuery(".qr--button.menu_button").each(function () {
+      if (jQuery(this).find(".qr--button-label").text().trim() === buttonName) {
+        jQuery(this).click();
+        return false;
+      }
+    });
+  } else if (event.data.type === "textInput") {
+    const sendTextarea = document.getElementById("send_textarea");
+    if (sendTextarea) {
+      sendTextarea.value = event.data.text;
+      sendTextarea.dispatchEvent(new Event("input", { bubbles: true }));
+      sendTextarea.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  } else if (event.data.type === "sendClick") {
+    const sendButton = document.getElementById("send_but");
+    if (sendButton) {
+      sendButton.click();
+    }
+  }
+}
+
+function createGlobalAudioManager() {
+  let currentPlayingIframeId = null;
+
+  window.addEventListener('message', function (event) {
+    if (event.data.type === 'audioPlay') {
+      const newIframeId = event.data.iframeId;
+
+      if (currentPlayingIframeId && currentPlayingIframeId !== newIframeId) {
+        document.querySelectorAll('iframe').forEach(iframe => {
+          iframe.contentWindow.postMessage({
+            type: 'stopAudio',
+            iframeId: newIframeId
+          }, '*');
+        });
+      }
+
+      currentPlayingIframeId = newIframeId;
+    }
+  });
+}
 
 function adjustIframeHeight(iframe) {
   const doc = iframe.contentWindow.document;
@@ -595,6 +721,25 @@ async function onExtensionToggle() {
   }
 
   saveSettingsDebounced();
+}
+async function onTampermonkeyCompatibilityChange() {
+  const isEnabled = Boolean($("#tampermonkey_compatibility").prop("checked"));
+  extension_settings[extensionName].tampermonkey_compatibility = isEnabled;
+  saveSettingsDebounced();
+  if (isEnabled) {
+    if (!tampermonkeyMessageListener) {
+      tampermonkeyMessageListener = handleTampermonkeyMessages;
+      window.addEventListener("message", tampermonkeyMessageListener);
+      document.querySelector(`input[name="display-mode"][value="${displayMode}"]`).checked = true;
+      createGlobalAudioManager();
+    }
+  } else {
+    if (tampermonkeyMessageListener) {
+      window.removeEventListener("message", tampermonkeyMessageListener);
+      tampermonkeyMessageListener = null;
+    }
+  }
+  await renderAllIframes();
 }
 
 async function onDepthInput() {
@@ -1467,7 +1612,13 @@ jQuery(async () => {
   if ($("#activate_setting").prop("checked")) {
     onExtensionToggle();
   }
-
+  $("#tampermonkey_compatibility").on(
+    "click",
+    onTampermonkeyCompatibilityChange
+  );
+  if ($("#tampermonkey_compatibility").prop("checked")) {
+    onTampermonkeyCompatibilityChange();
+  }
   $("#process_depth").on("input", onDepthInput);
 
   $("#audio_enabled").on("click", onEnabledClick);
