@@ -4,6 +4,7 @@ import {
   saveSettingsDebounced,
   chat_metadata,
   updateMessageBlock,
+  reloadCurrentChat,
 } from "../../../../script.js";
 
 import {
@@ -684,8 +685,6 @@ async function onExtensionToggle() {
   const isEnabled = Boolean($("#activate_setting").prop("checked"));
   extension_settings[extensionName].activate_setting = isEnabled;
 
-  const context = getContext();
-
   if (isEnabled) {
     fullRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, handleFullRender);
@@ -719,7 +718,7 @@ async function onExtensionToggle() {
 
     window.removeEventListener("message", handleIframeCommand);
 
-    context.reloadCurrentChat();
+    reloadCurrentChat();
   }
 
   saveSettingsDebounced();
@@ -1608,6 +1607,18 @@ jQuery(async () => {
   );
   getContainer().append(windowHtml);
   loadSettings();
+  const buttonHtml = $(`
+  <div id="js_slash_runner_container" class="list-group-item flex-container flexGap5 interactable">
+      <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
+      切换渲染状态
+  </div>`);
+  buttonHtml.css("display", "flex");
+  $("#extensionsMenu").append(buttonHtml);
+  $("#js_slash_runner_container").on("click", function () {
+    const currentChecked = $("#activate_setting").prop("checked");
+    $("#activate_setting").prop("checked", !currentChecked);
+    onExtensionToggle();
+  });
 
   $("#activate_setting").on("click", onExtensionToggle);
   if ($("#activate_setting").prop("checked")) {
