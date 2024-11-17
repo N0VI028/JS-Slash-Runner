@@ -219,23 +219,21 @@ async function renderMessagesInIframes(
   const messagesToProcess =
     processDepth > 0 ? [...messages].slice(-processDepth) : messages;
   const messagesToCancel = totalMessages - processDepth;
-  if (mode === RENDER_MODES.FULL) {
-    for (let i = 0; i < messagesToCancel; i++) {
-      const message = context.chat[i];
-      const messageId = i;
-      const iframes = document.querySelectorAll(
-        `[id^="message-iframe-${messageId}-"]`
-      );
+  for (let i = 0; i < messagesToCancel; i++) {
+    const message = context.chat[i];
+    const messageId = i;
+    const iframes = document.querySelectorAll(
+      `[id^="message-iframe-${messageId}-"]`
+    );
 
-      if (iframes.length > 0) {
-        const iframeArray = Array.from(iframes);
-        await Promise.all(
-          iframeArray.map(async (iframe) => {
-            await destroyIframe(iframe);
-          })
-        );
-        updateMessageBlock(messageId, message);
-      }
+    if (iframes.length > 0) {
+      const iframeArray = Array.from(iframes);
+      await Promise.all(
+        iframeArray.map(async (iframe) => {
+          await destroyIframe(iframe);
+        })
+      );
+      updateMessageBlock(messageId, message);
     }
   }
 
@@ -355,7 +353,8 @@ async function renderMessagesInIframes(
                 }
             });
         </script>
-      `;}
+      `;
+      }
       const iframeContent = `
       <html>
       <head>
@@ -511,16 +510,19 @@ function handleTampermonkeyMessages(event) {
 function createGlobalAudioManager() {
   let currentPlayingIframeId = null;
 
-  window.addEventListener('message', function (event) {
-    if (event.data.type === 'audioPlay') {
+  window.addEventListener("message", function (event) {
+    if (event.data.type === "audioPlay") {
       const newIframeId = event.data.iframeId;
 
       if (currentPlayingIframeId && currentPlayingIframeId !== newIframeId) {
-        document.querySelectorAll('iframe').forEach(iframe => {
-          iframe.contentWindow.postMessage({
-            type: 'stopAudio',
-            iframeId: newIframeId
-          }, '*');
+        document.querySelectorAll("iframe").forEach((iframe) => {
+          iframe.contentWindow.postMessage(
+            {
+              type: "stopAudio",
+              iframeId: newIframeId,
+            },
+            "*"
+          );
         });
       }
 
