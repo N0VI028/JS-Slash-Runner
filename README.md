@@ -213,7 +213,11 @@ exampleUsage();
 ```
 /audiomode [type=bgm|ambient] [mode=repeat|random|single|stop]
 ```
+- type:音乐或音效
 
+- mode:播放模式，分别是列表循环、随机播放、单曲循环、播完停止
+
+例：`/audiomode type=ambient mode=random`
 # :question:常见问答
 ## :calling: 我要安装&更新
 > 安装扩展之后没有反应？
@@ -253,9 +257,3 @@ exampleUsage();
 > 我的界面一开始渲染高度就无限增大？
 
 body 和 html 的高度相关样式都避免使用 `vh`，`%` 等相对 iframe 高度的单位，因为 iframe 的高度基于内部内容，如果 body 和 html 的高度也不定，它们会互相叠加，左脚踩右脚上天……推荐给你的界面高度设定：1. 一个固定值；2. 依据某个属性计算；3. auto。
-
-- type:音乐或音效
-
-- mode:播放模式，分别是列表循环、随机播放、单曲循环、播完停止
-
-例：`/audiomode type=ambient mode=random`
