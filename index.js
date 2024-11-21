@@ -288,6 +288,56 @@ async function renderMessagesInIframes(
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
       iframe.style.width = "100%";
+      const defaultScripts = `
+      <script>
+          window.addEventListener("DOMContentLoaded", function () {
+            window.parent.postMessage("domContentLoaded", "*");
+          });
+        </script>
+        <script>
+          window.addEventListener("message", function (event) {
+            if (event.data.request === "updateWidth") {
+            const newWidth = event.data.newWidth;
+            document.documentElement.style.setProperty("--parent-width", newWidth + "px");
+            }
+          });
+        </script>
+        <script>
+          function triggerSlash(commandText) {
+            window.parent.postMessage(
+              { request: "command", commandText: commandText },
+              "*"
+            );
+            console.log("Sent command to parent:", commandText);
+          }
+          function requestVariables() {
+            return new Promise((resolve, reject) => {
+              function handleMessage(event) {
+                if (event.data && event.data.variables) {
+                  window.removeEventListener("message", handleMessage);
+                  resolve(event.data.variables);
+                }
+              }
+              window.addEventListener("message", handleMessage);
+              window.parent.postMessage({ request: "getVariables" }, "*");
+            });
+          }
+          async function getVariables() {
+            const variables = await requestVariables();
+            return variables;
+          }
+          function setVariables(newVariables) {
+            if (typeof newVariables === "object" && newVariables !== null) {
+              window.parent.postMessage(
+                { request: "setVariables", data: newVariables },
+                "*"
+              );
+            } else {
+              console.error("setVariables expects an object");
+            }
+          }
+        </script>
+        `;
       let tampermonkeyScript = "";
       if (extension_settings[extensionName].tampermonkey_compatibility) {
         tampermonkeyScript = `
@@ -356,6 +406,17 @@ async function renderMessagesInIframes(
         </script>
       `;
       }
+      const combinedScripts = defaultScripts + tampermonkeyScript;
+      let modifiedText = extractedText;
+      const scriptIndex = extractedText.indexOf("<script>");
+      if (scriptIndex !== -1) {
+        modifiedText =
+          extractedText.slice(0, scriptIndex) +
+          combinedScripts +
+          extractedText.slice(scriptIndex);
+      } else {
+        modifiedText += combinedScripts;
+      }
       const iframeContent = `
       <html>
       <head>
@@ -374,56 +435,7 @@ async function renderMessagesInIframes(
         </style>
       </head>
       <body>
-        ${extractedText}
-        <script>
-          window.addEventListener("DOMContentLoaded", function () {
-            window.parent.postMessage("domContentLoaded", "*");
-          });
-        </script>
-        <script>
-          window.addEventListener("message", function (event) {
-            if (event.data.request === "updateWidth") {
-            const newWidth = event.data.newWidth;
-            document.documentElement.style.setProperty("--parent-width", newWidth + "px");
-            }
-          });
-        </script>
-        <script>
-          function triggerSlash(commandText) {
-            window.parent.postMessage(
-              { request: "command", commandText: commandText },
-              "*"
-            );
-            console.log("Sent command to parent:", commandText);
-          }
-          function requestVariables() {
-            return new Promise((resolve, reject) => {
-              function handleMessage(event) {
-                if (event.data && event.data.variables) {
-                  window.removeEventListener("message", handleMessage);
-                  resolve(event.data.variables);
-                }
-              }
-              window.addEventListener("message", handleMessage);
-              window.parent.postMessage({ request: "getVariables" }, "*");
-            });
-          }
-          async function getVariables() {
-            const variables = await requestVariables();
-            return variables;
-          }
-          function setVariables(newVariables) {
-            if (typeof newVariables === "object" && newVariables !== null) {
-              window.parent.postMessage(
-                { request: "setVariables", data: newVariables },
-                "*"
-              );
-            } else {
-              console.error("setVariables expects an object");
-            }
-          }
-        </script>
-        ${tampermonkeyScript}
+        ${modifiedText}
       </body>
     </html>
         `;
@@ -588,11 +600,71 @@ function extractTextFromCode(codeElement) {
   return textContent;
 }
 
+const pendingVariableUpdates = {};
+let isPendingUpdate = false;
+let observer = null;
+
+function observeMesChanges() {
+  const chatContainer = document.getElementById("chat");
+  if (!chatContainer) {
+    console.warn("Chat container not found!");
+    return;
+  }
+
+  if (observer) {
+    observer.disconnect();
+  }
+
+  observer = new MutationObserver((mutationsList) => {
+    let hasNewMes = false;
+
+    for (const mutation of mutationsList) {
+      if (
+        mutation.type === "childList" &&
+        mutation.addedNodes.length > 0
+      ) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains("mes")) {
+            hasNewMes = true;
+            break;
+          }
+        }
+      }
+
+      if (hasNewMes) break;
+    }
+
+    if (hasNewMes && !isPendingUpdate) {
+      isPendingUpdate = true;
+
+      setTimeout(() => {
+        applyPendingVariableUpdates();
+        isPendingUpdate = false;
+      }, 100);
+    }
+  });
+
+  observer.observe(chatContainer, {
+    childList: true,
+    subtree: false,
+  });
+
+  console.log("Started observing #chat for new .mes elements.");
+}
+
+function stopObservingMesChanges() {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+    console.log("Stopped observing #chat for new .mes elements.");
+  }
+}
+
 async function handleIframeCommand(event) {
   if (event.data) {
     if (event.data.request === "command") {
       const commandText = event.data.commandText;
-      executeCommand(commandText);
+      await executeCommand(commandText);
     } else if (event.data.request === "getVariables") {
       if (!chat_metadata.variables) {
         chat_metadata.variables = {};
@@ -615,20 +687,39 @@ async function handleIframeCommand(event) {
     } else if (event.data.request === "setVariables") {
       const newVariables = event.data.data;
 
-      if (!chat_metadata.variables) {
-        chat_metadata.variables = {};
-      }
+      Object.assign(pendingVariableUpdates, newVariables);
+    }
+  }
+}
 
-      const currentVariables = chat_metadata.variables;
+function updateVariables(newVariables) {
+  if (!chat_metadata.variables) {
+    chat_metadata.variables = {};
+  }
 
-      for (let key in newVariables) {
-        if (newVariables.hasOwnProperty(key)) {
-          currentVariables[key] = newVariables[key];
-        }
-      }
+  const currentVariables = chat_metadata.variables;
 
-      chat_metadata.variables = currentVariables;
-      saveMetadataDebounced();
+  for (let key in newVariables) {
+    if (newVariables.hasOwnProperty(key)) {
+      currentVariables[key] = newVariables[key];
+    }
+  }
+
+  chat_metadata.variables = currentVariables;
+  saveMetadataDebounced();
+}
+
+function applyPendingVariableUpdates() {
+  if (Object.keys(pendingVariableUpdates).length > 0) {
+    updateVariables(pendingVariableUpdates);
+    clearPendingVariableUpdates();
+  }
+}
+
+function clearPendingVariableUpdates() {
+  for (let key in pendingVariableUpdates) {
+    if (pendingVariableUpdates.hasOwnProperty(key)) {
+      delete pendingVariableUpdates[key];
     }
   }
 }
@@ -689,7 +780,6 @@ async function onExtensionToggle() {
     fullRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, handleFullRender);
     });
-
     await renderAllIframes();
 
     incrementalRenderEvents.forEach((eventType) => {
@@ -703,6 +793,7 @@ async function onExtensionToggle() {
     });
 
     window.addEventListener("message", handleIframeCommand);
+    observeMesChanges();
   } else {
     fullRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handleFullRender);
@@ -715,14 +806,14 @@ async function onExtensionToggle() {
     partialRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handlePartialRender);
     });
-
     window.removeEventListener("message", handleIframeCommand);
-
-    reloadCurrentChat();
+    stopObservingMesChanges();
+    await reloadCurrentChat();
   }
 
   saveSettingsDebounced();
 }
+
 async function onTampermonkeyCompatibilityChange() {
   const isEnabled = Boolean($("#tampermonkey_compatibility").prop("checked"));
   extension_settings[extensionName].tampermonkey_compatibility = isEnabled;
@@ -739,6 +830,7 @@ async function onTampermonkeyCompatibilityChange() {
       tampermonkeyMessageListener = null;
     }
   }
+  await reloadCurrentChat();
   await renderAllIframes();
 }
 
