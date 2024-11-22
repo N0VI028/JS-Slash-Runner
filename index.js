@@ -288,56 +288,6 @@ async function renderMessagesInIframes(
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
       iframe.style.width = "100%";
-      const defaultScripts = `
-      <script>
-          window.addEventListener("DOMContentLoaded", function () {
-            window.parent.postMessage("domContentLoaded", "*");
-          });
-        </script>
-        <script>
-          window.addEventListener("message", function (event) {
-            if (event.data.request === "updateWidth") {
-            const newWidth = event.data.newWidth;
-            document.documentElement.style.setProperty("--parent-width", newWidth + "px");
-            }
-          });
-        </script>
-        <script>
-          function triggerSlash(commandText) {
-            window.parent.postMessage(
-              { request: "command", commandText: commandText },
-              "*"
-            );
-            console.log("Sent command to parent:", commandText);
-          }
-          function requestVariables() {
-            return new Promise((resolve, reject) => {
-              function handleMessage(event) {
-                if (event.data && event.data.variables) {
-                  window.removeEventListener("message", handleMessage);
-                  resolve(event.data.variables);
-                }
-              }
-              window.addEventListener("message", handleMessage);
-              window.parent.postMessage({ request: "getVariables" }, "*");
-            });
-          }
-          async function getVariables() {
-            const variables = await requestVariables();
-            return variables;
-          }
-          function setVariables(newVariables) {
-            if (typeof newVariables === "object" && newVariables !== null) {
-              window.parent.postMessage(
-                { request: "setVariables", data: newVariables },
-                "*"
-              );
-            } else {
-              console.error("setVariables expects an object");
-            }
-          }
-        </script>
-        `;
       let tampermonkeyScript = "";
       if (extension_settings[extensionName].tampermonkey_compatibility) {
         tampermonkeyScript = `
@@ -406,17 +356,6 @@ async function renderMessagesInIframes(
         </script>
       `;
       }
-      const combinedScripts = defaultScripts + tampermonkeyScript;
-      let modifiedText = extractedText;
-      const scriptIndex = extractedText.indexOf("<script>");
-      if (scriptIndex !== -1) {
-        modifiedText =
-          extractedText.slice(0, scriptIndex) +
-          combinedScripts +
-          extractedText.slice(scriptIndex);
-      } else {
-        modifiedText += combinedScripts;
-      }
       const iframeContent = `
       <html>
       <head>
@@ -435,7 +374,52 @@ async function renderMessagesInIframes(
         </style>
       </head>
       <body>
-        ${modifiedText}
+        ${extractedText}
+        <script>
+          window.addEventListener("DOMContentLoaded", function () {
+            window.parent.postMessage("domContentLoaded", "*");
+          });
+          window.addEventListener("message", function (event) {
+            if (event.data.request === "updateWidth") {
+            const newWidth = event.data.newWidth;
+            document.documentElement.style.setProperty("--parent-width", newWidth + "px");
+            }
+          });
+          function triggerSlash(commandText) {
+            window.parent.postMessage(
+              { request: "command", commandText: commandText },
+              "*"
+            );
+            console.log("Sent command to parent:", commandText);
+          }
+          function requestVariables() {
+            return new Promise((resolve, reject) => {
+              function handleMessage(event) {
+                if (event.data && event.data.variables) {
+                  window.removeEventListener("message", handleMessage);
+                  resolve(event.data.variables);
+                }
+              }
+              window.addEventListener("message", handleMessage);
+              window.parent.postMessage({ request: "getVariables" }, "*");
+            });
+          }
+          async function getVariables() {
+            const variables = await requestVariables();
+            return variables;
+          }
+          function setVariables(newVariables) {
+            if (typeof newVariables === "object" && newVariables !== null) {
+              window.parent.postMessage(
+                { request: "setVariables", data: newVariables },
+                "*"
+              );
+            } else {
+              console.error("setVariables expects an object");
+            }
+          }
+        </script>
+        ${tampermonkeyScript}
       </body>
     </html>
         `;
@@ -619,12 +603,12 @@ function observeMesChanges() {
     let hasNewMes = false;
 
     for (const mutation of mutationsList) {
-      if (
-        mutation.type === "childList" &&
-        mutation.addedNodes.length > 0
-      ) {
+      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
         for (const node of mutation.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains("mes")) {
+          if (
+            node.nodeType === Node.ELEMENT_NODE &&
+            node.classList.contains("mes")
+          ) {
             hasNewMes = true;
             break;
           }
