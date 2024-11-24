@@ -372,6 +372,41 @@ async function renderMessagesInIframes(
                       box-sizing: border-box;
                   }
         </style>
+        <script>
+        function requestVariables() {
+            return new Promise((resolve, reject) => {
+              function handleMessage(event) {
+                if (event.data && event.data.variables) {
+                  window.removeEventListener("message", handleMessage);
+                  resolve(event.data.variables);
+                }
+              }
+              window.addEventListener("message", handleMessage);
+              window.parent.postMessage({ request: "getVariables" }, "*");
+            });
+        }
+        async function getVariables() {
+            const variables = await requestVariables();
+            return variables;
+        }
+        function setVariables(newVariables) {
+            if (typeof newVariables === "object" && newVariables !== null) {
+              window.parent.postMessage(
+                { request: "setVariables", data: newVariables },
+                "*"
+              );
+            } else {
+              console.error("setVariables expects an object");
+            }
+        }
+        function triggerSlash(commandText) {
+          window.parent.postMessage(
+            { request: "command", commandText: commandText },
+            "*"
+          );
+          console.log("Sent command to parent:", commandText);
+        }
+        </script>
       </head>
       <body>
         ${extractedText}
@@ -385,39 +420,6 @@ async function renderMessagesInIframes(
             document.documentElement.style.setProperty("--parent-width", newWidth + "px");
             }
           });
-          function triggerSlash(commandText) {
-            window.parent.postMessage(
-              { request: "command", commandText: commandText },
-              "*"
-            );
-            console.log("Sent command to parent:", commandText);
-          }
-          function requestVariables() {
-            return new Promise((resolve, reject) => {
-              function handleMessage(event) {
-                if (event.data && event.data.variables) {
-                  window.removeEventListener("message", handleMessage);
-                  resolve(event.data.variables);
-                }
-              }
-              window.addEventListener("message", handleMessage);
-              window.parent.postMessage({ request: "getVariables" }, "*");
-            });
-          }
-          async function getVariables() {
-            const variables = await requestVariables();
-            return variables;
-          }
-          function setVariables(newVariables) {
-            if (typeof newVariables === "object" && newVariables !== null) {
-              window.parent.postMessage(
-                { request: "setVariables", data: newVariables },
-                "*"
-              );
-            } else {
-              console.error("setVariables expects an object");
-            }
-          }
         </script>
         ${tampermonkeyScript}
       </body>
