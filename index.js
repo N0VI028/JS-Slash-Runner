@@ -5,6 +5,7 @@ import {
   chat_metadata,
   updateMessageBlock,
   reloadCurrentChat,
+  user_avatar,
 } from "../../../../script.js";
 
 import {
@@ -255,6 +256,7 @@ async function renderMessagesInIframes(
     const computedStyle = window.getComputedStyle(mesTextContainer);
     const paddingRight = parseFloat(computedStyle.paddingRight);
     const mesTextWidth = mesTextContainer.clientWidth - paddingRight;
+    const avatarPath = `./User Avatars/${user_avatar}`;
     codeElements.forEach((codeElement, index) => {
       let extractedText = extractTextFromCode(codeElement);
       if (
@@ -370,6 +372,9 @@ async function renderMessagesInIframes(
                       max-width: var(--parent-width)!important;
                       width: var(--parent-width);
                       box-sizing: border-box;
+                  }
+                  .user_avatar {
+                  background-image: url('${avatarPath}');
                   }
         </style>
         <script>
