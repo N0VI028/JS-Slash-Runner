@@ -49,7 +49,6 @@ let cooldownBGM = 0;
 
 const RENDER_MODES = {
   FULL: "FULL",
-  INCREMENTAL: "INCREMENTAL",
   PARTIAL: "PARTIAL",
 };
 
@@ -58,13 +57,16 @@ const fullRenderEvents = [
   event_types.MESSAGE_DELETED,
 ];
 
-const incrementalRenderEvents = [
-  event_types.MESSAGE_SWIPED,
+const partialRenderEvents = [
+  event_types.CHARACTER_MESSAGE_RENDERED,
+  event_types.USER_MESSAGE_RENDERED,
+  event_types.MESSAGE_EDITED,
+];
+
+const eventsToListenFor = [
   event_types.CHARACTER_MESSAGE_RENDERED,
   event_types.USER_MESSAGE_RENDERED,
 ];
-
-const partialRenderEvents = [event_types.MESSAGE_EDITED];
 
 const defaultSettings = {
   activate_setting: false,
@@ -193,7 +195,7 @@ async function renderAllIframes() {
 }
 
 async function renderMessagesInIframes(
-  mode = RENDER_MODES.INCREMENTAL,
+  mode = RENDER_MODES.FULL,
   specificMesId = null
 ) {
   if (!$("#activate_setting").prop("checked")) {
@@ -201,33 +203,36 @@ async function renderMessagesInIframes(
   }
 
   const chatContainer = document.getElementById("chat");
-  let messages;
-
-  if (mode === RENDER_MODES.PARTIAL && specificMesId) {
-    const specificMessage = chatContainer.querySelector(
-      `.mes[mesid="${specificMesId}"]`
-    );
-    if (!specificMessage) {
-      console.warn(`未找到 mesid: ${specificMesId} 对应的消息元素。`);
-      return;
-    }
-    messages = [specificMessage];
-  } else {
-    messages = chatContainer.querySelectorAll(".mes");
-  }
   const context = getContext();
   const totalMessages = context.chat.length;
   const processDepth = parseInt($("#process_depth").val(), 10);
-  const messagesToProcess =
-    processDepth > 0 ? [...messages].slice(-processDepth) : messages;
-  const messagesToCancel = totalMessages - processDepth;
-  for (let i = 0; i < messagesToCancel; i++) {
-    const message = context.chat[i];
-    const messageId = i;
+  const depthLimit = processDepth > 0 ? processDepth : totalMessages;
+  const depthLimitedMessageIds = [...Array(totalMessages).keys()].slice(
+    -depthLimit
+  );
+
+  let messagesToRenderIds = [];
+  let messagesToCancelIds = [...Array(totalMessages).keys()].filter(
+    (id) => !depthLimitedMessageIds.includes(id)
+  );
+
+  if (mode === RENDER_MODES.FULL) {
+    messagesToRenderIds = depthLimitedMessageIds;
+  } else if (mode === RENDER_MODES.PARTIAL && specificMesId !== null) {
+    const specificIdNum = parseInt(specificMesId, 10);
+
+    if (depthLimitedMessageIds.includes(specificIdNum)) {
+      messagesToRenderIds = [specificIdNum];
+    } else {
+      return;
+    }
+  }
+
+  for (const messageId of messagesToCancelIds) {
+    const message = context.chat[messageId];
     const iframes = document.querySelectorAll(
       `[id^="message-iframe-${messageId}-"]`
     );
-
     if (iframes.length > 0) {
       const iframeArray = Array.from(iframes);
       await Promise.all(
@@ -239,49 +244,38 @@ async function renderMessagesInIframes(
     }
   }
 
-  const fragment = document.createDocumentFragment();
-  messagesToProcess.forEach((message) => {
-    const messageId = message.getAttribute("mesid");
-    const mesTextContainer = message.querySelector(".mes_text");
+  const renderedMessages = [];
+  for (const messageId of messagesToRenderIds) {
+    const messageElement = chatContainer.querySelector(
+      `.mes[mesid="${messageId}"]`
+    );
+    if (!messageElement) {
+      console.warn(`未找到 mesid: ${messageId} 对应的消息元素。`);
+      continue;
+    }
 
+    const mesTextContainer = messageElement.querySelector(".mes_text");
     if (!mesTextContainer) {
       console.warn(`未找到 mes_text 容器，跳过消息 mesid: ${messageId}`);
-      return;
+      continue;
     }
 
     const codeElements = mesTextContainer.querySelectorAll("pre");
     if (!codeElements.length) {
-      return;
+      continue;
     }
+
     const computedStyle = window.getComputedStyle(mesTextContainer);
     const paddingRight = parseFloat(computedStyle.paddingRight);
     const mesTextWidth = mesTextContainer.clientWidth - paddingRight;
     const avatarPath = `./User Avatars/${user_avatar}`;
+
     codeElements.forEach((codeElement, index) => {
       let extractedText = extractTextFromCode(codeElement);
       if (
         !extractedText.includes("<body>") ||
         !extractedText.includes("</body>")
       ) {
-        return;
-      }
-
-      if (mode === RENDER_MODES.INCREMENTAL) {
-        const existingIframe = document.getElementById(
-          `message-iframe-${messageId}-${index}`
-        );
-        if (existingIframe) {
-          return;
-        }
-      }
-      if (
-        mode === RENDER_MODES.PARTIAL &&
-        specificMesId &&
-        messageId !== specificMesId
-      ) {
-        console.warn(
-          `跳过 mesid: ${messageId}，因为指定 mesid 为 ${specificMesId}`
-        );
         return;
       }
 
@@ -396,10 +390,11 @@ async function renderMessagesInIframes(
         }
         function setVariables(newVariables) {
             if (typeof newVariables === "object" && newVariables !== null) {
+              const iframeId = window.frameElement.id;
               window.parent.postMessage(
-                { request: "setVariables", data: newVariables },
+                { request: "setVariables", data: newVariables, iframeId: iframeId },
                 "*"
-              );
+            );
             } else {
               console.error("setVariables expects an object");
             }
@@ -438,11 +433,19 @@ async function renderMessagesInIframes(
         doc.close();
         observeIframeContent(iframe);
       };
-
-      fragment.appendChild(iframe);
-      codeElement.replaceWith(fragment);
+      codeElement.replaceWith(iframe);
     });
-  });
+
+    renderedMessages.push(messageId);
+  }
+
+  console.log(
+    `[Render]模式: ${mode}, 深度限制: ${
+      processDepth > 0 ? processDepth : "无限制"
+    },已渲染的消息ID: ${renderedMessages.join(
+      ", "
+    )},已取消渲染的消息ID: ${messagesToCancelIds.join(", ")}`
+  );
 }
 
 function destroyIframe(iframe) {
@@ -591,66 +594,7 @@ function extractTextFromCode(codeElement) {
   return textContent;
 }
 
-const pendingVariableUpdates = {};
-let isPendingUpdate = false;
-let observer = null;
-
-function observeMesChanges() {
-  const chatContainer = document.getElementById("chat");
-  if (!chatContainer) {
-    console.warn("Chat container not found!");
-    return;
-  }
-
-  if (observer) {
-    observer.disconnect();
-  }
-
-  observer = new MutationObserver((mutationsList) => {
-    let hasNewMes = false;
-
-    for (const mutation of mutationsList) {
-      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        for (const node of mutation.addedNodes) {
-          if (
-            node.nodeType === Node.ELEMENT_NODE &&
-            node.classList.contains("mes")
-          ) {
-            hasNewMes = true;
-            break;
-          }
-        }
-      }
-
-      if (hasNewMes) break;
-    }
-
-    if (hasNewMes && !isPendingUpdate) {
-      isPendingUpdate = true;
-
-      setTimeout(() => {
-        applyPendingVariableUpdates();
-        isPendingUpdate = false;
-      }, 100);
-    }
-  });
-
-  observer.observe(chatContainer, {
-    childList: true,
-    subtree: false,
-  });
-
-  console.log("Started observing #chat for new .mes elements.");
-}
-
-function stopObservingMesChanges() {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-    console.log("Stopped observing #chat for new .mes elements.");
-  }
-}
-
+let latestSetVariablesMesId = null;
 async function handleIframeCommand(event) {
   if (event.data) {
     if (event.data.request === "command") {
@@ -677,12 +621,83 @@ async function handleIframeCommand(event) {
       event.source.postMessage({ variables: variables }, "*");
     } else if (event.data.request === "setVariables") {
       const newVariables = event.data.data;
+      const iframeId = event.data.iframeId;
 
-      Object.assign(pendingVariableUpdates, newVariables);
+      const mesIdMatch = iframeId.match(/^message-iframe-(\d+)-\d+$/);
+      if (!mesIdMatch || mesIdMatch.length < 2) {
+        console.warn(`Invalid iframeId format: ${iframeId}`);
+        return;
+      }
+      const mesId = parseInt(mesIdMatch[1], 10);
+
+      if (isNaN(mesId)) {
+        return;
+      }
+      const chatLength = getContext().chat.length;
+      const latestMesId = chatLength - 1;
+
+      if (mesId !== latestMesId) {
+        console.warn(
+          `Message ID ${mesId} is not the latest message (expected ${latestMesId}), ignoring.`
+        );
+        return;
+      }
+      latestSetVariablesMesId = mesId;
+      if (
+        !chat_metadata.variables ||
+        typeof chat_metadata.variables !== "object"
+      ) {
+        chat_metadata.variables = {};
+      }
+      if (
+        !chat_metadata.variables.tempVariables ||
+        typeof chat_metadata.variables.tempVariables !== "object"
+      ) {
+        chat_metadata.variables.tempVariables = {};
+      }
+
+      Object.assign(chat_metadata.variables.tempVariables, newVariables);
+      saveMetadataDebounced();
     }
   }
 }
+function clearTempVariables() {
+  if (
+    chat_metadata.variables &&
+    chat_metadata.variables.tempVariables &&
+    Object.keys(chat_metadata.variables.tempVariables).length > 0
+  ) {
+    console.log("[Var]Clearing tempVariables.");
+    chat_metadata.variables.tempVariables = {};
+    saveMetadataDebounced();
+  }
+}
+function onMessageRendered(eventMesId) {
+  if (
+    !chat_metadata.variables ||
+    !chat_metadata.variables.tempVariables ||
+    Object.keys(chat_metadata.variables.tempVariables).length === 0
+  ) {
+    return;
+  };
+  if (eventMesId === latestSetVariablesMesId) {
+    console.log(
+      "[Var]MesId matches the latest setVariables, skipping ST variable update."
+    );
+    return;
+  } else if (eventMesId > latestSetVariablesMesId) {
+    console.log(
+      "[Var]Event mesId is newer than setVariables mesId, updating ST variables."
+    );
+    const newVariables = { ...chat_metadata.variables.tempVariables };
+    updateVariables(newVariables);
 
+    chat_metadata.variables.tempVariables = {};
+    console.log("[Var]TempVariables cleared.");
+  } else {
+    console.log("[Var]Event mesId is older than setVariables mesId, ignoring.");
+  }
+}
 function updateVariables(newVariables) {
   if (!chat_metadata.variables) {
     chat_metadata.variables = {};
@@ -697,22 +712,8 @@ function updateVariables(newVariables) {
   }
 
   chat_metadata.variables = currentVariables;
+
   saveMetadataDebounced();
-}
-
-function applyPendingVariableUpdates() {
-  if (Object.keys(pendingVariableUpdates).length > 0) {
-    updateVariables(pendingVariableUpdates);
-    clearPendingVariableUpdates();
-  }
-}
-
-function clearPendingVariableUpdates() {
-  for (let key in pendingVariableUpdates) {
-    if (pendingVariableUpdates.hasOwnProperty(key)) {
-      delete pendingVariableUpdates[key];
-    }
-  }
 }
 
 async function executeCommand(command) {
@@ -733,18 +734,14 @@ async function executeCommand(command) {
   }
 }
 const handleFullRender = () => {
+  console.log("[Render] FULL render event triggered");
   setTimeout(() => {
     renderAllIframes();
   }, 100);
 };
 
-const handleIncrementalRender = () => {
-  setTimeout(() => {
-    renderMessagesInIframes(RENDER_MODES.INCREMENTAL);
-  }, 100);
-};
-
 const handlePartialRender = (mesId) => {
+  console.log("[Render] PARTIAL render event triggered for message ID:", mesId);
   const processDepth = parseInt($("#process_depth").val(), 10);
   const context = getContext();
   const totalMessages = context.chat.length;
@@ -766,39 +763,41 @@ const handlePartialRender = (mesId) => {
 async function onExtensionToggle() {
   const isEnabled = Boolean($("#activate_setting").prop("checked"));
   extension_settings[extensionName].activate_setting = isEnabled;
-
   if (isEnabled) {
     fullRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, handleFullRender);
     });
     await renderAllIframes();
 
-    incrementalRenderEvents.forEach((eventType) => {
-      eventSource.on(eventType, handleIncrementalRender);
-    });
-
     partialRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, (mesId) => {
         handlePartialRender(mesId);
       });
     });
-
+    eventsToListenFor.forEach((eventType) => {
+      eventSource.on(eventType, (mesId) => {
+        onMessageRendered(mesId);
+      });
+    });
+    eventSource.on(event_types.MESSAGE_DELETED, () => clearTempVariables());
     window.addEventListener("message", handleIframeCommand);
-    observeMesChanges();
   } else {
     fullRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handleFullRender);
     });
 
-    incrementalRenderEvents.forEach((eventType) => {
-      eventSource.removeListener(eventType, handleIncrementalRender);
-    });
-
     partialRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handlePartialRender);
     });
+    eventsToListenFor.forEach((eventType) => {
+      eventSource.removeListener(eventType, (mesId) => {
+        onMessageRendered(mesId);
+      });
+    });
+    eventSource.removeListener(event_types.MESSAGE_DELETED, () =>
+      clearTempVariables()
+    );
     window.removeEventListener("message", handleIframeCommand);
-    stopObservingMesChanges();
     await reloadCurrentChat();
   }
 
