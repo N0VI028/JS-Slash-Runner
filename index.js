@@ -655,8 +655,10 @@ async function handleIframeCommand(event) {
       ) {
         chat_metadata.variables.tempVariables = {};
       }
-
-      Object.assign(chat_metadata.variables.tempVariables, newVariables);
+      if (newVariables.hasOwnProperty('tempVariables')) {
+        delete newVariables.tempVariables;
+      }
+      chat_metadata.variables.tempVariables = { ...newVariables };
       saveMetadataDebounced();
     }
   }
