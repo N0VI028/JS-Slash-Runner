@@ -622,7 +622,6 @@ async function handleIframeCommand(event) {
     } else if (event.data.request === "setVariables") {
       const newVariables = event.data.data;
       const iframeId = event.data.iframeId;
-
       const mesIdMatch = iframeId.match(/^message-iframe-(\d+)-\d+$/);
       if (!mesIdMatch || mesIdMatch.length < 2) {
         console.warn(`Invalid iframeId format: ${iframeId}`);
@@ -658,7 +657,10 @@ async function handleIframeCommand(event) {
       if (newVariables.hasOwnProperty('tempVariables')) {
         delete newVariables.tempVariables;
       }
-      chat_metadata.variables.tempVariables = { ...newVariables };
+      chat_metadata.variables.tempVariables = {
+        ...chat_metadata.variables.tempVariables,
+        ...newVariables,
+      };
       saveMetadataDebounced();
     }
   }
