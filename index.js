@@ -406,6 +406,26 @@ async function renderMessagesInIframes(
           );
           console.log("Sent command to parent:", commandText);
         }
+        function triggerSlashWithResult(commandText) {
+          return new Promise((resolve, reject) => {
+            const messageId = Date.now() + Math.random(); 
+            function handleMessage(event) {
+              if (
+                event.data &&
+                event.data.request === "commandResult" &&
+                event.data.messageId === messageId
+              ) {
+                window.removeEventListener("message", handleMessage);
+                resolve(event.data.result); 
+              }
+            }
+            window.addEventListener("message", handleMessage);
+            window.parent.postMessage(
+              { request: "commandWithResult", commandText: commandText, messageId: messageId },
+              "*"
+            );
+          });
+        }
         </script>
       </head>
       <body>
@@ -600,6 +620,26 @@ async function handleIframeCommand(event) {
     if (event.data.request === "command") {
       const commandText = event.data.commandText;
       await executeCommand(commandText);
+    } else if (event.data.request === "commandWithResult") {
+      const commandText = event.data.commandText;
+      const messageId = event.data.messageId;
+
+      try {
+        const result = await executeCommand(commandText);
+        event.source.postMessage(
+          { request: "commandResult", result: result.pipe, messageId: messageId },
+          "*"
+        );
+      } catch (error) {
+        event.source.postMessage(
+          {
+            request: "commandResult",
+            error: error.toString(),
+            messageId: messageId,
+          },
+          "*"
+        );
+      }
     } else if (event.data.request === "getVariables") {
       if (!chat_metadata.variables) {
         chat_metadata.variables = {};
@@ -654,7 +694,7 @@ async function handleIframeCommand(event) {
       ) {
         chat_metadata.variables.tempVariables = {};
       }
-      if (newVariables.hasOwnProperty('tempVariables')) {
+      if (newVariables.hasOwnProperty("tempVariables")) {
         delete newVariables.tempVariables;
       }
       chat_metadata.variables.tempVariables = {
@@ -683,7 +723,7 @@ function onMessageRendered(eventMesId) {
     Object.keys(chat_metadata.variables.tempVariables).length === 0
   ) {
     return;
-  };
+  }
   if (eventMesId === latestSetVariablesMesId) {
     console.log(
       "[Var]MesId matches the latest setVariables, skipping ST variable update."
@@ -723,7 +763,7 @@ function updateVariables(newVariables) {
 async function executeCommand(command) {
   const context = getContext();
   try {
-    const executePromise = context.executeSlashCommandsWithOptions(
+    const result = context.executeSlashCommandsWithOptions(
       command,
       true,
       null,
@@ -732,9 +772,10 @@ async function executeCommand(command) {
       null,
       null
     );
-    await executePromise;
+    return result;
   } catch (error) {
     console.error("Error executing slash command:", error);
+    throw error;
   }
 }
 const handleFullRender = () => {
