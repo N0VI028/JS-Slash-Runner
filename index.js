@@ -404,7 +404,6 @@ async function renderMessagesInIframes(
             { request: "command", commandText: commandText },
             "*"
           );
-          console.log("Sent command to parent:", commandText);
         }
         function triggerSlashWithResult(commandText) {
           return new Promise((resolve, reject) => {
@@ -627,7 +626,11 @@ async function handleIframeCommand(event) {
       try {
         const result = await executeCommand(commandText);
         event.source.postMessage(
-          { request: "commandResult", result: result.pipe, messageId: messageId },
+          {
+            request: "commandResult",
+            result: result.pipe,
+            messageId: messageId,
+          },
           "*"
         );
       } catch (error) {
@@ -676,9 +679,6 @@ async function handleIframeCommand(event) {
       const latestMesId = chatLength - 1;
 
       if (mesId !== latestMesId) {
-        console.warn(
-          `Message ID ${mesId} is not the latest message (expected ${latestMesId}), ignoring.`
-        );
         return;
       }
       latestSetVariablesMesId = mesId;
@@ -697,14 +697,21 @@ async function handleIframeCommand(event) {
       if (newVariables.hasOwnProperty("tempVariables")) {
         delete newVariables.tempVariables;
       }
-      chat_metadata.variables.tempVariables = {
-        ...chat_metadata.variables.tempVariables,
-        ...newVariables,
-      };
+      const tempVariables = chat_metadata.variables.tempVariables;
+      const currentVariables = chat_metadata.variables;
+      Object.keys(newVariables).forEach((key) => {
+        const newValue = newVariables[key];
+        const currentValue = currentVariables[key];
+        if (newValue !== currentValue) {
+          tempVariables[key] = newValue;
+        }
+      });
+      chat_metadata.variables.tempVariables = tempVariables;
       saveMetadataDebounced();
     }
   }
 }
+
 function clearTempVariables() {
   if (
     chat_metadata.variables &&
@@ -930,7 +937,6 @@ async function getBgmUrl() {
   for (const key of Object.keys(variables)) {
     if (key.toLowerCase() === "bgmurl") {
       let bgmUrlValue = variables[key];
-      bgmUrlValue = JSON.parse(bgmUrlValue);
       bgmUrlValue = bgmUrlValue.filter((url) => url !== null);
       return bgmUrlValue;
     }
@@ -943,7 +949,6 @@ async function getAmbientUrl() {
   for (const key of Object.keys(variables)) {
     if (key.toLowerCase() === "ambienturl") {
       let ambientUrlValue = variables[key];
-      ambientUrlValue = JSON.parse(ambientUrlValue);
       ambientUrlValue = ambientUrlValue.filter((url) => url !== null);
       return ambientUrlValue;
     }
@@ -1175,10 +1180,7 @@ async function handleUrlManagerClick(type) {
   if (!chat_metadata.variables) {
     chat_metadata.variables = {};
   }
-
-  const existingUrls = chat_metadata.variables[type]
-    ? JSON.parse(chat_metadata.variables[type])
-    : [];
+  const existingUrls = chat_metadata.variables[type] || [];
 
   const newUrls = await openUrlManagerPopup(type);
 
@@ -1253,7 +1255,6 @@ async function openUrlManagerPopup(type) {
     savedAudioUrl.addClass("empty");
   } else {
     try {
-      urlValue = JSON.parse(urlValue);
       if (urlValue.length === 0) {
         savedAudioUrl.addClass("empty");
       }
@@ -1321,7 +1322,7 @@ async function openUrlManagerPopup(type) {
       const currentUrl = urlHtml.find(".audio_url_name").attr("data-url");
 
       if (chat_metadata.variables && chat_metadata.variables[typeKey]) {
-        let urlList = JSON.parse(chat_metadata.variables[typeKey]);
+        let urlList = chat_metadata.variables[typeKey];
 
         urlList = urlList.filter((item) => item !== currentUrl);
 
@@ -2285,10 +2286,7 @@ async function handleAudioImportCommand(args, text) {
   }
 
   const typeKey = type === "bgm" ? "bgmurl" : "ambienturl";
-  const existingUrls = chat_metadata.variables[typeKey]
-    ? JSON.parse(chat_metadata.variables[typeKey])
-    : [];
-
+  const existingUrls = chat_metadata.variables[type] || [];
   const mergedUrls = [...new Set([...urlArray, ...existingUrls])];
 
   chat_metadata.variables[typeKey] = JSON.stringify(mergedUrls);
@@ -2343,12 +2341,9 @@ async function handleAudioSelectCommand(args, text) {
     return "";
   }
 
-  const existingUrls = chat_metadata.variables[typeKey]
-    ? JSON.parse(chat_metadata.variables[typeKey])
-    : [];
+  const existingUrls = chat_metadata.variables[type] || [];
 
   const mergedUrls = [...new Set([url, ...existingUrls])];
-
   chat_metadata.variables[typeKey] = JSON.stringify(mergedUrls);
   saveMetadataDebounced();
 
