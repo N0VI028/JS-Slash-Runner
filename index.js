@@ -1326,7 +1326,7 @@ async function openUrlManagerPopup(type) {
 
         urlList = urlList.filter((item) => item !== currentUrl);
 
-        chat_metadata.variables[typeKey] = JSON.stringify(urlList);
+        chat_metadata.variables[typeKey] = urlList;
 
         saveMetadataDebounced();
       }
@@ -1384,7 +1384,7 @@ async function openUrlManagerPopup(type) {
         newUrlOrder[index] = newUrl;
       }
     }
-    chat_metadata.variables[typeKey] = JSON.stringify(newUrlOrder);
+    chat_metadata.variables[typeKey] = newUrlOrder;
     saveMetadataDebounced();
     if (typeKey === "bgmurl") {
       updateBGMSelect();
@@ -2289,7 +2289,7 @@ async function handleAudioImportCommand(args, text) {
   const existingUrls = chat_metadata.variables[type] || [];
   const mergedUrls = [...new Set([...urlArray, ...existingUrls])];
 
-  chat_metadata.variables[typeKey] = JSON.stringify(mergedUrls);
+  chat_metadata.variables[typeKey] = mergedUrls;
   saveMetadataDebounced();
 
   if (type === "bgm") {
@@ -2344,7 +2344,7 @@ async function handleAudioSelectCommand(args, text) {
   const existingUrls = chat_metadata.variables[type] || [];
 
   const mergedUrls = [...new Set([url, ...existingUrls])];
-  chat_metadata.variables[typeKey] = JSON.stringify(mergedUrls);
+  chat_metadata.variables[typeKey] = mergedUrls;
   saveMetadataDebounced();
 
   if (type === "bgm") {
