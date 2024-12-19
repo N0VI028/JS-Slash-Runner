@@ -6,6 +6,7 @@ import {
   updateMessageBlock,
   reloadCurrentChat,
   user_avatar,
+  messageFormatting,
 } from "../../../../script.js";
 
 import {
@@ -811,12 +812,20 @@ const handlePartialRender = (mesId) => {
     renderMessagesInIframes(RENDER_MODES.PARTIAL, mesId);
   }, 100);
 };
-
-const handleMessageDeleted = async () => {
-  clearTempVariables();
-  await reloadCurrentChat();
-};
-
+async function formattedLastMessage() {
+  const lastIndex = getContext().chat.length - 1;
+  const lastMessage = getContext()?.chat?.[lastIndex];
+  const mes = lastMessage.mes;
+  const isUser = lastMessage.is_user;
+  const isSystem = lastMessage.is_system;
+  const chName = lastMessage.name;
+  const messageId = lastIndex; 
+  const mesBlock = $(`div[mesid="${messageId}"]`);
+  mesBlock.find('.mes_text').empty();
+  mesBlock
+    .find(".mes_text")
+    .append(messageFormatting(mes, chName, isSystem, isUser, messageId));
+}
 async function onExtensionToggle() {
   const isEnabled = Boolean($("#activate_setting").prop("checked"));
   extension_settings[extensionName].activate_setting = isEnabled;
@@ -836,7 +845,10 @@ async function onExtensionToggle() {
         onMessageRendered(mesId);
       });
     });
-    eventSource.on(event_types.MESSAGE_DELETED, handleMessageDeleted);
+    eventSource.on(event_types.MESSAGE_DELETED, () => {
+      clearTempVariables();
+      formattedLastMessage();
+    });
     window.addEventListener("message", handleIframeCommand);
   } else {
     fullRenderEvents.forEach((eventType) => {
@@ -851,7 +863,10 @@ async function onExtensionToggle() {
         onMessageRendered(mesId);
       });
     });
-    eventSource.removeListener(event_types.MESSAGE_DELETED, handleMessageDeleted);
+    eventSource.removeListener(event_types.MESSAGE_DELETED, () => {
+      clearTempVariables();
+      formattedLastMessage();
+    });    
     window.removeEventListener("message", handleIframeCommand);
     await reloadCurrentChat();
   }
