@@ -60,7 +60,7 @@ const fullRenderEvents = [
 const partialRenderEvents = [
   event_types.CHARACTER_MESSAGE_RENDERED,
   event_types.USER_MESSAGE_RENDERED,
-  event_types.MESSAGE_EDITED,
+  event_types.MESSAGE_UPDATED,
 ];
 
 const eventsToListenFor = [
@@ -812,6 +812,11 @@ const handlePartialRender = (mesId) => {
   }, 100);
 };
 
+const handleMessageDeleted = async () => {
+  clearTempVariables();
+  await reloadCurrentChat();
+};
+
 async function onExtensionToggle() {
   const isEnabled = Boolean($("#activate_setting").prop("checked"));
   extension_settings[extensionName].activate_setting = isEnabled;
@@ -831,7 +836,7 @@ async function onExtensionToggle() {
         onMessageRendered(mesId);
       });
     });
-    eventSource.on(event_types.MESSAGE_DELETED, () => clearTempVariables());
+    eventSource.on(event_types.MESSAGE_DELETED, handleMessageDeleted);
     window.addEventListener("message", handleIframeCommand);
   } else {
     fullRenderEvents.forEach((eventType) => {
@@ -846,9 +851,7 @@ async function onExtensionToggle() {
         onMessageRendered(mesId);
       });
     });
-    eventSource.removeListener(event_types.MESSAGE_DELETED, () =>
-      clearTempVariables()
-    );
+    eventSource.removeListener(event_types.MESSAGE_DELETED, handleMessageDeleted);
     window.removeEventListener("message", handleIframeCommand);
     await reloadCurrentChat();
   }
