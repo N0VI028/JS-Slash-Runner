@@ -819,9 +819,9 @@ async function formattedLastMessage() {
   const isUser = lastMessage.is_user;
   const isSystem = lastMessage.is_system;
   const chName = lastMessage.name;
-  const messageId = lastIndex; 
+  const messageId = lastIndex;
   const mesBlock = $(`div[mesid="${messageId}"]`);
-  mesBlock.find('.mes_text').empty();
+  mesBlock.find(".mes_text").empty();
   mesBlock
     .find(".mes_text")
     .append(messageFormatting(mes, chName, isSystem, isUser, messageId));
@@ -866,7 +866,7 @@ async function onExtensionToggle() {
     eventSource.removeListener(event_types.MESSAGE_DELETED, () => {
       clearTempVariables();
       formattedLastMessage();
-    });    
+    });
     window.removeEventListener("message", handleIframeCommand);
     await reloadCurrentChat();
   }
@@ -1169,13 +1169,9 @@ async function playAudio(type) {
     audioElement.src = selectedAudio;
   }
 
-  try {
-    await audioElement.play();
-    playPauseIcon.removeClass("fa-play");
-    playPauseIcon.addClass("fa-pause");
-  } catch (error) {
-    console.error(`Failed to play ${type} audio:`, error);
-  }
+  audioElement.play();
+  playPauseIcon.removeClass("fa-play");
+  playPauseIcon.addClass("fa-pause");
 }
 
 async function togglePlayPause(type) {
@@ -1535,6 +1531,15 @@ async function updateBGM(isUserInput = false, newChat = false) {
   saveSettingsDebounced();
 }
 
+function getAudioUrlWithCacheBusting(originalUrl) {
+  const cacheBuster = `cb=${new Date().getTime()}`;
+  if (originalUrl.includes("?")) {
+    return `${originalUrl}&${cacheBuster}`;
+  } else {
+    return `${originalUrl}?${cacheBuster}`;
+  }
+}
+
 async function updateAmbient(isUserInput = false) {
   if (!extension_settings[extensionName].audio_setting) {
     return;
@@ -1571,24 +1576,19 @@ async function updateAmbient(isUserInput = false) {
   }
 
   const audio = $("#audio_ambient")[0];
-
+  const cleanAudioSrc = audio.src.split("?")[0];
+  const cleanAudioUrl = audio_url.split("?")[0];
   if (
-    decodeURIComponent(audio.src) === decodeURIComponent(audio_url) &&
+    decodeURIComponent(cleanAudioSrc) === decodeURIComponent(cleanAudioUrl) &&
     !ambientEnded
   ) {
     return;
   }
 
   ambientEnded = false;
-  if (audioCache[audio_url]) {
-    audio.src = audioCache[audio_url];
-    audio.play();
-  } else {
-    audio.src = audio_url;
-    audio.play();
-    audioCache[audio_url] = audio_url;
-  }
-
+  const audioUrlWithCacheBusting = getAudioUrlWithCacheBusting(audio_url);
+  audio.src = audioUrlWithCacheBusting;
+  audio.play();
   extension_settings[extensionName].audio.ambient_selected = audio_url;
   const ambientSelect = $("#audio_ambient_select");
   if (ambientSelect.val() !== audio_url) {
