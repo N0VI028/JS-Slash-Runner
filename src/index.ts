@@ -1,3 +1,6 @@
+// @ts-nocheck
+// TODO: 拆分消息 iframe 到 message_iframe.ts 中
+// TODO: 拆分 triggerSlash triggerSlashWithResult getVariables setVariables 到对应于 src/iframe_client/... 的 src/iframe_server/... 文件中
 import {
   eventSource,
   event_types,
@@ -7,34 +10,38 @@ import {
   reloadCurrentChat,
   user_avatar,
   messageFormatting,
-} from "../../../../script.js";
+} from "../../../../../script.js";
 
 import {
   extension_settings,
   renderExtensionTemplateAsync,
   getContext,
   saveMetadataDebounced,
-} from "../../../../scripts/extensions.js";
-import { getSortableDelay } from "../../../../scripts/utils.js";
-import { SlashCommandParser } from "../../../../scripts/slash-commands/SlashCommandParser.js";
-import { SlashCommand } from "../../../../scripts/slash-commands/SlashCommand.js";
+} from "../../../../extensions.js";
+import { getSortableDelay } from "../../../../utils.js";
+import { SlashCommandParser } from "../../../../slash-commands/SlashCommandParser.js";
+import { SlashCommand } from "../../../../slash-commands/SlashCommand.js";
 import {
   SlashCommandArgument,
   SlashCommandNamedArgument,
   ARGUMENT_TYPE,
-} from "../../../../scripts/slash-commands/SlashCommandArgument.js";
+} from "../../../../slash-commands/SlashCommandArgument.js";
 import {
   SlashCommandEnumValue,
   enumTypes,
-} from "../../../../scripts/slash-commands/SlashCommandEnumValue.js";
+} from "../../../../slash-commands/SlashCommandEnumValue.js";
 import {
   enumIcons,
   commonEnumProviders,
-} from "../../../../scripts/slash-commands/SlashCommandCommonEnumsProvider.js";
+} from "../../../../slash-commands/SlashCommandCommonEnumsProvider.js";
 
-import { POPUP_TYPE, callGenericPopup } from "../../../../scripts/popup.js";
+import { POPUP_TYPE, callGenericPopup } from "../../../../popup.js";
 
-import { isMobile } from "../../../../scripts/RossAscends-mods.js";
+import { isMobile } from "../../../../RossAscends-mods.js";
+
+import { iframe_client } from "./iframe_client_exported/index.js";
+import { handleTavernEvent } from "./iframe_server/tavern_event.js";
+import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -191,6 +198,7 @@ function loadSettings() {
     extension_settings[extensionName].audio.bgm_cooldown
   );
 }
+
 async function renderAllIframes() {
   await renderMessagesInIframes(RENDER_MODES.FULL);
 }
@@ -251,13 +259,13 @@ async function renderMessagesInIframes(
       `.mes[mesid="${messageId}"]`
     );
     if (!messageElement) {
-      console.warn(`未找到 mesid: ${messageId} 对应的消息元素。`);
+      console.debug(`未找到 mesid: ${messageId} 对应的消息元素。`);
       continue;
     }
 
     const mesTextContainer = messageElement.querySelector(".mes_text");
     if (!mesTextContainer) {
-      console.warn(`未找到 mes_text 容器，跳过消息 mesid: ${messageId}`);
+      console.debug(`未找到 mes_text 容器，跳过消息 mesid: ${messageId}`);
       continue;
     }
 
@@ -373,59 +381,7 @@ async function renderMessagesInIframes(
                   }
         </style>
         <script>
-        function requestVariables() {
-            return new Promise((resolve, reject) => {
-              function handleMessage(event) {
-                if (event.data && event.data.variables) {
-                  window.removeEventListener("message", handleMessage);
-                  resolve(event.data.variables);
-                }
-              }
-              window.addEventListener("message", handleMessage);
-              window.parent.postMessage({ request: "getVariables" }, "*");
-            });
-        }
-        async function getVariables() {
-            const variables = await requestVariables();
-            return variables;
-        }
-        function setVariables(newVariables) {
-            if (typeof newVariables === "object" && newVariables !== null) {
-              const iframeId = window.frameElement.id;
-              window.parent.postMessage(
-                { request: "setVariables", data: newVariables, iframeId: iframeId },
-                "*"
-            );
-            } else {
-              console.error("setVariables expects an object");
-            }
-        }
-        function triggerSlash(commandText) {
-          window.parent.postMessage(
-            { request: "command", commandText: commandText },
-            "*"
-          );
-        }
-        function triggerSlashWithResult(commandText) {
-          return new Promise((resolve, reject) => {
-            const messageId = Date.now() + Math.random(); 
-            function handleMessage(event) {
-              if (
-                event.data &&
-                event.data.request === "commandResult" &&
-                event.data.messageId === messageId
-              ) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result); 
-              }
-            }
-            window.addEventListener("message", handleMessage);
-            window.parent.postMessage(
-              { request: "commandWithResult", commandText: commandText, messageId: messageId },
-              "*"
-            );
-          });
-        }
+          ${iframe_client}
         </script>
       </head>
       <body>
@@ -460,8 +416,7 @@ async function renderMessagesInIframes(
   }
 
   console.log(
-    `[Render]模式: ${mode}, 深度限制: ${
-      processDepth > 0 ? processDepth : "无限制"
+    `[Render]模式: ${mode}, 深度限制: ${processDepth > 0 ? processDepth : "无限制"
     },已渲染的消息ID: ${renderedMessages.join(
       ", "
     )},已取消渲染的消息ID: ${messagesToCancelIds.join(", ")}`
@@ -659,7 +614,7 @@ async function handleIframeCommand(event) {
             if (Array.isArray(parsedValue)) {
               variables[key] = parsedValue;
             }
-          } catch (e) {}
+          } catch (e) { }
         }
       }
       event.source.postMessage({ variables: variables }, "*");
@@ -830,6 +785,11 @@ async function onExtensionToggle() {
   const isEnabled = Boolean($("#activate_setting").prop("checked"));
   extension_settings[extensionName].activate_setting = isEnabled;
   if (isEnabled) {
+    script_load_events.forEach((eventType) => {
+      eventSource.on(eventType, initializeScripts)
+    })
+    window.addEventListener('message', handleTavernEvent);
+
     fullRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, handleFullRender);
     });
@@ -851,6 +811,12 @@ async function onExtensionToggle() {
     });
     window.addEventListener("message", handleIframeCommand);
   } else {
+    script_load_events.forEach((eventType) => {
+      eventSource.removeListener(eventType, initializeScripts)
+    })
+    destroyScriptsIfInitialized();
+    window.removeEventListener('message', handleTavernEvent);
+
     fullRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handleFullRender);
     });
@@ -1745,7 +1711,7 @@ jQuery(async () => {
   const getContainer = () =>
     $(
       document.getElementById("audio_container") ??
-        document.getElementById("extensions_settings")
+      document.getElementById("extensions_settings")
     );
   const windowHtml = await renderExtensionTemplateAsync(
     `${extensionFolderPath}`,

@@ -1,0 +1,77 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "编译所有js和ts",
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "problemMatcher": [
+        "$tsc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true,
+        "revealProblems": "never"
+      }
+    },
+    {
+      "label": "开始监视所有js和ts",
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "watch",
+      "problemMatcher": [
+        "$tsc-watch"
+      ],
+      "group": {
+        "kind": "build"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true,
+        "revealProblems": "never"
+      }
+    },
+    {
+      "label": "启动liveserver",
+      "command": "${command:extension.liveServer.goOnline}"
+    },
+    {
+      "label": "准备调试网页",
+      "dependsOn": [
+        "开始监视所有js和ts",
+        "启动liveserver"
+      ]
+    },
+    {
+      "label": "结束监视所有js和ts",
+      "command": "echo ${input:terminate}",
+      "type": "shell"
+    },
+    {
+      "label": "结束调试网页",
+      "dependsOn": [
+        "结束监视所有js和ts"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "terminate",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "terminateAll"
+    }
+  ]
+}

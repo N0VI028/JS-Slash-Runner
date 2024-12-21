@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "调试脚本本身 (不能和酒馆交互因而有问题)",
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "编译所有js和ts",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${file}",
+      "outFiles": [
+        "${workspaceFolder}/src_exported/**/*.js"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "调试酒馆网页(Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "准备调试网页",
+      "postDebugTask": "结束调试网页",
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}/../../../../",
+      "disableNetworkCache": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "调试酒馆网页(Edge)",
+      "type": "msedge",
+      "request": "launch",
+      "preLaunchTask": "准备调试网页",
+      "postDebugTask": "结束调试网页",
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}/../../../../",
+      "disableNetworkCache": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
