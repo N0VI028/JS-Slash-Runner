@@ -15,11 +15,11 @@ type Callback = (...args: any[]) => any;
  *
  * @example
  * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageEdited(message_id) {
+ * // 能这么做是因为酒馆 MESSAGE_UPDATED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
+ * function detectMessageUpdated(message_id) {
  *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
  * }
- * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
+ * tavernOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  */
 function tavernOn(event_type: TavernEventType, listener: Callback): void {
   window.parent.postMessage({
@@ -169,11 +169,11 @@ type TavernEventType = typeof tavern_events[keyof typeof tavern_events];
  *
  * @example
  * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageEdited(message_id) {
+ * // 能这么做是因为酒馆 MESSAGE_UPDATED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
+ * function detectMessageUpdated(message_id) {
  *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
  * }
- * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
+ * tavernOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  *
  * @todo 列举每个事件会返回的信息
  */
