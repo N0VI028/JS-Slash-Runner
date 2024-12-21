@@ -15,6 +15,8 @@
 
 所有代码均位于 `src` 中, 你只应该对 `src/iframe_client_exported` 以外的代码进行修改, 然后运行 `python compile.py` 完成修改.
 
+:alert: 在 ``import`` 其他脚本时, 记得使用 ``.js`` 后缀, 如 ``import { iframe_client } from "./iframe_client_exported/index.js";``.
+
 ```text
 .
 ├── .vscode  # VSCode 调试任务设置
