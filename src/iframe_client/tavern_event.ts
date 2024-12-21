@@ -12,6 +12,14 @@ type Callback = (...args: any[]) => any;
  * // 收到 ai 消息时弹窗输出 `hello`;
  * function hello() { alert("hello"); }
  * tavernOn(tavern_events.MESSAGE_RECEIVED, hello);
+ *
+ * @example
+ * // 消息被修改时监听是哪一条消息被修改
+ * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
+ * function detectMessageEdited(message_id) {
+ *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
+ * }
+ * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
  */
 function tavernOn(event_type: TavernEventType, listener: Callback): void {
   window.parent.postMessage({
@@ -152,12 +160,20 @@ window.addEventListener("message", (event: MessageEvent<{ request: string, event
 type TavernEventType = typeof tavern_events[keyof typeof tavern_events];
 
 /**
- * 可被监听的酒馆事件
+ * 可被监听的酒馆事件, 一些酒馆事件可能会在触发时返回事件对应的某些信息回来
  *
  * @example
  * // 收到 ai 消息时弹窗输出 `hello`;
  * function hello() { alert("hello"); }
  * tavernOn(tavern_events.MESSAGE_RECEIVED, hello);
+ *
+ * @example
+ * // 消息被修改时监听是哪一条消息被修改
+ * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
+ * function detectMessageEdited(message_id) {
+ *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
+ * }
+ * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
  */
 const tavern_events = {
   APP_READY: 'app_ready',
