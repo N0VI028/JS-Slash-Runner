@@ -174,6 +174,8 @@ type TavernEventType = typeof tavern_events[keyof typeof tavern_events];
  *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
  * }
  * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
+ *
+ * @todo 列举每个事件会返回的信息
  */
 const tavern_events = {
   APP_READY: 'app_ready',
