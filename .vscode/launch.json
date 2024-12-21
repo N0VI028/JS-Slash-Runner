@@ -11,7 +11,7 @@
       ],
       "program": "${file}",
       "outFiles": [
-        "${workspaceFolder}/build/**/*.js"
+        "${workspaceFolder}/src_exported/**/*.js"
       ],
       "internalConsoleOptions": "openOnSessionStart"
     },
