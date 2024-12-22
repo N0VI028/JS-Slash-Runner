@@ -124,6 +124,90 @@ async function getVariables(): Promise<Object>
 function setVariables(newVariables: Object): void
 ```
 
+### 楼层消息操作
+
+#### 获取楼层消息
+
+酒馆虽然提供了 `/messages` 命令, 但是它获取的是一整个字符串, 并且不能获取楼层当前没在使用的消息 (点击箭头切换的那个 swipe 消息, 在前端插件中我们称之为 "消息页"), 前端插件为此提供了一个函数获取更便于处理的消息.
+
+其获取到的结果是一个数组, 数组的元素类型为 `ChatMessage`, 有以下内容:
+
+```typescript
+interface ChatMessage {
+  message_id: number;
+  name: string;
+  is_user: boolean;
+  is_system_or_hidden: boolean;
+  message: string;
+
+  // 如果 getChatMessages 时 swipe === false, 则以下内容为 undefined
+  swipe_id?: number;
+  swipes?: string[];
+}
+```
+
+具体函数为:
+
+```typescript
+interface GetChatMessagesOption {
+  role?: 'all' | 'system' | 'assistant' | 'user';  // 按 role 筛选消息; 默认为 `'all'`
+  hidden?: boolean;                                // 是否包含被隐藏的消息楼层; 默认为 `true`
+  swipe?: boolean;                                 // 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
+}
+
+/**
+ * 获取聊天消息
+ *
+ * @param range 要获取的消息楼层号或楼层范围, 与 `/messages` 相同
+ * @param option 对获取消息进行可选设置
+ *   - `role:'all'|'system'|'assistant'|'user'`: 按 role 筛选消息; 默认为 `'all'`
+ *   - `hidden:boolean`: 是否包含被隐藏的消息楼层; 默认为 `true`
+ *   - `swipe:boolean`: 是否包含消息楼层其他没被 ai 使用的消息页; 默认为 `false`
+ *
+ * @returns 一个数组, 数组的元素是每楼的消息
+ *
+ * @example
+ * // 仅获取第 10 楼会被 ai 使用的消息页
+ * const messages = await getChatMessages(10);
+ * const messages = await getChatMessages("10");
+ * // 获取第 10 楼的所有消息页
+ * const messages = await getChatMessages(10, {swipe: true});
+ * // 获取所有楼层的所有消息页
+ * const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
+ */
+function getChatMessages(range: string | number, option: GetChatMessagesOption = {}): Promise<ChatMessage[]>
+```
+
+#### 修改楼层消息
+
+酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本前端插件提供这样的功能:
+
+```typescript
+interface SetChatMessagesOption {
+  swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+  switch?: boolean;      // 是否在该楼当前使用的消息页不是替换的消息页时, 自动切换为使用替换的消息页; 默认为 `false`
+  reload?: boolean;      // 是否在替换后重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED`; 默认为 `false`
+  // TODO: emit_event?: boolean;  // 是否根据替换时消息发生的变化发送对应的酒馆事件, 如 MESSAGE_UPDATED, MESSAGE_SWIPED 等; 默认为 `false`
+}
+
+/**
+ * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前在显示的消息, 则会应用正则对它进行处理然后更新显示.
+ *
+ * @param message 要用于替换的消息
+ * @param message_id 消息楼层id
+ * @param option 对获取消息进行可选设置
+ *   - `swipe_id:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+ *   - `switch:boolean`: 是否在该楼当前使用的消息页不是替换的消息页时, 自动切换为使用替换的消息页; 默认为 `false`
+ *   - `reload:boolean`: 是否在替换后重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED`; 默认为 `false`
+ *
+ * @example
+ * setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
+ * setChatMessage("这是要设置在楼层 5 第 3 页的消息", 5, 3);
+ * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 立即刷新它", 5, 3, {reload: true});
+ */
+function setChatMessage(message: string, message_id: number, option: SetChatMessagesOption = {}): void
+```
+
 ### 监听酒馆事件
 
 扩展允许你设置当酒馆发生某种事件时, 运行想要的函数. 例如, 你也许想在玩家擅自更改你的世界书时警告玩家.
@@ -370,6 +454,26 @@ function tavernClearAll(): void
  * @returns 对于楼层消息是 `message-楼层id-属于该楼层第几个代码块`; 对于全局脚本是 `script-脚本名称`
  */
 function getIframeName(): string
+```
+
+```typescript
+/**
+ * 获取楼层消息 iframe 的所在楼层 id, **只能对楼层消息 iframe** 使用
+ *
+ * @returns 楼层消息 iframe 的所在楼层 id
+ */
+function getCurrentMessageId(): number
+```
+
+```typescript
+/**
+ * 获取最新楼层 id
+ *
+ * @returns 最新楼层id
+ */
+async function getLastMessageId(): Promise<number>;
+```
+
 ```
 
 ## 播放器功能

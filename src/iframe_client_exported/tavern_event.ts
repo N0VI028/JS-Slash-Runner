@@ -136,7 +136,7 @@ function tavernClearAll() {
     }, '*');
 }
 window.addEventListener("message", (event) => {
-    if (event.data.request === "iframe_tavern_callback") {
+    if (event.data?.request === "iframe_tavern_callback") {
         // @ts-ignore 7015
         const fn = window[event.data.listener_name];
         if (typeof fn === 'function') {

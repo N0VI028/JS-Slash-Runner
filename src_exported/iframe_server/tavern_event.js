@@ -2,6 +2,7 @@ export { handleTavernEvent };
 import { extract, get_or_set } from "../util/helper.js";
 import { eventSource } from "../../../../../../script.js";
 let iframe_listener_event_callback_map = new Map();
+// TODO: don't repeat this in all files
 function getIframeName(event) {
     const window = event.source;
     return window.frameElement?.id;
@@ -28,7 +29,7 @@ function makeTavernCallback(event, once) {
         if (once) {
             removeTavernCallback(event);
         }
-        event.source?.postMessage({
+        event.source.postMessage({
             request: 'iframe_tavern_callback',
             event_type: data.event_type,
             listener_name: data.listener_name,

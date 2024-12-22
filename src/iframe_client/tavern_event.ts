@@ -146,7 +146,7 @@ function tavernClearAll(): void {
 }
 
 window.addEventListener("message", (event: MessageEvent<{ request: string, event_type: string, listener_name: string, args: any[] }>): void => {
-  if (event.data.request === "iframe_tavern_callback") {
+  if (event.data?.request === "iframe_tavern_callback") {
     // @ts-ignore 7015
     const fn = window[event.data.listener_name] as unknown as Function;
     if (typeof fn === 'function') {

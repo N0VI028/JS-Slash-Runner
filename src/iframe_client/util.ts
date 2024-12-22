@@ -8,7 +8,7 @@ function getIframeName(): string {
 }
 
 /**
- * 获取楼层消息 iframe 的所在楼层 id
+ * 获取楼层消息 iframe 的所在楼层 id, **只能对楼层消息 iframe** 使用
  *
  * @returns 楼层消息 iframe 的所在楼层 id
  */

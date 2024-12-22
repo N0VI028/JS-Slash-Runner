@@ -30,6 +30,7 @@ interface IframeTavernClearAllMessage {
 
 type IframeTavernMessage = IframeTavernNormalMessage | IframeTavernClearEventMessage | IframeTavernClearListenerMessage | IframeTavernClearAllMessage;
 
+// TODO: don't repeat this in all files
 function getIframeName(event: MessageEvent<IframeTavernMessage>): string {
   const window = event.source as Window;
   return window.frameElement?.id as string;
@@ -62,7 +63,7 @@ function makeTavernCallback(event: MessageEvent<IframeTavernNormalMessage>, once
     if (once) {
       removeTavernCallback(event);
     }
-    event.source?.postMessage({
+    (event.source as MessageEventSource).postMessage({
       request: 'iframe_tavern_callback',
       event_type: data.event_type,
       listener_name: data.listener_name,

@@ -10,7 +10,7 @@ import subprocess
 
 def run_command(cmd, cwd=None):
     """运行命令并返回输出"""
-    result = subprocess.run(cmd, cwd=cwd, shell=True, text=True, capture_output=True)
+    subprocess.run(cmd, cwd=cwd, shell=True)
 
 
 def escape_template_literals(content):

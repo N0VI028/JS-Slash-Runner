@@ -41,6 +41,7 @@ import { isMobile } from "../../../../RossAscends-mods.js";
 
 import { iframe_client } from "./iframe_client_exported/index.js";
 import { handleTavernEvent } from "./iframe_server/tavern_event.js";
+import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
 
 const extensionName = "JS-Slash-Runner";
@@ -810,6 +811,7 @@ async function onExtensionToggle() {
       formattedLastMessage();
     });
     window.addEventListener("message", handleIframeCommand);
+    window.addEventListener("message", handleChatMessage);
   } else {
     script_load_events.forEach((eventType) => {
       eventSource.removeListener(eventType, initializeScripts)
@@ -834,6 +836,7 @@ async function onExtensionToggle() {
       formattedLastMessage();
     });
     window.removeEventListener("message", handleIframeCommand);
+    window.removeEventListener("message", handleChatMessage);
     await reloadCurrentChat();
   }
 

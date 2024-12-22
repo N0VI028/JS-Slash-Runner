@@ -50,3 +50,8 @@ export function extract<K, V>(map: Map<K, V>, key: K): V | undefined {
   map.delete(key);
   return value;
 }
+
+export function has<T>(array: T[], value: T): boolean {
+  const index = array.indexOf(value);
+  return index > -1;
+}
