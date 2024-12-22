@@ -5,7 +5,7 @@
 你可以参考 [参与前端插件开发的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html) 来得到 VSCode 上更详细的配置和使用教程.
 
 - VSCode: 安装并导入 [VSCode 配置文件](https://gitgud.io/SmilingFace/tavern_resource/-/raw/main/工具经验/sillytavern.code-profile?inline=false)
-- Git: 安装并将本项目克隆到酒馆的 `SillyTavern/public/scripts/extensions/third-party` 文件夹下
+- Git: 安装并将本项目克隆到酒馆的 `SillyTavern/public/scripts/extensions/third-party` 文件夹下, 在酒馆根目录进行 `npm install --dev --no-audit --no-fund --no-progress` 以得到酒馆的语法高亮.
 - typescript: `npm install -g typescript`
 - python
 
