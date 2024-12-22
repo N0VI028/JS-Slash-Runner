@@ -165,8 +165,8 @@ const event_handlers = {
 
       if (chat_message.swipes) {
         mes_html
-          .find('swipes-counter')
-          .val(`${swipe_id_to_use_index}​/​${chat_message.swipes.length}`);
+          .find('.swipes-counter')
+          .text(`${swipe_id_to_use_index + 1}\u200b/\u200b${chat_message.swipes.length}`);
       }
       if (will_use) {
         mes_html.find('.mes_text')
