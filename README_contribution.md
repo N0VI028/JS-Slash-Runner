@@ -39,6 +39,10 @@
 │   │   ├── index.ts            # 我们要将代码注入到 iframe 中则直接使用这个文件中的 iframe_client 字符串即可
 │   │   └── ...
 │   │
+│   ├── slash_command  # 自定义的酒馆 Slash Command
+│   │   ├── message_channel.ts
+│   │   └── ...
+│   │
 │   ├── util  # 杂七杂八
 │   │
 │   ├── index.ts           # 主文件
