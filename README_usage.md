@@ -50,7 +50,7 @@
 
 ## 怎么用最好?
 
-[基于前端插件编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)
+[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)
 
 ## 脚本代码功能
 
@@ -131,7 +131,7 @@ function setVariables(newVariables: Object): void
 
 #### 获取楼层消息
 
-酒馆虽然提供了 `/messages` 命令, 但是它获取的是一整个字符串, 并且不能获取楼层当前没在使用的消息 (点击箭头切换的那个 swipe 消息, 在前端插件中我们称之为 "消息页"), 前端插件为此提供了一个函数获取更便于处理的消息.
+酒馆虽然提供了 `/messages` 命令, 但是它获取的是一整个字符串, 并且不能获取楼层当前没在使用的消息 (点击箭头切换的那个 swipe 消息, 在前端助手中我们称之为 "消息页"), 前端助手为此提供了一个函数获取更便于处理的消息.
 
 其获取到的结果是一个数组, 数组的元素类型为 `ChatMessage`, 有以下内容:
 
@@ -183,7 +183,7 @@ function getChatMessages(range: string | number, option: GetChatMessagesOption =
 
 #### 修改楼层消息
 
-酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本前端插件提供这样的功能:
+酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本前端助手提供这样的功能:
 
 ```typescript
 interface SetChatMessagesOption {
