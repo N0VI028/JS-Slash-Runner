@@ -55,10 +55,10 @@ def export_client(script_dir):
 
     # 生成 src/iframe_client_exported/index.ts
     index_content = ''
-    index_content += f'{''.join(f'import {{ iframe_client_{stem} }} from "./{stem}.js"\n' for stem in stems)}'
+    index_content += f'{''.join(f'import {{iframe_client_{stem}}} from "./{stem}.js"\n' for stem in stems)}'
     index_content += '\n'
     index_content += 'export const iframe_client = [\n'
-    index_content += f'{''.join(f'  iframe_client_{stem},\n' for stem in stems)}'
+    index_content += f'{''.join(f'  iframe_client_{stem}, \n' for stem in stems)}'
     index_content += "].join('\\n');"
 
     index_file = Path(os.path.join(iframe_client_exported_dir, 'index.ts'))
@@ -97,6 +97,11 @@ if __name__ == '__main__':
     print("移除之前可能生成的 src_exported...")
     shutil.rmtree(os.path.join(SCRIPT_DIR, 'src_exported'), ignore_errors=True)
 
+    print("""
+======================================
+别忘了给 import 的相对路径文件后面加上 .js 后缀!!!
+======================================
+""")
     print("运行第一次 TypeScript 编译...")
     run_command('tsc -p tsconfig.json', SCRIPT_DIR)
 
