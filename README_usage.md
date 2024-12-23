@@ -515,6 +515,12 @@ function notifyAll(channel: string, ...data: any[]): void
  * other_work();
  * // 事情做完了, 看看消息等到了吗
  * const result = await promise;
+ *
+ * @example
+ * // 消息要求我们调用某个函数
+ * const result = await wait("频道名称");
+ * const function = window[result[0]];  // 返回的第一个数据是函数名, 我们查找该函数
+ * function(...result.slice(1));  // 用剩下的数据作为函数的参数
  */
 async function wait(channel: string): Promise<any[]>
 ```
