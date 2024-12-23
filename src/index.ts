@@ -1,6 +1,7 @@
 // @ts-nocheck
 // TODO: 拆分消息 iframe 到 message_iframe.ts 中
 // TODO: 拆分 triggerSlash triggerSlashWithResult getVariables setVariables 到对应于 src/iframe_client/... 的 src/iframe_server/... 文件中
+// TODO: 拆分音视频相关 slash command 到 slash_command 文件夹中
 import {
   eventSource,
   event_types,
@@ -42,7 +43,9 @@ import { isMobile } from "../../../../RossAscends-mods.js";
 import { iframe_client } from "./iframe_client_exported/index.js";
 import { handleTavernEvent } from "./iframe_server/tavern_event.js";
 import { handleChatMessage } from "./iframe_server/chat_message.js";
+import { handleMessageChannel } from "./iframe_server/message_channel.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
+import { initSlashNotifyAll } from "./slash_command/message_channel.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -812,6 +815,7 @@ async function onExtensionToggle() {
     });
     window.addEventListener("message", handleIframeCommand);
     window.addEventListener("message", handleChatMessage);
+    window.addEventListener("message", handleMessageChannel);
   } else {
     script_load_events.forEach((eventType) => {
       eventSource.removeListener(eventType, initializeScripts)
@@ -837,6 +841,7 @@ async function onExtensionToggle() {
     });
     window.removeEventListener("message", handleIframeCommand);
     window.removeEventListener("message", handleChatMessage);
+    window.removeEventListener("message", handleMessageChannel);
     await reloadCurrentChat();
   }
 
@@ -1854,6 +1859,7 @@ jQuery(async () => {
 
   initializeProgressBar("bgm");
   initializeProgressBar("ambient");
+  initSlashNotifyAll();
   SlashCommandParser.addCommandObject(
     SlashCommand.fromProps({
       name: "audioselect",

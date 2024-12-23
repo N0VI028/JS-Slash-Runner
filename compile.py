@@ -97,6 +97,11 @@ if __name__ == '__main__':
     print("移除之前可能生成的 src_exported...")
     shutil.rmtree(os.path.join(SCRIPT_DIR, 'src_exported'), ignore_errors=True)
 
+    print("""
+======================================
+别忘了给 import 的相对路径文件后面加上 .js 后缀!!!
+======================================
+""")
     print("运行第一次 TypeScript 编译...")
     run_command('tsc -p tsconfig.json', SCRIPT_DIR)
 
