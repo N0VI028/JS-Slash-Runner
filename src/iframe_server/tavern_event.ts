@@ -226,7 +226,7 @@ async function handleTavernEvent(event: MessageEvent<IframeTavernMessage>): Prom
       handler(event as any);
     }
   } catch (error) {
-    console.error(`[Tavern Event](${event.source}) 与酒馆事件交互时出错:`, error);
+    console.error(`[Tavern Event](${getIframeName(event)}) 与酒馆事件交互时出错:`, error);
     throw error;
   }
 }

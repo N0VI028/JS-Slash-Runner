@@ -197,7 +197,7 @@ async function handleChatMessage(event: MessageEvent<IframeChatMessageMessage>):
       handler(event as any);
     }
   } catch (error) {
-    console.error(`[Chat Message](${event.source}) 与酒馆事件交互时出错:`, error);
+    console.error(`[Chat Message](${getIframeName(event)}) 与酒馆事件交互时出错:`, error);
     throw error;
   }
 }
