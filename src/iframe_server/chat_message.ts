@@ -32,7 +32,7 @@ const event_handlers = {
     const range_demacroed = substituteParamsExtended(event.data.range);
     const range = stringToRange(range_demacroed, 0, chat.length - 1);
     if (!range) {
-      console.warn(`[Chat Message: getChatMessages](${iframe_name}) 提供的消息范围无效: ${range_demacroed}`)
+      console.warn(`[Chat Message][getChatMessages](${iframe_name}) 提供的消息范围无效: ${range_demacroed}`)
       return;
     }
 
@@ -55,23 +55,23 @@ const event_handlers = {
       if (option.role === 'user') {
         return !is_narrator && chat_message.is_user;
       }
-      throw new Error(`[Chat Message: getChatMessages](${iframe_name}) 提供的 role 无效, 请提供 'all', 'system', 'assistant' 或 'user'. 你提供的是: ${option.role}`);
+      throw new Error(`[Chat Message][getChatMessages](${iframe_name}) 提供的 role 无效, 请提供 'all', 'system', 'assistant' 或 'user'. 你提供的是: ${option.role}`);
     };
 
     const process_message = async (message_id: number): Promise<ChatMessage | null> => {
       const chat_message = chat[message_id];
       if (!chat_message) {
-        console.warn(`[Chat Message: getChatMessages](${iframe_name}) 没找到第 ${message_id} 楼的消息`);
+        console.warn(`[Chat Message][getChatMessages](${iframe_name}) 没找到第 ${message_id} 楼的消息`);
         return null;
       }
 
       if (option.role && !fileter_by_role(chat_message)) {
-        console.debug(`[Chat Message: getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它的身份不是 ${option.role}`);
+        console.debug(`[Chat Message][getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它的身份不是 ${option.role}`);
         return null;
       }
 
       if (!option.hidden && chat_message.is_system) {
-        console.debug(`[Chat Message: getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它是系统消息或被隐藏`);
+        console.debug(`[Chat Message][getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它是系统消息或被隐藏`);
         return null;
       }
 
@@ -101,7 +101,7 @@ const event_handlers = {
       { targetOrigin: "*" }
     );
 
-    console.info(`[Chat Message: getChatMessages](${iframe_name}) 获取${start == end ? `第 ${start} ` : ` ${start}-${end} `}楼的消息, 选项: ${JSON.stringify(option)}`);
+    console.info(`[Chat Message][getChatMessages](${iframe_name}) 获取${start == end ? `第 ${start} ` : ` ${start}-${end} `}楼的消息, 选项: ${JSON.stringify(option)}`);
   },
 
   iframe_set_chat_message: async (event: MessageEvent<IframeSetChatMessageMessage>): Promise<void> => {
@@ -113,7 +113,7 @@ const event_handlers = {
 
     const chat_message = chat[message_id];
     if (!chat_message) {
-      console.warn(`[Chat Message: setChatMessage](${iframe_name}) 未找到第 ${message_id} 楼的消息`);
+      console.warn(`[Chat Message][setChatMessage](${iframe_name}) 未找到第 ${message_id} 楼的消息`);
       return;
     }
 
@@ -122,7 +122,7 @@ const event_handlers = {
         return;
       }
       if (typeof option.swipe_id !== 'number') {
-        throw Error(`[Chat Message: setChatMessage](${iframe_name}) 提供的 swipe_id 无效, 请提供 'current' 或序号, 你提供的是: ${option.swipe_id}`)
+        throw Error(`[Chat Message][setChatMessage](${iframe_name}) 提供的 swipe_id 无效, 请提供 'current' 或序号, 你提供的是: ${option.swipe_id}`)
       }
 
       // swipe_id 存在对应的消息页存在
@@ -184,7 +184,7 @@ const event_handlers = {
       await reloadCurrentChat();
     }
 
-    console.info(`[Chat Message: setChatMessage](${iframe_name}) 设置第 ${message_id} 楼消息, 选项: ${JSON.stringify(option)}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index}`);
+    console.info(`[Chat Message][setChatMessage](${iframe_name}) 设置第 ${message_id} 楼消息, 选项: ${JSON.stringify(option)}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index}`);
   },
 };
 
@@ -197,7 +197,7 @@ async function handleChatMessage(event: MessageEvent<IframeChatMessageMessage>):
       handler(event as any);
     }
   } catch (error) {
-    console.error(`[Tavern Event](${event.source}) 与酒馆事件交互时出错:`, error);
+    console.error(`[Chat Message](${event.source}) 与酒馆事件交互时出错:`, error);
     throw error;
   }
 }
