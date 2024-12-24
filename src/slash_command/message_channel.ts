@@ -52,7 +52,7 @@ export function initSlashEventEmit() {
                 <pre><code class="language-stscript">/event-emit data={{getvar::数据}} "存档"</code></pre>
             </li>
             <li>
-                <pre><code class="language-stscript">/notify-all data=8 "随便什么名称"</code></pre>
+                <pre><code class="language-stscript">/event-emit data=8 "随便什么名称"</code></pre>
             </li>
         </ul>
     </div>
