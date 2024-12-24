@@ -578,13 +578,13 @@ async function executeCommand(command) {
         throw error;
     }
 }
-const handleFullRender = () => {
+export const handleFullRender = () => {
     console.log("[Render] FULL render event triggered");
     setTimeout(() => {
         renderAllIframes();
     }, 100);
 };
-const handlePartialRender = (mesId) => {
+export const handlePartialRender = (mesId) => {
     console.log("[Render] PARTIAL render event triggered for message ID:", mesId);
     const processDepth = parseInt($("#process_depth").val(), 10);
     const context = getContext();

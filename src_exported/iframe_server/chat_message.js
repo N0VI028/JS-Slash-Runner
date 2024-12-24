@@ -1,5 +1,6 @@
 import { chat, messageFormatting, reloadCurrentChat, saveChatConditional, substituteParamsExtended, system_message_types } from "../../../../../../script.js";
 import { stringToRange } from "../../../../../utils.js";
+import { handleFullRender, handlePartialRender } from "../index.js";
 export { handleChatMessage };
 // TODO: don't repeat this in all files
 function getIframeName(event) {
@@ -117,6 +118,9 @@ const event_handlers = {
         };
         const update_html = () => {
             const mes_html = $(`div.mes[mesid="${message_id}"]`);
+            if (!mes_html) {
+                return;
+            }
             if (chat_message.swipes) {
                 mes_html
                     .find('.swipes-counter')
@@ -126,6 +130,12 @@ const event_handlers = {
                 mes_html.find('.mes_text')
                     .empty()
                     .append(messageFormatting(message, chat_message.name, chat_message.is_system, chat_message.is_user, message_id));
+            }
+            if (option.render === 'only_message_id') {
+                handlePartialRender(message_id);
+            }
+            else if (option.render === 'all') {
+                handleFullRender();
             }
         };
         add_swipes_if_required();

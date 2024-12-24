@@ -62,8 +62,17 @@ function getChatMessages(range: string | number, option: GetChatMessagesOption =
 
 interface SetChatMessagesOption {
   swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
-  switch?: boolean;      // 是否在该楼当前使用的消息页不是替换的消息页时, 自动切换为使用替换的消息页; 默认为 `false`
-  reload?: boolean;      // 是否在替换后重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED`; 默认为 `false`
+  switch?: boolean;  // 如果该楼当前使用的消息页不是要被替换的那一页, 是否自动切换为使用被替换的消息页; 默认为 `false`
+  reload?: boolean;  // 是否在替换后重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED`; 默认为 `false`
+
+  /**
+   * 是否在替换后重新渲染该消息中的 iframe; 默认为 `only_message_id`
+   * - 'none': 不重新渲染
+   * - 'only_message_id': 仅渲染当前被替换的楼层
+   * - 'all': 渲染所有被加载的楼层
+   */
+  render?: 'none' | 'only_message_id' | 'all';
+
   // TODO: emit_event?: boolean;  // 是否根据替换时消息发生的变化发送对应的酒馆事件, 如 MESSAGE_UPDATED, MESSAGE_SWIPED 等; 默认为 `false`
 }
 
@@ -76,6 +85,10 @@ interface SetChatMessagesOption {
  *   - `swipe_id:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
  *   - `switch:boolean`: 是否在该楼当前使用的消息页不是替换的消息页时, 自动切换为使用替换的消息页; 默认为 `false`
  *   - `reload:boolean`: 是否在替换后重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED`; 默认为 `false`
+ *   - `render:'none'|'only_message_id'|'all'`: 是否在替换后重新渲染该消息中的 iframe; 默认为 `only_message_id`
+ *     - 'none': 不重新渲染
+ *     - 'only_message_id': 仅渲染当前被替换的楼层
+ *     - 'all': 渲染所有被加载的楼层
  *
  * @example
  * setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
@@ -87,6 +100,7 @@ function setChatMessage(message: string, message_id: number, option: SetChatMess
     swipe_id: option.swipe_id ?? 'current',
     switch: option.switch ?? false,
     reload: option.reload ?? false,
+    render: option.render ?? 'only_message_id',
   } as Required<SetChatMessagesOption>;
   window.parent.postMessage({
     request: "iframe_set_chat_message",
