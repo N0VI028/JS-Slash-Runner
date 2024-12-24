@@ -8,16 +8,26 @@ function getIframeName(): string {
 }
 
 /**
- * 获取楼层消息 iframe 的所在楼层 id, **只能对楼层消息 iframe** 使用
+ * 从消息楼层 iframe 的 `iframe_name` 获取它所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
  *
- * @returns 楼层消息 iframe 的所在楼层 id
+ * @param iframe_name 消息楼层 iframe 的名称
+ * @returns 楼层 id
  */
-function getCurrentMessageId(): number {
-  const match = getIframeName().match(/^message-iframe-(\d+)-\d+$/);
+function getMessageId(iframe_name: string): number {
+  const match = iframe_name.match(/^message-iframe-(\d+)-\d+$/);
   if (!match) {
     throw Error(`获取 iframe 所在楼层 id 时出错: 不要对全局脚本调用 getCurrentMessageId!`);
   }
   return parseInt(match.toString());
+}
+
+/**
+ * 获取本消息楼层 iframe 所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
+ *
+ * @returns 楼层 id
+ */
+function getCurrentMessageId(): number {
+  return getMessageId(getIframeName());
 }
 
 /**

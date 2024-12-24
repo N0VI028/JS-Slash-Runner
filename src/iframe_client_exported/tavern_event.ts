@@ -165,6 +165,8 @@ window.addEventListener("message", (event) => {
  * @todo 列举每个事件会返回的信息
  */
 const tavern_events = {
+    MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
+    MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
     APP_READY: 'app_ready',
     EXTRAS_CONNECTED: 'extras_connected',
     MESSAGE_SWIPED: 'message_swiped',

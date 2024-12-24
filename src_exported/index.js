@@ -311,7 +311,9 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
                 doc.write(iframeContent);
                 doc.close();
                 observeIframeContent(iframe);
+                await eventSource.emit('message_iframe_render_ended', iframe.id);
             };
+            await eventSource.emit('message_iframe_render_started', iframe.id);
             codeElement.replaceWith(iframe);
         });
         renderedMessages.push(messageId);
