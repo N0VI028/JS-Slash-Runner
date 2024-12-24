@@ -6,17 +6,19 @@ import { SlashCommandParser } from "../../../../../slash-commands/SlashCommandPa
 
 async function slashEventEmit(args: any, value: any): Promise<any> {
   const data: any | null = args.data;
-  const event: string = value;
+  const event_type: string = value;
 
   if (!data) {
-    eventSource.emit(event);
+    eventSource.emit(event_type);
   } else if (Array.isArray(data)) {
-    eventSource.emit(event, ...data);
+    eventSource.emit(event_type, ...data);
   } else {
-    eventSource.emit(event, data);
+    eventSource.emit(event_type, data);
   }
 
-  return event;
+  console.info(`[Event][/event-emit] 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
+
+  return event_type;
 }
 
 export function initSlashEventEmit() {
