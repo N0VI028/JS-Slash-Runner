@@ -283,7 +283,8 @@ async function renderMessagesInIframes(
     const mesTextWidth = mesTextContainer.clientWidth - paddingRight;
     const avatarPath = `./User Avatars/${user_avatar}`;
 
-    codeElements.forEach((codeElement, index) => {
+    let index = 0;
+    codeElements.forEach((codeElement, _) => {
       let extractedText = extractTextFromCode(codeElement);
       if (
         !extractedText.includes("<body>") ||
@@ -293,7 +294,7 @@ async function renderMessagesInIframes(
       }
 
       const iframe = document.createElement("iframe");
-      iframe.id = `message-iframe-${messageId}-${index}`;
+      iframe.id = `message-iframe-${messageId}-${index++}`;
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
       iframe.style.width = "100%";
