@@ -42,8 +42,4 @@ export function extract(map, key) {
     map.delete(key);
     return value;
 }
-export function has(array, value) {
-    const index = array.indexOf(value);
-    return index > -1;
-}
 //# sourceMappingURL=helper.js.map

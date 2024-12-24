@@ -1,6 +1,6 @@
 import { chat, messageFormatting, reloadCurrentChat, saveChatConditional, substituteParamsExtended, system_message_types } from "../../../../../../script.js";
 import { stringToRange } from "../../../../../utils.js";
-import { handleFullRender, handlePartialRender } from "../index.js";
+import { handlePartialRender } from "../index.js";
 
 export { handleChatMessage }
 
@@ -111,6 +111,12 @@ const event_handlers = {
     const message = event.data.message;
     const message_id = event.data.message_id;
     const option = event.data.option;
+    if (option.swipe_id !== 'current' && typeof option.swipe_id !== 'number') {
+      throw Error(`[Chat Message][setChatMessage](${iframe_name}) 提供的 swipe_id 无效, 请提供 'current' 或序号, 你提供的是: ${option.swipe_id}`)
+    }
+    if (!['none', 'display_current', 'display_and_render_current', 'all'].includes(option.refresh)) {
+      throw Error(`[Chat Message][setChatMessage](${iframe_name}) 提供的 refresh 无效, 请提供 'none', 'display_current', 'display_and_render_current' 或 'all', 你提供的是: ${option.refresh}`)
+    }
 
     const chat_message = chat[message_id];
     if (!chat_message) {
@@ -118,17 +124,14 @@ const event_handlers = {
       return;
     }
 
-    const add_swipes_if_required = () => {
+    const add_swipes_if_required = (): boolean => {
       if (option.swipe_id === 'current') {
-        return;
-      }
-      if (typeof option.swipe_id !== 'number') {
-        throw Error(`[Chat Message][setChatMessage](${iframe_name}) 提供的 swipe_id 无效, 请提供 'current' 或序号, 你提供的是: ${option.swipe_id}`)
+        return false;
       }
 
       // swipe_id 存在对应的消息页存在
       if (option.swipe_id == 0 || (chat_message.swipes && option.swipe_id < chat_message.swipes.length)) {
-        return;
+        return false;
       }
 
       if (!chat_message.swipes) {
@@ -140,12 +143,13 @@ const event_handlers = {
         chat_message.swipes.push('');
         chat_message.swipe_info.push({});
       }
+      return true;
     };
 
     const swipe_id_previous_index: number = chat_message.swipe_id ?? 0;
     const swipe_id_to_set_index: number = option.swipe_id == 'current' ? swipe_id_previous_index : option.swipe_id;
 
-    const will_use: boolean = swipe_id_to_set_index === swipe_id_previous_index || option.switch;
+    const will_use: boolean = swipe_id_to_set_index === swipe_id_previous_index || option.refresh != 'none';
     const swipe_id_to_use_index: number = will_use ? swipe_id_to_set_index : swipe_id_previous_index;
 
     const update_chat_message = () => {
@@ -161,13 +165,13 @@ const event_handlers = {
       }
     };
 
-    const update_html = () => {
+    const update_partial_html = (should_update_swipe: boolean) => {
       const mes_html = $(`div.mes[mesid="${message_id}"]`);
       if (!mes_html) {
         return;
       }
 
-      if (chat_message.swipes) {
+      if (should_update_swipe) {
         mes_html
           .find('.swipes-counter')
           .text(`${swipe_id_to_use_index + 1}\u200b/\u200b${chat_message.swipes.length}`);
@@ -176,21 +180,20 @@ const event_handlers = {
         mes_html.find('.mes_text')
           .empty()
           .append(messageFormatting(message, chat_message.name, chat_message.is_system, chat_message.is_user, message_id));
-      }
-      if (option.render === 'only_message_id') {
-        handlePartialRender(message_id);
-      } else if (option.render === 'all') {
-        handleFullRender();
+        if (option.refresh == 'display_and_render_current') {
+          handlePartialRender(message_id);
+        }
       }
     }
 
-    add_swipes_if_required();
+    const should_update_swipe: boolean = add_swipes_if_required();
     update_chat_message();
-    update_html();
-    // QUESTION: saveChatDebounced 还是 await saveChatConditional?
-    await saveChatConditional();
-    if (option.reload) {
+    if (option.refresh == 'all') {
       await reloadCurrentChat();
+    } else {
+      update_partial_html(should_update_swipe);
+      // QUESTION: saveChatDebounced 还是 await saveChatConditional?
+      await saveChatConditional();
     }
 
     console.info(`[Chat Message][setChatMessage](${iframe_name}) 设置第 ${message_id} 楼消息, 选项: ${JSON.stringify(option)}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index}`);

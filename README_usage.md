@@ -188,8 +188,16 @@ function getChatMessages(range: string | number, option: GetChatMessagesOption =
 ```typescript
 interface SetChatMessagesOption {
   swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
-  switch?: boolean;      // 是否在该楼当前使用的消息页不是替换的消息页时, 自动切换为使用替换的消息页; 默认为 `false`
-  reload?: boolean;      // 是否在替换后重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED`; 默认为 `false`
+
+  /**
+   * 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
+   * - `'none'`: 不更新页面的显示和 iframe 渲染
+   * - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
+   * - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
+   * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
+   */
+  refresh?: 'none' | 'display_current' | 'display_and_render_current' | 'all';
+
   // TODO: emit_event?: boolean;  // 是否根据替换时消息发生的变化发送对应的酒馆事件, 如 MESSAGE_UPDATED, MESSAGE_SWIPED 等; 默认为 `false`
 }
 
@@ -199,18 +207,18 @@ interface SetChatMessagesOption {
  * @param message 要用于替换的消息
  * @param message_id 消息楼层id
  * @param option 对获取消息进行可选设置
+ * @enum
  *   - `swipe_id:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
- *   - `switch:boolean`: 是否在该楼当前使用的消息页不是替换的消息页时, 自动切换为使用替换的消息页; 默认为 `false`
- *   - `reload:boolean`: 是否在替换后重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED`; 默认为 `false`
- *   - `render:'none'|'only_message_id'|'all'`: 是否在替换后重新渲染该消息中的 iframe; 默认为 `only_message_id`
- *     - 'none': 不重新渲染
- *     - 'only_message_id': 仅渲染当前被替换的楼层
- *     - 'all': 渲染所有被加载的楼层
+ *   - `refresh:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
+ *     - `'none'`: 不更新页面的显示和 iframe 渲染
+ *     - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
+ *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
+ *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
  *
  * @example
  * setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
- * setChatMessage("这是要设置在楼层 5 第 3 页的消息", 5, 3);
- * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 立即刷新它", 5, 3, {reload: true});
+ * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
+ * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
  */
 function setChatMessage(message: string, message_id: number, option: SetChatMessagesOption = {}): void
 ```
