@@ -1,26 +1,27 @@
+export { slashEventEmit };
+import { eventSource } from "../../../../../../script.js";
 import { SlashCommand } from "../../../../../slash-commands/SlashCommand.js";
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from "../../../../../slash-commands/SlashCommandArgument.js";
 import { SlashCommandParser } from "../../../../../slash-commands/SlashCommandParser.js";
-import { message_manager } from "../iframe_server/message_channel.js";
-async function slashNotifyAllCallback(args, value) {
+async function slashEventEmit(args, value) {
     const data = args.data;
-    const channel = value;
+    const event = value;
     if (!data) {
-        message_manager.notifyAll(channel);
+        eventSource.emit(event);
     }
     else if (Array.isArray(data)) {
-        message_manager.notifyAll(channel, ...data);
+        eventSource.emit(event, ...data);
     }
     else {
-        message_manager.notifyAll(channel, data);
+        eventSource.emit(event, data);
     }
-    return channel;
+    return event;
 }
-export function initSlashNotifyAll() {
+export function initSlashEventEmit() {
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({
-        name: 'notify-all',
-        callback: slashNotifyAllCallback,
-        returns: "使用的消息频道名称",
+        name: 'event-emit',
+        callback: slashEventEmit,
+        returns: "发送的事件名称",
         namedArgumentList: [
             SlashCommandNamedArgument.fromProps({
                 name: 'data',
@@ -30,24 +31,24 @@ export function initSlashNotifyAll() {
             })
         ],
         unnamedArgumentList: [
-            new SlashCommandArgument('消息频道名称', [ARGUMENT_TYPE.STRING], true)
+            new SlashCommandArgument('事件名称', [ARGUMENT_TYPE.STRING], true)
         ],
         helpString: `
     <div>
-        发送消息到某个消息频道, 同时可以发送一些数据 \`data\`.
-        所有正在等待该消息频道的都会收到该消息并接收到 \`data\`.
+        发送某个事件, 同时可以发送一些数据 \`data\`.
+        所有正在监听该消息频道的 listener 都会自动运行.
     </div>
     <div>
         <strong>Example:</strong>
         <ul>
             <li>
-                <pre><code class="language-stscript">/notify-all "频道-激活脚本"</code></pre>
+                <pre><code class="language-stscript">/event-emit "读档"</code></pre>
             </li>
             <li>
-                <pre><code class="language-stscript">/notify-all data={{getvar::数据}} "频道-传输数据"</code></pre>
+                <pre><code class="language-stscript">/event-emit data={{getvar::数据}} "存档"</code></pre>
             </li>
             <li>
-                <pre><code class="language-stscript">/notify-all data=8 "随便什么频道名称"</code></pre>
+                <pre><code class="language-stscript">/notify-all data=8 "随便什么名称"</code></pre>
             </li>
         </ul>
     </div>

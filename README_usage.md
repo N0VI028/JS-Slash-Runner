@@ -43,9 +43,9 @@
 
 注意:
 
-- 该脚本将会在切换聊天时被执行: 关闭聊天, 正则被开关或修改, 新建聊天, 切换角色卡... 总之玩家每次游玩的最开始时必然会触发该脚本. 具体什么时候执行很难说, **因此建议不要直接执行你要做的事情**, 而是用 [监听酒馆事件](#监听酒馆事件) 的方法来在某些酒馆事件发生时执行该脚本内容.
-- 为了加载效率, 多脚本的加载是同时进行的, 如果需要一个脚本后于另一个脚本加载, 你应该使用 [消息频道](#消息频道) 让那个脚本等待.
-- **不同正则下的脚本代码并不共享**, 如果非要拆分放在不同正则, 你需要使用 [消息频道](#消息频道) 进行通讯和数据传递.
+- 该脚本将会在切换聊天时被执行: 关闭聊天, 正则被开关或修改, 新建聊天, 切换角色卡... 总之玩家每次游玩的最开始时必然会触发该脚本. 具体什么时候执行很难说, **因此建议不要直接执行你要做的事情**, 而是用 [监听和发送事件](#监听和发送事件) 的方法来在某些事件发生时执行该脚本内容.
+- 为了加载效率, 多脚本的加载是同时进行的, 如果需要一个脚本后于另一个脚本加载, 你应该使用 [监听和发送事件](#监听和发送事件) 让那个脚本等待.
+- **不同正则下的脚本代码并不共享**, 如果非要拆分放在不同正则, 你需要使用 [监听和发送事件](#监听和发送事件) 进行通讯和数据传递.
 - 脚本虽然被写在正则中, 但实际并没有作为正则使用, 只是为了利用局部正则能和角色卡一起导出这一点, 因此正则的具体设置对于脚本并没有意义. 唯一支持的选项是开关正则来开关脚本.
 
 ## 怎么用最好?
@@ -223,51 +223,103 @@ interface SetChatMessagesOption {
 function setChatMessage(message: string, message_id: number, option: SetChatMessagesOption = {}): void
 ```
 
-### 监听酒馆事件
+### 监听和发送事件
 
-扩展允许你设置当酒馆发生某种事件时, 运行想要的函数. 例如, 你也许想在玩家擅自更改你的世界书时警告玩家.
+扩展允许你设置当发生某种事件时, 运行想要的函数. 例如, 你也许想在玩家擅自更改你的世界书时警告玩家.
 
-#### 可被监听的酒馆事件: `tavern_event_types`
+事件可以是,
+
+- `iframe_events` 中的 iframe 事件
+- `tavern_events` 中的酒馆事件
+- 自定义的字符串事件
+
+你可以监听事件, 在收到 ai 消息时弹出 `"hello"`:
 
 ```typescript
-/**
- * 可被监听的酒馆事件, 一些酒馆事件可能会在触发时返回事件对应的某些信息回来
- *
- * @example
- * // 收到 ai 消息时弹窗输出 `hello`;
- * function hello() { alert("hello"); }
- * tavernOn(tavern_events.MESSAGE_RECEIVED, hello);
- *
- * @example
- * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageEdited(message_id) {
- *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
- * }
- * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
- */
-const tavern_events = {
-  MESSAGE_IFRAME_START_RENDER: 'message_iframe_render_started',  // 楼层消息 iframe 开始渲染
-  MESSAGE_IFRAME_END_RENDER: 'message_iframe_render_ended',
+function hello() { alert("hello"); }
+eventOn(tavern_events.MESSAGE_RECEIVED, hello);
+```
 
-  MESSAGE_SWIPED: 'message_swiped',
-  MESSAGE_SENT: 'message_sent',
-  MESSAGE_RECEIVED: 'message_received',
-  MESSAGE_EDITED: 'message_edited',
-  MESSAGE_DELETED: 'message_deleted',
-  MESSAGE_UPDATED: 'message_updated',
-  // ...总共 63 种事件
+你当然也可以取消监听:
+
+```typescript
+function hello() {
+  alert("hello");
+  eventRemoveListener(tavern_events.MESSAGE_RECEIVED, hello);
 }
+eventOn(tavern_events.MESSAGE_RECEIVED, hello);
+
+//------------------------------------------------------------------------------------------------------------------------
+// 上面的相当于只监听一次事件, 对此又专门的函数
+eventOnce(tavern_events.MESSAGE_RECEIVED, hello);
+```
+
+你可以发送事件, 告诉其他 iframe 你想要它们做什么:
+
+```typescript
+//------------------------------------------------------------------------------------------------------------------------
+// 负责存档的全局脚本
+function save() { /*略*/ }
+eventOn("进行存档", save);
+
+//------------------------------------------------------------------------------------------------------------------------
+// 消息楼层
+await eventEmit("进行存档");
+alert("存档完成!");
+```
+
+你可以等待事件:
+
+```typescript
+await eventWaitOnce("进行存档");
+```
+
+你可以等待某个函数因为监听到某个事件而执行了:
+
+```typescript
+eventOn(tavern_events.MESSAGE_RECEIVED, hello);
+await eventWaitOnce(tavern_events.MESSAGE_RECEIVED, hello);
+```
+
+在发送事件时可以携带数据, 进而完成数据的传递:
+
+```typescript
+//------------------------------------------------------------------------------------------------------------------------
+// 发送方
+eventEmit("发送数据", data, time);
+
+//------------------------------------------------------------------------------------------------------------------------
+function receive(data, time) {/*略*/}
+eventOn("发送数据", receive);
+```
+
+```typescript
+function detectMessageEdited(message_id) {
+  alert(`你刚刚更新了第 ${message_id} 条聊天消息对吧😡`);
+}
+
+// 酒馆事件 tavern_events.MESSAGE_UPDATED 会传递被更新的楼层 id
+//   但酒馆事件太多了, 我们还没整理出每个传什么, 你也许可以自己试试?
+tavernOn(tavern_events.MESSAGE_UPDATED, detectMessageEdited);
 ```
 
 <details>
-<summary>查看所有事件</summary>
+<summary>查看所有 iframe 事件</summary>
+
+```typescript
+const iframe_events = {
+  MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
+  MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
+} as const;
+```
+
+</details>
+
+<details>
+<summary>查看所有酒馆事件</summary>
 
 ```typescript
 const tavern_events = {
-  MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
-  MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
-
   APP_READY: 'app_ready',
   EXTRAS_CONNECTED: 'extras_connected',
   MESSAGE_SWIPED: 'message_swiped',
@@ -338,21 +390,6 @@ const tavern_events = {
 
 </details>
 
-```typescript
-/**
- * 如果代码要随消息变化而运行, 则监听这些事件.
- *
- * @example
- * tavern_messagelike_events.forEach((event_type) => { tavernOn(event_type, 要注册的函数); });
- */
-const tavern_messagelike_events = [
-  tavern_events.MESSAGE_EDITED,
-  tavern_events.MESSAGE_DELETED,
-  tavern_events.MESSAGE_SWIPED,
-  tavern_events.MESSAGE_RECEIVED
-]
-```
-
 #### 监听事件
 
 ```typescript
@@ -361,23 +398,22 @@ const tavern_messagelike_events = [
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册的函数
  *
  * @example
- * // 收到 ai 消息时弹窗输出 `hello`;
  * function hello() { alert("hello"); }
- * tavernOn(tavern_events.MESSAGE_RECEIVED, hello);
+ * eventOn(要监听的事件, hello);
  *
  * @example
  * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageEdited(message_id) {
+ * // 能这么做是因为酒馆 MESSAGE_UPDATED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
+ * function detectMessageUpdated(message_id) {
  *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
  * }
- * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
+ * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  */
-function tavernOn(event_type: TavernEventType, listener: Callback): void
+function eventOn(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -386,13 +422,13 @@ function tavernOn(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册/调整到最后运行的函数
- * 
+ *
  * @example
- * tavernMakeLast(tavern_events.MESSAGE_RECEIVED, 要注册的函数);
+ * eventMakeLast(要监听的事件, 要注册的函数);
  */
-function tavernMakeLast(event_type: TavernEventType, listener: Callback): void
+function eventMakeLast(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -401,13 +437,13 @@ function tavernMakeLast(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册/调整为最先运行的函数
- * 
+ *
  * @example
- * tavernMakeFirst(tavern_events.MESSAGE_RECEIVED, 要注册的函数);
+ * eventMakeFirst(要监听的事件, 要注册的函数);
  */
-function tavernMakeFirst(event_type: TavernEventType, listener: Callback): void
+function eventMakeFirst(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -416,13 +452,71 @@ function tavernMakeFirst(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册的函数
- * 
+ *
  * @example
- * tavernMakeOnce(tavern_events.MESSAGE_RECEIVED, 要注册的函数);
+ * eventOnce(要监听的事件, 要注册的函数);
  */
-function tavernOnce(event_type: TavernEventType, listener: Callback): void
+function eventOnce(event_type: EventType, listener: Function): void
+```
+
+#### 等待事件
+
+```typescript
+/**
+ * 等待一次 `event_type` 事件
+ *
+ * @param event_type 要等待的事件
+ *
+ * @example
+ * eventWaitOnce(tavern_events.MESSAGE_DELETED);
+ */
+async function eventWaitOnce(event_type: EventType): Promise<any | undefined>
+```
+
+```typescript
+/**
+ * 等待 `listener` 监听到一次 `event_type` 且执行完成, 返回 `listener` 的执行结果
+ *
+ * 在调用本函数前, `listener` 必须已经在监听 `event_type`
+ *
+ * @param event_type `listener` 在监听的事件
+ * @param listener 已经在监听 `event_type` 的函数
+ *
+ * @returns  `listener` 得到的结果
+ *
+ * @example
+ * eventOnce("存档", save);
+ * eventWaitOnce("存档", save);
+ */
+async function eventWaitOnce(event_type: EventType, listener: Function): Promise<any | undefined>
+```
+
+#### 发送事件
+
+```typescript
+/**
+ * 发送 `event_type` 事件, 同时可以发送一些数据 `data`.
+ *
+ * 所有正在监听 `event_type` 消息频道的都会收到该消息并接收到 `data`.
+ *
+ * @param event_type 要发送的事件
+ * @param data 要随着事件发送的数据
+ *
+ * @example
+ * // 发送 "角色阶段更新完成" 事件, 所有监听该事件的 `listener` 都会被运行
+ * eventEmit("角色阶段更新完成");
+ *
+ * @example
+ * // 发送 "存档" 事件, 并等待所有 `listener` (也许是负责存档的函数) 执行完毕后才继续
+ * await eventEmit("存档");
+ *
+ * @example
+ * // 发送时携带数据 ["你好", 0]
+ * eventEmit("事件", "你好", 0);
+ */
+async function eventEmit(event_type: EventType, ...data: any[]): Promise<void>
 ```
 
 #### 取消监听事件
@@ -433,13 +527,13 @@ function tavernOnce(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要取消注册的函数
- * 
+ *
  * @example
- * tavernRemoveListener(tavern_events.MESSAGE_RECEIVED, 要取消注册的函数);
+ * eventRemoveListener(要监听的事件, 要取消注册的函数);
  */
-function tavernRemoveListener(event_type: TavernEventType, listener: Callback): void
+function eventRemoveListener(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -447,11 +541,8 @@ function tavernRemoveListener(event_type: TavernEventType, listener: Callback): 
  * 取消本 iframe 中对 `event_type` 的所有监听
  *
  * @param event_type 要取消监听的事件
- *
- * @example
- * tavernRemoveListeners(tavern_events.MESSAGE_EDITED);
  */
-function tavernClearEvent(event_type: TavernEventType): void
+function eventClearEvent(event_type: EventType): void
 ```
 
 ```typescript
@@ -459,95 +550,34 @@ function tavernClearEvent(event_type: TavernEventType): void
  * 取消本 iframe 中 `listener` 的的所有监听
  *
  * @param listener 要取消注册的函数
- *
- * @example
- * tavernRemoveListeners(tavern_events.MESSAGE_EDITED);
  */
-function tavernClearListener(listener: Callback): void
+function eventClearListener(listener: Function): void
 ```
 
 ```typescript
 /**
- * 取消本 iframe 中对所有酒馆事件的所有监听
+ * 取消本 iframe 中对所有事件的所有监听
  */
-function tavernClearAll(): void
+function eventClearAll(): void
 ```
-
-### 消息频道
-
-通过消息频道, 我们可以实现不同 iframe 间数据的通讯. 例如, 你可能想等上一条消息里的存档功能保存好了, 再显示下一条消息 (虽然不知道你为什么要这么做).
 
 #### Quick Reply 命令
 
-消息频道的功能其实是额外的, 做这个功能主要是为了**让快速回复按钮也能触发 js 代码**. 这是新增的 Slash Command `/notify-all` 和 iframe 里的函数 `wait` 来做到的, 例如:
+我们还提供了 Quick Reply 命令 `/event-emit`, 允许你通过在快速回复中发送事件来触发 js 代码.
 
 快速回复部分:
 
 ```text
-/notify-all data={{getvar::数据}} "频道名称"
+/event-emit data=8 "事件名称"
 ```
 
 iframe 部分:
 
 ```typescript
-const data = await wait("频道名称");
+tavernOn("事件名称", test);
 ```
 
-当我们按下该快速回复的按钮后, 正在等待 "频道名称" 消息频道的 js 代码将会获得 `data` 并开始执行.
-
-#### 发送消息
-
-```typescript
-/**
- * 发送消息到 `channel` 消息频道, 同时可以发送一些数据 `data`.
- *
- * 所有正在等待 `channel` 消息频道的都会收到该消息并接收到 `data`.
- *
- * @param channel 要发送到的消息频道名称
- * @param data 要随着消息发送的数据
- *
- * @example
- * // 发送 ["你好"] 到 "频道名称" 消息频道
- * notifyAll("频道名称", "你好");
- * // 发送 ["你好", 0] 到 "频道名称" 消息频道
- * notifyAll("频道名称", "你好", 0);
- *
- * @example
- * // 啥都不发送, 单纯提示在等 "频道名称" 消息频道消息的家伙别等了
- * notifyAll("频道名称");
- */
-function notifyAll(channel: string, ...data: any[]): void
-```
-
-#### 等待消息
-
-```typescript
-/**
- * 等待 `channel` 消息频道发送来消息, 并接收该条消息携带的数据
- *
- * @param channel 要等待的消息频道名称
- * @returns 从消息频道发送来的数据
- *
- * @example
- * // 开始等待 "频道名称" 消息频道有消息传来, 直到等到消息才继续执行
- * const result = await wait("频道名称");
- *
- * @example
- * // 开始等待 "频道名称" 消息频道有消息传来
- * const promise = wait("频道名称");
- * // 等待期间做些别的事
- * other_work();
- * // 事情做完了, 看看消息等到了吗
- * const result = await promise;
- *
- * @example
- * // 消息要求我们调用某个函数
- * const result = await wait("频道名称");
- * const function = window[result[0]];  // 返回的第一个数据是函数名, 我们查找该函数
- * function(...result.slice(1));  // 用剩下的数据作为函数的参数
- */
-async function wait(channel: string): Promise<any[]>
-```
+当我们按下该快速回复的按钮后, 正在监听 "事件名称" 消息频道的 js 代码将会获得 `data` 并开始执行.
 
 ### 其他辅助功能
 

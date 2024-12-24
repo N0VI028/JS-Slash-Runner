@@ -41,11 +41,10 @@ import { POPUP_TYPE, callGenericPopup } from "../../../../popup.js";
 import { isMobile } from "../../../../RossAscends-mods.js";
 
 import { iframe_client } from "./iframe_client_exported/index.js";
-import { handleTavernEvent } from "./iframe_server/tavern_event.js";
+import { handleEvent } from "./iframe_server/event.js";
 import { handleChatMessage } from "./iframe_server/chat_message.js";
-import { handleMessageChannel } from "./iframe_server/message_channel.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
-import { initSlashNotifyAll } from "./slash_command/message_channel.js";
+import { initSlashEventEmit } from "./slash_command/message_channel.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -413,9 +412,9 @@ async function renderMessagesInIframes(
         doc.write(iframeContent);
         doc.close();
         observeIframeContent(iframe);
-        await eventSource.emit('message_iframe_render_ended', iframe.id);
+        eventSource.emitAndWait('message_iframe_render_ended', iframe.id);
       };
-      await eventSource.emit('message_iframe_render_started', iframe.id);
+      eventSource.emitAndWait('message_iframe_render_started', iframe.id);
       codeElement.replaceWith(iframe);
     });
 
@@ -795,7 +794,9 @@ async function onExtensionToggle() {
     script_load_events.forEach((eventType) => {
       eventSource.on(eventType, initializeScripts)
     })
-    window.addEventListener('message', handleTavernEvent);
+    window.addEventListener('message', handleEvent);
+    window.addEventListener("message", handleIframeCommand);
+    window.addEventListener("message", handleChatMessage);
 
     fullRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, handleFullRender);
@@ -816,15 +817,14 @@ async function onExtensionToggle() {
       clearTempVariables();
       formattedLastMessage();
     });
-    window.addEventListener("message", handleIframeCommand);
-    window.addEventListener("message", handleChatMessage);
-    window.addEventListener("message", handleMessageChannel);
   } else {
     script_load_events.forEach((eventType) => {
       eventSource.removeListener(eventType, initializeScripts)
     })
     destroyScriptsIfInitialized();
-    window.removeEventListener('message', handleTavernEvent);
+    window.removeEventListener('message', handleEvent);
+    window.removeEventListener("message", handleIframeCommand);
+    window.removeEventListener("message", handleChatMessage);
 
     fullRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handleFullRender);
@@ -842,9 +842,6 @@ async function onExtensionToggle() {
       clearTempVariables();
       formattedLastMessage();
     });
-    window.removeEventListener("message", handleIframeCommand);
-    window.removeEventListener("message", handleChatMessage);
-    window.removeEventListener("message", handleMessageChannel);
     await reloadCurrentChat();
   }
 
@@ -1862,7 +1859,7 @@ jQuery(async () => {
 
   initializeProgressBar("bgm");
   initializeProgressBar("ambient");
-  initSlashNotifyAll();
+  initSlashEventEmit();
   SlashCommandParser.addCommandObject(
     SlashCommand.fromProps({
       name: "audioselect",

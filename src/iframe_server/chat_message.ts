@@ -6,7 +6,7 @@ export { handleChatMessage }
 
 interface IframeGetChatMessagesMessage {
   request: 'iframe_get_chat_messages';
-  uid: string;
+  uid: number;
   range: string;
   option: Required<GetChatMessagesOption>;
 }
@@ -209,7 +209,7 @@ async function handleChatMessage(event: MessageEvent<IframeChatMessageMessage>):
       handler(event as any);
     }
   } catch (error) {
-    console.error(`[Chat Message](${getIframeName(event)}) 与酒馆事件交互时出错:`, error);
+    console.error(`[Chat Message](${getIframeName(event)}) ${error}`);
     throw error;
   }
 }

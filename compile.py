@@ -8,14 +8,15 @@ import shutil
 import subprocess
 
 
-def run_command(cmd, cwd=None):
+def run_command(cmd,  ignore_error, cwd=None):
     """运行命令并返回输出"""
-    subprocess.run(cmd, cwd=cwd, shell=True)
+    subprocess.run(cmd, cwd=cwd, shell=True, capture_output=ignore_error)
 
 
 def escape_template_literals(content):
     """转义模板字符串中的特殊字符"""
     content = content.replace('`', '\\`')
+    content = content.replace('\\n', '\\\\n')
     content = re.sub(r'\$\{([\s\S]+?)\}', r'\${\1}', content)
     return content
 
@@ -55,10 +56,10 @@ def export_client(script_dir):
 
     # 生成 src/iframe_client_exported/index.ts
     index_content = ''
-    index_content += f'{''.join(f'import {{ iframe_client_{stem} }} from "./{stem}.js"\n' for stem in stems)}'
+    index_content += f'{''.join(f'import {{iframe_client_{stem}}} from "./{stem}.js"\n' for stem in stems)}'
     index_content += '\n'
     index_content += 'export const iframe_client = [\n'
-    index_content += f'{''.join(f'  iframe_client_{stem},\n' for stem in stems)}'
+    index_content += f'{''.join(f'  iframe_client_{stem}, \n' for stem in stems)}'
     index_content += "].join('\\n');"
 
     index_file = Path(os.path.join(iframe_client_exported_dir, 'index.ts'))
@@ -94,8 +95,9 @@ if __name__ == '__main__':
     """处理 TypeScript 文件"""
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    print("移除之前可能生成的 src_exported...")
+    print("移除之前可能生成的 src_exported 和 src/iframe_client_exported...")
     shutil.rmtree(os.path.join(SCRIPT_DIR, 'src_exported'), ignore_errors=True)
+    shutil.rmtree(os.path.join(SCRIPT_DIR, 'src/iframe_client_exported'), ignore_errors=True)
 
     print("""
 ======================================
@@ -103,13 +105,13 @@ if __name__ == '__main__':
 ======================================
 """)
     print("运行第一次 TypeScript 编译...")
-    run_command('tsc -p tsconfig.json', SCRIPT_DIR)
+    run_command('tsc -p tsconfig.json', True, SCRIPT_DIR)
 
     print("导出 src/iframe_client 到 src/iframe_client_exported...")
     export_client(SCRIPT_DIR)
 
     print("运行第二次 TypeScript 编译...")
-    run_command('tsc -p tsconfig.json', SCRIPT_DIR)
+    run_command('tsc -p tsconfig.json', False, SCRIPT_DIR)
 
     print("确保 src_exported 路径正确...")
     clean_src_exported_structure(SCRIPT_DIR)

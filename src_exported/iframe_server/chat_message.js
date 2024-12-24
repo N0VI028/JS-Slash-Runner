@@ -162,7 +162,7 @@ async function handleChatMessage(event) {
         }
     }
     catch (error) {
-        console.error(`[Chat Message](${getIframeName(event)}) 与酒馆事件交互时出错:`, error);
+        console.error(`[Chat Message](${getIframeName(event)}) ${error}`);
         throw error;
     }
 }
