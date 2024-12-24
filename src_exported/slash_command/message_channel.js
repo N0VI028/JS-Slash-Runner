@@ -4,18 +4,19 @@ import { SlashCommand } from "../../../../../slash-commands/SlashCommand.js";
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from "../../../../../slash-commands/SlashCommandArgument.js";
 import { SlashCommandParser } from "../../../../../slash-commands/SlashCommandParser.js";
 async function slashEventEmit(args, value) {
-    const data = args.data;
-    const event = value;
+    const data = args.data && [];
+    const event_type = value;
     if (!data) {
-        eventSource.emit(event);
+        eventSource.emit(event_type);
     }
     else if (Array.isArray(data)) {
-        eventSource.emit(event, ...data);
+        eventSource.emit(event_type, ...data);
     }
     else {
-        eventSource.emit(event, data);
+        eventSource.emit(event_type, data);
     }
-    return event;
+    console.info(`[Event][/event-emit] 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
+    return event_type;
 }
 export function initSlashEventEmit() {
     SlashCommandParser.addCommandObject(SlashCommand.fromProps({

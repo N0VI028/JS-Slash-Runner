@@ -5,7 +5,7 @@ import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from "
 import { SlashCommandParser } from "../../../../../slash-commands/SlashCommandParser.js";
 
 async function slashEventEmit(args: any, value: any): Promise<any> {
-  const data: any | null = args.data;
+  const data: any | null = args.data && [];
   const event_type: string = value;
 
   if (!data) {
