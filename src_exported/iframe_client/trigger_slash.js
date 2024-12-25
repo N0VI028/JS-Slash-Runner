@@ -36,4 +36,4 @@ function triggerSlashWithResult(commandText) {
         window.parent.postMessage({ request: "commandWithResult", commandText: commandText, messageId: messageId }, "*");
     });
 }
-//# sourceMappingURL=slash_command.js.map
+//# sourceMappingURL=trigger_slash.js.map

@@ -1,4 +1,4 @@
-export const iframe_client_slash_command = `
+export const iframe_client_trigger_slash = `
 /**
  * 运行 Slash 命令, 注意如果命令写错了将不会有任何反馈
  *
@@ -36,4 +36,5 @@ function triggerSlashWithResult(commandText) {
         window.parent.postMessage({ request: "commandWithResult", commandText: commandText, messageId: messageId }, "*");
     });
 }
-`
+`;
+//# sourceMappingURL=trigger_slash.js.map

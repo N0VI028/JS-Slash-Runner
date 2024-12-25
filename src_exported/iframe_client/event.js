@@ -64,29 +64,27 @@ function eventMakeFirst(event_type, listener) {
 function eventOnce(event_type, listener) {
     detail.listen_event("once", event_type, listener);
 }
-function eventWaitOnce(event_type, listener) {
+async function eventWaitOnce(event_type, listener) {
     if (!listener) {
         eventOnce(event_type, dummy_listener);
         return eventWaitOnce(event_type, dummy_listener);
     }
     const listener_string = listener.toString();
     const entry = `${event_type}#${listener_string}`;
-    return (async () => {
-        await new Promise((resolve, _) => {
-            const uid = Date.now() + Math.random();
-            function handleMessage(event) {
-                if (event.data?.request === "iframe_event_wait_callback" && event.data.uid == uid) {
-                    window.removeEventListener("message", handleMessage);
-                    resolve(event.data.result);
-                    detail.waiting_event_map.deleteEntry(entry, uid);
-                    console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(event.data.result)}\n\n  ${detail.console_listener_string(listener_string)}`);
-                }
+    return await new Promise((resolve, _) => {
+        const uid = Date.now() + Math.random();
+        function handleMessage(event) {
+            if (event.data?.request === "iframe_event_wait_callback" && event.data.uid == uid) {
+                window.removeEventListener("message", handleMessage);
+                resolve(event.data.result);
+                detail.waiting_event_map.deleteEntry(entry, uid);
+                console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(event.data.result)}\n\n  ${detail.console_listener_string(listener_string)}`);
             }
-            window.addEventListener("message", handleMessage);
-            detail.waiting_event_map.put(entry, uid);
-            console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待函数被 '${event_type}' 事件触发\n\n  ${detail.console_listener_string(listener_string)}`);
-        });
-    })();
+        }
+        window.addEventListener("message", handleMessage);
+        detail.waiting_event_map.put(entry, uid);
+        console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待函数被 '${event_type}' 事件触发\n\n  ${detail.console_listener_string(listener_string)}`);
+    });
 }
 /**
  * 发送 `event_type` 事件, 同时可以发送一些数据 `data`.
