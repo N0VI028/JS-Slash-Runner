@@ -76,7 +76,7 @@ interface SetChatMessagesOption {
 }
 
 /**
- * 替换某消息楼层的某聊天消息页, 
+ * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前会被发送给 ai 的消息 (正被使用且没被隐藏的消息页), 则 "仅格式提示词" 正则将会使用它还不是原来的消息.
  *
  * @param message 要用于替换的消息
  * @param message_id 消息楼层id

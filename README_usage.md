@@ -100,7 +100,7 @@ function triggerSlashWithResult(commandText: string): Promise<string | undefined
  * 获取所有聊天变量
  *
  * @returns 所有聊天变量
- * 
+ *
  * @example
  * // 获取所有变量并弹窗输出结果
  * const variables = await getVariables();
@@ -109,22 +109,31 @@ function triggerSlashWithResult(commandText: string): Promise<string | undefined
 async function getVariables(): Promise<Object> 
 ```
 
-#### `setVariables(newVariables)`
+#### `setVariables(, new_or_updated_variables)`
 
 ```typescript
 /**
- * 用 `newVaraibles` 更新聊天变量
- * 
- * - 如果键名一致, 则更新值
- * - 如果不一致, 则新增变量
+ * 用 `new_or_updated_variables` 更新消息楼层 `message_id` 对应的聊天变量, 相当于你在那个楼层更新了它.
+ *   这样的更新与 `message_id` 对应, 如果比 `message_id` 更低的楼层也更新了它, 则通过 `getVariables()` 获取到的会是更低楼层更新的值.
+ *   这意味着如果始终使用这个函数设置变量, 则在删除楼层、重 roll 等操作时, 变量会变为这些操作后应该对应的变量值.
  *
- * @param newVariables 要更新的变量
- * 
+ * @param message_id 要绑定到的消息楼层 id
+ * @param new_or_updated_variables 要更新的变量
+ * @enum
+ * - 如果该变量已经存在, 则更新值
+ * - 如果不存在, 则新增变量
+ *
  * @example
- * const newVariables = { theme: "dark", userInfo: { name: "Alice", age: 30} };
- * setVariables(newVariables);
+ * setVariables(0, {value: 5, data: 7});
+ * setVariables(3, {value: 10});
+ *
+ * // 如果第 3 楼层还在, 我们将会得到 `{value: 10, data: 7}`
+ * const variable = await getVariables();
+ *
+ * // 如果删去了/重刷了第 3 楼层, 我们将会得到 `{value: 5, data: 7}`
+ * const variable = await getVariables();
  */
-function setVariables(newVariables: Object): void
+function setVariables(message_id: number, new_or_updated_variables: Object): void
 ```
 
 ### 楼层消息操作
@@ -202,7 +211,7 @@ interface SetChatMessagesOption {
 }
 
 /**
- * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前在显示的消息, 则会应用正则对它进行处理然后更新显示.
+ * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前会被发送给 ai 的消息 (正被使用且没被隐藏的消息页), 则 "仅格式提示词" 正则将会使用它还不是原来的消息.
  *
  * @param message 要用于替换的消息
  * @param message_id 消息楼层id
