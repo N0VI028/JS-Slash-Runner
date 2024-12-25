@@ -113,27 +113,34 @@ async function getVariables(): Promise<Object>
 
 ```typescript
 /**
- * 用 `new_or_updated_variables` 更新消息楼层 `message_id` 对应的聊天变量, 相当于你在那个楼层更新了它.
- *   这样的更新与 `message_id` 对应, 如果比 `message_id` 更低的楼层也更新了它, 则通过 `getVariables()` 获取到的会是更低楼层更新的值.
- *   这意味着如果始终使用这个函数设置变量, 则在删除楼层、重 roll 等操作时, 变量会变为这些操作后应该对应的变量值.
+ * 如果 `message_id` 是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量
  *
- * @param message_id 要绑定到的消息楼层 id
- * @param new_or_updated_variables 要更新的变量
+ * @param message_id 要判定的 `message_id`
+ * @param new_or_updated_variables 用于更新的变量
  * @enum
  * - 如果该变量已经存在, 则更新值
  * - 如果不存在, 则新增变量
  *
  * @example
- * setVariables(0, {value: 5, data: 7});
- * setVariables(3, {value: 10});
- *
- * // 如果第 3 楼层还在, 我们将会得到 `{value: 10, data: 7}`
- * const variable = await getVariables();
- *
- * // 如果删去了/重刷了第 3 楼层, 我们将会得到 `{value: 5, data: 7}`
- * const variable = await getVariables();
+ * const variables = {value: 5, data: 7};
+ * setVariables(0, variabels);
  */
 function setVariables(message_id: number, new_or_updated_variables: Object): void
+```
+
+这个函数是在事件监听功能之前制作的, 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
+
+```typescript
+// 接收到消息时更新变量
+eventOn(tavern_events.MESSAGE_RECEIVED, updateVariables);
+function parseVariablesFromMessage(messages) { /*...*/ }
+function updateVariables(message_id) {
+  const variables = parseVariablesFromMessage(await getChatMessages(message_id));
+  triggerSlash(
+    Object.entries(variables)
+      .map((key_and_value) => `/setvar key=${key_and_value[0]} "${key_and_value[1]}"`)
+      .join("||"));
+}
 ```
 
 ### 楼层消息操作
