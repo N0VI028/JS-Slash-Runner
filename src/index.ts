@@ -627,7 +627,7 @@ async function handleIframeCommand(event) {
       event.source.postMessage({ variables: variables }, "*");
     } else if (event.data.request === "setVariables") {
       const newVariables = event.data.variables;
-      const mesId = event.data.mesId;
+      const mesId = event.data.message_id;
 
       if (isNaN(mesId)) {
         return;
