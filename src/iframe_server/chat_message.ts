@@ -148,9 +148,7 @@ const event_handlers = {
 
     const swipe_id_previous_index: number = chat_message.swipe_id ?? 0;
     const swipe_id_to_set_index: number = option.swipe_id == 'current' ? swipe_id_previous_index : option.swipe_id;
-
-    const will_use: boolean = swipe_id_to_set_index === swipe_id_previous_index || option.refresh != 'none';
-    const swipe_id_to_use_index: number = will_use ? swipe_id_to_set_index : swipe_id_previous_index;
+    const swipe_id_to_use_index: number = option.refresh != 'none' ? swipe_id_to_set_index : swipe_id_previous_index;
 
     const update_chat_message = () => {
       const message_demacroed = substituteParamsExtended(event.data.message);
@@ -160,7 +158,7 @@ const event_handlers = {
         chat_message.swipe_id = swipe_id_to_use_index;
       }
 
-      if (will_use) {
+      if (swipe_id_to_use_index === swipe_id_to_set_index) {
         chat_message.mes = message_demacroed;
       }
     };
@@ -176,7 +174,7 @@ const event_handlers = {
           .find('.swipes-counter')
           .text(`${swipe_id_to_use_index + 1}\u200b/\u200b${chat_message.swipes.length}`);
       }
-      if (will_use) {
+      if (option.refresh != 'none') {
         mes_html.find('.mes_text')
           .empty()
           .append(messageFormatting(message, chat_message.name, chat_message.is_system, chat_message.is_user, message_id));
