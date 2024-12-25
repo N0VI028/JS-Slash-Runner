@@ -83,7 +83,7 @@ function eventOnce(event_type: EventType, listener: Function): void {
  * @example
  * eventWaitOnce(tavern_events.MESSAGE_DELETED);
  */
-async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
+function eventWaitOnce(event_type: EventType): any | undefined;
 
 /**
  * 等待 `listener` 监听到一次 `event_type` 且执行完成, 返回 `listener` 的执行结果
@@ -99,32 +99,34 @@ async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
  * eventOnce("存档", save);
  * eventWaitOnce("存档", save);
  */
-async function eventWaitOnce(event_type: EventType, listener: Function): Promise<any | undefined>;
+function eventWaitOnce(event_type: EventType, listener: Function): any | undefined;
 
-async function eventWaitOnce(event_type: EventType, listener?: Function): Promise<any | undefined> {
+function eventWaitOnce(event_type: EventType, listener?: Function): any | undefined {
   if (!listener) {
     eventOnce(event_type, dummy_listener);
     return eventWaitOnce(event_type, dummy_listener);
   }
   const listener_string = listener.toString();
   const entry = `${event_type}#${listener_string}`
-  return await new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
+  return (async () => {
+    await new Promise((resolve, _) => {
+      const uid = Date.now() + Math.random();
 
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_event_wait_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-        detail.waiting_event_map.deleteEntry(entry, uid);
+      function handleMessage(event: MessageEvent) {
+        if (event.data?.request === "iframe_event_wait_callback" && event.data.uid == uid) {
+          window.removeEventListener("message", handleMessage);
+          resolve(event.data.result);
+          detail.waiting_event_map.deleteEntry(entry, uid);
 
-        console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(event.data.result)}\n\n  ${detail.console_listener_string(listener_string)}`)
+          console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(event.data.result)}\n\n  ${detail.console_listener_string(listener_string)}`)
+        }
       }
-    }
-    window.addEventListener("message", handleMessage);
-    detail.waiting_event_map.put(entry, uid);
+      window.addEventListener("message", handleMessage);
+      detail.waiting_event_map.put(entry, uid);
 
-    console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待函数被 '${event_type}' 事件触发\n\n  ${detail.console_listener_string(listener_string)}`)
-  });
+      console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待函数被 '${event_type}' 事件触发\n\n  ${detail.console_listener_string(listener_string)}`)
+    });
+  })();
 }
 
 /**
