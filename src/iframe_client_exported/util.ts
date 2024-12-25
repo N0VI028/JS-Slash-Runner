@@ -14,7 +14,7 @@ function getIframeName() {
  * @returns 楼层 id
  */
 function getMessageId(iframe_name) {
-    const match = iframe_name.match(/^message-iframe-(\d+)-\d+$/);
+    const match = iframe_name.match(/^message-iframe-(\\d+)-\\d+$/);
     if (!match) {
         throw Error(\`获取 iframe 所在楼层 id 时出错: 不要对全局脚本 iframe 调用 getMessageId!\`);
     }

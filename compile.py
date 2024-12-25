@@ -15,8 +15,8 @@ def run_command(cmd,  ignore_error, cwd=None):
 
 def escape_template_literals(content):
     """转义模板字符串中的特殊字符"""
+    content = content.replace('\\', '\\\\')
     content = content.replace('`', '\\`')
-    content = content.replace('\\n', '\\\\n')
     content = re.sub(r'\$\{([\s\S]+?)\}', r'\${\1}', content)
     return content
 
