@@ -16,9 +16,9 @@ function getIframeName() {
 function getMessageId(iframe_name) {
     const match = iframe_name.match(/^message-iframe-(\d+)-\d+$/);
     if (!match) {
-        throw Error(\`获取 iframe 所在楼层 id 时出错: 不要对全局脚本调用 getCurrentMessageId!\`);
+        throw Error(\`获取 iframe 所在楼层 id 时出错: 不要对全局脚本 iframe 调用 getMessageId!\`);
     }
-    return parseInt(match.toString());
+    return parseInt(match[1].toString());
 }
 /**
  * 获取本消息楼层 iframe 所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
