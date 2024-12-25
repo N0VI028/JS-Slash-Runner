@@ -108,7 +108,7 @@ async function eventWaitOnce(event_type: EventType, listener?: Function): Promis
   }
   const listener_string = listener.toString();
   const entry = `${event_type}#${listener_string}`
-  return new Promise((resolve, _) => {
+  return await new Promise((resolve, _) => {
     const uid = Date.now() + Math.random();
 
     function handleMessage(event: MessageEvent) {

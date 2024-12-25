@@ -626,14 +626,8 @@ async function handleIframeCommand(event) {
       }
       event.source.postMessage({ variables: variables }, "*");
     } else if (event.data.request === "setVariables") {
-      const newVariables = event.data.data;
-      const iframeId = event.data.iframeId;
-      const mesIdMatch = iframeId.match(/^message-iframe-(\d+)-\d+$/);
-      if (!mesIdMatch || mesIdMatch.length < 2) {
-        console.warn(`Invalid iframeId format: ${iframeId}`);
-        return;
-      }
-      const mesId = parseInt(mesIdMatch[1], 10);
+      const newVariables = event.data.variables;
+      const mesId = event.data.mesId;
 
       if (isNaN(mesId)) {
         return;

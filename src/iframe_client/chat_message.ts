@@ -76,7 +76,7 @@ interface SetChatMessagesOption {
 }
 
 /**
- * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前在显示的消息, 则会应用正则对它进行处理然后更新显示.
+ * 替换某消息楼层的某聊天消息页, 
  *
  * @param message 要用于替换的消息
  * @param message_id 消息楼层id
