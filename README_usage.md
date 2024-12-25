@@ -280,14 +280,14 @@ alert("存档完成!");
 你可以等待事件:
 
 ```typescript
-eventWaitOnce("进行存档");
+await eventWaitOnce("进行存档");
 ```
 
 你可以等待某个函数因为监听到某个事件而执行了:
 
 ```typescript
 eventOn(tavern_events.MESSAGE_RECEIVED, hello);
-eventWaitOnce(tavern_events.MESSAGE_RECEIVED, hello);
+await eventWaitOnce(tavern_events.MESSAGE_RECEIVED, hello);
 ```
 
 在发送事件时可以携带数据, 进而完成数据的传递:
@@ -481,7 +481,7 @@ function eventOnce(event_type: EventType, listener: Function): void
  * @example
  * eventWaitOnce(tavern_events.MESSAGE_DELETED);
  */
-function eventWaitOnce(event_type: EventType): any | undefined
+async function eventWaitOnce(event_type: EventType): Promise<any | undefined>
 ```
 
 ```typescript
@@ -499,7 +499,7 @@ function eventWaitOnce(event_type: EventType): any | undefined
  * eventOnce("存档", save);
  * eventWaitOnce("存档", save);
  */
-function eventWaitOnce(event_type: EventType, listener: Function): any | undefined
+async function eventWaitOnce(event_type: EventType, listener: Function): Promise<any | undefined>
 ```
 
 #### 发送事件
