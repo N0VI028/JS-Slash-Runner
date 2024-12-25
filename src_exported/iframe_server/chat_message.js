@@ -115,7 +115,7 @@ const event_handlers = {
                 chat_message.swipes[swipe_id_to_set_index] = message_demacroed;
                 chat_message.swipe_id = swipe_id_to_use_index;
             }
-            if (swipe_id_to_use_index === swipe_id_to_set_index) {
+            if (swipe_id_to_use_index == swipe_id_to_set_index) {
                 chat_message.mes = message_demacroed;
             }
         };
