@@ -38,6 +38,7 @@ const partialRenderEvents = [
     event_types.CHARACTER_MESSAGE_RENDERED,
     event_types.USER_MESSAGE_RENDERED,
     event_types.MESSAGE_UPDATED,
+    event_types.MESSAGE_SWIPED,
 ];
 const eventsToListenFor = [
     event_types.CHARACTER_MESSAGE_RENDERED,
