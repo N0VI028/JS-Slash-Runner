@@ -32,7 +32,7 @@ function setVariables(message_id, new_or_updated_variables) {
         actual_message_id = getCurrentMessageId();
         actual_variables = message_id;
     }
-    if (typeof actual_message_id === 'number' && actual_variables === 'object') {
+    if (typeof actual_message_id === 'number' && typeof actual_variables === 'object') {
         // @ts-ignore 18047
         const iframeId = window.frameElement.id;
         window.parent.postMessage({
