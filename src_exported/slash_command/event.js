@@ -56,4 +56,4 @@ export function initSlashEventEmit() {
   `
     }));
 }
-//# sourceMappingURL=message_channel.js.map
+//# sourceMappingURL=event.js.map

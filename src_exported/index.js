@@ -16,7 +16,7 @@ import { iframe_client } from "./iframe_client_exported/index.js";
 import { handleEvent } from "./iframe_server/event.js";
 import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
-import { initSlashEventEmit } from "./slash_command/message_channel.js";
+import { initSlashEventEmit } from "./slash_command/event.js";
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
 const audioCache = {};
