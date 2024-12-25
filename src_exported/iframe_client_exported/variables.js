@@ -1,16 +1,4 @@
 export const iframe_client_variables = `
-function requestVariables() {
-    return new Promise((resolve, _) => {
-        function handleMessage(event) {
-            if (event.data && event.data.variables) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.variables);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({ request: "getVariables" }, "*");
-    });
-}
 /**
  * 获取所有聊天变量
  *
@@ -22,29 +10,37 @@ function requestVariables() {
  * alert(variables);
  */
 async function getVariables() {
-    const variables = await requestVariables();
-    return variables;
+    return await new Promise((resolve, _) => {
+        function handleMessage(event) {
+            if (event.data && event.data.variables) {
+                window.removeEventListener("message", handleMessage);
+                resolve(event.data.variables);
+            }
+        }
+        window.addEventListener("message", handleMessage);
+        window.parent.postMessage({ request: "getVariables" }, "*");
+    });
 }
-/**
- * 用 \`newVaraibles\` 更新聊天变量
- *
- * - 如果键名一致, 则更新值
- * - 如果不一致, 则新增变量
- *
- * @param newVariables 要更新的变量
- *
- * @example
- * const newVariables = { theme: "dark", userInfo: { name: "Alice", age: 30} };
- * setVariables(newVariables);
- */
-function setVariables(newVariables) {
-    if (typeof newVariables === "object" && newVariables !== null) {
-        // @ts-ignore 18047
-        const iframeId = window.frameElement.id;
-        window.parent.postMessage({ request: "setVariables", data: newVariables, iframeId: iframeId }, "*");
+function setVariables(message_id, new_or_updated_variables) {
+    let actual_message_id;
+    let actual_variables;
+    if (new_or_updated_variables) {
+        actual_message_id = message_id;
+        actual_variables = new_or_updated_variables;
     }
     else {
-        console.error("setVariables expects an object");
+        actual_message_id = getCurrentMessageId();
+        actual_variables = message_id;
+    }
+    if (typeof actual_message_id === 'number' && typeof actual_variables === 'object') {
+        window.parent.postMessage({
+            request: "setVariables",
+            message_id: actual_message_id,
+            variables: actual_variables,
+        }, "*");
+    }
+    else {
+        console.error("[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确");
     }
 }
 `;

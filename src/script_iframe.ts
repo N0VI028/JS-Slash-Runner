@@ -39,8 +39,8 @@ function loadScripts(): Script[] {
 
   const to_name = (script: RegexScriptData) => script.scriptName.replace('脚本-', '');
   console.info(`[Script] 加载全局脚本...`);
-  console.info(`[Script] 将会加载以下全局脚本: ${enabled.map(to_name)}`);
-  console.info(`[Script] 将会禁用以下全局脚本: ${disabled.map(to_name)}`);
+  console.info(`[Script] 将会加载以下全局脚本: ${JSON.stringify(enabled.map(to_name))}`);
+  console.info(`[Script] 将会禁用以下全局脚本: ${JSON.stringify(disabled.map(to_name))}`);
 
   const to_script = (script: RegexScriptData) => ({ name: to_name(script), code: script.replaceString });
   return enabled.map(to_script);
@@ -75,6 +75,7 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
       doc.write(iframeContent);
       doc.close();
 
+      console.info(`[Script](${iframe.id}) 加载完毕`)
       resolve();
     }
   });

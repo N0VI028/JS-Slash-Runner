@@ -41,13 +41,16 @@
 
 ![全局脚本示例](README_usage_全局脚本.png)
 
-该脚本将会在切换聊天时被执行: 关闭聊天, 正则被开关或修改, 新建聊天, 切换角色卡... 总之玩家每次游玩的最开始时必然会触发该脚本. 具体什么时候执行很难说, **因此建议不要直接执行你要做的事情**, 而是用 [监听酒馆事件](#监听酒馆事件) 的方法来在某些酒馆事件发生时执行该脚本内容.
+注意:
 
-脚本虽然被写在正则中, 但实际并没有作为正则使用, 只是为了利用局部正则能和角色卡一起导出这一点, 因此正则的具体设置对于脚本并没有意义. 唯一支持的选项是开关正则来开关脚本.
+- 该脚本将会在切换聊天时被执行: 关闭聊天, 正则被开关或修改, 新建聊天, 切换角色卡... 总之玩家每次游玩的最开始时必然会触发该脚本. 具体什么时候执行很难说, **因此建议不要直接执行你要做的事情**, 而是用 [监听和发送事件](#监听和发送事件) 的方法来在某些事件发生时执行该脚本内容.
+- 为了加载效率, 多脚本的加载是同时进行的, 如果需要一个脚本后于另一个脚本加载, 你应该使用 [监听和发送事件](#监听和发送事件) 让那个脚本等待.
+- **不同正则下的脚本代码并不共享**, 如果非要拆分放在不同正则, 你需要使用 [监听和发送事件](#监听和发送事件) 进行通讯和数据传递.
+- 脚本虽然被写在正则中, 但实际并没有作为正则使用, 只是为了利用局部正则能和角色卡一起导出这一点, 因此正则的具体设置对于脚本并没有意义. 唯一支持的选项是开关正则来开关脚本.
 
 ## 怎么用最好?
 
-[基于前端插件编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)
+[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)
 
 ## 脚本代码功能
 
@@ -97,7 +100,7 @@ function triggerSlashWithResult(commandText: string): Promise<string | undefined
  * 获取所有聊天变量
  *
  * @returns 所有聊天变量
- * 
+ *
  * @example
  * // 获取所有变量并弹窗输出结果
  * const variables = await getVariables();
@@ -106,140 +109,302 @@ function triggerSlashWithResult(commandText: string): Promise<string | undefined
 async function getVariables(): Promise<Object> 
 ```
 
-#### `setVariables(newVariables)`
+#### `setVariables(, new_or_updated_variables)`
 
 ```typescript
 /**
- * 用 `newVaraibles` 更新聊天变量
- * 
- * - 如果键名一致, 则更新值
- * - 如果不一致, 则新增变量
+ * 如果 `message_id` 是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量
  *
- * @param newVariables 要更新的变量
- * 
+ * @param message_id 要判定的 `message_id`
+ * @param new_or_updated_variables 用于更新的变量
+ * @enum
+ * - 如果该变量已经存在, 则更新值
+ * - 如果不存在, 则新增变量
+ *
  * @example
- * const newVariables = { theme: "dark", userInfo: { name: "Alice", age: 30} };
- * setVariables(newVariables);
+ * const variables = {value: 5, data: 7};
+ * setVariables(0, variabels);
  */
-function setVariables(newVariables: Object): void
+function setVariables(message_id: number, new_or_updated_variables: Object): void
 ```
 
-### 监听酒馆事件
-
-扩展允许你设置当酒馆发生某种事件时, 运行想要的函数. 例如, 你也许想在玩家擅自更改你的世界书时警告玩家.
-
-#### 可被监听的酒馆事件: `tavern_event_types`
+这个函数是在事件监听功能之前制作的, 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
 
 ```typescript
+// 接收到消息时更新变量
+eventOn(tavern_events.MESSAGE_RECEIVED, updateVariables);
+function parseVariablesFromMessage(messages) { /*...*/ }
+function updateVariables(message_id) {
+  const variables = parseVariablesFromMessage(await getChatMessages(message_id));
+  triggerSlash(
+    Object.entries(variables)
+      .map((key_and_value) => `/setvar key=${key_and_value[0]} "${key_and_value[1]}"`)
+      .join("||"));
+}
+```
+
+### 楼层消息操作
+
+#### 获取楼层消息
+
+酒馆虽然提供了 `/messages` 命令, 但是它获取的是一整个字符串, 并且不能获取楼层当前没在使用的消息 (点击箭头切换的那个 swipe 消息, 在前端助手中我们称之为 "消息页"), 前端助手为此提供了一个函数获取更便于处理的消息.
+
+其获取到的结果是一个数组, 数组的元素类型为 `ChatMessage`, 有以下内容:
+
+```typescript
+interface ChatMessage {
+  message_id: number;
+  name: string;
+  is_user: boolean;
+  is_system_or_hidden: boolean;
+  message: string;
+
+  // 如果 getChatMessages 时 swipe === false, 则以下内容为 undefined
+  swipe_id?: number;
+  swipes?: string[];
+}
+```
+
+具体函数为:
+
+```typescript
+interface GetChatMessagesOption {
+  role?: 'all' | 'system' | 'assistant' | 'user';  // 按 role 筛选消息; 默认为 `'all'`
+  hidden?: boolean;                                // 是否包含被隐藏的消息楼层; 默认为 `true`
+  swipe?: boolean;                                 // 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
+}
+
 /**
- * 可被监听的酒馆事件, 一些酒馆事件可能会在触发时返回事件对应的某些信息回来
+ * 获取聊天消息
+ *
+ * @param range 要获取的消息楼层号或楼层范围, 与 `/messages` 相同
+ * @param option 对获取消息进行可选设置
+ *   - `role:'all'|'system'|'assistant'|'user'`: 按 role 筛选消息; 默认为 `'all'`
+ *   - `hidden:boolean`: 是否包含被隐藏的消息楼层; 默认为 `true`
+ *   - `swipe:boolean`: 是否包含消息楼层其他没被 ai 使用的消息页; 默认为 `false`
+ *
+ * @returns 一个数组, 数组的元素是每楼的消息
  *
  * @example
- * // 收到 ai 消息时弹窗输出 `hello`;
- * function hello() { alert("hello"); }
- * tavernOn(tavern_events.MESSAGE_RECEIVED, hello);
- *
- * @example
- * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageEdited(message_id) {
- *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
- * }
- * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
+ * // 仅获取第 10 楼会被 ai 使用的消息页
+ * const messages = await getChatMessages(10);
+ * const messages = await getChatMessages("10");
+ * // 获取第 10 楼的所有消息页
+ * const messages = await getChatMessages(10, {swipe: true});
+ * // 获取所有楼层的所有消息页
+ * const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
  */
+function getChatMessages(range: string | number, option: GetChatMessagesOption = {}): Promise<ChatMessage[]>
+```
+
+#### 修改楼层消息
+
+酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本前端助手提供这样的功能:
+
+```typescript
+interface SetChatMessagesOption {
+  swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+
+  /**
+   * 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
+   * - `'none'`: 不更新页面的显示和 iframe 渲染
+   * - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
+   * - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
+   * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
+   */
+  refresh?: 'none' | 'display_current' | 'display_and_render_current' | 'all';
+
+  // TODO: emit_event?: boolean;  // 是否根据替换时消息发生的变化发送对应的酒馆事件, 如 MESSAGE_UPDATED, MESSAGE_SWIPED 等; 默认为 `false`
+}
+
+/**
+ * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前会被发送给 ai 的消息 (正被使用且没被隐藏的消息页), 则 "仅格式提示词" 正则将会使用它还不是原来的消息.
+ *
+ * @param message 要用于替换的消息
+ * @param message_id 消息楼层id
+ * @param option 对获取消息进行可选设置
+ * @enum
+ *   - `swipe_id:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+ *   - `refresh:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
+ *     - `'none'`: 不更新页面的显示和 iframe 渲染
+ *     - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
+ *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
+ *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
+ *
+ * @example
+ * setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
+ * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
+ * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
+ */
+function setChatMessage(message: string, message_id: number, option: SetChatMessagesOption = {}): void
+```
+
+### 监听和发送事件
+
+扩展允许你设置当发生某种事件时, 运行想要的函数. 例如, 你也许想在玩家擅自更改你的世界书时警告玩家.
+
+事件可以是,
+
+- `iframe_events` 中的 iframe 事件
+- `tavern_events` 中的酒馆事件
+- 自定义的字符串事件
+
+你可以监听事件, 在收到 ai 消息时弹出 `"hello"`:
+
+```typescript
+function hello() { alert("hello"); }
+eventOn(tavern_events.MESSAGE_RECEIVED, hello);
+```
+
+你当然也可以取消监听:
+
+```typescript
+function hello() {
+  alert("hello");
+  eventRemoveListener(tavern_events.MESSAGE_RECEIVED, hello);
+}
+eventOn(tavern_events.MESSAGE_RECEIVED, hello);
+
+//------------------------------------------------------------------------------------------------------------------------
+// 上面的相当于只监听一次事件, 对此又专门的函数
+eventOnce(tavern_events.MESSAGE_RECEIVED, hello);
+```
+
+你可以发送事件, 告诉其他 iframe 你想要它们做什么:
+
+```typescript
+//------------------------------------------------------------------------------------------------------------------------
+// 负责存档的全局脚本
+function save() { /*略*/ }
+eventOn("进行存档", save);
+
+//------------------------------------------------------------------------------------------------------------------------
+// 消息楼层
+await eventEmit("进行存档");
+alert("存档完成!");
+```
+
+你可以等待事件:
+
+```typescript
+await eventWaitOnce("进行存档");
+```
+
+你可以等待某个函数因为监听到某个事件而执行了:
+
+```typescript
+eventOn(tavern_events.MESSAGE_RECEIVED, hello);
+await eventWaitOnce(tavern_events.MESSAGE_RECEIVED, hello);
+```
+
+在发送事件时可以携带数据, 进而完成数据的传递:
+
+```typescript
+//------------------------------------------------------------------------------------------------------------------------
+// 发送方
+eventEmit("发送数据", data, time);
+
+//------------------------------------------------------------------------------------------------------------------------
+function receive(data, time) {/*略*/}
+eventOn("发送数据", receive);
+```
+
+```typescript
+function detectMessageEdited(message_id) {
+  alert(`你刚刚更新了第 ${message_id} 条聊天消息对吧😡`);
+}
+
+// 酒馆事件 tavern_events.MESSAGE_UPDATED 会传递被更新的楼层 id
+//   但酒馆事件太多了, 我们还没整理出每个传什么, 你也许可以自己试试?
+tavernOn(tavern_events.MESSAGE_UPDATED, detectMessageEdited);
+```
+
+<details>
+<summary>查看所有 iframe 事件</summary>
+
+```typescript
+const iframe_events = {
+  MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
+  MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
+} as const;
+```
+
+</details>
+
+<details>
+<summary>查看所有酒馆事件</summary>
+
+```typescript
 const tavern_events = {
+  APP_READY: 'app_ready',
+  EXTRAS_CONNECTED: 'extras_connected',
   MESSAGE_SWIPED: 'message_swiped',
   MESSAGE_SENT: 'message_sent',
   MESSAGE_RECEIVED: 'message_received',
   MESSAGE_EDITED: 'message_edited',
   MESSAGE_DELETED: 'message_deleted',
   MESSAGE_UPDATED: 'message_updated',
-  // ...总共 63 种事件
-}
+  MESSAGE_FILE_EMBEDDED: 'message_file_embedded',
+  IMPERSONATE_READY: 'impersonate_ready',
+  CHAT_CHANGED: 'chat_id_changed',
+  GENERATION_AFTER_COMMANDS: 'GENERATION_AFTER_COMMANDS',
+  GENERATION_STARTED: 'generation_started',
+  GENERATION_STOPPED: 'generation_stopped',
+  GENERATION_ENDED: 'generation_ended',
+  EXTENSIONS_FIRST_LOAD: 'extensions_first_load',
+  EXTENSION_SETTINGS_LOADED: 'extension_settings_loaded',
+  SETTINGS_LOADED: 'settings_loaded',
+  SETTINGS_UPDATED: 'settings_updated',
+  GROUP_UPDATED: 'group_updated',
+  MOVABLE_PANELS_RESET: 'movable_panels_reset',
+  SETTINGS_LOADED_BEFORE: 'settings_loaded_before',
+  SETTINGS_LOADED_AFTER: 'settings_loaded_after',
+  CHATCOMPLETION_SOURCE_CHANGED: 'chatcompletion_source_changed',
+  CHATCOMPLETION_MODEL_CHANGED: 'chatcompletion_model_changed',
+  OAI_PRESET_CHANGED_BEFORE: 'oai_preset_changed_before',
+  OAI_PRESET_CHANGED_AFTER: 'oai_preset_changed_after',
+  OAI_PRESET_EXPORT_READY: 'oai_preset_export_ready',
+  OAI_PRESET_IMPORT_READY: 'oai_preset_import_ready',
+  WORLDINFO_SETTINGS_UPDATED: 'worldinfo_settings_updated',
+  WORLDINFO_UPDATED: 'worldinfo_updated',
+  CHARACTER_EDITED: 'character_edited',
+  CHARACTER_PAGE_LOADED: 'character_page_loaded',
+  CHARACTER_GROUP_OVERLAY_STATE_CHANGE_BEFORE: 'character_group_overlay_state_change_before',
+  CHARACTER_GROUP_OVERLAY_STATE_CHANGE_AFTER: 'character_group_overlay_state_change_after',
+  USER_MESSAGE_RENDERED: 'user_message_rendered',
+  CHARACTER_MESSAGE_RENDERED: 'character_message_rendered',
+  FORCE_SET_BACKGROUND: 'force_set_background',
+  CHAT_DELETED: 'chat_deleted',
+  CHAT_CREATED: 'chat_created',
+  GROUP_CHAT_DELETED: 'group_chat_deleted',
+  GROUP_CHAT_CREATED: 'group_chat_created',
+  GENERATE_BEFORE_COMBINE_PROMPTS: 'generate_before_combine_prompts',
+  GENERATE_AFTER_COMBINE_PROMPTS: 'generate_after_combine_prompts',
+  GENERATE_AFTER_DATA: 'generate_after_data',
+  GROUP_MEMBER_DRAFTED: 'group_member_drafted',
+  WORLD_INFO_ACTIVATED: 'world_info_activated',
+  TEXT_COMPLETION_SETTINGS_READY: 'text_completion_settings_ready',
+  CHAT_COMPLETION_SETTINGS_READY: 'chat_completion_settings_ready',
+  CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready',
+  CHARACTER_FIRST_MESSAGE_SELECTED: 'character_first_message_selected',
+  // TODO: Naming convention is inconsistent with other events
+  CHARACTER_DELETED: 'characterDeleted',
+  CHARACTER_DUPLICATED: 'character_duplicated',
+  /** @deprecated The event is aliased to STREAM_TOKEN_RECEIVED. */
+  SMOOTH_STREAM_TOKEN_RECEIVED: 'stream_token_received',
+  STREAM_TOKEN_RECEIVED: 'stream_token_received',
+  FILE_ATTACHMENT_DELETED: 'file_attachment_deleted',
+  WORLDINFO_FORCE_ACTIVATE: 'worldinfo_force_activate',
+  OPEN_CHARACTER_LIBRARY: 'open_character_library',
+  ONLINE_STATUS_CHANGED: 'online_status_changed',
+  IMAGE_SWIPED: 'image_swiped',
+  CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',
+  TOOL_CALLS_PERFORMED: 'tool_calls_performed',
+  TOOL_CALLS_RENDERED: 'tool_calls_rendered',
+} as const;
 ```
-<details>
-<summary>查看所有事件</summary>
-  APP_READY: 'app_ready',<br>
-  EXTRAS_CONNECTED: 'extras_connected',<br>
-  MESSAGE_SWIPED: 'message_swiped',<br>
-  MESSAGE_SENT: 'message_sent',<br>
-  MESSAGE_RECEIVED: 'message_received',<br>
-  MESSAGE_EDITED: 'message_edited',<br>
-  MESSAGE_DELETED: 'message_deleted',<br>
-  MESSAGE_UPDATED: 'message_updated',<br>
-  MESSAGE_FILE_EMBEDDED: 'message_file_embedded',<br>
-  IMPERSONATE_READY: 'impersonate_ready',<br>
-  CHAT_CHANGED: 'chat_id_changed',<br>
-  GENERATION_AFTER_COMMANDS: 'GENERATION_AFTER_COMMANDS',<br>
-  GENERATION_STARTED: 'generation_started',<br>
-  GENERATION_STOPPED: 'generation_stopped',<br>
-  GENERATION_ENDED: 'generation_ended',<br>
-  EXTENSIONS_FIRST_LOAD: 'extensions_first_load',<br>
-  EXTENSION_SETTINGS_LOADED: 'extension_settings_loaded',<br>
-  SETTINGS_LOADED: 'settings_loaded',<br>
-  SETTINGS_UPDATED: 'settings_updated',<br>
-  GROUP_UPDATED: 'group_updated',<br>
-  MOVABLE_PANELS_RESET: 'movable_panels_reset',<br>
-  SETTINGS_LOADED_BEFORE: 'settings_loaded_before',<br>
-  SETTINGS_LOADED_AFTER: 'settings_loaded_after',<br>
-  CHATCOMPLETION_SOURCE_CHANGED: 'chatcompletion_source_changed',<br>
-  CHATCOMPLETION_MODEL_CHANGED: 'chatcompletion_model_changed',<br>
-  OAI_PRESET_CHANGED_BEFORE: 'oai_preset_changed_before',<br>
-  OAI_PRESET_CHANGED_AFTER: 'oai_preset_changed_after',<br>
-  OAI_PRESET_EXPORT_READY: 'oai_preset_export_ready',<br>
-  OAI_PRESET_IMPORT_READY: 'oai_preset_import_ready',<br>
-  WORLDINFO_SETTINGS_UPDATED: 'worldinfo_settings_updated',<br>
-  WORLDINFO_UPDATED: 'worldinfo_updated',<br>
-  CHARACTER_EDITED: 'character_edited',<br>
-  CHARACTER_PAGE_LOADED: 'character_page_loaded',<br>
-  CHARACTER_GROUP_OVERLAY_STATE_CHANGE_BEFORE: 'character_group_overlay_state_change_before',<br>
-  CHARACTER_GROUP_OVERLAY_STATE_CHANGE_AFTER: 'character_group_overlay_state_change_after',<br>
-  USER_MESSAGE_RENDERED: 'user_message_rendered',<br>
-  CHARACTER_MESSAGE_RENDERED: 'character_message_rendered',<br>
-  FORCE_SET_BACKGROUND: 'force_set_background',<br>
-  CHAT_DELETED: 'chat_deleted',<br>
-  CHAT_CREATED: 'chat_created',<br>
-  GROUP_CHAT_DELETED: 'group_chat_deleted',<br>
-  GROUP_CHAT_CREATED: 'group_chat_created',<br>
-  GENERATE_BEFORE_COMBINE_PROMPTS: 'generate_before_combine_prompts',<br>
-  GENERATE_AFTER_COMBINE_PROMPTS: 'generate_after_combine_prompts',<br>
-  GENERATE_AFTER_DATA: 'generate_after_data',<br>
-  GROUP_MEMBER_DRAFTED: 'group_member_drafted',<br>
-  WORLD_INFO_ACTIVATED: 'world_info_activated',<br>
-  TEXT_COMPLETION_SETTINGS_READY: 'text_completion_settings_ready',<br>
-  CHAT_COMPLETION_SETTINGS_READY: 'chat_completion_settings_ready',<br>
-  CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready',<br>
-  CHARACTER_FIRST_MESSAGE_SELECTED: 'character_first_message_selected',<br>
-  // TODO: Naming convention is inconsistent with other events<br>
-  CHARACTER_DELETED: 'characterDeleted',<br>
-  CHARACTER_DUPLICATED: 'character_duplicated',<br>
-  /** @deprecated The event is aliased to STREAM_TOKEN_RECEIVED. */<br>
-  SMOOTH_STREAM_TOKEN_RECEIVED: 'stream_token_received',<br>
-  STREAM_TOKEN_RECEIVED: 'stream_token_received',<br>
-  FILE_ATTACHMENT_DELETED: 'file_attachment_deleted',<br>
-  WORLDINFO_FORCE_ACTIVATE: 'worldinfo_force_activate',<br>
-  OPEN_CHARACTER_LIBRARY: 'open_character_library',<br>
-  ONLINE_STATUS_CHANGED: 'online_status_changed',<br>
-  IMAGE_SWIPED: 'image_swiped',<br>
-  CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',<br>
-  TOOL_CALLS_PERFORMED: 'tool_calls_performed',<br>
-  TOOL_CALLS_RENDERED: 'tool_calls_rendered',<br>
-</details>
 
-```typescript
-/**
- * 如果代码要随消息变化而运行, 则监听这些事件.
- *
- * @example
- * tavern_messagelike_events.forEach((event_type) => { tavernOn(event_type, 要注册的函数); });
- */
-const tavern_messagelike_events = [
-  tavern_events.MESSAGE_EDITED,
-  tavern_events.MESSAGE_DELETED,
-  tavern_events.MESSAGE_SWIPED,
-  tavern_events.MESSAGE_RECEIVED
-]
-```
+</details>
 
 #### 监听事件
 
@@ -249,23 +414,22 @@ const tavern_messagelike_events = [
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册的函数
  *
  * @example
- * // 收到 ai 消息时弹窗输出 `hello`;
  * function hello() { alert("hello"); }
- * tavernOn(tavern_events.MESSAGE_RECEIVED, hello);
+ * eventOn(要监听的事件, hello);
  *
  * @example
  * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_EDITED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageEdited(message_id) {
+ * // 能这么做是因为酒馆 MESSAGE_UPDATED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
+ * function detectMessageUpdated(message_id) {
  *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
  * }
- * tavernOn(tavern_events.MESSAGE_EDITED, detectMessageEdited);
+ * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  */
-function tavernOn(event_type: TavernEventType, listener: Callback): void
+function eventOn(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -274,13 +438,13 @@ function tavernOn(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册/调整到最后运行的函数
- * 
+ *
  * @example
- * tavernMakeLast(tavern_events.MESSAGE_RECEIVED, 要注册的函数);
+ * eventMakeLast(要监听的事件, 要注册的函数);
  */
-function tavernMakeLast(event_type: TavernEventType, listener: Callback): void
+function eventMakeLast(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -289,13 +453,13 @@ function tavernMakeLast(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册/调整为最先运行的函数
- * 
+ *
  * @example
- * tavernMakeFirst(tavern_events.MESSAGE_RECEIVED, 要注册的函数);
+ * eventMakeFirst(要监听的事件, 要注册的函数);
  */
-function tavernMakeFirst(event_type: TavernEventType, listener: Callback): void
+function eventMakeFirst(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -304,13 +468,71 @@ function tavernMakeFirst(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要注册的函数
- * 
+ *
  * @example
- * tavernMakeOnce(tavern_events.MESSAGE_RECEIVED, 要注册的函数);
+ * eventOnce(要监听的事件, 要注册的函数);
  */
-function tavernOnce(event_type: TavernEventType, listener: Callback): void
+function eventOnce(event_type: EventType, listener: Function): void
+```
+
+#### 等待事件
+
+```typescript
+/**
+ * 等待一次 `event_type` 事件
+ *
+ * @param event_type 要等待的事件
+ *
+ * @example
+ * eventWaitOnce(tavern_events.MESSAGE_DELETED);
+ */
+async function eventWaitOnce(event_type: EventType): Promise<any | undefined>
+```
+
+```typescript
+/**
+ * 等待 `listener` 监听到一次 `event_type` 且执行完成, 返回 `listener` 的执行结果
+ *
+ * 在调用本函数前, `listener` 必须已经在监听 `event_type`
+ *
+ * @param event_type `listener` 在监听的事件
+ * @param listener 已经在监听 `event_type` 的函数
+ *
+ * @returns  `listener` 得到的结果
+ *
+ * @example
+ * eventOnce("存档", save);
+ * eventWaitOnce("存档", save);
+ */
+async function eventWaitOnce(event_type: EventType, listener: Function): Promise<any | undefined>
+```
+
+#### 发送事件
+
+```typescript
+/**
+ * 发送 `event_type` 事件, 同时可以发送一些数据 `data`.
+ *
+ * 所有正在监听 `event_type` 消息频道的都会收到该消息并接收到 `data`.
+ *
+ * @param event_type 要发送的事件
+ * @param data 要随着事件发送的数据
+ *
+ * @example
+ * // 发送 "角色阶段更新完成" 事件, 所有监听该事件的 `listener` 都会被运行
+ * eventEmit("角色阶段更新完成");
+ *
+ * @example
+ * // 发送 "存档" 事件, 并等待所有 `listener` (也许是负责存档的函数) 执行完毕后才继续
+ * await eventEmit("存档");
+ *
+ * @example
+ * // 发送时携带数据 ["你好", 0]
+ * eventEmit("事件", "你好", 0);
+ */
+async function eventEmit(event_type: EventType, ...data: any[]): Promise<void>
 ```
 
 #### 取消监听事件
@@ -321,13 +543,13 @@ function tavernOnce(event_type: TavernEventType, listener: Callback): void
  *
  * - 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * @param event_type 酒馆事件
+ * @param event_type 要监听的事件
  * @param listener 要取消注册的函数
- * 
+ *
  * @example
- * tavernRemoveListener(tavern_events.MESSAGE_RECEIVED, 要取消注册的函数);
+ * eventRemoveListener(要监听的事件, 要取消注册的函数);
  */
-function tavernRemoveListener(event_type: TavernEventType, listener: Callback): void
+function eventRemoveListener(event_type: EventType, listener: Function): void
 ```
 
 ```typescript
@@ -335,11 +557,8 @@ function tavernRemoveListener(event_type: TavernEventType, listener: Callback): 
  * 取消本 iframe 中对 `event_type` 的所有监听
  *
  * @param event_type 要取消监听的事件
- *
- * @example
- * tavernRemoveListeners(tavern_events.MESSAGE_EDITED);
  */
-function tavernClearEvent(event_type: TavernEventType): void
+function eventClearEvent(event_type: EventType): void
 ```
 
 ```typescript
@@ -347,19 +566,34 @@ function tavernClearEvent(event_type: TavernEventType): void
  * 取消本 iframe 中 `listener` 的的所有监听
  *
  * @param listener 要取消注册的函数
- *
- * @example
- * tavernRemoveListeners(tavern_events.MESSAGE_EDITED);
  */
-function tavernClearListener(listener: Callback): void
+function eventClearListener(listener: Function): void
 ```
 
 ```typescript
 /**
- * 取消本 iframe 中对所有酒馆事件的所有监听
+ * 取消本 iframe 中对所有事件的所有监听
  */
-function tavernClearAll(): void
+function eventClearAll(): void
 ```
+
+#### Quick Reply 命令
+
+我们还提供了 Quick Reply 命令 `/event-emit`, 允许你通过在快速回复中发送事件来触发 js 代码.
+
+快速回复部分:
+
+```text
+/event-emit data=8 "事件名称"
+```
+
+iframe 部分:
+
+```typescript
+tavernOn("事件名称", test);
+```
+
+当我们按下该快速回复的按钮后, 正在监听 "事件名称" 消息频道的 js 代码将会获得 `data` 并开始执行.
 
 ### 其他辅助功能
 
@@ -367,9 +601,37 @@ function tavernClearAll(): void
 /**
  * 获取 iframe 的名称
  *
- * @returns 对于楼层消息是 `message-楼层id-属于该楼层第几个代码块`; 对于全局脚本是 `script-脚本名称`
+ * @returns 对于楼层消息是 `message-楼层id-是该楼层第几个iframe`; 对于全局脚本是 `script-脚本名称`
  */
 function getIframeName(): string
+```
+
+```typescript
+/**
+ * 从消息楼层 iframe 的 `iframe_name` 获取它所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
+ *
+ * @param iframe_name 消息楼层 iframe 的名称
+ * @returns 楼层 id
+ */
+function getMessageId(iframe_name: string): number
+```
+
+```typescript
+/**
+ * 获取本消息楼层 iframe 所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
+ *
+ * @returns 楼层 id
+ */
+function getCurrentMessageId(): number
+```
+
+```typescript
+/**
+ * 获取最新楼层 id
+ *
+ * @returns 最新楼层id
+ */
+async function getLastMessageId(): Promise<number>;
 ```
 
 ## 播放器功能

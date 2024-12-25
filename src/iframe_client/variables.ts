@@ -1,5 +1,15 @@
-function requestVariables(): Promise<Object> {
-  return new Promise((resolve, _) => {
+/**
+ * 获取所有聊天变量
+ *
+ * @returns 所有聊天变量
+ *
+ * @example
+ * // 获取所有变量并弹窗输出结果
+ * const variables = await getVariables();
+ * alert(variables);
+ */
+async function getVariables(): Promise<Object> {
+  return await new Promise((resolve, _) => {
     function handleMessage(event: MessageEvent) {
       if (event.data && event.data.variables) {
         window.removeEventListener("message", handleMessage);
@@ -12,41 +22,57 @@ function requestVariables(): Promise<Object> {
 }
 
 /**
- * 获取所有聊天变量
+ * 如果 `message_id` 是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量
  *
- * @returns 所有聊天变量
- * 
+ * @param message_id 要判定的 `message_id`
+ * @param new_or_updated_variables 用于更新的变量
+ * @enum
+ * - 如果该变量已经存在, 则更新值
+ * - 如果不存在, 则新增变量
+ *
  * @example
- * // 获取所有变量并弹窗输出结果
- * const variables = await getVariables();
- * alert(variables);
+ * const variables = {value: 5, data: 7};
+ * setVariables(0, variabels);
+ *
+ * @deprecated 这个函数是在事件监听功能之前制作的, 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由
+ * @example
+ * // 接收到消息时更新变量
+ * eventOn(tavern_events.MESSAGE_RECEIVED, updateVariables);
+ * function parseVariablesFromMessage(messages) { ... }
+ * function updateVariables(message_id) {
+ *   const variables = parseVariablesFromMessage(await getChatMessages(message_id));
+ *   triggerSlash(
+ *     Object.entries(variables)
+ *       .map((key_and_value) => `/setvar key=${key_and_value[0]} "${key_and_value[1]}"`)
+ *       .join("||"));
+ * }
  */
-async function getVariables(): Promise<Object> {
-  const variables = await requestVariables();
-  return variables;
-}
+function setVariables(message_id: number, new_or_updated_variables: Object): void;
 
 /**
- * 用 `newVaraibles` 更新聊天变量
- * 
- * - 如果键名一致, 则更新值
- * - 如果不一致, 则新增变量
+ * 如果当前楼层是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量, **只能在消息楼层 iframe 中使用**.
  *
- * @param newVariables 要更新的变量
- * 
- * @example
- * const newVariables = { theme: "dark", userInfo: { name: "Alice", age: 30} };
- * setVariables(newVariables);
+ * @deprecated 你应该使用更直观的 `setVariables(getCurrentMessageId(), new_or_updated_variables)`
  */
-function setVariables(newVariables: Object): void {
-  if (typeof newVariables === "object" && newVariables !== null) {
-    // @ts-ignore 18047
-    const iframeId = window.frameElement.id;
-    window.parent.postMessage(
-      { request: "setVariables", data: newVariables, iframeId: iframeId },
-      "*"
-    );
+function setVariables(new_or_updated_variables: Object): void;
+
+function setVariables(message_id: number | Object, new_or_updated_variables?: Object): void {
+  let actual_message_id: number;
+  let actual_variables: Object;
+  if (new_or_updated_variables) {
+    actual_message_id = message_id as number;
+    actual_variables = new_or_updated_variables as Object;
   } else {
-    console.error("setVariables expects an object");
+    actual_message_id = getCurrentMessageId();
+    actual_variables = message_id;
+  }
+  if (typeof actual_message_id === 'number' && typeof actual_variables === 'object') {
+    window.parent.postMessage({
+      request: "setVariables",
+      message_id: actual_message_id,
+      variables: actual_variables,
+    }, "*");
+  } else {
+    console.error("[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确");
   }
 }

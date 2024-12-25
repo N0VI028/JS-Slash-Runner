@@ -1,6 +1,7 @@
 // @ts-nocheck
 // TODO: 拆分消息 iframe 到 message_iframe.ts 中
 // TODO: 拆分 triggerSlash triggerSlashWithResult getVariables setVariables 到对应于 src/iframe_client/... 的 src/iframe_server/... 文件中
+// TODO: 拆分音视频相关 slash command 到 slash_command 文件夹中
 import {
   eventSource,
   event_types,
@@ -40,8 +41,10 @@ import { POPUP_TYPE, callGenericPopup } from "../../../../popup.js";
 import { isMobile } from "../../../../RossAscends-mods.js";
 
 import { iframe_client } from "./iframe_client_exported/index.js";
-import { handleTavernEvent } from "./iframe_server/tavern_event.js";
+import { handleEvent } from "./iframe_server/event.js";
+import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
+import { initSlashEventEmit } from "./slash_command/message_channel.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -69,6 +72,7 @@ const partialRenderEvents = [
   event_types.CHARACTER_MESSAGE_RENDERED,
   event_types.USER_MESSAGE_RENDERED,
   event_types.MESSAGE_UPDATED,
+  event_types.MESSAGE_SWIPED,
 ];
 
 const eventsToListenFor = [
@@ -279,7 +283,8 @@ async function renderMessagesInIframes(
     const mesTextWidth = mesTextContainer.clientWidth - paddingRight;
     const avatarPath = `./User Avatars/${user_avatar}`;
 
-    codeElements.forEach((codeElement, index) => {
+    let index = 0;
+    codeElements.forEach((codeElement, _) => {
       let extractedText = extractTextFromCode(codeElement);
       if (
         !extractedText.includes("<body>") ||
@@ -289,7 +294,7 @@ async function renderMessagesInIframes(
       }
 
       const iframe = document.createElement("iframe");
-      iframe.id = `message-iframe-${messageId}-${index}`;
+      iframe.id = `message-iframe-${messageId}-${index++}`;
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
       iframe.style.width = "100%";
@@ -408,7 +413,9 @@ async function renderMessagesInIframes(
         doc.write(iframeContent);
         doc.close();
         observeIframeContent(iframe);
+        eventSource.emitAndWait('message_iframe_render_ended', iframe.id);
       };
+      eventSource.emitAndWait('message_iframe_render_started', iframe.id);
       codeElement.replaceWith(iframe);
     });
 
@@ -619,14 +626,8 @@ async function handleIframeCommand(event) {
       }
       event.source.postMessage({ variables: variables }, "*");
     } else if (event.data.request === "setVariables") {
-      const newVariables = event.data.data;
-      const iframeId = event.data.iframeId;
-      const mesIdMatch = iframeId.match(/^message-iframe-(\d+)-\d+$/);
-      if (!mesIdMatch || mesIdMatch.length < 2) {
-        console.warn(`Invalid iframeId format: ${iframeId}`);
-        return;
-      }
-      const mesId = parseInt(mesIdMatch[1], 10);
+      const newVariables = event.data.variables;
+      const mesId = event.data.message_id;
 
       if (isNaN(mesId)) {
         return;
@@ -741,14 +742,14 @@ async function executeCommand(command) {
     throw error;
   }
 }
-const handleFullRender = () => {
+export const handleFullRender = () => {
   console.log("[Render] FULL render event triggered");
   setTimeout(() => {
     renderAllIframes();
   }, 100);
 };
 
-const handlePartialRender = (mesId) => {
+export const handlePartialRender = (mesId) => {
   console.log("[Render] PARTIAL render event triggered for message ID:", mesId);
   const processDepth = parseInt($("#process_depth").val(), 10);
   const context = getContext();
@@ -788,7 +789,9 @@ async function onExtensionToggle() {
     script_load_events.forEach((eventType) => {
       eventSource.on(eventType, initializeScripts)
     })
-    window.addEventListener('message', handleTavernEvent);
+    window.addEventListener('message', handleEvent);
+    window.addEventListener("message", handleIframeCommand);
+    window.addEventListener("message", handleChatMessage);
 
     fullRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, handleFullRender);
@@ -809,13 +812,14 @@ async function onExtensionToggle() {
       clearTempVariables();
       formattedLastMessage();
     });
-    window.addEventListener("message", handleIframeCommand);
   } else {
     script_load_events.forEach((eventType) => {
       eventSource.removeListener(eventType, initializeScripts)
     })
     destroyScriptsIfInitialized();
-    window.removeEventListener('message', handleTavernEvent);
+    window.removeEventListener('message', handleEvent);
+    window.removeEventListener("message", handleIframeCommand);
+    window.removeEventListener("message", handleChatMessage);
 
     fullRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handleFullRender);
@@ -833,7 +837,6 @@ async function onExtensionToggle() {
       clearTempVariables();
       formattedLastMessage();
     });
-    window.removeEventListener("message", handleIframeCommand);
     await reloadCurrentChat();
   }
 
@@ -1851,6 +1854,7 @@ jQuery(async () => {
 
   initializeProgressBar("bgm");
   initializeProgressBar("ambient");
+  initSlashEventEmit();
   SlashCommandParser.addCommandObject(
     SlashCommand.fromProps({
       name: "audioselect",
