@@ -265,7 +265,7 @@ async function handleEvent(event: MessageEvent<IframeEventMessage>): Promise<voi
       handler(event as any);
     }
   } catch (error) {
-    console.error(`[Event](${getIframeName(event)}) ${error}`);
+    console.error(`${error}`);
     throw error;
   }
 }

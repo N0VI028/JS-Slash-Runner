@@ -36,5 +36,6 @@ function getCurrentMessageId(): number {
  * @returns 最新楼层id
  */
 async function getLastMessageId(): Promise<number> {
-  return parseInt(await triggerSlashWithResult("/pass {{lastMessageId}}") as string);
+  const result = await triggerSlashWithResult("/pass {{lastMessageId}}");
+  return parseInt(result as string);
 }

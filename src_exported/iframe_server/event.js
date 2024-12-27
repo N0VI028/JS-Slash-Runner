@@ -186,7 +186,7 @@ async function handleEvent(event) {
         }
     }
     catch (error) {
-        console.error(`[Event](${getIframeName(event)}) ${error}`);
+        console.error(`${error}`);
         throw error;
     }
 }

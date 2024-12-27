@@ -5,10 +5,10 @@
  * @param range 要获取的消息楼层号或楼层范围, 与 `/messages` 相同
  * @param option 对获取消息进行可选设置
  *   - `role:'all'|'system'|'assistant'|'user'`: 按 role 筛选消息; 默认为 `'all'`
- *   - `hidden:boolean`: 是否包含被隐藏的消息楼层; 默认为 `true`
- *   - `swipe:boolean`: 是否包含消息楼层其他没被 ai 使用的消息页; 默认为 `false`
+ *   - `hide_state:'all'|'hidden'|'unhidden'`: 按是否被隐藏筛选消息; 默认为 `'all'`
+ *   - `include_swipe:boolean`: 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
  *
- * @returns 一个数组, 数组的元素是每楼的消息
+ * @returns 一个数组, 数组的元素是每楼的消息 `ChatMessage`. 该数组依据按 message_id 从低到高排序.
  *
  * @example
  * // 仅获取第 10 楼会被 ai 使用的消息页
@@ -20,10 +20,29 @@
  * const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
  */
 function getChatMessages(range, option = {}) {
+    // @todo @deprecated 在未来移除它
+    if (Object.hasOwn(option, 'hidden')) {
+        console.warn("`hidden` 已经被弃用, 请使用 `hide_state`");
+        if (Object.hasOwn(option, 'include_swipe')) {
+            console.warn("不要同时使用 hide_state 和 hidden, 请只使用 hide_state");
+        }
+        else {
+            option.hide_state = option.hidden ? 'all' : 'unhidden';
+        }
+    }
+    if (Object.hasOwn(option, 'swipe')) {
+        console.warn("`swipe 已经被弃用, 请使用 `include_swipe`");
+        if (Object.hasOwn(option, 'include_swipe')) {
+            console.warn("不要同时使用 include_swipe 和 swipe, 请只使用 include_swipe");
+        }
+        else {
+            option.include_swipe = option.swipe;
+        }
+    }
     option = {
         role: option.role ?? 'all',
-        hidden: option.hidden ?? true,
-        swipe: option.swipe ?? false,
+        hide_state: option.hide_state ?? 'all',
+        include_swipe: option.include_swipe ?? false,
     };
     return new Promise((resolve, _) => {
         const uid = Date.now() + Math.random();
