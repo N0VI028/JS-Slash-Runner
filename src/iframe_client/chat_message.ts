@@ -1,7 +1,7 @@
 interface ChatMessage {
   message_id: number;
   name: string;
-  role: 'system' | 'assistant' | 'user'
+  role: 'system' | 'assistant' | 'user';
   is_hidden: boolean;
   message: string;
 
