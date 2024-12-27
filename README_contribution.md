@@ -49,7 +49,7 @@
 │   ├── message_iframe.ts  # 楼层消息 iframe
 │   └── script_iframe.ts   # 全局脚本 iframe
 │
-├── src_exported  # typescript 编译得到的 javascript 代码, 实际被酒馆使用, 但无需我们在意
+├── dist  # typescript 编译得到的 javascript 代码, 实际被酒馆使用, 但无需我们在意
 │
 ├── compile.py     # 编译脚本
 ├── manifest.json  # 酒馆插件整体设置
