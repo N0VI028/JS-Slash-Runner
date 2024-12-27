@@ -28,11 +28,11 @@
 │   │   │              #   运行 `python compile.py` 后,
 │   │   │              #   这里所有代码会被保存为 iframe_client_exported/index.ts 中的 iframe_client 字符串,
 │   │   │              #   因此直接用 `<script>${iframe_client}</script>` 即可
-│   │   ├── tavern_event.ts
+│   │   ├── event.ts
 │   │   └── ...
 │   │
 │   ├── iframe_server  # 服务器端对 iframe 发送的 postMessage 进行处理, 从而完成对应功能
-│   │   ├── tavern_event.ts
+│   │   ├── event.ts
 │   │   └── ...
 │   │
 │   ├── iframe_client_exported  # 由编译脚本自动生成
@@ -40,7 +40,7 @@
 │   │   └── ...
 │   │
 │   ├── slash_command  # 自定义的酒馆 Slash Command
-│   │   ├── message_channel.ts
+│   │   ├── event.ts
 │   │   └── ...
 │   │
 │   ├── util  # 杂七杂八

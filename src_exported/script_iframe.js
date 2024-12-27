@@ -1,34 +1,44 @@
 export { script_load_events, initializeScripts, destroyScriptsIfInitialized };
 import { iframe_client } from './iframe_client_exported/index.js';
 import { partition } from './util/helper.js';
-import { extension_settings } from '../../../../extensions.js';
-import { characters, event_types, this_chid } from '../../../../../script.js';
-function getGlobalScripts() {
-    return extension_settings.regex ?? [];
-}
-function getCharacterScripts() {
-    const scripts = characters[this_chid]?.data?.extensions?.regex_scripts ?? [];
-    // @ts-ignore 2345
-    const is_enabled = extension_settings?.character_allowed_regex?.includes(characters?.[this_chid]?.avatar);
-    if (!is_enabled) {
-        return scripts.filter((script) => script.runOnEdit);
-    }
-    return scripts;
-}
+import { getCharacterRegexes, getGlobalRegexes, isCharacterRegexEnabled } from './iframe_server/regex_data.js';
+import { event_types } from '../../../../../script.js';
 ;
 let script_map = new Map();
 const script_load_events = [
     event_types.CHAT_CHANGED
 ];
 function loadScripts() {
-    const scripts = [...getGlobalScripts(), ...getCharacterScripts()].filter((script) => script.scriptName.startsWith("脚本-"));
-    const [disabled, enabled] = partition(scripts, (script) => script.disabled);
-    const to_name = (script) => script.scriptName.replace('脚本-', '');
+    const filterScriptFromRegex = (script) => script.scriptName.startsWith("脚本-");
+    const isEnabled = (script) => !script.disabled;
+    const toName = (script) => script.scriptName.replace('脚本-', '');
+    let scripts = [];
     console.info(`[Script] 加载全局脚本...`);
-    console.info(`[Script] 将会加载以下全局脚本: ${JSON.stringify(enabled.map(to_name))}`);
-    console.info(`[Script] 将会禁用以下全局脚本: ${JSON.stringify(disabled.map(to_name))}`);
-    const to_script = (script) => ({ name: to_name(script), code: script.replaceString });
-    return enabled.map(to_script);
+    const global_regexes = getGlobalRegexes().filter(filterScriptFromRegex);
+    console.info(`[Script] 加载全局正则中的全局脚本:`);
+    const [enabled_global_regexes, disabled_global_regexes] = partition(global_regexes, isEnabled);
+    console.info(`[Script]   将会加载: ${JSON.stringify(enabled_global_regexes.map(toName))}`);
+    console.info(`[Script]   将会禁用: ${JSON.stringify(disabled_global_regexes.map(toName))}`);
+    scripts = [...scripts, ...enabled_global_regexes];
+    const character_regexes = getCharacterRegexes().filter(filterScriptFromRegex);
+    if (isCharacterRegexEnabled()) {
+        console.info(`[Script] 局部正则目前正启用, 加载局部正则中的全局脚本:`);
+        const [enabled_character_regexes, disabled_character_regexes] = partition(character_regexes, isEnabled);
+        console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);
+        console.info(`[Script]   将会禁用: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
+        scripts = [...scripts, ...enabled_character_regexes];
+    }
+    else {
+        console.info(`[Script] 局部正则目前正禁用, 仅加载局部正则中 "在编辑时运行" 的全局脚本:`);
+        const [editing_character_regexes, nonediting_character_regexes] = partition(character_regexes, script => script.runOnEdit);
+        const [enabled_character_regexes, disabled_character_regexes] = partition(editing_character_regexes, isEnabled);
+        console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);
+        console.info(`[Script]   将会禁用以下被禁用的正则: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
+        console.info(`[Script]   将会禁用以下未开启 "在编辑时运行" 的正则: ${JSON.stringify(nonediting_character_regexes.map(toName))}`);
+        scripts = [...scripts, ...enabled_character_regexes];
+    }
+    const to_script = (script) => ({ name: toName(script), code: script.replaceString });
+    return scripts.map(to_script);
 }
 function makeScriptIframe(script) {
     const iframe = document.createElement('iframe');

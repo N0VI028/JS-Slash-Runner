@@ -10,12 +10,20 @@
                 <label for="activate_setting">启用脚本注入</label>
             </div>
             <div class="extension_block flex-container">
-                <input id="tampermonkey_compatibility" type="checkbox" name="tampermonkey_compatibility" />
-                <label for="tampermonkey_compatibility" title="兼容油猴脚本版注入插件的一些功能">启用油猴版兼容模式<span class="fa-solid fa-circle-question note-link-span"></span></label>
-            </div>
-            <div class="extension_block flex-container">
                 <input type="checkbox" id="audio_enabled" name="audio_enabled">
                 <label for="audio_enabled">启用播放器</label>
+            </div>
+            <div class="extension_block flex-container">
+                <input type="checkbox" id="auto_enable_character_regex" name="auto_enable_character_regex">
+                <label for="auto_enable_character_regex">自动开启局部正则</label>
+            </div>
+            <div class="extension_block flex-container">
+                <input type="checkbox" id="auto_disable_incompatible_options" name="auto_disable_incompatible_options">
+                <label for="auto_disable_incompatible_options">自动关闭不兼容选项 (关闭它们不会影响其他游戏体验)</label>
+            </div>
+            <div class="extension_block flex-container">
+                <input id="tampermonkey_compatibility" type="checkbox" name="tampermonkey_compatibility" />
+                <label for="tampermonkey_compatibility" title="兼容油猴脚本版注入插件的一些功能">启用油猴版兼容模式<span class="fa-solid fa-circle-question note-link-span"></span></label>
             </div>
             <div class="extension_block flex-container">
                 <label for="process_depth">

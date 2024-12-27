@@ -34,6 +34,7 @@ function getCurrentMessageId() {
  * @returns 最新楼层id
  */
 async function getLastMessageId() {
-    return parseInt(await triggerSlashWithResult("/pass {{lastMessageId}}"));
+    const result = await triggerSlashWithResult("/pass {{lastMessageId}}");
+    return parseInt(result);
 }
 //# sourceMappingURL=util.js.map

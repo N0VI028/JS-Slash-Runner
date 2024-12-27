@@ -2,7 +2,8 @@
 // TODO: 拆分消息 iframe 到 message_iframe.ts 中
 // TODO: 拆分 triggerSlash triggerSlashWithResult getVariables setVariables 到对应于 src/iframe_client/... 的 src/iframe_server/... 文件中
 // TODO: 拆分音视频相关 slash command 到 slash_command 文件夹中
-import { eventSource, event_types, saveSettingsDebounced, chat_metadata, updateMessageBlock, reloadCurrentChat, user_avatar, messageFormatting, } from "../../../../../script.js";
+import { eventSource, event_types, saveSettingsDebounced, chat_metadata, updateMessageBlock, reloadCurrentChat, user_avatar, messageFormatting, this_chid, characters, } from "../../../../../script.js";
+import { selected_group } from "../../../../group-chats.js";
 import { extension_settings, renderExtensionTemplateAsync, getContext, saveMetadataDebounced, } from "../../../../extensions.js";
 import { getSortableDelay } from "../../../../utils.js";
 import { SlashCommandParser } from "../../../../slash-commands/SlashCommandParser.js";
@@ -12,11 +13,13 @@ import { SlashCommandEnumValue, enumTypes, } from "../../../../slash-commands/Sl
 import { enumIcons, commonEnumProviders, } from "../../../../slash-commands/SlashCommandCommonEnumsProvider.js";
 import { POPUP_TYPE, callGenericPopup } from "../../../../popup.js";
 import { isMobile } from "../../../../RossAscends-mods.js";
+import { power_user } from "../../../../power-user.js";
 import { iframe_client } from "./iframe_client_exported/index.js";
-import { handleEvent } from "./iframe_server/event.js";
 import { handleChatMessage } from "./iframe_server/chat_message.js";
+import { handleEvent } from "./iframe_server/event.js";
+import { handleRegexData } from "./iframe_server/regex_data.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
-import { initSlashEventEmit } from "./slash_command/message_channel.js";
+import { initSlashEventEmit } from "./slash_command/event.js";
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
 const audioCache = {};
@@ -45,9 +48,11 @@ const eventsToListenFor = [
     event_types.USER_MESSAGE_RENDERED,
 ];
 const defaultSettings = {
-    activate_setting: false,
+    activate_setting: true,
+    auto_enable_character_regex: true,
+    auto_disable_incompatible_options: true,
     tampermonkey_compatibility: false,
-    audio_setting: false,
+    audio_setting: true,
     bgm_enabled: true,
     ambient_enabled: true,
     bgm_mode: "repeat",
@@ -74,6 +79,14 @@ function loadSettings() {
     $("#activate_setting").prop("checked", extension_settings[extensionName].activate_setting);
     $("#process_depth").val(extension_settings[extensionName].process_depth || 0);
     $("#tampermonkey_compatibility").prop("checked", extension_settings[extensionName].tampermonkey_compatibility);
+    if (extension_settings[extensionName].auto_enable_character_regex === undefined) {
+        extension_settings[extensionName].auto_enable_character_regex = true;
+    }
+    $("#auto_enable_character_regex").prop("checked", extension_settings[extensionName].auto_enable_character_regex);
+    if (extension_settings[extensionName].auto_disable_incompatible_options === undefined) {
+        extension_settings[extensionName].auto_disable_incompatible_options = true;
+    }
+    $("#auto_disable_incompatible_options").prop("checked", extension_settings[extensionName].auto_disable_incompatible_options);
     $("#audio_enabled").prop("checked", extension_settings[extensionName].audio_setting);
     $("#enable_bgm").prop("checked", extension_settings[extensionName].audio.bgm_enabled);
     if (!extension_settings[extensionName].audio.bgm_enabled) {
@@ -618,9 +631,10 @@ async function onExtensionToggle() {
         script_load_events.forEach((eventType) => {
             eventSource.on(eventType, initializeScripts);
         });
-        window.addEventListener('message', handleEvent);
         window.addEventListener("message", handleIframeCommand);
         window.addEventListener("message", handleChatMessage);
+        window.addEventListener('message', handleEvent);
+        window.addEventListener('message', handleRegexData);
         fullRenderEvents.forEach((eventType) => {
             eventSource.on(eventType, handleFullRender);
         });
@@ -645,9 +659,10 @@ async function onExtensionToggle() {
             eventSource.removeListener(eventType, initializeScripts);
         });
         destroyScriptsIfInitialized();
-        window.removeEventListener('message', handleEvent);
         window.removeEventListener("message", handleIframeCommand);
         window.removeEventListener("message", handleChatMessage);
+        window.removeEventListener('message', handleEvent);
+        window.removeEventListener('message', handleRegexData);
         fullRenderEvents.forEach((eventType) => {
             eventSource.removeListener(eventType, handleFullRender);
         });
@@ -704,6 +719,62 @@ eventSource.on(event_types.CHAT_CHANGED, async () => {
     }
     await refreshAudioResources();
 });
+async function autoEnableCharacterRegex() {
+    if (this_chid === undefined) {
+        return;
+    }
+    if (selected_group) {
+        return;
+    }
+    const avatar = characters[this_chid].avatar;
+    if (!extension_settings.character_allowed_regex.includes(avatar)) {
+        extension_settings.character_allowed_regex.push(avatar);
+        reloadCurrentChat();
+    }
+    saveSettingsDebounced();
+}
+async function registerAutoEnableCharacterRegex() {
+    eventSource.on(event_types.CHAT_CHANGED, autoEnableCharacterRegex);
+}
+async function unregisterAutoEnableCharacterRegex() {
+    eventSource.removeListener(event_types.CHAT_CHANGED, autoEnableCharacterRegex);
+}
+async function onAutoEnableCharacterRegexClick() {
+    const isEnabled = Boolean($("#auto_enable_character_regex").prop("checked"));
+    extension_settings[extensionName].auto_enable_character_regex = isEnabled;
+    if (isEnabled) {
+        registerAutoEnableCharacterRegex();
+    }
+    else {
+        saveSettingsDebounced();
+    }
+}
+async function autoDisableIncompatibleOptions() {
+    if (power_user.auto_fix_generated_markdown || power_user.trim_sentences) {
+        power_user.auto_fix_generated_markdown = false;
+        power_user.trim_sentences = false;
+        $('#auto_fix_generated_markdown').prop('checked', power_user.auto_fix_generated_markdown);
+        $('#trim_sentences_checkbox').prop('checked', power_user.trim_sentences);
+    }
+    saveSettingsDebounced();
+}
+async function registerAutoDisableIncompatibleOptions() {
+    eventSource.on(event_types.CHAT_CHANGED, autoDisableIncompatibleOptions);
+}
+async function unregisterAutoDisableIncompatibleOptions() {
+    eventSource.removeListener(event_types.CHAT_CHANGED, autoDisableIncompatibleOptions);
+}
+async function onAutoDisableIncompatibleOptions() {
+    const isEnabled = Boolean($("#auto_disable_incompatible_options").prop("checked"));
+    extension_settings[extensionName].auto_disable_incompatible_options = isEnabled;
+    if (isEnabled) {
+        registerAutoDisableIncompatibleOptions();
+    }
+    else {
+        unregisterAutoDisableIncompatibleOptions();
+    }
+    saveSettingsDebounced();
+}
 async function onEnabledClick() {
     const isEnabled = Boolean($("#audio_enabled").prop("checked"));
     extension_settings[extensionName].audio_setting = isEnabled;
@@ -1374,6 +1445,14 @@ jQuery(async () => {
         onTampermonkeyCompatibilityChange();
     }
     $("#process_depth").on("input", onDepthInput);
+    $("#auto_enable_character_regex").on("click", onAutoEnableCharacterRegexClick);
+    if ($("#auto_enable_character_regex").prop("checked")) {
+        onAutoEnableCharacterRegexClick();
+    }
+    $("#auto_disable_incompatible_options").on("click", onAutoDisableIncompatibleOptions);
+    if ($("#auto_disable_incompatible_options").prop("checked")) {
+        onAutoDisableIncompatibleOptions();
+    }
     $("#audio_enabled").on("click", onEnabledClick);
     $("#enable_bgm").on("click", onBGMEnabledClick);
     $("#enable_ambient").on("click", onAmbientEnabledClick);

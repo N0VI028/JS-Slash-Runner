@@ -155,11 +155,11 @@ function updateVariables(message_id) {
 interface ChatMessage {
   message_id: number;
   name: string;
-  is_user: boolean;
-  is_system_or_hidden: boolean;
+  role: 'system' | 'assistant' | 'user'
+  is_hidden: boolean;
   message: string;
 
-  // 如果 getChatMessages 时 swipe === false, 则以下内容为 undefined
+  // 如果 `getChatMessages` 使用 `include_swipe: false`, 则以下内容为 `undefined`
   swipe_id?: number;
   swipes?: string[];
 }
@@ -170,8 +170,8 @@ interface ChatMessage {
 ```typescript
 interface GetChatMessagesOption {
   role?: 'all' | 'system' | 'assistant' | 'user';  // 按 role 筛选消息; 默认为 `'all'`
-  hidden?: boolean;                                // 是否包含被隐藏的消息楼层; 默认为 `true`
-  swipe?: boolean;                                 // 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
+  hide_state?: 'all' | 'hidden' | 'unhidden';      // 按是否被隐藏筛选消息; 默认为 `'all'`
+  include_swipe?: boolean;                         // 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
 }
 
 /**
@@ -180,10 +180,10 @@ interface GetChatMessagesOption {
  * @param range 要获取的消息楼层号或楼层范围, 与 `/messages` 相同
  * @param option 对获取消息进行可选设置
  *   - `role:'all'|'system'|'assistant'|'user'`: 按 role 筛选消息; 默认为 `'all'`
- *   - `hidden:boolean`: 是否包含被隐藏的消息楼层; 默认为 `true`
- *   - `swipe:boolean`: 是否包含消息楼层其他没被 ai 使用的消息页; 默认为 `false`
+ *   - `hide_state:'all'|'hidden'|'unhidden'`: 按是否被隐藏筛选消息; 默认为 `'all'`
+ *   - `include_swipe:boolean`: 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
  *
- * @returns 一个数组, 数组的元素是每楼的消息
+ * @returns 一个数组, 数组的元素是每楼的消息 `ChatMessage`. 该数组依据按 message_id 从低到高排序.
  *
  * @example
  * // 仅获取第 10 楼会被 ai 使用的消息页
@@ -237,6 +237,79 @@ interface SetChatMessagesOption {
  * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
  */
 function setChatMessage(message: string, message_id: number, option: SetChatMessagesOption = {}): void
+```
+
+### 正则操作
+
+#### 获取局部正则是否被启用
+
+```typescript
+/**
+ * 判断局部正则是否被启用.
+ *
+ * 如果你是在被写在局部正则中的全局脚本调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
+ *
+ * @returns 局部正则是否被启用
+ */
+function isCharacterRegexEnabled(): Promise<boolean>;
+```
+
+#### 获取正则数据
+
+其获取到的结果是一个数组, 数组的元素类型为 `RegexData`, 有以下内容:
+
+```typescript
+interface RegexData {
+  id: string;
+  script_name: string;
+  enabled: boolean;
+  run_on_edit: boolean;
+  scope: 'global' | 'character';
+
+  find_regex: string;
+  replace_string: string;
+
+  source: {
+    user_input: boolean;
+    ai_output: boolean;
+    slash_command: boolean;
+    world_info: boolean;
+  };
+
+  destination: {
+    display: boolean;
+    prompt: boolean;
+  };
+
+  min_depth: number | undefined;
+  max_depth: number | undefined;
+}
+```
+
+具体函数为:
+
+```typescript
+interface GetRegexDataOption {
+  scope?: 'all' | 'global' | 'character';         // 按所在区域筛选正则; 默认为 `'all'`
+  enable_state?: 'all' | 'enabled' | 'disabled';  // 按是否被开启筛选正则; 默认为 `'all'`
+}
+
+/**
+ * 获取正则
+ *
+ * @param option 对获取正则进行可选设置
+ *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选正则; 默认为 `'all'`
+ *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选正则; 默认为 `'all'`
+ *
+ * @returns 一个数组, 数组的元素是正则 `RegexData`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
+ *
+ * @example
+ * // 获取所有正则
+ * const regexes = await getRegexData();
+ * // 获取当前角色卡目前被启用的局部正则
+ * const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
+ */
+function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]>
 ```
 
 ### 监听和发送事件
@@ -632,6 +705,10 @@ function getCurrentMessageId(): number
  * @returns 最新楼层id
  */
 async function getLastMessageId(): Promise<number>;
+```
+
+```typescript
+
 ```
 
 ## 播放器功能
