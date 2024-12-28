@@ -232,7 +232,7 @@ type IframeEventType = typeof iframe_events[keyof typeof iframe_events];
 const iframe_events = {
   MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
   MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
-} as const;
+};
 
 type TavernEventType = typeof tavern_events[keyof typeof tavern_events];
 
@@ -303,7 +303,7 @@ const tavern_events = {
   CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',
   TOOL_CALLS_PERFORMED: 'tool_calls_performed',
   TOOL_CALLS_RENDERED: 'tool_calls_rendered',
-} as const;
+};
 
 //------------------------------------------------------------------------------------------------------------------------
 const dummy_listener = () => { };

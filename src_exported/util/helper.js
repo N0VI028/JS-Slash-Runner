@@ -26,11 +26,12 @@ export function try_set(map, key, value) {
     map.set(key, value);
     return true;
 }
-export function get_or_set(map, key, default_value) {
+export function get_or_set(map, key, defaulter) {
     const existing_value = map.get(key);
     if (existing_value) {
         return existing_value;
     }
+    const default_value = defaulter();
     map.set(key, default_value);
     return default_value;
 }

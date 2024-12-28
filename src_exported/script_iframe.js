@@ -1,6 +1,7 @@
 export { script_load_events, initializeScripts, destroyScriptsIfInitialized };
 import { iframe_client } from './iframe_client_exported/index.js';
 import { partition } from './util/helper.js';
+import { script_url } from './script_url.js';
 import { getCharacterRegexes, getGlobalRegexes, isCharacterRegexEnabled } from './iframe_server/regex_data.js';
 import { event_types } from '../../../../../script.js';
 ;
@@ -50,13 +51,9 @@ function makeScriptIframe(script) {
             const doc = iframe.contentDocument || iframe.contentWindow.document;
             const iframeContent = `
         <html>
-          <head>
-            <script>
-              ${iframe_client}
-            </script>
-          <script>
-          </script>
-          </head>
+        <head>
+          <script src="${script_url.get(iframe_client)}"></script>
+        </head>
         <body>
           ${script.code}
         </body>
