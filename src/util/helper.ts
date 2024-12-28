@@ -33,11 +33,12 @@ export function try_set<K, V>(map: Map<K, V>, key: K, value: V): boolean {
   return true;
 }
 
-export function get_or_set<K, V>(map: Map<K, V>, key: K, default_value: V): V {
+export function get_or_set<K, V>(map: Map<K, V>, key: K, defaulter: () => V): V {
   const existing_value = map.get(key);
   if (existing_value) {
     return existing_value;
   }
+  const default_value = defaulter();
   map.set(key, default_value);
   return default_value;
 }

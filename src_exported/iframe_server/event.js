@@ -40,9 +40,9 @@ function makeEventCallback(event, once) {
     };
     const default_event_callback = new Map([[data.event_type, default_callback]]);
     const default_listener_event_callback = new Map([[data.listener_uid, default_event_callback]]);
-    const listener_event_callback = get_or_set(iframe_listener_event_callback_map, data.iframe_name, default_listener_event_callback);
-    const event_callback = get_or_set(listener_event_callback, data.listener_uid, default_event_callback);
-    const callback = get_or_set(event_callback, data.event_type, default_callback);
+    const listener_event_callback = get_or_set(iframe_listener_event_callback_map, data.iframe_name, () => default_listener_event_callback);
+    const event_callback = get_or_set(listener_event_callback, data.listener_uid, () => default_event_callback);
+    const callback = get_or_set(event_callback, data.event_type, () => default_callback);
     return callback;
 }
 function console_listener_string(listener_string) {
