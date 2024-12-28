@@ -42,4 +42,13 @@ export function extract(map, key) {
     map.delete(key);
     return value;
 }
+export function with_fallback(data, fallback) {
+    const result = { ...fallback };
+    for (const key in data) {
+        if (data[key] !== undefined) {
+            result[key] = data[key];
+        }
+    }
+    return result;
+}
 //# sourceMappingURL=helper.js.map

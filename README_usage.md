@@ -1,5 +1,9 @@
 # 使用方法
 
+:alert: 页面右上角有目录可以用. 更建议你采用 [基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html) 然后直接去看 iframe_client 文件夹.
+
+![目录](README_usage_目录.png)
+
 ## 在哪使用?
 
 ### 在楼层消息中使用
@@ -65,12 +69,15 @@
  * 运行 Slash 命令, 注意如果命令写错了将不会有任何反馈
  *
  * @param commandText 要运行的 Slash 命令
- * 
- * @example
- * // 在酒馆界面弹出提示语 `hello!`
- * triggerSlash('/echo hello!');
  */
 function triggerSlash(commandText: string): void
+```
+
+示例:
+
+```typescript
+// 在酒馆界面弹出提示语 `hello!`
+triggerSlash('/echo hello!');
 ```
 
 #### `triggerSlashWithResult(commandText)`
@@ -81,12 +88,15 @@ function triggerSlash(commandText: string): void
  *
  * @param commandText 要运行的 Slash 命令
  * @returns Slash 管道结果, 如果命令出错或执行了 `/abort` 则返回 `undefined`
- * 
- * @example
- * // 获取当前聊天消息最后一条消息对应的 id
- * const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
  */
 function triggerSlashWithResult(commandText: string): Promise<string | undefined>
+```
+
+示例:
+
+```typescript
+// 获取当前聊天消息最后一条消息对应的 id
+const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
 ```
 
 ### 变量操作
@@ -100,13 +110,16 @@ function triggerSlashWithResult(commandText: string): Promise<string | undefined
  * 获取所有聊天变量
  *
  * @returns 所有聊天变量
- *
- * @example
- * // 获取所有变量并弹窗输出结果
- * const variables = await getVariables();
- * alert(variables);
  */
 async function getVariables(): Promise<Object> 
+```
+
+示例:
+
+```typescript
+// 获取所有变量并弹窗输出结果
+const variables = await getVariables();
+alert(variables);
 ```
 
 #### `setVariables(, new_or_updated_variables)`
@@ -120,12 +133,15 @@ async function getVariables(): Promise<Object>
  * @enum
  * - 如果该变量已经存在, 则更新值
  * - 如果不存在, 则新增变量
- *
- * @example
- * const variables = {value: 5, data: 7};
- * setVariables(0, variabels);
  */
 function setVariables(message_id: number, new_or_updated_variables: Object): void
+```
+
+示例:
+
+```typescript
+const variables = {value: 5, data: 7};
+setVariables(0, variabels);
 ```
 
 这个函数是在事件监听功能之前制作的, 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
@@ -184,17 +200,22 @@ interface GetChatMessagesOption {
  *   - `include_swipe:boolean`: 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
  *
  * @returns 一个数组, 数组的元素是每楼的消息 `ChatMessage`. 该数组依据按 message_id 从低到高排序.
- *
- * @example
- * // 仅获取第 10 楼会被 ai 使用的消息页
- * const messages = await getChatMessages(10);
- * const messages = await getChatMessages("10");
- * // 获取第 10 楼的所有消息页
- * const messages = await getChatMessages(10, {swipe: true});
- * // 获取所有楼层的所有消息页
- * const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
  */
 function getChatMessages(range: string | number, option: GetChatMessagesOption = {}): Promise<ChatMessage[]>
+```
+
+示例:
+
+```typescript
+// 仅获取第 10 楼会被 ai 使用的消息页
+const messages = await getChatMessages(10);
+const messages = await getChatMessages("10");
+
+// 获取第 10 楼的所有消息页
+const messages = await getChatMessages(10, {swipe: true});
+
+// 获取所有楼层的所有消息页
+const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
 ```
 
 #### 修改楼层消息
@@ -230,13 +251,16 @@ interface SetChatMessagesOption {
  *     - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
  *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
  *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
- *
- * @example
- * setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
- * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
- * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
  */
 function setChatMessage(message: string, message_id: number, option: SetChatMessagesOption = {}): void
+```
+
+示例:
+
+```typescript
+setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
+setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
+setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
 ```
 
 ### 正则操作
@@ -302,14 +326,306 @@ interface GetRegexDataOption {
  *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选正则; 默认为 `'all'`
  *
  * @returns 一个数组, 数组的元素是正则 `RegexData`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
- *
- * @example
- * // 获取所有正则
- * const regexes = await getRegexData();
- * // 获取当前角色卡目前被启用的局部正则
- * const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
  */
 function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]>
+```
+
+示例:
+
+```typescript
+// 获取所有正则
+const regexes = await getRegexData();
+
+// 获取当前角色卡目前被启用的局部正则
+const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
+```
+
+### 世界书操作
+
+#### 获取世界书全局设置
+
+```typescript
+interface LorebookSettings {
+  scan_depth: number;
+  context_percentage: number;
+  budget_cap: number;  // 0 表示禁用
+  min_activations: number;
+  max_depth: number;  // 0 表示无限制
+  max_recursion_steps: number;
+
+  include_names: boolean;
+  recursive: boolean;
+  case_sensitive: boolean;
+  match_whole_words: boolean;
+  use_group_scoring: boolean;
+  overflow_alert: boolean;
+
+  insertion_strategy: 'evenly' | 'character_first' | 'global_first';
+};
+
+/**
+ * 获取当前的世界书全局设置
+ *
+ * @returns 当前的世界书全局设置
+ */
+function getLorebookSettings(): Promise<LorebookSettings>
+```
+
+遗憾的是没给接口, 只能获取不能修改世界书全局设置.
+
+#### 获取角色卡绑定的世界书
+
+```typescript
+/**
+ * 获取角色卡绑定的世界书
+ *
+ * @param option 可选选项
+ *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
+ *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
+ *
+ * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
+ */
+function getCharLorebooks(option: GetCharLoreBooksOption = {}): Promise<string[]>
+```
+
+```typescript
+/**
+ * 获取当前角色卡绑定的主要世界书
+ *
+ * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
+ */
+function getCurrentCharPrimaryLorebook(): Promise<string | null>
+```
+
+#### 获取聊天绑定的世界书
+
+```typescript
+/**
+ * 获取或创建当前聊天绑定的世界书
+ *
+ * @returns 聊天世界书的名称
+ */
+function getOrCreateChatLorebook(): Promise<string>
+```
+
+#### 获取世界书列表
+
+```typescript
+/**
+ * 获取世界书列表
+ *
+ * @returns 世界书名称列表
+ */
+function getLorebooks(): Promise<string[]>
+```
+
+#### 新建世界书
+
+```typescript
+/**
+ * 新建世界书
+ *
+ * @param lorebook 世界书名称
+ *
+ * @returns 是否成功创建, 如果已经存在同名世界书会失败
+ */
+function createLorebook(lorebook: string): Promise<boolean>
+```
+
+#### 删除世界书
+
+```typescript
+/**
+ * 删除世界书
+ *
+ * @param lorebook 世界书名称
+ * @returns 是否成功删除, 可能因世界书不存在等原因而失败
+ */
+function deleteLorebook(lorebook: string): Promise<boolean>
+```
+
+### 世界书条目操作
+
+相比于酒馆给的 slash command, 前端助手允许你更批量和更直接的获取世界书条目内容. 具体地, 你可以访问每个条目的以下信息:
+
+```typescript
+interface LorebookEntry {
+  uid: number;  // uid 是相对于世界书内部的, 不要跨世界书使用
+
+  comment: string;
+  enabled: boolean;
+  type: 'constant' | 'selective' | 'vectorized'
+  position:
+  'before_character_definition'   // 角色定义之前
+  | 'after_character_definition'  // 角色定义之后
+  | 'before_example_messages'     // 示例消息之前
+  | 'after_example_messages'      // 示例消息之后
+  | 'before_author_note'          // 作者注释之前
+  | 'after_author_note'           // 作者注释之后
+  | 'at_depth_as_system'          // @D⚙
+  | 'at_depth_as_assistant'       // @D👤
+  | 'at_depth_as_user';           // @D🤖
+  depth: number | null;  // 仅对于 `position === 'at_depth_as_???'` 有意义; 其他情况为 null
+  order: number;
+  probability: number;
+
+  key: string[];
+  logic: 'and_any' | 'and_all' | 'not_all' | 'not_any';
+  filter: string[];
+
+  scan_depth: 'same_as_global' | number;
+  case_sensitive: 'same_as_global' | boolean;
+  match_whole_words: 'same_as_global' | boolean;
+  use_group_scoring: 'same_as_global' | boolean;
+  automation_id: string | null;
+
+  exclude_recursion: boolean;
+  prevent_recursion: boolean;
+  delay_until_recursion: boolean | number;  // 启用则是 true, 如果设置了具体的 Recursion Level 则是数字 (具体参考酒馆中勾选这个选项后的变化)
+
+  content: string;
+
+  group: string;
+  group_prioritized: boolean;
+  group_weight: number;
+  sticky: number | null;
+  cooldown: number | null;
+  delay: number | null;
+}
+```
+
+#### 获取世界书中的条目信息
+
+```typescript
+interface getLorebookEntriesOption {
+  filter?: 'none' | Partial<LorebookEntry>;  // 按照指定字段值筛选条目, 如 `{position: 'at_depth_as_system'}` 表示仅获取处于 @D⚙ 的条目; 默认为不进行筛选. 由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
+  fields?: 'all' | (keyof LorebookEntry)[];  // 指定要获取世界书条目哪些字段, 如 `['uid', 'comment', 'content']` 表示仅获取这三个字段; 默认为获取全部字段.
+};
+
+/**
+ * 获取世界书中的条目信息. **请务必阅读示例**.
+ *
+ * @param lorebook 世界书名称
+ * @param option 可选选项
+ *   - `filter:'none'|LorebookEntry的一个子集`: 按照指定字段值筛选条目, 要求对应字段值包含制定的内容; 默认为不进行筛选.
+ *                                       如 `{content: '神乐光'}` 表示内容中必须有 `'神乐光'`, `{type: 'selective'}` 表示仅获取绿灯条目.
+ *                                       由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
+ *   - `fields:'all'|数组,元素是LorebookEntry里的字段`: 指定要获取世界书条目哪些字段, 如 `['uid', 'comment', 'content']` 表示仅获取这三个字段; 默认为获取全部字段.
+ *
+ * @returns 一个数组, 元素是各条目信息.
+ *   - 如果使用了 `fields` 指定获取哪些字段, 则数组元素只具有那些字段.
+ *   - 如果使用了 `filter` 筛选条目, 则数组只会包含满足要求的元素.
+ *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as PartialLorebookEntryWithUid[]`.
+ */
+function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]>
+```
+
+示例:
+
+```typescript
+// 获取世界书中所有条目的所有信息
+const entries = await getLorebookEntries("eramgt少女歌剧");
+```
+
+```typescript
+// 按内容筛选, content 中必须出现 `'神乐光'`
+const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}})
+```
+
+```typescript
+// 仅获取世界书的 uid 和名称.
+const entries = await getLorebookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]});
+```
+
+```typescript
+// 筛选后仅获取世界书的 uid
+const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}, fields: ["uid"]})
+```
+
+**如果你在写 TypeScript, 你应该根据给的 `fields` 参数断言返回类型**:
+
+```typescript
+const entries = await getLoreBookEntries("eramgt少女歌剧") as LorebookEntry[];
+const entries = await getLoreBookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]}) as Pick<LorebookEntry, "uid" | "comment">[];
+```
+
+#### 修改世界书中的条目信息
+
+```typescript
+/**
+ * 将条目信息修改回对应的世界书中, 如果某个字段不存在, 则该字段采用原来的值.
+ *
+ * 这只是修改信息, 不能创建新的条目, 因此要求条目必须已经在世界书中.
+ *
+ * @param lorebook 条目所在的世界书名称
+ * @param entries 一个数组, 元素是各条目信息. 其中必须有 "uid", 而其他字段可选.
+ *
+ * @example
+ * const lorebook = "eramgt少女歌剧";
+ *
+ * // 你可以自己指定 uid 来设置
+ * setLorebookEntries(lorebook, [{uid: 0, comment: "新标题"}]);
+ *
+ * // 也可以用从 `getLorebookEntries` 获取的条目
+ * const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
+ * entries[0].sticky = 5;
+ * entries[1].enabled = false;
+ * setLorebookEntries(lorebook, [entries[0], entries[1]]);
+ */
+function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void
+```
+
+示例:
+
+```typescript
+const lorebook = "eramgt少女歌剧";
+
+// 禁止所有条目递归, 保持其他设置不变
+const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
+// `...entry` 表示展开 `entry` 中的内容; 而 `prevent_recursion: true` 放在后面会覆盖或设置 `prevent_recursion` 字段
+setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+
+// 也就是说, 其实我们获取 `uid` 字段就够了
+const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as PartialLorebookEntryWithUid[];
+setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+
+// 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
+const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
+setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
+```
+
+### 在世界书中新增条目
+
+```typescript
+/**
+ * 向世界书中新增一个条目
+ *
+ * @param lorebook 世界书名称
+ * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. **不能设置 `uid`**.
+ *
+ * @returns 新条目的 uid
+ */
+function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<string>
+```
+
+示例:
+
+```typescript
+const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
+```
+
+### 删除世界书中的某个条目
+
+```typescript
+/**
+ * 删除世界书中的某个条目
+ *
+ * @param lorebook 世界书名称
+ * @param uid 要删除的条目 uid
+ *
+ * @returns 是否成功删除, 可能因世界书不存在、对应条目不存在等原因失败
+ */
+function deleteLorebookEntry(lorebook: string, uid: number): Promise<boolean>
 ```
 
 ### 监听和发送事件
@@ -592,20 +908,25 @@ async function eventWaitOnce(event_type: EventType, listener: Function): Promise
  *
  * @param event_type 要发送的事件
  * @param data 要随着事件发送的数据
- *
- * @example
- * // 发送 "角色阶段更新完成" 事件, 所有监听该事件的 `listener` 都会被运行
- * eventEmit("角色阶段更新完成");
- *
- * @example
- * // 发送 "存档" 事件, 并等待所有 `listener` (也许是负责存档的函数) 执行完毕后才继续
- * await eventEmit("存档");
- *
- * @example
- * // 发送时携带数据 ["你好", 0]
- * eventEmit("事件", "你好", 0);
  */
 async function eventEmit(event_type: EventType, ...data: any[]): Promise<void>
+```
+
+示例:
+
+```typescript
+// 发送 "角色阶段更新完成" 事件, 所有监听该事件的 `listener` 都会被运行
+eventEmit("角色阶段更新完成");
+```
+
+```typescript
+// 发送 "存档" 事件, 并等待所有 `listener` (也许是负责存档的函数) 执行完毕后才继续
+await eventEmit("存档");
+```
+
+```typescript
+// 发送时携带数据 ["你好", 0]
+eventEmit("事件", "你好", 0);
 ```
 
 #### 取消监听事件

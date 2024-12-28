@@ -106,7 +106,7 @@ async function eventWaitOnce(event_type, listener) {
  * // 发送时携带数据 ["你好", 0]
  * eventEmit("事件", "你好", 0);
  */
-async function eventEmit(event_type, ...data) {
+function eventEmit(event_type, ...data) {
     return new Promise((resolve, _) => {
         const uid = Date.now() + Math.random();
         function handleMessage(event) {
