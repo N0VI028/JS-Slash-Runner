@@ -50,3 +50,13 @@ export function extract<K, V>(map: Map<K, V>, key: K): V | undefined {
   map.delete(key);
   return value;
 }
+
+export function with_fallback<T extends Object>(data: Partial<T>, fallback: T): T {
+  const result = { ...fallback };
+  for (const key in data) {
+    if (data[key] !== undefined) {
+      result[key] = data[key];
+    }
+  }
+  return result;
+}

@@ -44,6 +44,7 @@ import { power_user } from "../../../../power-user.js";
 import { iframe_client } from "./iframe_client_exported/index.js";
 import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { handleEvent } from "./iframe_server/event.js";
+import { handleLorebook } from "./iframe_server/lorebook.js";
 import { handleRegexData } from "./iframe_server/regex_data.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
@@ -810,6 +811,7 @@ async function onExtensionToggle() {
     window.addEventListener("message", handleIframeCommand);
     window.addEventListener("message", handleChatMessage);
     window.addEventListener('message', handleEvent);
+    window.addEventListener('message', handleLorebook);
     window.addEventListener('message', handleRegexData);
 
     fullRenderEvents.forEach((eventType) => {
@@ -839,6 +841,7 @@ async function onExtensionToggle() {
     window.removeEventListener("message", handleIframeCommand);
     window.removeEventListener("message", handleChatMessage);
     window.removeEventListener('message', handleEvent);
+    window.removeEventListener('message', handleLorebook);
     window.removeEventListener('message', handleRegexData);
 
     fullRenderEvents.forEach((eventType) => {

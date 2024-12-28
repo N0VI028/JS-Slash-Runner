@@ -9,8 +9,8 @@ export const iframe_client_variables = `
  * const variables = await getVariables();
  * alert(variables);
  */
-async function getVariables() {
-    return await new Promise((resolve, _) => {
+function getVariables() {
+    return new Promise((resolve, _) => {
         function handleMessage(event) {
             if (event.data && event.data.variables) {
                 window.removeEventListener("message", handleMessage);

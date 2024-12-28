@@ -147,7 +147,7 @@ async function eventWaitOnce(event_type: EventType, listener?: Function): Promis
  * // 发送时携带数据 ["你好", 0]
  * eventEmit("事件", "你好", 0);
  */
-async function eventEmit(event_type: EventType, ...data: any[]): Promise<void> {
+function eventEmit(event_type: EventType, ...data: any[]): Promise<void> {
   return new Promise((resolve, _) => {
     const uid = Date.now() + Math.random();
 

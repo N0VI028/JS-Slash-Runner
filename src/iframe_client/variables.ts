@@ -8,8 +8,8 @@
  * const variables = await getVariables();
  * alert(variables);
  */
-async function getVariables(): Promise<Object> {
-  return await new Promise((resolve, _) => {
+function getVariables(): Promise<Object> {
+  return new Promise((resolve, _) => {
     function handleMessage(event: MessageEvent) {
       if (event.data && event.data.variables) {
         window.removeEventListener("message", handleMessage);
