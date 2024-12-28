@@ -1,7 +1,10 @@
 export { handleLorebook }
 
-import getContext from "../../../../../st-context.js";
-import { findChar, getCharaFilename, onlyUnique } from "../../../../../utils.js";
+import { characters, this_chid } from "../../../../../../script.js";
+// @ts-ignore
+import { groups, selected_group } from "../../../../../group-chats.js";
+import { getTagsList } from "../../../../../tags.js";
+import { equalsIgnoreCaseAndAccents, getCharaFilename, onlyUnique } from "../../../../../utils.js";
 import { createNewWorldInfo, createWorldInfoEntry, deleteWIOriginalDataValue, deleteWorldInfo, getWorldInfoSettings, loadWorldInfo, originalWIDataKeyMap, saveWorldInfo, setWIOriginalDataValue, world_info, world_names } from "../../../../../world-info.js";
 
 interface IframeGetLorebookSettings {
@@ -244,11 +247,12 @@ const event_handlers = {
       throw Error(`[Lorebook][getCharLorebooks](${iframe_name}) 提供的 type 无效, 请提供 'all', 'primary' 或 'additional', 你提供的是: ${option.type}`);
     }
 
-    const context = getContext();
-    if (context.groupId && !option.name) {
+    // @ts-ignore
+    if (selected_group && !option.name) {
       throw new Error(`[Lorebook][getCharLorebooks](${iframe_name}) 不要在群组中调用这个功能`);
     }
-    option.name = option.name ?? context.characters[context.characterId]?.avatar ?? null;
+    option.name = option.name ?? characters[this_chid]?.avatar ?? null;
+    // @ts-ignore
     const character = findChar({ name: option.name });
     if (!character) {
       throw new Error(`[Lorebook][getCharLorebooks](${iframe_name}) 未找到名为 '${option.name}' 的角色卡`);
@@ -259,7 +263,7 @@ const event_handlers = {
       books.push(character.data?.extensions?.world);
     }
     if (option.type === 'all' || option.type === 'additional') {
-      const fileName = getCharaFilename(context.characters.indexOf(character));
+      const fileName = getCharaFilename(characters.indexOf(character));
       // @ts-ignore 2339
       const extraCharLore = world_info.charLore?.find((e) => e.name === fileName);
       if (extraCharLore && Array.isArray(extraCharLore.extraBooks)) {
@@ -463,4 +467,68 @@ async function handleLorebook(event: MessageEvent<IframeLorebook>): Promise<void
     console.error(`${error}`);
     throw error;
   }
+}
+
+//------------------------------------------------------------------------------------------------------------------------
+// for compatibility with 1.29.6
+/**
+ * Finds a character by name, with optional filtering and precedence for avatars
+ * @param {object} [options={}] - The options for the search
+ * @param {string?} [options.name=null] - The name to search for
+ * @param {boolean} [options.allowAvatar=true] - Whether to allow searching by avatar
+ * @param {boolean} [options.insensitive=true] - Whether the search should be case insensitive
+ * @param {string[]?} [options.filteredByTags=null] - Tags to filter characters by
+ * @param {boolean} [options.preferCurrentChar=true] - Whether to prefer the current character(s)
+ * @param {boolean} [options.quiet=false] - Whether to suppress warnings
+ * @returns {any?} - The found character or null if not found
+ */
+function findChar({ name = null, allowAvatar = true, insensitive = true, filteredByTags = null, preferCurrentChar = true, quiet = false } = {}) {
+  const matches = (char: any) => !name || (allowAvatar && char.avatar === name) || (insensitive ? equalsIgnoreCaseAndAccents(char.name, name) : char.name === name);
+
+  // Filter characters by tags if provided
+  let filteredCharacters = characters;
+  if (filteredByTags) {
+    filteredCharacters = characters.filter(char => {
+      const charTags = getTagsList(char.avatar, false);
+      // @ts-ignore
+      return filteredByTags.every(tagName => charTags.some(x => x.name == tagName));
+    });
+  }
+
+  // Get the current character(s)
+  /** @type {any[]} */
+  // @ts-ignore
+  const currentChars = selected_group as any ? groups.find(group => group.id === selected_group)?.members.map(member => filteredCharacters.find(char => char.avatar === member))
+    : filteredCharacters.filter(char => characters[this_chid]?.avatar === char.avatar);
+
+  // If we have a current char and prefer it, return that if it matches
+  if (preferCurrentChar) {
+    const preferredCharSearch = currentChars.filter(matches);
+    if (preferredCharSearch.length > 1) {
+      // @ts-ignore
+      if (!quiet) toastr.warning('Multiple characters found for given conditions.');
+      else console.warn('Multiple characters found for given conditions. Returning the first match.');
+    }
+    if (preferredCharSearch.length) {
+      return preferredCharSearch[0];
+    }
+  }
+
+  // If allowAvatar is true, search by avatar first
+  if (allowAvatar && name) {
+    const characterByAvatar = filteredCharacters.find(char => char.avatar === name);
+    if (characterByAvatar) {
+      return characterByAvatar;
+    }
+  }
+
+  // Search for matching characters by name
+  const matchingCharacters = name ? filteredCharacters.filter(matches) : filteredCharacters;
+  if (matchingCharacters.length > 1) {
+    // @ts-ignore
+    if (!quiet) toastr.warning('Multiple characters found for given conditions.');
+    else console.warn('Multiple characters found for given conditions. Returning the first match.');
+  }
+
+  return matchingCharacters[0] || null;
 }
