@@ -419,18 +419,6 @@ function getOrCreateChatLorebook(): Promise<string>
 function getLorebooks(): Promise<string[]>
 ```
 
-#### 删除世界书
-
-```typescript
-/**
- * 删除世界书
- *
- * @param lorebook 世界书名称
- * @returns 是否成功删除, 可能因世界书不存在等原因而失败
- */
-function deleteLorebook(lorebook: string): Promise<boolean>
-```
-
 #### 新建世界书
 
 ```typescript
@@ -442,6 +430,18 @@ function deleteLorebook(lorebook: string): Promise<boolean>
  * @returns 是否成功创建, 如果已经存在同名世界书会失败
  */
 function createLorebook(lorebook: string): Promise<boolean>
+```
+
+#### 删除世界书
+
+```typescript
+/**
+ * 删除世界书
+ *
+ * @param lorebook 世界书名称
+ * @returns 是否成功删除, 可能因世界书不存在等原因而失败
+ */
+function deleteLorebook(lorebook: string): Promise<boolean>
 ```
 
 ### 世界书条目操作

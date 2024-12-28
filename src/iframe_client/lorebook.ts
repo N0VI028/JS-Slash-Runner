@@ -120,30 +120,6 @@ function getLorebooks(): Promise<string[]> {
 }
 
 /**
- * 删除世界书
- *
- * @param lorebook 世界书名称
- * @returns 是否成功删除, 可能因世界书不存在等原因而失败
- */
-function deleteLorebook(lorebook: string): Promise<boolean> {
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_delete_lorebook_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_delete_lorebook",
-      uid: uid,
-      lorebook: lorebook,
-    }, "*");
-  });
-}
-
-/**
  * 新建世界书
  *
  * @param lorebook 世界书名称
@@ -162,6 +138,30 @@ function createLorebook(lorebook: string): Promise<boolean> {
     window.addEventListener("message", handleMessage);
     window.parent.postMessage({
       request: "iframe_create_lorebook",
+      uid: uid,
+      lorebook: lorebook,
+    }, "*");
+  });
+}
+
+/**
+ * 删除世界书
+ *
+ * @param lorebook 世界书名称
+ * @returns 是否成功删除, 可能因世界书不存在等原因而失败
+ */
+function deleteLorebook(lorebook: string): Promise<boolean> {
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event: MessageEvent) {
+      if (event.data?.request === "iframe_delete_lorebook_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_delete_lorebook",
       uid: uid,
       lorebook: lorebook,
     }, "*");
