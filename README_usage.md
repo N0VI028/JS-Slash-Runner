@@ -122,7 +122,7 @@ const variables = await getVariables();
 alert(variables);
 ```
 
-#### `setVariables(, new_or_updated_variables)`
+#### `setVariables(message_id, new_or_updated_variables)`
 
 ```typescript
 /**
@@ -144,7 +144,7 @@ const variables = {value: 5, data: 7};
 setVariables(0, variabels);
 ```
 
-这个函数是在事件监听功能之前制作的, 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
+这个函数是在事件监听功能之前制作的. 里面有很多隐含操作和条件, 所以实际使用可能会比较麻烦. 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
 
 ```typescript
 // 接收到消息时更新变量
