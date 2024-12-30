@@ -594,7 +594,7 @@ const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
 setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
 ```
 
-### 在世界书中新增条目
+#### 在世界书中新增条目
 
 ```typescript
 /**
@@ -614,7 +614,7 @@ function createLorebookEntry(lorebook: string, field_values: Partial<Omit<Lorebo
 const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
 ```
 
-### 删除世界书中的某个条目
+#### 删除世界书中的某个条目
 
 ```typescript
 /**
@@ -1026,10 +1026,6 @@ function getCurrentMessageId(): number
  * @returns 最新楼层id
  */
 async function getLastMessageId(): Promise<number>;
-```
-
-```typescript
-
 ```
 
 ## 播放器功能
