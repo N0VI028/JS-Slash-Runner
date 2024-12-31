@@ -3,7 +3,7 @@
     "loading_order": 100,
     "requires": [],
     "optional": [],
-    "js": "src_exported/index.js",
+    "js": "dist/index.js",
     "css": "style.css",
     "author": "KAKAA",
     "version": "2.0.0",

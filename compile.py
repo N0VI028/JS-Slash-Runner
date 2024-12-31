@@ -22,10 +22,10 @@ def escape_template_literals(content):
 
 
 def find_compiled_iframe_client_dir(script_dir):
-    """在 src_exported 中查找包含 iframe_client 文件夹"""
-    exported_dirs = glob.glob(os.path.join(script_dir, 'src_exported/**/iframe_client'), recursive=True)
+    """在 dist 中查找包含 iframe_client 文件夹"""
+    exported_dirs = glob.glob(os.path.join(script_dir, 'dist/**/iframe_client'), recursive=True)
     if not exported_dirs:
-        print("错误: 没能在 src_exported 中找到 iframe_client 文件夹")
+        print("错误: 没能在 dist 中找到 iframe_client 文件夹")
         exit(1)
 
     return exported_dirs[0]
@@ -40,7 +40,7 @@ def export_client(script_dir):
 
     stems = []
 
-    # 将 src_exported/iframe_client/*.js 转换为 src/iframe_client_exported/*.ts
+    # 将 dist/iframe_client/*.js 转换为 src/iframe_client_exported/*.ts
     for file in [Path(file) for file in sorted(glob.glob(os.path.join(compiled_iframe_client_dir, '*.js')))]:
         with file.open('r', encoding="utf-8") as f:
             lines = f.readlines()
@@ -66,20 +66,20 @@ def export_client(script_dir):
     index_file.write_text(index_content, encoding="utf-8")
 
 
-def clean_src_exported_structure(script_dir):
-    """确保 src_exported 路径正确: 如果本项目放在酒馆中, 则编译出的文件路径可能不对"""
-    actual_src_exported_dir = Path(find_compiled_iframe_client_dir(script_dir)).parent
-    src_exported_dir = os.path.join(script_dir, 'src_exported')
+def clean_dist_structure(script_dir):
+    """确保 dist 路径正确: 如果本项目放在酒馆中, 则编译出的文件路径可能不对"""
+    actual_dist_dir = Path(find_compiled_iframe_client_dir(script_dir)).parent
+    dist_dir = os.path.join(script_dir, 'dist')
     temp_dir = os.path.join(script_dir, 'temp')
 
-    shutil.move(actual_src_exported_dir, temp_dir)
-    shutil.rmtree(src_exported_dir, ignore_errors=True)
-    shutil.move(temp_dir, src_exported_dir)
+    shutil.move(actual_dist_dir, temp_dir)
+    shutil.rmtree(dist_dir, ignore_errors=True)
+    shutil.move(temp_dir, dist_dir)
 
     # 调整 source map
-    for exported_file in [Path(file) for file in glob.glob(os.path.join(src_exported_dir, "**/*.map"), recursive=True)]:
+    for exported_file in [Path(file) for file in glob.glob(os.path.join(dist_dir, "**/*.map"), recursive=True)]:
         dir_of_exported_file = exported_file.parent
-        relative_path = dir_of_exported_file.relative_to(src_exported_dir)
+        relative_path = dir_of_exported_file.relative_to(dist_dir)
         origin_file = Path(os.path.join(script_dir, 'src', relative_path, exported_file.stem.replace('.js', '.ts')))
 
         data = []
@@ -95,8 +95,8 @@ if __name__ == '__main__':
     """处理 TypeScript 文件"""
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    print("移除之前可能生成的 src_exported 和 src/iframe_client_exported...")
-    shutil.rmtree(os.path.join(SCRIPT_DIR, 'src_exported'), ignore_errors=True)
+    print("移除之前可能生成的 dist 和 src/iframe_client_exported...")
+    shutil.rmtree(os.path.join(SCRIPT_DIR, 'dist'), ignore_errors=True)
     shutil.rmtree(os.path.join(SCRIPT_DIR, 'src/iframe_client_exported'), ignore_errors=True)
 
     print("""
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     print("运行第二次 TypeScript 编译...")
     run_command('tsc -p tsconfig.json', False, SCRIPT_DIR)
 
-    print("确保 src_exported 路径正确...")
-    clean_src_exported_structure(SCRIPT_DIR)
+    print("确保 dist 路径正确...")
+    clean_dist_structure(SCRIPT_DIR)
 
     print("编译成功")
