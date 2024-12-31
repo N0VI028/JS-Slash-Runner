@@ -156,7 +156,7 @@ function updateVariables(message_id) {
   const variables = parseVariablesFromMessage(await getChatMessages(message_id));
   triggerSlash(
     Object.entries(variables)
-      .map((key_and_value) => `/setvar key=${key_and_value[0]} "${key_and_value[1]}"`)
+      .map(([key, value]) => `/setvar key=${key} "${value}"`)
       .join("||"));
 }
 ```
