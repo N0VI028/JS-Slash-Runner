@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "outDir": "src_exported",
+    "outDir": "dist",
     "moduleDetection": "auto",
     "moduleResolution": "node10",
     "allowUmdGlobalAccess": true,

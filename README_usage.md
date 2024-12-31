@@ -122,7 +122,7 @@ const variables = await getVariables();
 alert(variables);
 ```
 
-#### `setVariables(, new_or_updated_variables)`
+#### `setVariables(message_id, new_or_updated_variables)`
 
 ```typescript
 /**
@@ -144,7 +144,7 @@ const variables = {value: 5, data: 7};
 setVariables(0, variabels);
 ```
 
-这个函数是在事件监听功能之前制作的, 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
+这个函数是在事件监听功能之前制作的. 里面有很多隐含操作和条件, 所以实际使用可能会比较麻烦. 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
 
 ```typescript
 // 接收到消息时更新变量
@@ -594,7 +594,7 @@ const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
 setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
 ```
 
-### 在世界书中新增条目
+#### 在世界书中新增条目
 
 ```typescript
 /**
@@ -614,7 +614,7 @@ function createLorebookEntry(lorebook: string, field_values: Partial<Omit<Lorebo
 const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
 ```
 
-### 删除世界书中的某个条目
+#### 删除世界书中的某个条目
 
 ```typescript
 /**
@@ -1026,10 +1026,6 @@ function getCurrentMessageId(): number
  * @returns 最新楼层id
  */
 async function getLastMessageId(): Promise<number>;
-```
-
-```typescript
-
 ```
 
 ## 播放器功能
