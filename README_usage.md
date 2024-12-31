@@ -1,6 +1,8 @@
 # 使用方法
 
-:alert: 页面右上角有目录可以用. 更建议你采用 [基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html) 然后直接去看 iframe_client 文件夹.
+**更建议你采用 [基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)** 然后直接去看配置好后得到的 iframe_client 文件夹和 slash_command.txt 文件. **(也可以将它们发给 ai, 让 ai 理解来写, 这些链接里都有提示.)**
+
+:alert: 页面右上角有目录可以用.
 
 ![目录](README_usage_目录.png)
 
