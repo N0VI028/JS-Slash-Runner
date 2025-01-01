@@ -1,6 +1,8 @@
 # 使用方法
 
-:alert: 页面右上角有目录可以用. 更建议你采用 [基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html) 然后直接去看 iframe_client 文件夹.
+**更建议你采用 [基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)** 然后直接去看配置好后得到的 iframe_client 文件夹和 slash_command.txt 文件. **(也可以将它们发给 ai, 让 ai 理解来写, 这些链接里都有提示.)**
+
+:alert: 页面右上角有目录可以用.
 
 ![目录](README_usage_目录.png)
 
@@ -124,6 +126,28 @@ alert(variables);
 
 #### `setVariables(message_id, new_or_updated_variables)`
 
+:alert: 这个函数是在事件监听功能之前制作的. 里面有很多隐含操作和条件, 所以实际使用可能会比较麻烦.
+**之后会在考虑兼容性的情况下更改该函数, 慎用!!!**
+目前的替代方法是直接使用 `triggerSlash("/setvar ...")` 或下面那样使用事件监听:
+
+```typescript
+// 接收到消息时更新变量
+eventOn(tavern_events.MESSAGE_RECEIVED, updateVariables);
+
+function parseVariablesFromMessage(messages) { /*...*/ }
+
+function updateVariables(message_id) {
+  const variables = parseVariablesFromMessage(await getChatMessages(message_id));
+
+  triggerSlash(
+    Object.entries(variables)
+      .map(([key, value]) => `/setvar key=${key} "${value}"`)
+      .join("||"));
+}
+```
+
+函数本身:
+
 ```typescript
 /**
  * 如果 `message_id` 是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量
@@ -144,20 +168,7 @@ const variables = {value: 5, data: 7};
 setVariables(0, variabels);
 ```
 
-这个函数是在事件监听功能之前制作的. 里面有很多隐含操作和条件, 所以实际使用可能会比较麻烦. 现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
-
-```typescript
-// 接收到消息时更新变量
-eventOn(tavern_events.MESSAGE_RECEIVED, updateVariables);
-function parseVariablesFromMessage(messages) { /*...*/ }
-function updateVariables(message_id) {
-  const variables = parseVariablesFromMessage(await getChatMessages(message_id));
-  triggerSlash(
-    Object.entries(variables)
-      .map((key_and_value) => `/setvar key=${key_and_value[0]} "${key_and_value[1]}"`)
-      .join("||"));
-}
-```
+现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
 
 ### 楼层消息操作
 
@@ -385,7 +396,7 @@ function getLorebookSettings(): Promise<LorebookSettings>
  *
  * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
  */
-function getCharLorebooks(option: GetCharLoreBooksOption = {}): Promise<string[]>
+function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
 ```
 
 ```typescript

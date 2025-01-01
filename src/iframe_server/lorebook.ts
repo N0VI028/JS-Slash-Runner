@@ -15,7 +15,7 @@ interface IframeGetLorebookSettings {
 interface IframeGetCharLorebooks {
   request: "iframe_get_char_lorebooks";
   uid: string;
-  option: GetCharLoreBooksOption;
+  option: GetCharLorebooksOption;
 }
 
 interface IframeGetLorebooks {
