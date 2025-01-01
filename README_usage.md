@@ -396,7 +396,7 @@ function getLorebookSettings(): Promise<LorebookSettings>
  *
  * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
  */
-function getCharLorebooks(option: GetCharLoreBooksOption = {}): Promise<string[]>
+function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
 ```
 
 ```typescript
