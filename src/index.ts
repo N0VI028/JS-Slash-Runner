@@ -998,7 +998,7 @@ async function onAutoEnableCharacterRegexClick() {
 }
 
 async function autoDisableIncompatibleOptions() {
-  if (power_user.auto_fix_generated_markdown || power_user.trim_sentences) {
+  if (power_user.auto_fix_generated_markdown || power_user.trim_sentences || power_user.forbid_external_media) {
     power_user.auto_fix_generated_markdown = false;
     $("#auto_fix_generated_markdown").prop("checked", power_user.auto_fix_generated_markdown);
 
