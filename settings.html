@@ -1,255 +1,162 @@
 <div class="js-settings">
-  <div class="inline-drawer">
-    <div class="inline-drawer-toggle inline-drawer-header">
-      <b>前端助手</b>
-      <div
-        class="inline-drawer-icon fa-solid fa-circle-chevron-down down"
-      ></div>
-    </div>
-    <div class="inline-drawer-content">
-      <div class="extension_info flex-container spaceBetween paddingLeftRight5">
-        <small>Ver 2.0.1</small>
-        <small
-          >
-          <a
-            href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_usage.md"
-            target="_blank"
-          >编写方法
-            <i class="fa-solid fa-sm fa-arrow-up-right-from-square margin-right-10px"></i>
-          </a>
-          <a
-            href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_faq.md"
-            target="_blank"
-          >常见问题
-            <i class="fa-solid fa-sm fa-arrow-up-right-from-square"></i>
-          </a>
-        </small>
-      </div>
-      <hr class="sysHR" />
-      <div class="extension_block flex-container">
-        <input id="activate_setting" type="checkbox" name="activate_setting" />
-        <label for="activate_setting">启用脚本注入</label>
-      </div>
-      <div class="extension_block flex-container">
-        <input type="checkbox" id="audio_enabled" name="audio_enabled" />
-        <label for="audio_enabled">启用播放器</label>
-      </div>
-      <div class="extension_block flex-container">
-        <input
-          type="checkbox"
-          id="auto_enable_character_regex"
-          name="auto_enable_character_regex"
-        />
-        <label for="auto_enable_character_regex">自动开启局部正则</label>
-      </div>
-      <div class="extension_block flex-container">
-        <input
-          type="checkbox"
-          id="auto_disable_incompatible_options"
-          name="auto_disable_incompatible_options"
-        />
-        <label for="auto_disable_incompatible_options"
-          >自动关闭不兼容选项</label
-        >
-      </div>
-      <div class="extension_block flex-container">
-        <input
-          id="tampermonkey_compatibility"
-          type="checkbox"
-          name="tampermonkey_compatibility"
-        />
-        <label
-          for="tampermonkey_compatibility"
-          title="兼容油猴脚本版注入插件的st-text、qr-button等特殊类名"
-          >启用油猴版兼容模式<span
-            class="fa-solid fa-circle-question note-link-span"
-          ></span
-        ></label>
-      </div>
-      <div class="extension_block flex-container">
-        <label for="process_depth">
-          <span>处理深度数</span>
-          <small>
-            <span>（0为处理全部楼层）</span>
-          </small>
-        </label>
-        <input
-          max="999"
-          min="0"
-          class="text_pole"
-          id="process_depth"
-          type="number"
-          value="0"
-        />
-      </div>
-      <hr class="sysHR" />
-    </div>
-    <div class="inline-drawer-content" id="audio_settings">
-      <div>
-        <div class="flex row-reverse align-center justify-end gap-12">
-          <label for="audio_refresh_assets">刷新播放列表</label>
-          <div id="audio_refresh_assets" class="menu_button btn-refresh">
-            <i class="fa-solid fa-refresh fa-lg"></i>
-          </div>
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>前端助手</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
-      </div>
-      <div>
-        <div class="audio-ui-block">
-          <div class="title_restorable space-between align-center">
-            <label for="audio_bgm_volume_slider">音乐</label>
-            <label class="checkbox flex-container" for="enable_bgm">
-              <input type="checkbox" id="enable_bgm" name="enable_bgm" />
-              <span
-                class="bgm-toggle-on fa-solid fa-toggle-on"
-                title="禁用BGM播放器"
-              ></span>
-              <span
-                class="bgm-toggle-off fa-solid fa-toggle-off"
-                title="启用BGM播放器"
-              ></span>
-            </label>
-            <div id="bgm_manager_button" title="管理音乐链接" " class="
-            menu_button menu_button_icon manager-button">
-            <i class="fa-solid fa-list-ol"></i>
-          </div>
-        </div>
-        <div class="audio-container">
-          <div class="mute-vol-wrapper">
-            <div class="mute-div">
-              <div id="audio_bgm_mute" class="menu_button audio-player-button">
-                <i
-                  class="fa-solid fa-volume-high fa-lg fa-fw"
-                  id="audio_bgm_mute_icon"
-                ></i>
-              </div>
+        <div class="inline-drawer-content">
+            <div class="extension_info flex-container spaceBetween paddingLeftRight5">
+                <small>Ver 2.0.2</small>
+                <small>
+                    <a href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_usage.md" target="_blank">编写方法
+                        <i class="fa-solid fa-sm fa-arrow-up-right-from-square margin-right-10px"></i>
+                    </a>
+                    <a href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_faq.md" target="_blank">常见问题
+                        <i class="fa-solid fa-sm fa-arrow-up-right-from-square"></i>
+                    </a>
+                </small>
             </div>
-            <div class="vol" id="volume-control">
-              <input
-                type="range"
-                class="audio-slider vertical-slider"
-                id="audio_bgm_volume_slider"
-                value="100"
-                maxlength="100"
-              />
+            <hr class="sysHR" />
+            <div class="extension_block flex-container">
+                <input id="activate_setting" type="checkbox" name="activate_setting" />
+                <label for="activate_setting">启用脚本注入</label>
             </div>
-          </div>
-          <div class="play-pause-div">
-            <div
-              id="audio_bgm_play_pause"
-              class="menu_button audio-player-button"
-            >
-              <i
-                class="fa-solid fa-play fa-lg fa-fw"
-                id="audio_bgm_play_pause_icon"
-              ></i>
+            <div class="extension_block flex-container">
+                <input type="checkbox" id="audio_enabled" name="audio_enabled" />
+                <label for="audio_enabled">启用播放器</label>
             </div>
-          </div>
-          <div class="progress-div">
-            <input
-              type="range"
-              class="audio-slider"
-              id="audio_bgm_progress_slider"
-              value="0"
-              maxlength="100"
-            />
-          </div>
-        </div>
-        <div class="audio-adjust">
-          <div class="playlist">
-            <select id="audio_bgm_select"></select>
-          </div>
-          <div class="audio-mixer-element audio-mixer-mode">
-            <div id="audio_bgm_mode" class="menu_button audio-player-button">
-              <i
-                class="fa-solid fa-repeat fa-lg fa-fw"
-                id="audio_bgm_mode_icon"
-              ></i>
+            <div class="extension_block flex-container">
+                <input type="checkbox" id="auto_enable_character_regex" name="auto_enable_character_regex" />
+                <label for="auto_enable_character_regex">自动开启局部正则</label>
             </div>
-          </div>
-        </div>
-        <audio id="audio_bgm" controls src=""></audio>
-      </div>
-      <div>
-        <div class="title_restorable space-between align-center">
-          <label for="audio_ambient_volume_slider">音效</label>
-          <label class="checkbox flex-container" for="enable_ambient">
-            <input type="checkbox" id="enable_ambient" name="enable_ambient" />
-            <span
-              class="ambient-toggle-on fa-solid fa-toggle-on"
-              title="禁用Ambient播放器"
-            ></span>
-            <span
-              class="ambient-toggle-off fa-solid fa-toggle-off"
-              title="启用Ambient播放器"
-            ></span>
-          </label>
-          <div id="ambient_manager_button" title="管理音效链接" " class="
-          menu_button menu_button_icon manager-button">
-          <i class="fa-solid fa-list-ol"></i>
-        </div>
-      </div>
-      <div class="audio-container">
-        <div class="mute-vol-wrapper">
-          <div class="mute-div">
-            <div
-              id="audio_ambient_mute"
-              class="menu_button audio-player-button"
-            >
-              <i
-                class="fa-solid fa-volume-high fa-lg fa-fw"
-                id="audio_ambient_mute_icon"
-              ></i>
+            <div class="extension_block flex-container">
+                <input type="checkbox" id="auto_disable_incompatible_options"
+                    name="auto_disable_incompatible_options" />
+                <label for="auto_disable_incompatible_options">自动关闭不兼容选项</label>
             </div>
-          </div>
-          <div class="vol" id="ambient-volume-control">
-            <input
-              type="range"
-              class="audio-slider vertical-slider"
-              id="audio_ambient_volume_slider"
-              value="100"
-              maxlength="100"
-            />
-          </div>
+            <div class="extension_block flex-container">
+                <input id="tampermonkey_compatibility" type="checkbox" name="tampermonkey_compatibility" />
+                <label for="tampermonkey_compatibility" title="兼容油猴脚本版注入插件的st-text、qr-button等特殊类名">启用油猴版兼容模式<span
+                        class="fa-solid fa-circle-question note-link-span"></span></label>
+            </div>
+            <div class="extension_block flex-container">
+                <label for="process_depth">
+                    <span>处理深度数</span>
+                    <small>
+                        <span>（0为处理全部楼层）</span>
+                    </small>
+                </label>
+                <input max="999" min="0" class="text_pole" id="process_depth" type="number" value="0" />
+            </div>
+            <hr class="sysHR" />
         </div>
-        <div class="play-pause-div">
-          <div
-            id="audio_ambient_play_pause"
-            class="menu_button audio-player-button"
-          >
-            <i
-              class="fa-solid fa-play fa-lg fa-fw"
-              id="audio_ambient_play_pause_icon"
-            ></i>
-          </div>
+        <div class="inline-drawer-content" id="audio_settings">
+            <div>
+                <div class="flex row-reverse align-center justify-end gap-12">
+                    <label for="audio_refresh_assets">刷新播放列表</label>
+                    <div id="audio_refresh_assets" class="menu_button btn-refresh">
+                        <i class="fa-solid fa-refresh fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="audio-ui-block">
+                    <div class="title_restorable space-between align-center">
+                        <label for="audio_bgm_volume_slider">音乐</label>
+                        <label class="checkbox flex-container" for="enable_bgm">
+                            <input type="checkbox" id="enable_bgm" name="enable_bgm" />
+                            <span class="bgm-toggle-on fa-solid fa-toggle-on" title="禁用BGM播放器"></span>
+                            <span class="bgm-toggle-off fa-solid fa-toggle-off" title="启用BGM播放器"></span>
+                        </label>
+                        <div id="bgm_manager_button" title="管理音乐链接" " class=" menu_button menu_button_icon
+                            manager-button">
+                            <i class="fa-solid fa-list-ol"></i>
+                        </div>
+                    </div>
+                    <div class="audio-container">
+                        <div class="mute-vol-wrapper">
+                            <div class="mute-div">
+                                <div id="audio_bgm_mute" class="menu_button audio-player-button">
+                                    <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_bgm_mute_icon"></i>
+                                </div>
+                            </div>
+                            <div class="vol" id="volume-control">
+                                <input type="range" class="audio-slider vertical-slider" id="audio_bgm_volume_slider"
+                                    value="100" maxlength="100" />
+                            </div>
+                        </div>
+                        <div class="play-pause-div">
+                            <div id="audio_bgm_play_pause" class="menu_button audio-player-button">
+                                <i class="fa-solid fa-play fa-lg fa-fw" id="audio_bgm_play_pause_icon"></i>
+                            </div>
+                        </div>
+                        <div class="progress-div">
+                            <input type="range" class="audio-slider" id="audio_bgm_progress_slider" value="0"
+                                maxlength="100" />
+                        </div>
+                    </div>
+                    <div class="audio-adjust">
+                        <div class="playlist">
+                            <select id="audio_bgm_select"></select>
+                        </div>
+                        <div class="audio-mixer-element audio-mixer-mode">
+                            <div id="audio_bgm_mode" class="menu_button audio-player-button">
+                                <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_bgm_mode_icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <audio id="audio_bgm" controls src=""></audio>
+                </div>
+                <div>
+                    <div class="title_restorable space-between align-center">
+                        <label for="audio_ambient_volume_slider">音效</label>
+                        <label class="checkbox flex-container" for="enable_ambient">
+                            <input type="checkbox" id="enable_ambient" name="enable_ambient" />
+                            <span class="ambient-toggle-on fa-solid fa-toggle-on" title="禁用Ambient播放器"></span>
+                            <span class="ambient-toggle-off fa-solid fa-toggle-off" title="启用Ambient播放器"></span>
+                        </label>
+                        <div id="ambient_manager_button" title="管理音效链接" " class=" menu_button menu_button_icon
+                            manager-button">
+                            <i class="fa-solid fa-list-ol"></i>
+                        </div>
+                    </div>
+                    <div class="audio-container">
+                        <div class="mute-vol-wrapper">
+                            <div class="mute-div">
+                                <div id="audio_ambient_mute" class="menu_button audio-player-button">
+                                    <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_ambient_mute_icon"></i>
+                                </div>
+                            </div>
+                            <div class="vol" id="ambient-volume-control">
+                                <input type="range" class="audio-slider vertical-slider"
+                                    id="audio_ambient_volume_slider" value="100" maxlength="100" />
+                            </div>
+                        </div>
+                        <div class="play-pause-div">
+                            <div id="audio_ambient_play_pause" class="menu_button audio-player-button">
+                                <i class="fa-solid fa-play fa-lg fa-fw" id="audio_ambient_play_pause_icon"></i>
+                            </div>
+                        </div>
+                        <div class="progress-div">
+                            <input type="range" class="audio-slider" id="audio_ambient_progress_slider" value="0"
+                                maxlength="100" />
+                        </div>
+                    </div>
+                    <div class="audio-adjust">
+                        <div class="playlist">
+                            <select id="audio_ambient_select"></select>
+                        </div>
+                        <div class="audio-mixer-element audio-mixer-mode">
+                            <div id="audio_ambient_mode" class="menu_button audio-player-button">
+                                <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_ambient_mode_icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <audio id="audio_ambient" controls src=""></audio>
+                </div>
+                <div>
+                    <label for="audio_bgm_cooldown">淡入淡出时间(秒)</label>
+                    <input id="audio_bgm_cooldown" class="text_pole wide30p" />
+                </div>
+            </div>
         </div>
-        <div class="progress-div">
-          <input
-            type="range"
-            class="audio-slider"
-            id="audio_ambient_progress_slider"
-            value="0"
-            maxlength="100"
-          />
-        </div>
-      </div>
-      <div class="audio-adjust">
-        <div class="playlist">
-          <select id="audio_ambient_select"></select>
-        </div>
-        <div class="audio-mixer-element audio-mixer-mode">
-          <div id="audio_ambient_mode" class="menu_button audio-player-button">
-            <i
-              class="fa-solid fa-repeat fa-lg fa-fw"
-              id="audio_ambient_mode_icon"
-            ></i>
-          </div>
-        </div>
-      </div>
-      <audio id="audio_ambient" controls src=""></audio>
-    </div>
-    <div>
-      <label for="audio_bgm_cooldown">淡入淡出时间(秒)</label>
-      <input id="audio_bgm_cooldown" class="text_pole wide30p" />
-    </div>
-  </div>
-</div>
