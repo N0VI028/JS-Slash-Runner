@@ -46,7 +46,11 @@ import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { handleEvent } from "./iframe_server/event.js";
 import { handleLorebook } from "./iframe_server/lorebook.js";
 import { handleRegexData } from "./iframe_server/regex_data.js";
-import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
+import {
+  script_load_events,
+  initializeScripts,
+  destroyScriptsIfInitialized,
+} from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
 
@@ -126,14 +130,19 @@ function loadSettings() {
     "checked",
     extension_settings[extensionName].tampermonkey_compatibility
   );
-  if (extension_settings[extensionName].auto_enable_character_regex === undefined) {
+  if (
+    extension_settings[extensionName].auto_enable_character_regex === undefined
+  ) {
     extension_settings[extensionName].auto_enable_character_regex = true;
   }
   $("#auto_enable_character_regex").prop(
     "checked",
     extension_settings[extensionName].auto_enable_character_regex
   );
-  if (extension_settings[extensionName].auto_disable_incompatible_options === undefined) {
+  if (
+    extension_settings[extensionName].auto_disable_incompatible_options ===
+    undefined
+  ) {
     extension_settings[extensionName].auto_disable_incompatible_options = true;
   }
   $("#auto_disable_incompatible_options").prop(
@@ -232,9 +241,9 @@ window.addEventListener("DOMContentLoaded", function () {
   window.parent.postMessage("domContentLoaded", "*");
 });
 window.addEventListener("message", function (event) {
-  if (event.data.request === "updateWidth") {
-    const newWidth = event.data.newWidth;
-    document.documentElement.style.setProperty("--parent-width", newWidth + "px");
+  if (event.data.request === "updateViewportHeight") {
+    const newHeight = event.data.newHeight;
+    document.documentElement.style.setProperty("--viewport-height", newHeight + "px");
   }
 });
 `;
@@ -302,6 +311,34 @@ window.addEventListener('message', function (event) {
   }
 });
 `;
+
+function processVhUnits(htmlContent) {
+  const hasVhUnits = /\d+vh/.test(htmlContent);
+
+  if (!hasVhUnits) {
+    return htmlContent;
+  }
+
+  const viewportHeight = window.innerHeight;
+  const processedContent = htmlContent.replace(
+    /(\d+)vh/g,
+    `calc(var(--viewport-height, ${viewportHeight}px) * $1 / 100)`
+  );
+
+  return processedContent;
+}
+
+function updateIframeViewportHeight() {
+  const viewportHeight = window.innerHeight;
+  document.querySelectorAll('iframe[data-needs-vh="true"]').forEach(iframe => {
+    if (iframe.contentWindow) {
+      iframe.contentWindow.postMessage({
+        request: "updateViewportHeight",
+        newHeight: viewportHeight
+      }, "*");
+    }
+  });
+}
 
 async function renderMessagesInIframes(
   mode = RENDER_MODES.FULL,
@@ -389,25 +426,30 @@ async function renderMessagesInIframes(
         return;
       }
 
+      const hasVhUnits = /\d+vh/.test(extractedText);
+      extractedText = hasVhUnits ? processVhUnits(extractedText) : extractedText;
+
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index++}`;
+      if (hasVhUnits) {
+        iframe.setAttribute('data-needs-vh', 'true');
+      }
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
       iframe.style.width = "100%";
-      const iframeContent = `
+      iframe.srcdoc = `
       <html>
       <head>
         <style>
           :root {
-            --parent-width: ${mesTextWidth}px;
+            ${hasVhUnits ? `--viewport-height: ${window.innerHeight}px;` : ''}
           }
           html,
           body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            max-width: var(--parent-width) !important;
-            width: var(--parent-width);
+            max-width: 100% !important;
             box-sizing: border-box;
           }
           .user_avatar {
@@ -419,20 +461,19 @@ async function renderMessagesInIframes(
       </head>
       <body>
         ${extractedText}
-        <script src="${script_url.get(adjust_size_script)}"></script>
-        ${extension_settings[extensionName].tampermonkey_compatibility ? `<script src="${script_url.get(tampermonkey_script)}"></script>` : ``}
+        ${hasVhUnits ? `<script src="${script_url.get(adjust_size_script)}"></script>` : ''}
+        ${extension_settings[extensionName].tampermonkey_compatibility
+          ? `<script src="${script_url.get(tampermonkey_script)}"></script>`
+          : ``
+        }
       </body>
       </html>
       `;
-
-      iframe.onload = function () {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open();
-        doc.write(iframeContent);
-        doc.close();
+      iframe.addEventListener('load', () => {
         observeIframeContent(iframe);
         eventSource.emitAndWait('message_iframe_render_ended', iframe.id);
-      };
+      });
+
       eventSource.emitAndWait('message_iframe_render_started', iframe.id);
       codeElement.replaceWith(iframe);
     });
@@ -450,35 +491,43 @@ async function renderMessagesInIframes(
 
 function destroyIframe(iframe) {
   return new Promise((resolve) => {
-    iframe.src = "about:blank";
+    if (!iframe || !iframe.parentNode) {
+      resolve();
+      return;
+    }
+
+    if (typeof iframe.cleanup === 'function') {
+      try {
+        iframe.cleanup();
+        console.log("iframe cleanup");
+      } catch (error) {
+        console.warn('执行iframe清理函数时出错:', error);
+      }
+    }
 
     let isResolved = false;
-
     const timeoutDuration = 3000;
-    const timeout = setTimeout(() => {
-      if (!isResolved) {
-        iframe.remove();
-        isResolved = true;
-        resolve();
-      }
-    }, timeoutDuration);
 
-    iframe.onload = () => {
+    iframe.srcdoc = '';
+    iframe.src = 'about:blank';
+
+    const cleanup = () => {
       if (!isResolved) {
         clearTimeout(timeout);
-        iframe.remove();
+        if (iframe.parentNode) {
+          iframe.remove();
+        }
         isResolved = true;
         resolve();
       }
     };
 
-    if (iframe.src === "about:blank") {
-      if (!isResolved) {
-        clearTimeout(timeout);
-        iframe.remove();
-        isResolved = true;
-        resolve();
-      }
+    const timeout = setTimeout(cleanup, timeoutDuration);
+
+    iframe.onload = cleanup;
+
+    if (iframe.src === 'about:blank' && !iframe.srcdoc) {
+      cleanup();
     }
   });
 }
@@ -540,7 +589,7 @@ function createGlobalAudioManager() {
 
 function adjustIframeHeight(iframe) {
   const doc = iframe.contentWindow.document;
-  const newHeight = doc.documentElement.scrollHeight;
+  const newHeight = doc.body.scrollHeight;
   const currentHeight = parseFloat(iframe.style.height) || 0;
 
   if (Math.abs(currentHeight - newHeight) > 1) {
@@ -554,30 +603,24 @@ function observeIframeContent(iframe) {
   }
 
   const doc = iframe.contentWindow.document.body;
-  const mesElement = iframe.parentElement;
+  let resizeTimeout = null;
 
   const resizeObserver = new ResizeObserver(() => {
-    adjustIframeHeight(iframe);
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+    resizeTimeout = setTimeout(() => {
+      adjustIframeHeight(iframe);
+    }, 100);
   });
 
   resizeObserver.observe(doc);
-
-  const mesResizeObserver = new ResizeObserver(() => {
-    const computedStyle = window.getComputedStyle(mesElement);
-    const paddingLeft = parseFloat(computedStyle.paddingLeft);
-    const paddingRight = parseFloat(computedStyle.paddingRight);
-
-    const mesTextWidth = mesElement.clientWidth - paddingLeft - paddingRight;
-
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage(
-        { request: "updateWidth", newWidth: mesTextWidth },
-        "*"
-      );
+  iframe.cleanup = () => {
+    resizeObserver.disconnect();
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
     }
-  });
-
-  mesResizeObserver.observe(mesElement);
+  };
 }
 
 function extractTextFromCode(codeElement) {
@@ -809,13 +852,13 @@ async function onExtensionToggle() {
     script_url.set(tampermonkey_script);
 
     script_load_events.forEach((eventType) => {
-      eventSource.on(eventType, initializeScripts)
-    })
+      eventSource.on(eventType, initializeScripts);
+    });
     window.addEventListener("message", handleIframeCommand);
     window.addEventListener("message", handleChatMessage);
-    window.addEventListener('message', handleEvent);
-    window.addEventListener('message', handleLorebook);
-    window.addEventListener('message', handleRegexData);
+    window.addEventListener("message", handleEvent);
+    window.addEventListener("message", handleLorebook);
+    window.addEventListener("message", handleRegexData);
 
     fullRenderEvents.forEach((eventType) => {
       eventSource.on(eventType, handleFullRender);
@@ -842,14 +885,14 @@ async function onExtensionToggle() {
     script_url.delete(tampermonkey_script);
 
     script_load_events.forEach((eventType) => {
-      eventSource.removeListener(eventType, initializeScripts)
-    })
+      eventSource.removeListener(eventType, initializeScripts);
+    });
     destroyScriptsIfInitialized();
     window.removeEventListener("message", handleIframeCommand);
     window.removeEventListener("message", handleChatMessage);
-    window.removeEventListener('message', handleEvent);
-    window.removeEventListener('message', handleLorebook);
-    window.removeEventListener('message', handleRegexData);
+    window.removeEventListener("message", handleEvent);
+    window.removeEventListener("message", handleLorebook);
+    window.removeEventListener("message", handleRegexData);
 
     fullRenderEvents.forEach((eventType) => {
       eventSource.removeListener(eventType, handleFullRender);
@@ -938,7 +981,10 @@ async function registerAutoEnableCharacterRegex() {
 }
 
 async function unregisterAutoEnableCharacterRegex() {
-  eventSource.removeListener(event_types.CHAT_CHANGED, autoEnableCharacterRegex);
+  eventSource.removeListener(
+    event_types.CHAT_CHANGED,
+    autoEnableCharacterRegex
+  );
 }
 
 async function onAutoEnableCharacterRegexClick() {
@@ -951,13 +997,15 @@ async function onAutoEnableCharacterRegexClick() {
   }
 }
 
-
 async function autoDisableIncompatibleOptions() {
   if (power_user.auto_fix_generated_markdown || power_user.trim_sentences) {
     power_user.auto_fix_generated_markdown = false;
     power_user.trim_sentences = false;
-    $('#auto_fix_generated_markdown').prop('checked', power_user.auto_fix_generated_markdown);
-    $('#trim_sentences_checkbox').prop('checked', power_user.trim_sentences);
+    $("#auto_fix_generated_markdown").prop(
+      "checked",
+      power_user.auto_fix_generated_markdown
+    );
+    $("#trim_sentences_checkbox").prop("checked", power_user.trim_sentences);
   }
   saveSettingsDebounced();
 }
@@ -967,12 +1015,18 @@ async function registerAutoDisableIncompatibleOptions() {
 }
 
 async function unregisterAutoDisableIncompatibleOptions() {
-  eventSource.removeListener(event_types.CHAT_CHANGED, autoDisableIncompatibleOptions);
+  eventSource.removeListener(
+    event_types.CHAT_CHANGED,
+    autoDisableIncompatibleOptions
+  );
 }
 
 async function onAutoDisableIncompatibleOptions() {
-  const isEnabled = Boolean($("#auto_disable_incompatible_options").prop("checked"));
-  extension_settings[extensionName].auto_disable_incompatible_options = isEnabled;
+  const isEnabled = Boolean(
+    $("#auto_disable_incompatible_options").prop("checked")
+  );
+  extension_settings[extensionName].auto_disable_incompatible_options =
+    isEnabled;
   if (isEnabled) {
     registerAutoDisableIncompatibleOptions();
   } else {
@@ -1844,11 +1898,17 @@ jQuery(async () => {
   }
   $("#process_depth").on("input", onDepthInput);
 
-  $("#auto_enable_character_regex").on("click", onAutoEnableCharacterRegexClick);
+  $("#auto_enable_character_regex").on(
+    "click",
+    onAutoEnableCharacterRegexClick
+  );
   if ($("#auto_enable_character_regex").prop("checked")) {
     onAutoEnableCharacterRegexClick();
   }
-  $("#auto_disable_incompatible_options").on("click", onAutoDisableIncompatibleOptions);
+  $("#auto_disable_incompatible_options").on(
+    "click",
+    onAutoDisableIncompatibleOptions
+  );
   if ($("#auto_disable_incompatible_options").prop("checked")) {
     onAutoDisableIncompatibleOptions();
   }
@@ -2253,6 +2313,12 @@ jQuery(async () => {
       `,
     })
   );
+
+  window.addEventListener('resize', () => {
+    if (document.querySelector('iframe[data-needs-vh="true"]')) {
+      updateIframeViewportHeight();
+    }
+  });
 });
 
 async function toggleAudioMode(args) {
