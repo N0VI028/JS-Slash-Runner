@@ -333,7 +333,7 @@ function processVhUnits(htmlContent) {
 
 function updateIframeViewportHeight() {
   const viewportHeight = window.innerHeight;
-  document.querySelectorAll('iframe').forEach(iframe => {
+  document.querySelectorAll('iframe[data-needs-vh="true"]').forEach(iframe => {
     if (iframe.contentWindow) {
       iframe.contentWindow.postMessage({
         request: "updateViewportHeight",
@@ -429,10 +429,14 @@ async function renderMessagesInIframes(
         return;
       }
 
-      extractedText = processVhUnits(extractedText);
+      const hasVhUnits = /\d+vh/.test(extractedText);
+      extractedText = hasVhUnits ? processVhUnits(extractedText) : extractedText;
 
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index++}`;
+      if (hasVhUnits) {
+        iframe.setAttribute('data-needs-vh', 'true');
+      }
       iframe.style.margin = "5px auto";
       iframe.style.border = "none";
       iframe.style.width = "100%";
@@ -442,7 +446,7 @@ async function renderMessagesInIframes(
         <style>
           :root {
             --parent-width: ${mesTextWidth}px;
-            --viewport-height: ${window.innerHeight}px;
+            ${hasVhUnits ? `--viewport-height: ${window.innerHeight}px;` : ''}
           }
           html,
           body {
@@ -462,7 +466,7 @@ async function renderMessagesInIframes(
       </head>
       <body>
         ${extractedText}
-        <script src="${script_url.get(adjust_size_script)}"></script>
+        ${hasVhUnits ? `<script src="${script_url.get(adjust_size_script)}"></script>` : ''}
         ${extension_settings[extensionName].tampermonkey_compatibility
           ? `<script src="${script_url.get(tampermonkey_script)}"></script>`
           : ``
@@ -2335,7 +2339,9 @@ jQuery(async () => {
   );
 
   window.addEventListener('resize', () => {
-    updateIframeViewportHeight();
+    if (document.querySelector('iframe[data-needs-vh="true"]')) {
+      updateIframeViewportHeight();
+    }
   });
 });
 
