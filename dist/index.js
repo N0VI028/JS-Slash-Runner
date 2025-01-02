@@ -19,7 +19,7 @@ import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { handleEvent } from "./iframe_server/event.js";
 import { handleLorebook } from "./iframe_server/lorebook.js";
 import { handleRegexData } from "./iframe_server/regex_data.js";
-import { script_load_events, initializeScripts, destroyScriptsIfInitialized } from "./script_iframe.js";
+import { script_load_events, initializeScripts, destroyScriptsIfInitialized, } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
 const extensionName = "JS-Slash-Runner";
@@ -85,7 +85,8 @@ function loadSettings() {
         extension_settings[extensionName].auto_enable_character_regex = true;
     }
     $("#auto_enable_character_regex").prop("checked", extension_settings[extensionName].auto_enable_character_regex);
-    if (extension_settings[extensionName].auto_disable_incompatible_options === undefined) {
+    if (extension_settings[extensionName].auto_disable_incompatible_options ===
+        undefined) {
         extension_settings[extensionName].auto_disable_incompatible_options = true;
     }
     $("#auto_disable_incompatible_options").prop("checked", extension_settings[extensionName].auto_disable_incompatible_options);
@@ -153,6 +154,9 @@ window.addEventListener("message", function (event) {
   if (event.data.request === "updateWidth") {
     const newWidth = event.data.newWidth;
     document.documentElement.style.setProperty("--parent-width", newWidth + "px");
+  } else if (event.data.request === "updateViewportHeight") {
+    const newHeight = event.data.newHeight;
+    document.documentElement.style.setProperty("--viewport-height", newHeight + "px");
   }
 });
 `;
@@ -219,6 +223,26 @@ window.addEventListener('message', function (event) {
   }
 });
 `;
+function processVhUnits(htmlContent) {
+    const hasVhUnits = /\d+vh/.test(htmlContent);
+    if (!hasVhUnits) {
+        return htmlContent;
+    }
+    const viewportHeight = window.innerHeight;
+    const processedContent = htmlContent.replace(/(\d+)vh/g, `calc(var(--viewport-height, ${viewportHeight}px) * $1 / 100)`);
+    return processedContent;
+}
+function updateIframeViewportHeight() {
+    const viewportHeight = window.innerHeight;
+    document.querySelectorAll('iframe').forEach(iframe => {
+        if (iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+                request: "updateViewportHeight",
+                newHeight: viewportHeight
+            }, "*");
+        }
+    });
+}
 async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId = null) {
     if (!$("#activate_setting").prop("checked")) {
         return;
@@ -281,17 +305,19 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
                 !extractedText.includes("</body>")) {
                 return;
             }
+            extractedText = processVhUnits(extractedText);
             const iframe = document.createElement("iframe");
             iframe.id = `message-iframe-${messageId}-${index++}`;
             iframe.style.margin = "5px auto";
             iframe.style.border = "none";
             iframe.style.width = "100%";
-            const iframeContent = `
+            iframe.srcdoc = `
       <html>
       <head>
         <style>
           :root {
             --parent-width: ${mesTextWidth}px;
+            --viewport-height: ${window.innerHeight}px;
           }
           html,
           body {
@@ -312,18 +338,16 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
       <body>
         ${extractedText}
         <script src="${script_url.get(adjust_size_script)}"></script>
-        ${extension_settings[extensionName].tampermonkey_compatibility ? `<script src="${script_url.get(tampermonkey_script)}"></script>` : ``}
+        ${extension_settings[extensionName].tampermonkey_compatibility
+                ? `<script src="${script_url.get(tampermonkey_script)}"></script>`
+                : ``}
       </body>
       </html>
       `;
-            iframe.onload = function () {
-                const doc = iframe.contentDocument || iframe.contentWindow.document;
-                doc.open();
-                doc.write(iframeContent);
-                doc.close();
+            iframe.addEventListener('load', () => {
                 observeIframeContent(iframe);
                 eventSource.emitAndWait('message_iframe_render_ended', iframe.id);
-            };
+            });
             eventSource.emitAndWait('message_iframe_render_started', iframe.id);
             codeElement.replaceWith(iframe);
         });
@@ -333,31 +357,37 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
 }
 function destroyIframe(iframe) {
     return new Promise((resolve) => {
-        iframe.src = "about:blank";
+        if (!iframe || !iframe.parentNode) {
+            resolve();
+            return;
+        }
+        if (typeof iframe.cleanup === 'function') {
+            try {
+                iframe.cleanup();
+                console.log("iframe cleanup");
+            }
+            catch (error) {
+                console.warn('执行iframe清理函数时出错:', error);
+            }
+        }
         let isResolved = false;
         const timeoutDuration = 3000;
-        const timeout = setTimeout(() => {
-            if (!isResolved) {
-                iframe.remove();
-                isResolved = true;
-                resolve();
-            }
-        }, timeoutDuration);
-        iframe.onload = () => {
+        iframe.srcdoc = '';
+        iframe.src = 'about:blank';
+        const cleanup = () => {
             if (!isResolved) {
                 clearTimeout(timeout);
-                iframe.remove();
+                if (iframe.parentNode) {
+                    iframe.remove();
+                }
                 isResolved = true;
                 resolve();
             }
         };
-        if (iframe.src === "about:blank") {
-            if (!isResolved) {
-                clearTimeout(timeout);
-                iframe.remove();
-                isResolved = true;
-                resolve();
-            }
+        const timeout = setTimeout(cleanup, timeoutDuration);
+        iframe.onload = cleanup;
+        if (iframe.src === 'about:blank' && !iframe.srcdoc) {
+            cleanup();
         }
     });
 }
@@ -411,7 +441,7 @@ function createGlobalAudioManager() {
 }
 function adjustIframeHeight(iframe) {
     const doc = iframe.contentWindow.document;
-    const newHeight = doc.documentElement.scrollHeight;
+    const newHeight = doc.body.scrollHeight;
     const currentHeight = parseFloat(iframe.style.height) || 0;
     if (Math.abs(currentHeight - newHeight) > 1) {
         iframe.style.height = newHeight + 6 + "px";
@@ -423,8 +453,14 @@ function observeIframeContent(iframe) {
     }
     const doc = iframe.contentWindow.document.body;
     const mesElement = iframe.parentElement;
+    let resizeTimeout = null;
     const resizeObserver = new ResizeObserver(() => {
-        adjustIframeHeight(iframe);
+        if (resizeTimeout) {
+            clearTimeout(resizeTimeout);
+        }
+        resizeTimeout = setTimeout(() => {
+            adjustIframeHeight(iframe);
+        }, 100);
     });
     resizeObserver.observe(doc);
     const mesResizeObserver = new ResizeObserver(() => {
@@ -437,6 +473,13 @@ function observeIframeContent(iframe) {
         }
     });
     mesResizeObserver.observe(mesElement);
+    iframe.cleanup = () => {
+        resizeObserver.disconnect();
+        mesResizeObserver.disconnect();
+        if (resizeTimeout) {
+            clearTimeout(resizeTimeout);
+        }
+    };
 }
 function extractTextFromCode(codeElement) {
     let textContent = "";
@@ -634,9 +677,9 @@ async function onExtensionToggle() {
         });
         window.addEventListener("message", handleIframeCommand);
         window.addEventListener("message", handleChatMessage);
-        window.addEventListener('message', handleEvent);
-        window.addEventListener('message', handleLorebook);
-        window.addEventListener('message', handleRegexData);
+        window.addEventListener("message", handleEvent);
+        window.addEventListener("message", handleLorebook);
+        window.addEventListener("message", handleRegexData);
         fullRenderEvents.forEach((eventType) => {
             eventSource.on(eventType, handleFullRender);
         });
@@ -666,9 +709,9 @@ async function onExtensionToggle() {
         destroyScriptsIfInitialized();
         window.removeEventListener("message", handleIframeCommand);
         window.removeEventListener("message", handleChatMessage);
-        window.removeEventListener('message', handleEvent);
-        window.removeEventListener('message', handleLorebook);
-        window.removeEventListener('message', handleRegexData);
+        window.removeEventListener("message", handleEvent);
+        window.removeEventListener("message", handleLorebook);
+        window.removeEventListener("message", handleRegexData);
         fullRenderEvents.forEach((eventType) => {
             eventSource.removeListener(eventType, handleFullRender);
         });
@@ -759,8 +802,8 @@ async function autoDisableIncompatibleOptions() {
     if (power_user.auto_fix_generated_markdown || power_user.trim_sentences) {
         power_user.auto_fix_generated_markdown = false;
         power_user.trim_sentences = false;
-        $('#auto_fix_generated_markdown').prop('checked', power_user.auto_fix_generated_markdown);
-        $('#trim_sentences_checkbox').prop('checked', power_user.trim_sentences);
+        $("#auto_fix_generated_markdown").prop("checked", power_user.auto_fix_generated_markdown);
+        $("#trim_sentences_checkbox").prop("checked", power_user.trim_sentences);
     }
     saveSettingsDebounced();
 }
@@ -772,7 +815,8 @@ async function unregisterAutoDisableIncompatibleOptions() {
 }
 async function onAutoDisableIncompatibleOptions() {
     const isEnabled = Boolean($("#auto_disable_incompatible_options").prop("checked"));
-    extension_settings[extensionName].auto_disable_incompatible_options = isEnabled;
+    extension_settings[extensionName].auto_disable_incompatible_options =
+        isEnabled;
     if (isEnabled) {
         registerAutoDisableIncompatibleOptions();
     }
@@ -1742,6 +1786,9 @@ jQuery(async () => {
         </div>
       `,
     }));
+    window.addEventListener('resize', () => {
+        updateIframeViewportHeight();
+    });
 });
 async function toggleAudioMode(args) {
     const type = args.type.toLowerCase();
