@@ -241,10 +241,7 @@ window.addEventListener("DOMContentLoaded", function () {
   window.parent.postMessage("domContentLoaded", "*");
 });
 window.addEventListener("message", function (event) {
-  if (event.data.request === "updateWidth") {
-    const newWidth = event.data.newWidth;
-    document.documentElement.style.setProperty("--parent-width", newWidth + "px");
-  } else if (event.data.request === "updateViewportHeight") {
+  if (event.data.request === "updateViewportHeight") {
     const newHeight = event.data.newHeight;
     document.documentElement.style.setProperty("--viewport-height", newHeight + "px");
   }
@@ -445,7 +442,6 @@ async function renderMessagesInIframes(
       <head>
         <style>
           :root {
-            --parent-width: ${mesTextWidth}px;
             ${hasVhUnits ? `--viewport-height: ${window.innerHeight}px;` : ''}
           }
           html,
@@ -453,8 +449,7 @@ async function renderMessagesInIframes(
             margin: 0;
             padding: 0;
             overflow: hidden;
-            max-width: var(--parent-width) !important;
-            width: var(--parent-width);
+            max-width: 100% !important;
             box-sizing: border-box;
           }
           .user_avatar {
@@ -608,7 +603,6 @@ function observeIframeContent(iframe) {
   }
 
   const doc = iframe.contentWindow.document.body;
-  const mesElement = iframe.parentElement;
   let resizeTimeout = null;
 
   const resizeObserver = new ResizeObserver(() => {
@@ -621,26 +615,8 @@ function observeIframeContent(iframe) {
   });
 
   resizeObserver.observe(doc);
-
-  const mesResizeObserver = new ResizeObserver(() => {
-    const computedStyle = window.getComputedStyle(mesElement);
-    const paddingLeft = parseFloat(computedStyle.paddingLeft);
-    const paddingRight = parseFloat(computedStyle.paddingRight);
-
-    const mesTextWidth = mesElement.clientWidth - paddingLeft - paddingRight;
-
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage(
-        { request: "updateWidth", newWidth: mesTextWidth },
-        "*"
-      );
-    }
-  });
-
-  mesResizeObserver.observe(mesElement);
   iframe.cleanup = () => {
     resizeObserver.disconnect();
-    mesResizeObserver.disconnect();
     if (resizeTimeout) {
       clearTimeout(resizeTimeout);
     }
