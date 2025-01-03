@@ -15,7 +15,7 @@ interface IframeSetChatMessageMessage {
   request: 'iframe_set_chat_message';
   message: string;
   message_id: number;
-  option: Required<SetChatMessagesOption>;
+  option: Required<SetChatMessageOption>;
 }
 
 type IframeChatMessageMessage = IframeGetChatMessagesMessage | IframeSetChatMessageMessage;

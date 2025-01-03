@@ -78,7 +78,7 @@ function getChatMessages(range: string | number, option: GetChatMessagesOption =
   });
 }
 
-interface SetChatMessagesOption {
+interface SetChatMessageOption {
   swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
 
   /**
@@ -112,11 +112,11 @@ interface SetChatMessagesOption {
  * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
  * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
  */
-function setChatMessage(message: string, message_id: number, option: SetChatMessagesOption = {}): void {
+function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): void {
   option = {
     swipe_id: option.swipe_id ?? 'current',
     refresh: option.refresh ?? 'display_and_render_current',
-  } as Required<SetChatMessagesOption>;
+  } as Required<SetChatMessageOption>;
   window.parent.postMessage({
     request: "iframe_set_chat_message",
     message: message,
