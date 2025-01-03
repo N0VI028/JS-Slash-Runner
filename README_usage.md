@@ -234,7 +234,7 @@ const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
 酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本前端助手提供这样的功能:
 
 ```typescript
-interface setChatMessageOption {
+interface SetChatMessageOption {
   swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
 
   /**
@@ -263,7 +263,7 @@ interface setChatMessageOption {
  *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
  *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
  */
-function setChatMessage(message: string, message_id: number, option: setChatMessageOption = {}): void
+function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): void
 ```
 
 示例:
