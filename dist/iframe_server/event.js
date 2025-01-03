@@ -26,7 +26,7 @@ function removeEventCallback(event) {
 }
 function makeEventCallback(event, once) {
     const data = unpack(event);
-    const default_callback = async (args) => {
+    const default_callback = async (...args) => {
         if (once) {
             removeEventCallback(event);
         }
@@ -104,7 +104,7 @@ const event_handlers = {
         const uid = event.data.uid;
         const event_type = event.data.event_type;
         const data = event.data.data;
-        eventSource.emit(event_type, data);
+        eventSource.emit(event_type, ...data);
         event.source.postMessage({
             request: 'iframe_event_emit_callback',
             uid: uid,
