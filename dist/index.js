@@ -221,12 +221,15 @@ window.addEventListener('message', function (event) {
 });
 `;
 function processVhUnits(htmlContent) {
-    const hasVhUnits = /\d+vh/.test(htmlContent);
-    if (!hasVhUnits) {
+    const hasMinVh = /min-height:\s*[^;]*vh/.test(htmlContent);
+    if (!hasMinVh) {
         return htmlContent;
     }
     const viewportHeight = window.innerHeight;
-    const processedContent = htmlContent.replace(/(\d+)vh/g, `calc(var(--viewport-height, ${viewportHeight}px) * $1 / 100)`);
+    const processedContent = htmlContent.replace(/min-height:\s*([^;]*vh[^;]*);/g, (match, expression) => {
+        const processedExpression = expression.replace(/(\d+)vh/g, `calc(var(--viewport-height, ${viewportHeight}px) * $1 / 100)`);
+        return `min-height: ${processedExpression};`;
+    });
     return processedContent;
 }
 function updateIframeViewportHeight() {
@@ -302,11 +305,11 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
                 !extractedText.includes("</body>")) {
                 return;
             }
-            const hasVhUnits = /\d+vh/.test(extractedText);
-            extractedText = hasVhUnits ? processVhUnits(extractedText) : extractedText;
+            const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
+            extractedText = hasMinVh ? processVhUnits(extractedText) : extractedText;
             const iframe = document.createElement("iframe");
             iframe.id = `message-iframe-${messageId}-${index++}`;
-            if (hasVhUnits) {
+            if (hasMinVh) {
                 iframe.setAttribute('data-needs-vh', 'true');
             }
             iframe.style.margin = "5px auto";
@@ -317,7 +320,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
       <head>
         <style>
           :root {
-            ${hasVhUnits ? `--viewport-height: ${window.innerHeight}px;` : ''}
+            ${hasMinVh ? `--viewport-height: ${window.innerHeight}px;` : ''}
           }
           html,
           body {
@@ -336,7 +339,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
       </head>
       <body>
         ${extractedText}
-        ${hasVhUnits ? `<script src="${script_url.get(adjust_size_script)}"></script>` : ''}
+        ${hasMinVh ? `<script src="${script_url.get(adjust_size_script)}"></script>` : ''}
         ${extension_settings[extensionName].tampermonkey_compatibility
                 ? `<script src="${script_url.get(tampermonkey_script)}"></script>`
                 : ``}
@@ -440,7 +443,7 @@ function createGlobalAudioManager() {
 }
 function adjustIframeHeight(iframe) {
     const doc = iframe.contentWindow.document;
-    const newHeight = doc.body.scrollHeight;
+    const newHeight = doc.documentElement.scrollHeight;
     const currentHeight = parseFloat(iframe.style.height) || 0;
     if (Math.abs(currentHeight - newHeight) > 1) {
         iframe.style.height = newHeight + 6 + "px";
