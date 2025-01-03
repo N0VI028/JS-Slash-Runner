@@ -69,7 +69,7 @@ function removeEventCallback(event: MessageEvent<IframeEventEntryMessage>): void
 function makeEventCallback(event: MessageEvent<IframeEventEntryMessage>, once: boolean): eventCallback {
   const data = unpack(event);
 
-  const default_callback = async (args: any[]): Promise<void> => {
+  const default_callback = async (...args: any[]): Promise<void> => {
     if (once) {
       removeEventCallback(event);
     }
@@ -164,7 +164,7 @@ const event_handlers = {
     const event_type = event.data.event_type;
     const data = event.data.data;
 
-    eventSource.emit(event_type, data);
+    eventSource.emit(event_type, ...data);
 
     (event.source as MessageEventSource).postMessage({
       request: 'iframe_event_emit_callback',
