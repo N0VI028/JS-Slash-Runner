@@ -56,7 +56,7 @@ function triggerSlash(command) {
 ```
 如有，删除掉，防止覆盖扩展的默认定义。
 
-## :desktop: 前端界面显示不出来？
+## 🔍 前端界面显示不出来？
 **以下内容由@络络（discordID：lolodesu_）提供**
 ### 出现问题可以根据顺序自查
 > 0.自查渠道和模型
