@@ -195,7 +195,7 @@ const event_handlers = {
         event.source.postMessage({
             request: 'iframe_get_char_lorebooks_callback',
             uid: uid,
-            result: option.type === 'primary' ? (books[0] ?? []) : books.filter(onlyUnique),
+            result: books.filter(onlyUnique),
         }, { targetOrigin: "*" });
         console.info(`[Lorebook][getCharLorebooks](${iframe_name}) 获取角色卡绑定的世界书, 选项: ${JSON.stringify(option)}, 获取结果: ${JSON.stringify(books)}`);
     },

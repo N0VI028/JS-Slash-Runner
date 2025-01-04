@@ -282,7 +282,7 @@ const event_handlers = {
     (event.source as MessageEventSource).postMessage({
       request: 'iframe_get_char_lorebooks_callback',
       uid: uid,
-      result: option.type === 'primary' ? (books[0] ?? []) : books.filter(onlyUnique),
+      result: books.filter(onlyUnique),
     },
       { targetOrigin: "*" }
     );
