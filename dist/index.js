@@ -243,6 +243,40 @@ function updateIframeViewportHeight() {
         }
     });
 }
+// 在文件顶部添加新的辅助函数
+function createIframeContent(content, avatarPath, hasMinVh, tampermonkeyCompatibility) {
+    const html = `
+    <html>
+    <head>
+      <style>
+        :root {
+          ${hasMinVh ? `--viewport-height: ${window.innerHeight}px;` : ''}
+        }
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          max-width: 100% !important;
+          box-sizing: border-box;
+        }
+        .user_avatar {
+          background-image: url('${avatarPath}');
+        }
+      </style>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <script src="${script_url.get(iframe_client)}"></script>
+    </head>
+    <body>
+      ${content}
+      ${hasMinVh ? `<script src="${script_url.get(adjust_size_script)}"></script>` : ''}
+      ${tampermonkeyCompatibility ? `<script src="${script_url.get(tampermonkey_script)}"></script>` : ''}
+    </body>
+    </html>
+  `;
+    const blob = new Blob([html], { type: 'text/html' });
+    return URL.createObjectURL(blob);
+}
 async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId = null) {
     if (!$("#activate_setting").prop("checked")) {
         return;
@@ -315,37 +349,17 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
             iframe.style.margin = "5px auto";
             iframe.style.border = "none";
             iframe.style.width = "100%";
-            iframe.srcdoc = `
-      <html>
-      <head>
-        <style>
-          :root {
-            ${hasMinVh ? `--viewport-height: ${window.innerHeight}px;` : ''}
-          }
-          html,
-          body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            max-width: 100% !important;
-            box-sizing: border-box;
-          }
-          .user_avatar {
-            background-image: url('${avatarPath}');
-          }
-        </style>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script src="${script_url.get(iframe_client)}"></script>
-      </head>
-      <body>
-        ${extractedText}
-        ${hasMinVh ? `<script src="${script_url.get(adjust_size_script)}"></script>` : ''}
-        ${extension_settings[extensionName].tampermonkey_compatibility
-                ? `<script src="${script_url.get(tampermonkey_script)}"></script>`
-                : ``}
-      </body>
-      </html>
-      `;
+            // 使用Blob创建iframe内容
+            const blobUrl = createIframeContent(extractedText, avatarPath, hasMinVh, extension_settings[extensionName].tampermonkey_compatibility);
+            iframe.src = blobUrl;
+            // 添加cleanup函数来释放Blob URL
+            const originalCleanup = iframe.cleanup;
+            iframe.cleanup = () => {
+                if (originalCleanup) {
+                    originalCleanup();
+                }
+                URL.revokeObjectURL(blobUrl);
+            };
             iframe.addEventListener('load', () => {
                 observeIframeContent(iframe);
                 eventSource.emitAndWait('message_iframe_render_ended', iframe.id);
@@ -374,11 +388,14 @@ function destroyIframe(iframe) {
         }
         let isResolved = false;
         const timeoutDuration = 3000;
-        iframe.srcdoc = '';
-        iframe.src = 'about:blank';
+        // 创建一个空白页面的Blob URL
+        const emptyBlob = new Blob([''], { type: 'text/html' });
+        const emptyBlobUrl = URL.createObjectURL(emptyBlob);
+        iframe.src = emptyBlobUrl;
         const cleanup = () => {
             if (!isResolved) {
                 clearTimeout(timeout);
+                URL.revokeObjectURL(emptyBlobUrl);
                 if (iframe.parentNode) {
                     iframe.remove();
                 }
@@ -388,7 +405,7 @@ function destroyIframe(iframe) {
         };
         const timeout = setTimeout(cleanup, timeoutDuration);
         iframe.onload = cleanup;
-        if (iframe.src === 'about:blank' && !iframe.srcdoc) {
+        if (iframe.src === emptyBlobUrl) {
             cleanup();
         }
     });
