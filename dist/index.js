@@ -1496,7 +1496,7 @@ jQuery(async () => {
     const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, "settings");
     getContainer().append(windowHtml);
     loadSettings();
-    isUnsupportedBrowserRuntime = IS_UNSUPPORTED_BROWSER;
+    isUnsupportedBrowserRuntime = await IS_UNSUPPORTED_BROWSER;
     const buttonHtml = $(`
   <div id="js_slash_runner_container" class="list-group-item flex-container flexGap5 interactable">
       <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
