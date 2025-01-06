@@ -14,11 +14,11 @@ export const IS_UNSUPPORTED_BROWSER = (async () => {
         });
         URL.revokeObjectURL(blobUrl);
         iframe.remove();
-        return false; 
+        return false;
     }
     catch (err) {
         console.warn('浏览器不支持blob iframe,将使用srcdoc替代', err);
-        return true; 
+        return true;
     }
 })();
 export function isUnsupportedBrowser() {
