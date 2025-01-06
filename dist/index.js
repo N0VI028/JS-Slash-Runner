@@ -22,9 +22,11 @@ import { handleRegexData } from "./iframe_server/regex_data.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized, } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
+import { IS_UNSUPPORTED_BROWSER } from "./ua_detect.js";
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
 const audioCache = {};
+let isUnsupportedBrowserRuntime;
 let tampermonkeyMessageListener = null;
 let list_BGMS = null;
 let list_ambients = null;
@@ -243,7 +245,6 @@ function updateIframeViewportHeight() {
         }
     });
 }
-// 在文件顶部添加新的辅助函数
 function createIframeContent(content, avatarPath, hasMinVh, tampermonkeyCompatibility) {
     const html = `
     <html>
@@ -274,6 +275,9 @@ function createIframeContent(content, avatarPath, hasMinVh, tampermonkeyCompatib
     </body>
     </html>
   `;
+    if (isUnsupportedBrowserRuntime) {
+        return html;
+    }
     const blob = new Blob([html], { type: 'text/html' });
     return URL.createObjectURL(blob);
 }
@@ -349,17 +353,20 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
             iframe.style.margin = "5px auto";
             iframe.style.border = "none";
             iframe.style.width = "100%";
-            // 使用Blob创建iframe内容
-            const blobUrl = createIframeContent(extractedText, avatarPath, hasMinVh, extension_settings[extensionName].tampermonkey_compatibility);
-            iframe.src = blobUrl;
-            // 添加cleanup函数来释放Blob URL
-            const originalCleanup = iframe.cleanup;
-            iframe.cleanup = () => {
-                if (originalCleanup) {
-                    originalCleanup();
-                }
-                URL.revokeObjectURL(blobUrl);
-            };
+            const iframeContent = createIframeContent(extractedText, avatarPath, hasMinVh, extension_settings[extensionName].tampermonkey_compatibility);
+            if (isUnsupportedBrowserRuntime) {
+                iframe.srcdoc = iframeContent;
+            }
+            else {
+                iframe.src = iframeContent;
+                const originalCleanup = iframe.cleanup;
+                iframe.cleanup = () => {
+                    if (originalCleanup) {
+                        originalCleanup();
+                    }
+                    URL.revokeObjectURL(iframeContent);
+                };
+            }
             iframe.addEventListener('load', () => {
                 observeIframeContent(iframe);
                 eventSource.emitAndWait('message_iframe_render_ended', iframe.id);
@@ -380,7 +387,6 @@ function destroyIframe(iframe) {
         if (typeof iframe.cleanup === 'function') {
             try {
                 iframe.cleanup();
-                console.log("iframe cleanup");
             }
             catch (error) {
                 console.warn('执行iframe清理函数时出错:', error);
@@ -388,7 +394,14 @@ function destroyIframe(iframe) {
         }
         let isResolved = false;
         const timeoutDuration = 3000;
-        // 创建一个空白页面的Blob URL
+        if (isUnsupportedBrowserRuntime) {
+            iframe.srcdoc = '';
+            if (iframe.parentNode) {
+                iframe.remove();
+            }
+            resolve();
+            return;
+        }
         const emptyBlob = new Blob([''], { type: 'text/html' });
         const emptyBlobUrl = URL.createObjectURL(emptyBlob);
         iframe.src = emptyBlobUrl;
@@ -1483,6 +1496,7 @@ jQuery(async () => {
     const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, "settings");
     getContainer().append(windowHtml);
     loadSettings();
+    isUnsupportedBrowserRuntime = IS_UNSUPPORTED_BROWSER;
     const buttonHtml = $(`
   <div id="js_slash_runner_container" class="list-group-item flex-container flexGap5 interactable">
       <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>

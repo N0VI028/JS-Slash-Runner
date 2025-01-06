@@ -1,0 +1,1 @@
+{"version": 3, "file": "ua_detect.js", "sourceRoot": "", "sources": ["..\\src\\ua_detect.ts"], "names": [], "mappings": "AAAA,MAAM,CAAC,MAAM,sBAAsB,GAAG,CAAC,GAAG,EAAE;IAC1C,MAAM,EAAE,GAAG,SAAS,CAAC,SAAS,CAAC,WAAW,EAAE,CAAC;IAC7C,OAAO,OAAO,CAAC,IAAI,CAAC,EAAE,CAAC,CAAC;AAC1B,CAAC,CAAC,EAAE,CAAC;AAEL,MAAM,UAAU,oBAAoB;IAClC,OAAO,sBAAsB,CAAC;AAChC,CAAC"}
