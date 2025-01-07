@@ -349,6 +349,8 @@ function updateIframeViewportHeight() {
 }
 
 function createIframeContent(content, avatarPath, hasMinVh, tampermonkeyCompatibility) {
+  const absoluteAvatarPath = new URL(avatarPath, window.location.href).href;
+
   const html = `
     <html>
     <head>
@@ -365,7 +367,7 @@ function createIframeContent(content, avatarPath, hasMinVh, tampermonkeyCompatib
           box-sizing: border-box;
         }
         .user_avatar {
-          background-image: url('${avatarPath}');
+          background-image: url('${absoluteAvatarPath}');
         }
       </style>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -383,7 +385,10 @@ function createIframeContent(content, avatarPath, hasMinVh, tampermonkeyCompatib
     return html;
   }
 
-  const blob = new Blob([html], { type: 'text/html' });
+  const blob = new Blob([html], {
+    type: 'text/html;charset=utf-8'
+  });
+
   return URL.createObjectURL(blob);
 }
 
