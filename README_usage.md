@@ -42,13 +42,23 @@
 **获取User头像**
 
 已设置为类，命名为`user_avatar`，使用方法如下：
-```
+```html
 // 在你想要放入用户头像的地方设置类为user_avatar，此时容器的背景图片就会变为当前用户头像
 <div class="user_avatar"></div>
 ```
 只导入了图片链接`background-image: url('${avatarPath}');`，没有特意设置其他样式，具体的图片填充方式需使用者手动添加样式。
 
 如果在聊天中途更换了user角色，其显示逻辑与酒馆一致，会在新的楼层显示新的头像，如果想要将旧的楼层头像显示同步，需要点击用户面板的同步按钮。
+
+**禁用加载动画**
+
+界面代码任意位置输入`<!-- disable-default-loading -->`禁用内置的加载动画。例如：
+
+```html
+<body>
+<!-- disable-default-loading -->
+</body>
+```
 
 ### 全局脚本
 

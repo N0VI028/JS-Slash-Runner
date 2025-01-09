@@ -53,14 +53,12 @@ import {
 } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
-import { IS_UNSUPPORTED_BROWSER } from "./ua_detect.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
 
 const audioCache = {};
 
-let isUnsupportedBrowserRuntime: boolean;
 let tampermonkeyMessageListener = null;
 let list_BGMS = null;
 let list_ambients = null;
@@ -238,15 +236,12 @@ async function renderAllIframes() {
   await renderMessagesInIframes(RENDER_MODES.FULL);
 }
 
-const adjust_size_script = `
-window.addEventListener("DOMContentLoaded", function () {
-  window.parent.postMessage("domContentLoaded", "*");
-});
+const viewport_adjust_script = `
 window.addEventListener("message", function (event) {
-  if (event.data.request === "updateViewportHeight") {
-    const newHeight = event.data.newHeight;
-    document.documentElement.style.setProperty("--viewport-height", newHeight + "px");
-  }
+    if (event.data.request === "updateViewportHeight") {
+        const newHeight = event.data.newHeight;
+        document.documentElement.style.setProperty("--viewport-height", newHeight + "px");
+    }
 });
 `;
 
@@ -348,50 +343,6 @@ function updateIframeViewportHeight() {
   });
 }
 
-function createIframeContent(content, avatarPath, hasMinVh, tampermonkeyCompatibility) {
-  const absoluteAvatarPath = new URL(avatarPath, window.location.href).href;
-
-  const html = `
-    <html>
-    <head>
-      <style>
-        :root {
-          ${hasMinVh ? `--viewport-height: ${window.innerHeight}px;` : ''}
-        }
-        html,
-        body {
-          margin: 0;
-          padding: 0;
-          overflow: hidden;
-          max-width: 100% !important;
-          box-sizing: border-box;
-        }
-        .user_avatar {
-          background-image: url('${absoluteAvatarPath}');
-        }
-      </style>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-      <script src="${script_url.get(iframe_client)}"></script>
-    </head>
-    <body>
-      ${content}
-      ${hasMinVh ? `<script src="${script_url.get(adjust_size_script)}"></script>` : ''}
-      ${tampermonkeyCompatibility ? `<script src="${script_url.get(tampermonkey_script)}"></script>` : ''}
-    </body>
-    </html>
-  `;
-
-  if (isUnsupportedBrowserRuntime) {
-    return html;
-  }
-
-  const blob = new Blob([html], {
-    type: 'text/html;charset=utf-8'
-  });
-
-  return URL.createObjectURL(blob);
-}
-
 async function renderMessagesInIframes(
   mode = RENDER_MODES.FULL,
   specificMesId = null
@@ -471,53 +422,99 @@ async function renderMessagesInIframes(
     let index = 0;
     codeElements.forEach((codeElement, _) => {
       let extractedText = extractTextFromCode(codeElement);
-      if (
-        !extractedText.includes("<body>") ||
-        !extractedText.includes("</body>")
-      ) {
+      if (!extractedText.includes("<body") || !extractedText.includes("</body>")) {
         return;
       }
-
+      const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
       const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
       extractedText = hasMinVh ? processVhUnits(extractedText) : extractedText;
+      const fragment = document.createDocumentFragment();
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "position:relative;width:100%";
 
       const iframe = document.createElement("iframe");
       iframe.id = `message-iframe-${messageId}-${index++}`;
-      if (hasMinVh) {
-        iframe.setAttribute('data-needs-vh', 'true');
-      }
-      iframe.style.margin = "5px auto";
-      iframe.style.border = "none";
-      iframe.style.width = "100%";
+      iframe.loading = "lazy";
+      iframe.style.cssText = "margin:5px auto;border:none;width:100%";
 
-      const iframeContent = createIframeContent(
+      if (hasMinVh) {
+        iframe.dataset.needsVh = "true";
+      }
+
+      if (!disableLoading) {
+        const loadingOverlay = document.createElement("div");
+        loadingOverlay.className = "iframe-loading-overlay";
+        loadingOverlay.innerHTML = `
+          <div class="iframe-loading-content">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span class="loading-text">Loading...</span>
+          </div>`;
+
+        const loadingText = loadingOverlay.querySelector('.loading-text');
+        const loadingTimeout = setTimeout(() => {
+          if (loadingText) {
+            loadingText.textContent = '如加载时间过长，请检查网络';
+          }
+        }, 10000);
+
+        wrapper.appendChild(loadingOverlay);
+      }
+
+      wrapper.appendChild(iframe);
+      fragment.appendChild(wrapper);
+
+      const srcdocContent = [
+        '<html><head>',
+        '<style>',
+        hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : '',
+        'html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}',
+        `.user_avatar{background-image:url('${avatarPath}')}`,
+        '</style>',
+        '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>',
+        `<script src="${script_url.get(iframe_client)}"></script>`,
+        '</head><body>',
         extractedText,
-        avatarPath,
-        hasMinVh,
-        extension_settings[extensionName].tampermonkey_compatibility
+        hasMinVh ? `<script>${viewport_adjust_script}</script>` : '', 
+        extension_settings[extensionName].tampermonkey_compatibility ?
+          `<script src="${script_url.get(tampermonkey_script)}"></script>` : '',
+        '</body></html>'
+      ].join('');
+
+      iframe.srcdoc = srcdocContent;
+
+      iframe.addEventListener(
+        "load",
+        () => {
+          observeIframeContent(iframe);
+
+          const wrapper = iframe.parentElement;
+          if (wrapper) {
+            const loadingOverlay = wrapper.querySelector(
+              ".iframe-loading-overlay"
+            );
+            if (loadingOverlay) {
+              loadingOverlay.style.opacity = "0";
+              setTimeout(() => loadingOverlay.remove(), 300);
+            }
+          }
+
+          if (iframe.dataset.needsVh === "true") {
+            iframe.contentWindow.postMessage(
+              {
+                request: "updateViewportHeight",
+                newHeight: window.innerHeight,
+              },
+              "*"
+            );
+          }
+
+          eventSource.emitAndWait("message_iframe_render_ended", iframe.id);
+        },
+        { once: true }
       );
 
-      if (isUnsupportedBrowserRuntime) {
-        iframe.srcdoc = iframeContent;
-      } else {
-        iframe.src = iframeContent;
-
-        const originalCleanup = iframe.cleanup;
-        iframe.cleanup = () => {
-          if (originalCleanup) {
-            originalCleanup();
-          }
-          URL.revokeObjectURL(iframeContent);
-        };
-      }
-
-      iframe.addEventListener('load', () => {
-        observeIframeContent(iframe);
-        eventSource.emitAndWait('message_iframe_render_ended', iframe.id);
-      });
-
       eventSource.emitAndWait('message_iframe_render_started', iframe.id);
-      codeElement.replaceWith(iframe);
+      codeElement.replaceWith(fragment);
     });
 
     renderedMessages.push(messageId);
@@ -530,6 +527,7 @@ async function renderMessagesInIframes(
     )},已取消渲染的消息ID: ${messagesToCancelIds.join(", ")}`
   );
 }
+
 
 function destroyIframe(iframe) {
   return new Promise((resolve) => {
@@ -549,24 +547,12 @@ function destroyIframe(iframe) {
     let isResolved = false;
     const timeoutDuration = 3000;
 
-    if (isUnsupportedBrowserRuntime) {
-      iframe.srcdoc = '';
-      if (iframe.parentNode) {
-        iframe.remove();
-      }
-      resolve();
-      return;
-    }
-
-    const emptyBlob = new Blob([''], { type: 'text/html' });
-    const emptyBlobUrl = URL.createObjectURL(emptyBlob);
-
-    iframe.src = emptyBlobUrl;
+    iframe.srcdoc = '';
+    iframe.src = 'about:blank';
 
     const cleanup = () => {
       if (!isResolved) {
         clearTimeout(timeout);
-        URL.revokeObjectURL(emptyBlobUrl);
         if (iframe.parentNode) {
           iframe.remove();
         }
@@ -578,18 +564,11 @@ function destroyIframe(iframe) {
     const timeout = setTimeout(cleanup, timeoutDuration);
     iframe.onload = cleanup;
 
-    if (iframe.src === emptyBlobUrl) {
+    if (iframe.src === 'about:blank' && !iframe.srcdoc) {
       cleanup();
     }
   });
 }
-
-window.addEventListener("message", function (event) {
-  if (event.data === "domContentLoaded") {
-    const iframe = event.source.frameElement;
-    adjustIframeHeight(iframe);
-  }
-});
 
 function handleTampermonkeyMessages(event) {
   if (event.data.type === "buttonClick") {
@@ -900,7 +879,7 @@ async function onExtensionToggle() {
   extension_settings[extensionName].activate_setting = isEnabled;
   if (isEnabled) {
     script_url.set(iframe_client);
-    script_url.set(adjust_size_script);
+    script_url.set(viewport_adjust_script);
     script_url.set(tampermonkey_script);
 
     script_load_events.forEach((eventType) => {
@@ -933,7 +912,7 @@ async function onExtensionToggle() {
     });
   } else {
     script_url.delete(iframe_client);
-    script_url.delete(adjust_size_script);
+    script_url.delete(viewport_adjust_script);
     script_url.delete(tampermonkey_script);
 
     script_load_events.forEach((eventType) => {
@@ -1912,6 +1891,43 @@ function initializeProgressBar(type) {
     }
   });
 }
+
+function injectLoadingStyles() {
+  if (document.getElementById('iframe-loading-styles')) return;
+
+  const styleSheet = document.createElement('style');
+  styleSheet.id = 'iframe-loading-styles';
+  styleSheet.textContent = `
+    .iframe-loading-overlay{
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background:rgba(0,0,0,.7);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      z-index:1000;
+      transition:opacity .3s ease
+    }
+    .iframe-loading-content{
+      color:#fff;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:16px
+    }
+    .iframe-loading-content i{
+      font-size:20px
+    }
+    .loading-text {
+      transition: opacity 0.3s ease;
+    }`;
+
+  document.head.appendChild(styleSheet);
+}
+
 jQuery(async () => {
   const getContainer = () =>
     $(
@@ -1924,7 +1940,6 @@ jQuery(async () => {
   );
   getContainer().append(windowHtml);
   loadSettings();
-  isUnsupportedBrowserRuntime = await IS_UNSUPPORTED_BROWSER;
   const buttonHtml = $(`
   <div id="js_slash_runner_container" class="list-group-item flex-container flexGap5 interactable">
       <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
@@ -2372,6 +2387,8 @@ jQuery(async () => {
       updateIframeViewportHeight();
     }
   });
+
+  injectLoadingStyles();
 });
 
 async function toggleAudioMode(args) {
