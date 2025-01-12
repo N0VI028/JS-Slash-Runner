@@ -1,10 +1,24 @@
 # 使用方法
 
-**更建议你采用 [基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)** 然后直接去看配置好后得到的 iframe_client 文件夹和 slash_command.txt 文件. **(也可以将它们发给 ai, 让 ai 理解来写, 这些链接里都有提示.)**
-
-:alert: 页面右上角有目录可以用.
+页面右上角有目录可以用.
 
 ![目录](README_usage_目录.png)
+
+## 编写前端助手角色卡的推荐方案
+
+### Cursor
+
+如果你在电脑上写卡, **推荐安装 Cursor 来编写**, 参考[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html).
+
+配置好后, iframe_client 文件夹和 slash_command.txt 文件中即分别记录了前端助手的功能和酒馆最新版本的所有 slash command. 你可以将它们发给 ai, 让 ai 来写, **具体在上面的配置文档中有提示.**
+
+### html 工具角色卡
+
+如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: https://discord.com/channels/1134557553011998840/1279910607348564079
+
+但要注意它世界书中对前端助手和 slash command 的提示词是复制粘贴的, 因而在之后如果前端助手或酒馆更新, 则提示词不会涵盖更新内容.
+- 如果前端助手更新, 你可以通过复制本文件列出的所有内容到对应条目中来更新提示词.
+- 如果酒馆更新, 你可以通过复制 [slash_command.txt](https://gitgud.io/SmilingFace/tavern_resource/-/blob/main/%E5%B7%A5%E5%85%B7%E7%BB%8F%E9%AA%8C/frontend_writer/slash_command.txt?ref_type=heads) 中的内容到对应条目中来更新提示词.
 
 ## 在哪使用?
 
