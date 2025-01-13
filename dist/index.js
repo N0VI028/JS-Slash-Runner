@@ -453,10 +453,10 @@ function createGlobalAudioManager() {
 }
 function adjustIframeHeight(iframe) {
     const doc = iframe.contentWindow.document;
-    const newHeight = doc.documentElement.scrollHeight;
+    const newHeight = doc.documentElement.offsetHeight;
     const currentHeight = parseFloat(iframe.style.height) || 0;
     if (Math.abs(currentHeight - newHeight) > 1) {
-        iframe.style.height = newHeight + 6 + "px";
+        iframe.style.height = newHeight + "px";
     }
 }
 function observeIframeContent(iframe) {
