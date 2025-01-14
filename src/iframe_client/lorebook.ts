@@ -213,6 +213,10 @@ interface LorebookEntry {
   delay: number | null;
 }
 
+type LorebookEntry_Partial = Partial<LorebookEntry>;
+type LorebookEntry_Partial_OmitUid = Omit<LorebookEntry_Partial, "uid">;
+type LorebookEntry_Partial_RequireUid = Pick<LorebookEntry, "uid"> & LorebookEntry_Partial_OmitUid;
+
 interface getLorebookEntriesOption {
   filter?: 'none' | Partial<LorebookEntry>;  // 按照指定字段值筛选条目, 如 `{position: 'at_depth_as_system'}` 表示仅获取处于 @D⚙ 的条目; 默认为不进行筛选. 由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
   fields?: 'all' | (keyof LorebookEntry)[];  // 指定要获取世界书条目哪些字段, 如 `['uid', 'comment', 'content']` 表示仅获取这三个字段; 默认为获取全部字段.
@@ -231,7 +235,7 @@ interface getLorebookEntriesOption {
  * @returns 一个数组, 元素是各条目信息.
  *   - 如果使用了 `fields` 指定获取哪些字段, 则数组元素只具有那些字段.
  *   - 如果使用了 `filter` 筛选条目, 则数组只会包含满足要求的元素.
- *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as PartialLorebookEntryWithUid[]`.
+ *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as LorebookEntry_Partial_RequireUid[]`.
  *
  * @example
  * // 获取世界书中所有条目的所有信息
@@ -254,7 +258,7 @@ interface getLorebookEntriesOption {
  * // 筛选后仅获取世界书的 uid
  * const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}, fields: ["uid"]})
  */
-function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]> {
+function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption = {}): Promise<LorebookEntry_Partial[]> {
   option = {
     filter: option.filter ?? 'none',
     fields: option.fields ?? 'all',
@@ -306,14 +310,14 @@ function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption =
  * setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
  *
  * // 也就是说, 其实我们获取 `uid` 字段就够了
- * const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as PartialLorebookEntryWithUid[];
+ * const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as LorebookEntry_Partial_RequireUid[];
  * setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
  *
  * // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
  * const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
  * setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
  */
-function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void {
+function setLorebookEntries(lorebook: string, entries: LorebookEntry_Partial_RequireUid[]): void {
   window.parent.postMessage({
     request: "iframe_set_lorebook_entries",
     lorebook: lorebook,
@@ -332,7 +336,7 @@ function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid
  * @example
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
-function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<string> {
+function createLorebookEntry(lorebook: string, field_values: LorebookEntry_Partial_OmitUid): Promise<string> {
   return new Promise((resolve, _) => {
     const uid = Date.now() + Math.random();
     function handleMessage(event: MessageEvent) {
