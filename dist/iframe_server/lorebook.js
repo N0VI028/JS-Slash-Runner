@@ -3,7 +3,7 @@ import { characters, this_chid } from "../../../../../../script.js";
 // @ts-ignore
 import { groups, selected_group } from "../../../../../group-chats.js";
 import { getTagsList } from "../../../../../tags.js";
-import { equalsIgnoreCaseAndAccents, getCharaFilename, onlyUnique } from "../../../../../utils.js";
+import { equalsIgnoreCaseAndAccents, getCharaFilename, onlyUnique, debounce } from "../../../../../utils.js";
 import { createNewWorldInfo, createWorldInfoEntry, deleteWIOriginalDataValue, deleteWorldInfo, getWorldInfoSettings, loadWorldInfo, originalWIDataKeyMap, saveWorldInfo, setWIOriginalDataValue, world_info, world_names } from "../../../../../world-info.js";
 // TODO: don't repeat this in all files
 function getIframeName(event) {
@@ -147,13 +147,14 @@ function assignFieldValuesToWiEntry(data, wi_entry, field_values) {
         }
     });
 }
-function reload_editor(file, load_if_not_selected = false) {
+function reloadEditor(file) {
     const currentIndex = Number($('#world_editor_select').val());
     const selectedIndex = world_names.indexOf(file);
-    if (selectedIndex !== -1 && (load_if_not_selected || currentIndex === selectedIndex)) {
+    if (selectedIndex !== -1 && currentIndex === selectedIndex) {
         $('#world_editor_select').val(selectedIndex).trigger('change');
     }
 }
+const reloadEditorDebounced = debounce(reloadEditor);
 const event_handlers = {
     iframe_get_lorebook_settings: async (event) => {
         const iframe_name = getIframeName(event);
@@ -286,7 +287,7 @@ const event_handlers = {
         };
         await Promise.all(entries.map(process_entry));
         await saveWorldInfo(lorebook, data);
-        reload_editor(lorebook);
+        reloadEditorDebounced(lorebook);
         console.info(`[Lorebook][setLorebookEntries](${iframe_name}) 修改世界书 '${lorebook}' 中以下条目的以下字段: ${JSON.stringify(entries)}`);
     },
     iframe_create_lorebook_entry: async (event) => {
@@ -305,7 +306,7 @@ const event_handlers = {
             result: wi_entry.uid,
         }, { targetOrigin: "*" });
         await saveWorldInfo(lorebook, data);
-        reload_editor(lorebook);
+        reloadEditorDebounced(lorebook);
         console.info(`[Lorebook][createLorebookEntry](${iframe_name}) 在世界书 '${lorebook}' 中新建 uid='${wi_entry.uid}' 条目, 并设置内容: ${JSON.stringify(field_values)}`);
     },
     iframe_delete_lorebook_entry: async (event) => {
@@ -331,7 +332,7 @@ const event_handlers = {
             // @ts-ignore 2345
             deleteWIOriginalDataValue(data, lorebook_uid);
             await saveWorldInfo(lorebook, data);
-            reload_editor(lorebook);
+            reloadEditorDebounced(lorebook);
         }
         console.info(`[Lorebook][deleteLorebookEntry](${iframe_name}) 删除世界书 '${lorebook}' 中的 uid='${lorebook_uid}' 条目${deleted ? '成功' : '失败'}`);
     },
