@@ -258,7 +258,7 @@ interface getLorebookEntriesOption {
  * // 筛选后仅获取世界书的 uid
  * const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}, fields: ["uid"]})
  */
-function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]> {
+function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption = {}): Promise<LorebookEntry_Partial[]> {
   option = {
     filter: option.filter ?? 'none',
     fields: option.fields ?? 'all',
@@ -317,7 +317,7 @@ function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption =
  * const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
  * setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
  */
-function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void {
+function setLorebookEntries(lorebook: string, entries: LorebookEntry_Partial_RequireUid[]): void {
   window.parent.postMessage({
     request: "iframe_set_lorebook_entries",
     lorebook: lorebook,
@@ -336,7 +336,7 @@ function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid
  * @example
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
-function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<string> {
+function createLorebookEntry(lorebook: string, field_values: LorebookEntry_Partial_OmitUid): Promise<string> {
   return new Promise((resolve, _) => {
     const uid = Date.now() + Math.random();
     function handleMessage(event: MessageEvent) {
