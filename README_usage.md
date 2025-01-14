@@ -494,7 +494,8 @@ function deleteLorebook(lorebook: string): Promise<boolean>
 
 ```typescript
 interface LorebookEntry {
-  uid: number;  // uid 是相对于世界书内部的, 不要跨世界书使用
+  uid: number;            // uid 是相对于世界书内部的, 不要跨世界书使用
+  display_index: number;  // 酒馆中将排序设置为 "自定义" 时的显示顺序
 
   comment: string;
   enabled: boolean;

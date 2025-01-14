@@ -30,6 +30,7 @@ function toLorebookSettings(world_info_settings) {
 function toLorebookEntry(entry) {
     return {
         uid: entry.uid,
+        display_index: entry.displayIndex,
         comment: entry.comment,
         enabled: !entry.disable,
         type: entry.constant ? 'constant' : (entry.vectorized ? 'vectorized' : 'selective'),
@@ -71,6 +72,7 @@ function toLorebookEntry(entry) {
 function fromPartialLorebookEntry(entry) {
     const transformers = {
         uid: (value) => ({ uid: value }),
+        display_index: (value) => ({ displayIndex: value }),
         comment: (value) => ({ comment: value }),
         enabled: (value) => ({ disable: !value }),
         type: (value) => ({
