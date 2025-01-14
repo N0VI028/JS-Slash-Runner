@@ -10,20 +10,20 @@
  * @returns 当前的世界书全局设置
  */
 function getLorebookSettings() {
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_get_lorebook_settings_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_get_lorebook_settings",
-            uid: uid,
-        }, "*");
-    });
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_get_lorebook_settings_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_get_lorebook_settings",
+      uid: uid,
+    }, "*");
+  });
 }
 ;
 /**
@@ -36,25 +36,25 @@ function getLorebookSettings() {
  * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
  */
 function getCharLorebooks(option = {}) {
-    option = {
-        name: option.name,
-        type: option.type ?? 'all'
-    };
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_get_char_lorebooks_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_get_char_lorebooks",
-            uid: uid,
-            option: option,
-        }, "*");
-    });
+  option = {
+    name: option.name,
+    type: option.type ?? 'all'
+  };
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_get_char_lorebooks_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_get_char_lorebooks",
+      uid: uid,
+      option: option,
+    }, "*");
+  });
 }
 /**
  * 获取当前角色卡绑定的主要世界书
@@ -62,7 +62,7 @@ function getCharLorebooks(option = {}) {
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 function getCurrentCharPrimaryLorebook() {
-    return getCharLorebooks({ type: 'primary' }).then(lorebooks => lorebooks[0]);
+  return getCharLorebooks({ type: 'primary' }).then(lorebooks => lorebooks[0]);
 }
 /**
  * 获取或创建当前聊天绑定的世界书
@@ -70,7 +70,7 @@ function getCurrentCharPrimaryLorebook() {
  * @returns 聊天世界书的名称
  */
 function getOrCreateChatLorebook() {
-    return triggerSlashWithResult("/getchatbook");
+  return triggerSlashWithResult("/getchatbook");
 }
 /**
  * 获取世界书列表
@@ -78,20 +78,20 @@ function getOrCreateChatLorebook() {
  * @returns 世界书名称列表
  */
 function getLorebooks() {
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_get_lorebooks_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_get_lorebooks",
-            uid: uid,
-        }, "*");
-    });
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_get_lorebooks_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_get_lorebooks",
+      uid: uid,
+    }, "*");
+  });
 }
 /**
  * 新建世界书
@@ -101,21 +101,21 @@ function getLorebooks() {
  * @returns 是否成功创建, 如果已经存在同名世界书会失败
  */
 function createLorebook(lorebook) {
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_create_lorebook_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_create_lorebook",
-            uid: uid,
-            lorebook: lorebook,
-        }, "*");
-    });
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_create_lorebook_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_create_lorebook",
+      uid: uid,
+      lorebook: lorebook,
+    }, "*");
+  });
 }
 /**
  * 删除世界书
@@ -124,21 +124,21 @@ function createLorebook(lorebook) {
  * @returns 是否成功删除, 可能因世界书不存在等原因而失败
  */
 function deleteLorebook(lorebook) {
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_delete_lorebook_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_delete_lorebook",
-            uid: uid,
-            lorebook: lorebook,
-        }, "*");
-    });
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_delete_lorebook_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_delete_lorebook",
+      uid: uid,
+      lorebook: lorebook,
+    }, "*");
+  });
 }
 ;
 /**
@@ -154,7 +154,7 @@ function deleteLorebook(lorebook) {
  * @returns 一个数组, 元素是各条目信息.
  *   - 如果使用了 `fields` 指定获取哪些字段, 则数组元素只具有那些字段.
  *   - 如果使用了 `filter` 筛选条目, 则数组只会包含满足要求的元素.
- *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as PartialLorebookEntryWithUid[]`.
+ *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as LorebookEntry_Partial_RequireUid[]`.
  *
  * @example
  * // 获取世界书中所有条目的所有信息
@@ -178,26 +178,26 @@ function deleteLorebook(lorebook) {
  * const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}, fields: ["uid"]})
  */
 function getLorebookEntries(lorebook, option = {}) {
-    option = {
-        filter: option.filter ?? 'none',
-        fields: option.fields ?? 'all',
-    };
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_get_lorebook_entries_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_get_lorebook_entries",
-            uid: uid,
-            lorebook: lorebook,
-            option: option,
-        }, "*");
-    });
+  option = {
+    filter: option.filter ?? 'none',
+    fields: option.fields ?? 'all',
+  };
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_get_lorebook_entries_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_get_lorebook_entries",
+      uid: uid,
+      lorebook: lorebook,
+      option: option,
+    }, "*");
+  });
 }
 /**
  * 将条目信息修改回对应的世界书中, 如果某个字段不存在, 则该字段采用原来的值.
@@ -228,7 +228,7 @@ function getLorebookEntries(lorebook, option = {}) {
  * setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
  *
  * // 也就是说, 其实我们获取 `uid` 字段就够了
- * const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as PartialLorebookEntryWithUid[];
+ * const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as LorebookEntry_Partial_RequireUid[];
  * setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
  *
  * // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
@@ -236,11 +236,11 @@ function getLorebookEntries(lorebook, option = {}) {
  * setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
  */
 function setLorebookEntries(lorebook, entries) {
-    window.parent.postMessage({
-        request: "iframe_set_lorebook_entries",
-        lorebook: lorebook,
-        entries: entries,
-    }, "*");
+  window.parent.postMessage({
+    request: "iframe_set_lorebook_entries",
+    lorebook: lorebook,
+    entries: entries,
+  }, "*");
 }
 /**
  * 向世界书中新增一个条目
@@ -254,22 +254,22 @@ function setLorebookEntries(lorebook, entries) {
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
 function createLorebookEntry(lorebook, field_values) {
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_create_lorebook_entry_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_create_lorebook_entry",
-            uid: uid,
-            lorebook: lorebook,
-            field_values: field_values,
-        }, "*");
-    });
+  return new Promise((resolve, _) => {
+    const uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_create_lorebook_entry_callback" && event.data.uid == uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_create_lorebook_entry",
+      uid: uid,
+      lorebook: lorebook,
+      field_values: field_values,
+    }, "*");
+  });
 }
 /**
  * 删除世界书中的某个条目
@@ -280,21 +280,21 @@ function createLorebookEntry(lorebook, field_values) {
  * @returns 是否成功删除, 可能因世界书不存在、对应条目不存在等原因失败
  */
 function deleteLorebookEntry(lorebook, uid) {
-    return new Promise((resolve, _) => {
-        const request_uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_delete_lorebook_entry_callback" && event.data.uid == request_uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_delete_lorebook_entry",
-            uid: request_uid,
-            lorebook: lorebook,
-            lorebook_uid: uid,
-        }, "*");
-    });
+  return new Promise((resolve, _) => {
+    const request_uid = Date.now() + Math.random();
+    function handleMessage(event) {
+      if (event.data?.request === "iframe_delete_lorebook_entry_callback" && event.data.uid == request_uid) {
+        window.removeEventListener("message", handleMessage);
+        resolve(event.data.result);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage({
+      request: "iframe_delete_lorebook_entry",
+      uid: request_uid,
+      lorebook: lorebook,
+      lorebook_uid: uid,
+    }, "*");
+  });
 }
 //# sourceMappingURL=lorebook.js.map
