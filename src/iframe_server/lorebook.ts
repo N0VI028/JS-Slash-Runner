@@ -93,6 +93,7 @@ function toLorebookSettings(world_info_settings: ReturnType<typeof getWorldInfoS
 function toLorebookEntry(entry: any): LorebookEntry {
   return {
     uid: entry.uid,
+    display_index: entry.displayIndex,
     comment: entry.comment,
     enabled: !entry.disable,
     type: entry.constant ? 'constant' : (entry.vectorized ? 'vectorized' : 'selective'),
@@ -140,6 +141,7 @@ function toLorebookEntry(entry: any): LorebookEntry {
 function fromPartialLorebookEntry(entry: Partial<LorebookEntry>): any {
   const transformers = {
     uid: (value: LorebookEntry['uid']) => ({ uid: value }),
+    display_index: (value: LorebookEntry['display_index']) => ({ displayIndex: value }),
 
     comment: (value: LorebookEntry['comment']) => ({ comment: value }),
     enabled: (value: LorebookEntry['enabled']) => ({ disable: !value }),
