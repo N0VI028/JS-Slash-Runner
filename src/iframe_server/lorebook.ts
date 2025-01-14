@@ -1,10 +1,11 @@
 export { handleLorebook }
 
 import { characters, this_chid } from "../../../../../../script.js";
+import { lodash } from "../../../../../../lib.js";
 // @ts-ignore
 import { groups, selected_group } from "../../../../../group-chats.js";
 import { getTagsList } from "../../../../../tags.js";
-import { equalsIgnoreCaseAndAccents, getCharaFilename, onlyUnique, debounce } from "../../../../../utils.js";
+import { equalsIgnoreCaseAndAccents, getCharaFilename, debounce } from "../../../../../utils.js";
 import { createNewWorldInfo, createWorldInfoEntry, deleteWIOriginalDataValue, deleteWorldInfo, getWorldInfoSettings, loadWorldInfo, originalWIDataKeyMap, saveWorldInfo, setWIOriginalDataValue, world_info, world_names } from "../../../../../world-info.js";
 
 interface IframeGetLorebookSettings {
@@ -286,7 +287,7 @@ const event_handlers = {
     (event.source as MessageEventSource).postMessage({
       request: 'iframe_get_char_lorebooks_callback',
       uid: uid,
-      result: books.filter(onlyUnique),
+      result: lodash.uniq(books),
     },
       { targetOrigin: "*" }
     );
