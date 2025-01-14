@@ -407,7 +407,7 @@ const event_handlers = {
     await saveWorldInfo(lorebook, data);
     reload_editor(lorebook);
 
-    console.info(`[Lorebook][setLorebookEntries](${iframe_name}) 修改世界书 '${lorebook}' 中以下条目的一些字段: ${JSON.stringify(entries)}`);
+    console.info(`[Lorebook][setLorebookEntries](${iframe_name}) 修改世界书 '${lorebook}' 中以下条目的以下字段: ${JSON.stringify(entries)}`);
   },
 
   iframe_create_lorebook_entry: async (event: MessageEvent<IframeCreateLorebookEntry>): Promise<void> => {
