@@ -217,7 +217,7 @@ type LorebookEntry_Partial = Partial<LorebookEntry>;
 type LorebookEntry_Partial_OmitUid = Omit<LorebookEntry_Partial, "uid">;
 type LorebookEntry_Partial_RequireUid = Pick<LorebookEntry, "uid"> & LorebookEntry_Partial_OmitUid;
 
-interface getLorebookEntriesOption {
+interface GetLorebookEntriesOption {
   filter?: 'none' | Partial<LorebookEntry>;  // 按照指定字段值筛选条目, 如 `{position: 'at_depth_as_system'}` 表示仅获取处于 @D⚙ 的条目; 默认为不进行筛选. 由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
   fields?: 'all' | (keyof LorebookEntry)[];  // 指定要获取世界书条目哪些字段, 如 `['uid', 'comment', 'content']` 表示仅获取这三个字段; 默认为获取全部字段.
 };
@@ -258,11 +258,11 @@ interface getLorebookEntriesOption {
  * // 筛选后仅获取世界书的 uid
  * const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}, fields: ["uid"]})
  */
-function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption = {}): Promise<LorebookEntry_Partial[]> {
+function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOption = {}): Promise<LorebookEntry_Partial[]> {
   option = {
     filter: option.filter ?? 'none',
     fields: option.fields ?? 'all',
-  } as Required<getLorebookEntriesOption>;
+  } as Required<GetLorebookEntriesOption>;
   return new Promise((resolve, _) => {
     const uid = Date.now() + Math.random();
     function handleMessage(event: MessageEvent) {
