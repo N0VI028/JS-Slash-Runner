@@ -39,7 +39,7 @@ interface IframeGetLorebookEntries {
   request: "iframe_get_lorebook_entries";
   uid: string;
   lorebook: string;
-  option: Required<getLorebookEntriesOption>;
+  option: Required<GetLorebookEntriesOption>;
 }
 
 interface IframeSetLorebookEntries {

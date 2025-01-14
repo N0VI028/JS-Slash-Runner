@@ -542,7 +542,7 @@ interface LorebookEntry {
 #### 获取世界书中的条目信息
 
 ```typescript
-interface getLorebookEntriesOption {
+interface GetLorebookEntriesOption {
   filter?: 'none' | Partial<LorebookEntry>;  // 按照指定字段值筛选条目, 如 `{position: 'at_depth_as_system'}` 表示仅获取处于 @D⚙ 的条目; 默认为不进行筛选. 由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
   fields?: 'all' | (keyof LorebookEntry)[];  // 指定要获取世界书条目哪些字段, 如 `['uid', 'comment', 'content']` 表示仅获取这三个字段; 默认为获取全部字段.
 };
@@ -562,7 +562,7 @@ interface getLorebookEntriesOption {
  *   - 如果使用了 `filter` 筛选条目, 则数组只会包含满足要求的元素.
  *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as LorebookEntry_Partial_RequireUid[]`.
  */
-function getLorebookEntries(lorebook: string, option: getLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]>
+function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]>
 ```
 
 示例:
