@@ -19,6 +19,7 @@ import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { handleEvent } from "./iframe_server/event.js";
 import { handleLorebook } from "./iframe_server/lorebook.js";
 import { handleRegexData } from "./iframe_server/regex_data.js";
+import { handleVariables, latest_set_variables_message_id } from "./iframe_server/variables.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized, } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
@@ -340,6 +341,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
                 `.user_avatar{background-image:url('${avatarPath}')}`,
                 '</style>',
                 '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>',
+                '<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>',
                 `<script src="${script_url.get(iframe_client)}"></script>`,
                 '</head><body>',
                 extractedText,
@@ -493,7 +495,6 @@ function extractTextFromCode(codeElement) {
     });
     return textContent;
 }
-let latestSetVariablesMesId = null;
 async function handleIframeCommand(event) {
     if (event.data) {
         if (event.data.request === "command") {
@@ -519,60 +520,6 @@ async function handleIframeCommand(event) {
                 }, "*");
             }
         }
-        else if (event.data.request === "getVariables") {
-            if (!chat_metadata.variables) {
-                chat_metadata.variables = {};
-            }
-            const variables = chat_metadata?.variables || {};
-            for (const key in variables) {
-                if (variables.hasOwnProperty(key) &&
-                    typeof variables[key] === "string") {
-                    try {
-                        const parsedValue = JSON.parse(variables[key]);
-                        if (Array.isArray(parsedValue)) {
-                            variables[key] = parsedValue;
-                        }
-                    }
-                    catch (e) { }
-                }
-            }
-            event.source.postMessage({ variables: variables }, "*");
-        }
-        else if (event.data.request === "setVariables") {
-            const newVariables = event.data.variables;
-            const mesId = event.data.message_id;
-            if (isNaN(mesId)) {
-                return;
-            }
-            const chatLength = getContext().chat.length;
-            const latestMesId = chatLength - 1;
-            if (mesId !== latestMesId) {
-                return;
-            }
-            latestSetVariablesMesId = mesId;
-            if (!chat_metadata.variables ||
-                typeof chat_metadata.variables !== "object") {
-                chat_metadata.variables = {};
-            }
-            if (!chat_metadata.variables.tempVariables ||
-                typeof chat_metadata.variables.tempVariables !== "object") {
-                chat_metadata.variables.tempVariables = {};
-            }
-            if (newVariables.hasOwnProperty("tempVariables")) {
-                delete newVariables.tempVariables;
-            }
-            const tempVariables = chat_metadata.variables.tempVariables;
-            const currentVariables = chat_metadata.variables;
-            Object.keys(newVariables).forEach((key) => {
-                const newValue = newVariables[key];
-                const currentValue = currentVariables[key];
-                if (newValue !== currentValue) {
-                    tempVariables[key] = newValue;
-                }
-            });
-            chat_metadata.variables.tempVariables = tempVariables;
-            saveMetadataDebounced();
-        }
     }
 }
 function clearTempVariables() {
@@ -590,11 +537,11 @@ function onMessageRendered(eventMesId) {
         Object.keys(chat_metadata.variables.tempVariables).length === 0) {
         return;
     }
-    if (eventMesId === latestSetVariablesMesId) {
+    if (eventMesId === latest_set_variables_message_id) {
         console.log("[Var]MesId matches the latest setVariables, skipping ST variable update.");
         return;
     }
-    else if (eventMesId > latestSetVariablesMesId) {
+    else if (eventMesId > latest_set_variables_message_id) {
         console.log("[Var]Event mesId is newer than setVariables mesId, updating ST variables.");
         const newVariables = { ...chat_metadata.variables.tempVariables };
         updateVariables(newVariables);
@@ -680,6 +627,7 @@ async function onExtensionToggle() {
         window.addEventListener("message", handleEvent);
         window.addEventListener("message", handleLorebook);
         window.addEventListener("message", handleRegexData);
+        window.addEventListener("message", handleVariables);
         fullRenderEvents.forEach((eventType) => {
             eventSource.on(eventType, handleFullRender);
         });
@@ -712,6 +660,7 @@ async function onExtensionToggle() {
         window.removeEventListener("message", handleEvent);
         window.removeEventListener("message", handleLorebook);
         window.removeEventListener("message", handleRegexData);
+        window.removeEventListener("message", handleVariables);
         fullRenderEvents.forEach((eventType) => {
             eventSource.removeListener(eventType, handleFullRender);
         });

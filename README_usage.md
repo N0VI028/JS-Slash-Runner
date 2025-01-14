@@ -91,6 +91,40 @@
 
 [基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)
 
+## 内置的第三方库
+
+### JQuery
+
+通过 JQuery, 你可以很方便地设置界面 DOM 元素.
+
+示例:
+
+```typescript
+// 向 body 末尾添加一个按钮, 按钮点击时弹出提示语 `hello!`
+$("body").append("<button onclick='alert(\"hello!\")'>点击我</button>");
+```
+
+### Lodash
+
+通过 Lodash, 你可以很方便地对 Array、Object 等类型进行操作.
+
+示例:
+
+```typescript
+// 对 Array 去重
+console.log(_.uniq([1, 3, 2, 3, 1, 4, 5, 4]));
+// => [1, 3, 2, 4, 5]
+```
+
+```typescript
+// 合并 Object
+const result = {a: 1, b: 2};
+const source = {b: 3, c: 4};
+_.merge(result, source);
+console.log(result);
+// => {a: 1, b: 3, c: 4}
+```
+
 ## 脚本代码功能
 
 ### Quick Reply 触发
@@ -136,72 +170,166 @@ const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
 
 ### 变量操作
 
-扩展提供了两个函数用于获取和设置 SillyTavern 中绑定到聊天的局部变量, 这两个函数分别是 `getVariables()` 和 `setVariables()`. 这些函数允许 `iframe` 中的脚本与主页面进行交互, 从而实现持久化的状态管理.
-
-#### `getVariables()`
+#### 获取变量表
 
 ```typescript
 /**
- * 获取所有聊天变量
+ * 获取变量表
  *
- * @returns 所有聊天变量
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
+ *
+ * @returns 变量表
  */
-async function getVariables(): Promise<Object> 
+function getVariables(option: VariableOption = {}): Promise<JsonObject>
 ```
 
 示例:
 
 ```typescript
-// 获取所有变量并弹窗输出结果
+// 获取所有聊天变量并弹窗输出结果
 const variables = await getVariables();
 alert(variables);
 ```
 
-#### `setVariables(message_id, new_or_updated_variables)`
-
-:alert: 这个函数是在事件监听功能之前制作的. 里面有很多隐含操作和条件, 所以实际使用可能会比较麻烦.
-**之后会在考虑兼容性的情况下更改该函数, 慎用!!!**
-目前的替代方法是直接使用 `triggerSlash("/setvar ...")` 或下面那样使用事件监听:
-
 ```typescript
-// 接收到消息时更新变量
-eventOn(tavern_events.MESSAGE_RECEIVED, updateVariables);
-
-function parseVariablesFromMessage(messages) { /*...*/ }
-
-function updateVariables(message_id) {
-  const variables = parseVariablesFromMessage(await getChatMessages(message_id));
-
-  triggerSlash(
-    Object.entries(variables)
-      .map(([key, value]) => `/setvar key=${key} "${value}"`)
-      .join("||"));
+// 获取所有全局变量
+const variables = await getVariables({type: 'global'});
+// 前端助手内置了 lodash 库, 你能用它做很多事, 比如查询某个变量是否存在
+if (_.has(variables, "神乐光.好感度")) {
+  /* ... */
 }
 ```
 
-函数本身:
+#### 替换变量表
 
 ```typescript
 /**
- * 如果 `message_id` 是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量
+ * 完全替换变量表为 `variables`
  *
- * @param message_id 要判定的 `message_id`
- * @param new_or_updated_variables 用于更新的变量
- * @enum
- * - 如果该变量已经存在, 则更新值
- * - 如果不存在, 则新增变量
+ * 之所以提供这么直接的函数, 是因为前端助手内置了 lodash 库:
+ * `insertOrAssignVariables` 等函数其实就是先 `getVariables` 获取变量表, 用 lodash 库处理, 再 `replaceVariables` 替换变量表.
+ *
+ * @param variables 要用于替换的变量表
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  */
-function setVariables(message_id: number, new_or_updated_variables: Object): void
+function replaceVariables(variables: JsonObject, option: VariableOption = {}): void
 ```
 
 示例:
 
 ```typescript
-const variables = {value: 5, data: 7};
-setVariables(0, variabels);
+// 执行前的聊天变量: `{爱城华恋: {好感度: 5}}`
+replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
+// 执行后的聊天变量: `{神乐光: {好感度: 5, 认知度: 0}}`
 ```
 
-现在用酒馆监听控制怎么更新会更为直观 (?) 和自由:
+```typescript
+// 删除 `{神乐光: {好感度: 5}}` 变量
+let variables = await getVariables();
+_.unset(variables, "神乐光.好感度");
+replaceVariables(variables);
+```
+
+#### 用一个函数更新变量表
+
+```typescript
+/**
+ * 用 `updater` 函数更新变量表
+ *
+ * @param updater 用于更新变量表的函数. 它应该接收变量表作为参数, 并返回更新后的变量表.
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
+ *
+ * @returns 更新后的变量表
+ */
+async function updateVariablesWith(updater: (variables: JsonObject) => JsonObject, option: VariableOption = {}): Promise<JsonObject>
+```
+
+示例:
+
+```typescript
+// 删除 `{神乐光: {好感度: 5}}` 变量
+await updateVariablesWith(variables => {_.unset(variables, "神乐光.好感度"); return variables;});
+```
+
+```typescript
+// 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
+await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
+```
+
+通过 `updateVariablesWith` 函数预制的函数:
+
+##### 插入或修改变量值
+
+```typescript
+/**
+ * 插入或修改变量值, 取决于变量是否存在.
+ *
+ * @param variables 要更新的变量
+ *   - 如果变量不存在, 则新增该变量
+ *   - 如果变量已经存在, 则修改该变量的值
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 聊天变量或全局变量, 默认为聊天变量 'chat'
+ *
+ * @example
+ * // 执行前变量: `{爱城华恋: {好感度: 5}}`
+ * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
+ * // 执行后变量: `{爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}`
+ */
+async function insertOrAssignVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
+  await updateVariablesWith(old_variables => _.merge(old_variables, variables), option);
+}
+```
+
+##### 插入新变量
+
+```typescript
+/**
+ * 插入新变量, 如果变量已经存在则什么也不做
+ *
+ * @param variables 要插入的变量
+ *   - 如果变量不存在, 则新增该变量
+ *   - 如果变量已经存在, 则什么也不做
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 聊天变量或全局变量, 默认为聊天变量 'chat'
+ *
+ * @example
+ * // 执行前变量: `{爱城华恋: {好感度: 5}}`
+ * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
+ * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
+ */
+async function insertVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
+  await updateVariablesWith(old_variables => _.defaultsDeep(old_variables, variables), option);
+}
+```
+
+##### 删除变量
+
+```typescript
+/**
+ * 删除变量, 如果变量不存在则什么也不做
+ *
+ * @param variable_path 要删除的变量路径
+ *   - 如果变量不存在, 则什么也不做
+ *   - 如果变量已经存在, 则删除该变量
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 聊天变量或全局变量, 默认为聊天变量 'chat'
+ *
+ * @returns 是否成功删除变量
+ *
+ * @example
+ * // 执行前变量: `{爱城华恋: {好感度: 5}}`
+ * await deleteVariable("爱城华恋.好感度");
+ * // 执行后变量: `{爱城华恋: {}}`
+ */
+async function deleteVariable(variable_path: string, option: VariableOption = {}): Promise<boolean> {
+  let result: boolean = false;
+  await updateVariablesWith(old_variables => { result = _.unset(old_variables, variable_path); return old_variables; }, option);
+  return result;
+}
+```
 
 ### 楼层消息操作
 

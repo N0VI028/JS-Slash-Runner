@@ -1,19 +1,5 @@
 import { SetMultimap } from "./multimap.js";
 
-export function partition<T>(array: T[], predicate: (item: T) => boolean): [T[], T[]] {
-  return array.reduce(
-    ([pass, fail], item) => {
-      if (predicate(item)) {
-        pass.push(item);
-      } else {
-        fail.push(item);
-      }
-      return [pass, fail];
-    },
-    [[], []] as [T[], T[]]
-  );
-}
-
 export function set_or_add<K1, K2, V>(map: Map<K1, SetMultimap<K2, V>>, k1: K1, k2: K2, v: V): boolean {
   if (map.has(k1)) {
     // @ts-ignore 2532
