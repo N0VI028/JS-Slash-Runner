@@ -1049,7 +1049,6 @@ function detectMessageEdited(message_id) {
 }
 
 // 酒馆事件 tavern_events.MESSAGE_UPDATED 会传递被更新的楼层 id
-//   但酒馆事件太多了, 我们还没整理出每个传什么, 你也许可以自己试试?
 tavernOn(tavern_events.MESSAGE_UPDATED, detectMessageEdited);
 ```
 
@@ -1125,7 +1124,6 @@ const tavern_events = {
   CHARACTER_DELETED: 'characterDeleted',
   CHARACTER_DUPLICATED: 'character_duplicated',
   /** @deprecated The event is aliased to STREAM_TOKEN_RECEIVED. */
-  SMOOTH_STREAM_TOKEN_RECEIVED: 'stream_token_received',
   STREAM_TOKEN_RECEIVED: 'stream_token_received',
   FILE_ATTACHMENT_DELETED: 'file_attachment_deleted',
   WORLDINFO_FORCE_ACTIVATE: 'worldinfo_force_activate',
@@ -1135,6 +1133,81 @@ const tavern_events = {
   CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',
   TOOL_CALLS_PERFORMED: 'tool_calls_performed',
   TOOL_CALLS_RENDERED: 'tool_calls_rendered',
+};
+```
+
+</details>
+
+<details>
+<summary> 查看事件发生时会发送的数据 </summary>
+
+```typescript
+type ListenerType = {
+  [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
+  [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
+  [tavern_events.APP_READY]: () => void;
+  [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
+  [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
+  [tavern_events.MESSAGE_RECEIVED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_EDITED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_DELETED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_UPDATED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_FILE_EMBEDDED]: (message_id: number) => void;
+  [tavern_events.IMPERSONATE_READY]: (message: string) => void;
+  [tavern_events.CHAT_CHANGED]: (chat_file_name: string) => void;
+  [tavern_events.GENERATION_AFTER_COMMANDS]: (type: string, option: { automatic_trigger?: boolean, force_name2?: boolean, quiet_prompt?: string, quietToLoud?: boolean, skipWIAN?: boolean, force_chid?: number, signal?: AbortSignal, quietImage?: string, quietName?: string, depth?: number }, dry_run: boolean) => void;
+  [tavern_events.GENERATION_STARTED]: (type: string, option: { automatic_trigger?: boolean, force_name2?: boolean, quiet_prompt?: string, quietToLoud?: boolean, skipWIAN?: boolean, force_chid?: number, signal?: AbortSignal, quietImage?: string, quietName?: string, depth?: number }, dry_run: boolean) => void;
+  [tavern_events.GENERATION_STOPPED]: () => void;
+  [tavern_events.GENERATION_ENDED]: (message_id: number) => void;
+  [tavern_events.EXTENSIONS_FIRST_LOAD]: () => void;
+  [tavern_events.EXTENSION_SETTINGS_LOADED]: () => void;
+  [tavern_events.SETTINGS_LOADED]: () => void;
+  [tavern_events.SETTINGS_UPDATED]: () => void;
+  [tavern_events.GROUP_UPDATED]: () => void;
+  [tavern_events.MOVABLE_PANELS_RESET]: () => void;
+  [tavern_events.SETTINGS_LOADED_BEFORE]: (settings: Object) => void;
+  [tavern_events.SETTINGS_LOADED_AFTER]: (settings: Object) => void;
+  [tavern_events.CHATCOMPLETION_SOURCE_CHANGED]: (source: string) => void;
+  [tavern_events.CHATCOMPLETION_MODEL_CHANGED]: (model: string) => void;
+  [tavern_events.OAI_PRESET_CHANGED_BEFORE]: (result: { preset: Object, presetName: string, settingsToUpdate: Object, settings: Object, savePreset: Function }) => void;
+  [tavern_events.OAI_PRESET_CHANGED_AFTER]: () => void;
+  [tavern_events.OAI_PRESET_EXPORT_READY]: (preset: Object) => void;
+  [tavern_events.OAI_PRESET_IMPORT_READY]: (result: { data: Object, presetName: string }) => void;
+  [tavern_events.WORLDINFO_SETTINGS_UPDATED]: () => void;
+  [tavern_events.WORLDINFO_UPDATED]: (name: string, data: Object) => void;
+  [tavern_events.CHARACTER_EDITED]: (result: { detail: { id: string, character: Object } }) => void;
+  [tavern_events.CHARACTER_PAGE_LOADED]: () => void;
+  [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_BEFORE]: (state: number) => void;
+  [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_AFTER]: (state: number) => void;
+  [tavern_events.USER_MESSAGE_RENDERED]: (message_id: string) => void;
+  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: string) => void;
+  [tavern_events.FORCE_SET_BACKGROUND]: (background: { url: string, path: string }) => void;
+  [tavern_events.CHAT_DELETED]: (chat_file_name: string) => void;
+  [tavern_events.CHAT_CREATED]: () => void;
+  [tavern_events.GROUP_CHAT_DELETED]: (chat_file_name: string) => void;
+  [tavern_events.GROUP_CHAT_CREATED]: () => void;
+  [tavern_events.GENERATE_BEFORE_COMBINE_PROMPTS]: () => void;
+  [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string, dryRun: boolean }) => void;
+  [tavern_events.GENERATE_AFTER_DATA]: (generate_data: Object) => void;
+  [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
+  [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
+  [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
+  [tavern_events.CHAT_COMPLETION_SETTINGS_READY]: (generate_data: Object) => void;
+  [tavern_events.CHAT_COMPLETION_PROMPT_READY]: (event_data: { chat: Object[], dryRun: boolean }) => void;
+  [tavern_events.CHARACTER_FIRST_MESSAGE_SELECTED]: (event_args: { input: string, output: string, character: Object }) => void;
+  [tavern_events.CHARACTER_DELETED]: (result: { id: string, character: Object }) => void;
+  [tavern_events.CHARACTER_DUPLICATED]: (result: { oldAvatar: string, newAvatar: string }) => void;
+  [tavern_events.STREAM_TOKEN_RECEIVED]: (text: string) => void;
+  [tavern_events.FILE_ATTACHMENT_DELETED]: (url: string) => void;
+  [tavern_events.WORLDINFO_FORCE_ACTIVATE]: (entries: Object[]) => void;
+  [tavern_events.OPEN_CHARACTER_LIBRARY]: () => void;
+  [tavern_events.ONLINE_STATUS_CHANGED]: () => void;
+  [tavern_events.IMAGE_SWIPED]: (result: { message: Object, element: JQuery<HTMLElement>, direction: 'left' | 'right' }) => void;
+  [tavern_events.CONNECTION_PROFILE_LOADED]: (profile_name: string) => void;
+  [tavern_events.TOOL_CALLS_PERFORMED]: (tool_invocations: Object[]) => void;
+  [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: Object[]) => void;
+  [custom_event: string]: Function;
 };
 ```
 
