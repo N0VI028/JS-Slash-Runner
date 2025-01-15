@@ -54,6 +54,7 @@ import {
 } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
+import { libraries_text, library_load_events, initializeLibraries } from "./library.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -479,6 +480,7 @@ async function renderMessagesInIframes(
           <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js" integrity="sha512-f/K0Q5lZ1SrdNdjc2BO2I5kTx8E5Uw1EU3PhSUB9fYPohap5rPWEmQRCjtpDxNmQB4/+MMI/Cf+nvh1VSiwrTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <script src="${script_url.get(iframe_client)}"></script>
+          ${libraries_text}
         </head>
         <body>
           ${extractedText}
@@ -829,9 +831,14 @@ async function onExtensionToggle() {
     script_url.set(viewport_adjust_script);
     script_url.set(tampermonkey_script);
 
+    library_load_events.forEach((eventType) => {
+      eventSource.on(eventType, initializeLibraries);
+    });
+
     script_load_events.forEach((eventType) => {
       eventSource.on(eventType, initializeScripts);
     });
+
     window.addEventListener("message", handleIframeCommand);
     window.addEventListener("message", handleChatMessage);
     window.addEventListener("message", handleEvent);
@@ -863,10 +870,16 @@ async function onExtensionToggle() {
     script_url.delete(viewport_adjust_script);
     script_url.delete(tampermonkey_script);
 
+    library_load_events.forEach((eventType) => {
+      eventSource.removeListener(eventType, initializeLibraries);
+    });
+    libraries_text = "";
+
     script_load_events.forEach((eventType) => {
       eventSource.removeListener(eventType, initializeScripts);
     });
     destroyScriptsIfInitialized();
+
     window.removeEventListener("message", handleIframeCommand);
     window.removeEventListener("message", handleChatMessage);
     window.removeEventListener("message", handleEvent);
