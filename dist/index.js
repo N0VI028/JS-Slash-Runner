@@ -23,6 +23,7 @@ import { handleVariables, latest_set_variables_message_id } from "./iframe_serve
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized, } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
+import { libraries_text, library_load_events, initializeLibraries } from "./library.js";
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
 const audioCache = {};
@@ -333,23 +334,30 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
             }
             wrapper.appendChild(iframe);
             fragment.appendChild(wrapper);
-            const srcdocContent = [
-                '<html><head>',
-                '<style>',
-                hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : '',
-                'html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}',
-                `.user_avatar{background-image:url('${avatarPath}')}`,
-                '</style>',
-                '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>',
-                '<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>',
-                `<script src="${script_url.get(iframe_client)}"></script>`,
-                '</head><body>',
-                extractedText,
-                hasMinVh ? `<script>${viewport_adjust_script}</script>` : '',
-                extension_settings[extensionName].tampermonkey_compatibility ?
-                    `<script src="${script_url.get(tampermonkey_script)}"></script>` : '',
-                '</body></html>'
-            ].join('');
+            const srcdocContent = `
+        <html>
+        <head>
+          <style>
+          ${hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : ``}
+          html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}
+          .user_avatar{background-image:url('${avatarPath}')}
+          </style>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js" integrity="sha512-MSOo1aY+3pXCOCdGAYoBZ6YGI0aragoQsg1mKKBHXCYPIWxamwOE7Drh+N5CPgGI5SA9IEKJiPjdfqWFWmZtRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css" integrity="sha512-TFee0335YRJoyiqz8hA8KV3P0tXa5CpRBSoM0Wnkn7JoJx1kaq1yXL/rb8YFpWXkMOjRcv5txv+C6UluttluCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js" integrity="sha512-f/K0Q5lZ1SrdNdjc2BO2I5kTx8E5Uw1EU3PhSUB9fYPohap5rPWEmQRCjtpDxNmQB4/+MMI/Cf+nvh1VSiwrTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <script src="${script_url.get(iframe_client)}"></script>
+          ${libraries_text}
+        </head>
+        <body>
+          ${extractedText}
+          ${hasMinVh ? `<script>${viewport_adjust_script}</script>` : ``}
+          ${extension_settings[extensionName].tampermonkey_compatibility ? `<script src="${script_url.get(tampermonkey_script)}"></script>` : ``}
+        </body>
+        </html>
+      `;
             iframe.srcdoc = srcdocContent;
             iframe.addEventListener("load", () => {
                 observeIframeContent(iframe);
@@ -619,6 +627,9 @@ async function onExtensionToggle() {
         script_url.set(iframe_client);
         script_url.set(viewport_adjust_script);
         script_url.set(tampermonkey_script);
+        library_load_events.forEach((eventType) => {
+            eventSource.on(eventType, initializeLibraries);
+        });
         script_load_events.forEach((eventType) => {
             eventSource.on(eventType, initializeScripts);
         });
@@ -651,6 +662,10 @@ async function onExtensionToggle() {
         script_url.delete(iframe_client);
         script_url.delete(viewport_adjust_script);
         script_url.delete(tampermonkey_script);
+        library_load_events.forEach((eventType) => {
+            eventSource.removeListener(eventType, initializeLibraries);
+        });
+        libraries_text = "";
         script_load_events.forEach((eventType) => {
             eventSource.removeListener(eventType, initializeScripts);
         });

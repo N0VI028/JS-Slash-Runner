@@ -17,6 +17,7 @@
 如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: https://discord.com/channels/1134557553011998840/1279910607348564079
 
 但要注意它世界书中对前端助手和 slash command 的提示词是复制粘贴的, 因而在之后如果前端助手或酒馆更新, 则提示词不会涵盖更新内容.
+
 - 如果前端助手更新, 你可以通过复制本文件列出的所有内容到对应条目中来更新提示词.
 - 如果酒馆更新, 你可以通过复制 [slash_command.txt](https://gitgud.io/SmilingFace/tavern_resource/-/blob/main/%E5%B7%A5%E5%85%B7%E7%BB%8F%E9%AA%8C/frontend_writer/slash_command.txt?ref_type=heads) 中的内容到对应条目中来更新提示词.
 
@@ -53,20 +54,22 @@
 ```
 ````
 
-**获取User头像**
+#### 获取 User 头像
 
-已设置为类，命名为`user_avatar`，使用方法如下：
+已设置为类, 命名为 `user_avatar`, 使用方法如下:
+
 ```html
-// 在你想要放入用户头像的地方设置类为user_avatar，此时容器的背景图片就会变为当前用户头像
+// 在你想要放入用户头像的地方设置类为 user_avatar, 此时容器的背景图片就会变为当前用户头像
 <div class="user_avatar"></div>
 ```
-只导入了图片链接`background-image: url('${avatarPath}');`，没有特意设置其他样式，具体的图片填充方式需使用者手动添加样式。
 
-如果在聊天中途更换了user角色，其显示逻辑与酒馆一致，会在新的楼层显示新的头像，如果想要将旧的楼层头像显示同步，需要点击用户面板的同步按钮。
+只导入了图片链接 `background-image: url('${avatarPath}');`, 没有特意设置其他样式, 具体的图片填充方式需使用者手动添加样式.
 
-**禁用加载动画**
+如果在聊天中途更换了 user 角色, 其显示逻辑与酒馆一致, 会在新的楼层显示新的头像; 如果想要将旧的楼层头像显示同步, 需要点击用户面板的同步按钮.
 
-界面代码任意位置输入`<!-- disable-default-loading -->`禁用内置的加载动画。例如：
+#### 禁用加载动画
+
+界面代码任意位置输入 `<!-- disable-default-loading -->` 禁用内置的加载动画. 例如:
 
 ```html
 <body>
@@ -85,44 +88,213 @@
 - 该脚本将会在切换聊天时被执行: 关闭聊天, 正则被开关或修改, 新建聊天, 切换角色卡... 总之玩家每次游玩的最开始时必然会触发该脚本. 具体什么时候执行很难说, **因此建议不要直接执行你要做的事情**, 而是用 [监听和发送事件](#监听和发送事件) 的方法来在某些事件发生时执行该脚本内容.
 - 为了加载效率, 多脚本的加载是同时进行的, 如果需要一个脚本后于另一个脚本加载, 你应该使用 [监听和发送事件](#监听和发送事件) 让那个脚本等待.
 - **不同正则下的脚本代码并不共享**, 如果非要拆分放在不同正则, 你需要使用 [监听和发送事件](#监听和发送事件) 进行通讯和数据传递.
-- 脚本虽然被写在正则中, 但实际并没有作为正则使用, 只是为了利用局部正则能和角色卡一起导出这一点, 因此正则的具体设置对于脚本并没有意义. 唯一支持的选项是开关正则来开关脚本.
+- 脚本虽然被写在正则中, 但实际并没有作为正则使用, 只是为了利用局部正则能和角色卡一起导出这一点, 因此正则的具体设置对于脚本并没有意义. 唯一支持的选项是开关正则来开关脚本, "在编辑时运行" 来无视开关强制启用脚本.
 
-## 怎么用最好?
+### 库
 
-[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html)
+在正则中新建一个 `库-你想要的库名称` 正则 (如果有多个库, 名字不要重复), 然后所有的楼层消息 iframe 和全局脚本 iframe 的 `<head>` 部分都会包含它. 你可以在这里统一地设置显示样式, 加入一些第三方库, 编辑一些你需要的便携库……
+
+![全局脚本示例](README_usage_全局脚本.png)
+
+注意:
+
+- 全局脚本的所有注意事项在这里依旧适用.
+- 如果有多个库, 将会按在正则中的显示顺序从上到下依次加入.
 
 ## 内置的第三方库
+
+### Font Awesome
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+```
+
+[Font Awesome](https://fontawesome.com/icons/) 网站内有非常多图标可供你使用.
+
+<details>
+<summary>示例: 电脑图标</summary>
+
+````html
+```
+<html>
+
+<body>
+  <i class="fa-solid fa-laptop-code"></i>
+</body>
+
+</html>
+```
+````
+
+</details>
 
 ### JQuery
 
 通过 JQuery, 你可以很方便地设置界面 DOM 元素.
 
-示例:
+<details>
+<summary>示例: 向 body 末尾添加一行文本</summary>
 
-```typescript
-// 向 body 末尾添加一个按钮, 按钮点击时弹出提示语 `hello!`
-$("body").append("<button onclick='alert(\"hello!\")'>点击我</button>");
+````html
 ```
+<html>
+  <body>
+    <script>
+      const variables = {神乐光: {好感度: 5}};
+      $("body").append($("<p></p>").text(JSON.stringify(variables)));
+    </script>
+  </body>
+</html>
+```
+````
+
+</details>
+
+### JQuery UI
+
+通过 JQuery UI, 你可以很方便地设置界面 DOM 元素可以如何被交互.
+
+<details>
+<summary>示例: 向 body 末尾添加一行可以拖动的文本</summary>
+
+````html
+```
+<html>
+
+<body>
+  <div id="draggable" class="ui-widget-content">
+    <p>随意拖动我</p>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      $("#draggable").draggable();
+    });
+  </script>
+</body>
+
+</html>
+```
+````
+
+</details>
 
 ### Lodash
 
 通过 Lodash, 你可以很方便地对 Array、Object 等类型进行操作.
 
-示例:
+<details>
+<summary>示例: 对 Array 去重</summary>
 
-```typescript
-// 对 Array 去重
-console.log(_.uniq([1, 3, 2, 3, 1, 4, 5, 4]));
-// => [1, 3, 2, 4, 5]
+````html
 ```
+<html>
+  <body>
+    <script>
+      const array = _.uniq([1, 3, 2, 3, 1, 4, 5, 4]);
+      // => array == [1, 3, 2, 4, 5]
+      $("body").append($("<p></p>").text(JSON.stringify(array)));
+    </script>
+  </body>
+</html>
+```
+````
 
-```typescript
-// 合并 Object
-const result = {a: 1, b: 2};
-const source = {b: 3, c: 4};
-_.merge(result, source);
-console.log(result);
-// => {a: 1, b: 3, c: 4}
+</details>
+
+<details>
+<summary>示例: 合并 Object</summary>
+
+````html
+```
+<html>
+  <body>
+    <script>
+      const result = {a: 1, b: 2};
+      const source = {b: 3, c: 4};
+      _.merge(result, source);
+      // => result == {a: 1, b: 3, c: 4}
+      $("body").append($("<p></p>").text(JSON.stringify(result)));
+    </script>
+  </body>
+</html>
+```
+````
+
+</details>
+
+### yamljs
+
+允许你像 JavaScript 内置的 JSON 那样解析 yaml 语法.
+
+<details>
+<summary>示例: 输出成 yaml</summary>
+
+````html
+```
+<html>
+
+<body>
+  <script>
+    const variables =
+    {
+      角色变量:
+      {
+        爱城华恋: {
+          好感度: 10
+        },
+        神乐光: {
+          好感度: 5
+        },
+      }
+    }
+    $("body").append($("<p></p>").text(YAML.stringify(variables)));
+  </script>
+</body>
+
+</html>
+```
+````
+
+</details>
+
+<details>
+<summary>示例: 解析 yaml</summary>
+
+````html
+```
+<html>
+
+<body>
+  <script>
+    const variables = `
+    角色变量:
+      爱城华恋:
+        好感度: 10
+      神乐光:
+        好感度: 5
+    `
+    $("body").append($("<p></p>").text(JSON.stringify(YAML.parse(variables))));
+  </script>
+</body>
+
+</html>
+```
+````
+
+</details>
+
+### 让 VSCode 的预览支持这些第三方库
+
+为了让 VSCode 的预览支持这些第三方库, 你需要在 `<head>` 中加入以下内容:
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js" integrity="sha512-MSOo1aY+3pXCOCdGAYoBZ6YGI0aragoQsg1mKKBHXCYPIWxamwOE7Drh+N5CPgGI5SA9IEKJiPjdfqWFWmZtRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css" integrity="sha512-TFee0335YRJoyiqz8hA8KV3P0tXa5CpRBSoM0Wnkn7JoJx1kaq1yXL/rb8YFpWXkMOjRcv5txv+C6UluttluCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js" integrity="sha512-f/K0Q5lZ1SrdNdjc2BO2I5kTx8E5Uw1EU3PhSUB9fYPohap5rPWEmQRCjtpDxNmQB4/+MMI/Cf+nvh1VSiwrTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 ```
 
 ## 脚本代码功能

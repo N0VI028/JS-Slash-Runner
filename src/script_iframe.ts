@@ -7,6 +7,7 @@ import { lodash } from '../../../../../lib.js';
 import { iframe_client } from './iframe_client_exported/index.js';
 import { script_url } from './script_url.js';
 import { getCharacterRegexes, getGlobalRegexes, isCharacterRegexEnabled } from './iframe_server/regex_data.js';
+import { libraries_text } from './library.js';
 
 interface Script {
   name: string;
@@ -47,8 +48,8 @@ function loadScripts(): Script[] {
     const [editing_character_regexes, nonediting_character_regexes] = lodash.partition(character_regexes, script => script.runOnEdit);
     const [enabled_character_regexes, disabled_character_regexes] = lodash.partition(editing_character_regexes, isEnabled);
     console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);
-    console.info(`[Script]   将会禁用以下被禁用的正则: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
-    console.info(`[Script]   将会禁用以下未开启 "在编辑时运行" 的正则: ${JSON.stringify(nonediting_character_regexes.map(toName))}`);
+    console.info(`[Script]   将会禁用以下被禁用的全局脚本: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
+    console.info(`[Script]   将会禁用以下未开启 "在编辑时运行" 的全局脚本: ${JSON.stringify(nonediting_character_regexes.map(toName))}`);
     scripts = [...scripts, ...enabled_character_regexes];
   }
 
@@ -61,28 +62,27 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
   iframe.style.display = 'none';
   iframe.id = `script-iframe-${script.name}`;
 
+  const srcdocContent = `
+    <html>
+    <head>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js" integrity="sha512-MSOo1aY+3pXCOCdGAYoBZ6YGI0aragoQsg1mKKBHXCYPIWxamwOE7Drh+N5CPgGI5SA9IEKJiPjdfqWFWmZtRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js" integrity="sha512-f/K0Q5lZ1SrdNdjc2BO2I5kTx8E5Uw1EU3PhSUB9fYPohap5rPWEmQRCjtpDxNmQB4/+MMI/Cf+nvh1VSiwrTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <script src="${script_url.get(iframe_client)}"></script>
+      ${libraries_text}
+    </head>
+    <body>
+      ${script.code}
+    </body>
+    </html>
+  `;
+
+  iframe.srcdoc = srcdocContent;
+
   const load_promise = new Promise<void>((resolve) => {
     iframe.onload = () => {
-      // @ts-ignore: 18047
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-
-      const iframeContent = `
-        <html>
-        <head>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-          <script src="${script_url.get(iframe_client)}"></script>
-        </head>
-        <body>
-          ${script.code}
-        </body>
-        </html>
-      `;
-
-      doc.open();
-      doc.write(iframeContent);
-      doc.close();
-
-      console.info(`[Script](${iframe.id}) 加载完毕`)
+      console.info(`[Script](${iframe.id}) 加载完毕`);
       resolve();
     }
   });
