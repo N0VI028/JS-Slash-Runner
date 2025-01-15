@@ -2,12 +2,12 @@ export { script_load_events, initializeScripts, destroyScriptsIfInitialized }
 
 import { RegexScriptData } from '../../../../char-data.js';
 import { event_types } from '../../../../../script.js';
-import { lodash } from '../../../../../lib.js';
 
 import { iframe_client } from './iframe_client_exported/index.js';
 import { script_url } from './script_url.js';
 import { getCharacterRegexes, getGlobalRegexes, isCharacterRegexEnabled } from './iframe_server/regex_data.js';
 import { libraries_text } from './library.js';
+import { partition } from './util/helper.js';
 
 interface Script {
   name: string;
@@ -31,7 +31,7 @@ function loadScripts(): Script[] {
 
   const global_regexes = getGlobalRegexes().filter(filterScriptFromRegex);
   console.info(`[Script] 加载全局正则中的全局脚本:`);
-  const [enabled_global_regexes, disabled_global_regexes] = lodash.partition(global_regexes, isEnabled);
+  const [enabled_global_regexes, disabled_global_regexes] = partition(global_regexes, isEnabled);
   console.info(`[Script]   将会加载: ${JSON.stringify(enabled_global_regexes.map(toName))}`);
   console.info(`[Script]   将会禁用: ${JSON.stringify(disabled_global_regexes.map(toName))}`);
   scripts = [...scripts, ...enabled_global_regexes];
@@ -39,14 +39,14 @@ function loadScripts(): Script[] {
   const character_regexes = getCharacterRegexes().filter(filterScriptFromRegex);
   if (isCharacterRegexEnabled()) {
     console.info(`[Script] 局部正则目前正启用, 加载局部正则中的全局脚本:`);
-    const [enabled_character_regexes, disabled_character_regexes] = lodash.partition(character_regexes, isEnabled);
+    const [enabled_character_regexes, disabled_character_regexes] = partition(character_regexes, isEnabled);
     console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);
     console.info(`[Script]   将会禁用: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
     scripts = [...scripts, ...enabled_character_regexes];
   } else {
     console.info(`[Script] 局部正则目前正禁用, 仅加载局部正则中 "在编辑时运行" 的全局脚本:`);
-    const [editing_character_regexes, nonediting_character_regexes] = lodash.partition(character_regexes, script => script.runOnEdit);
-    const [enabled_character_regexes, disabled_character_regexes] = lodash.partition(editing_character_regexes, isEnabled);
+    const [editing_character_regexes, nonediting_character_regexes] = partition(character_regexes, script => script.runOnEdit);
+    const [enabled_character_regexes, disabled_character_regexes] = partition(editing_character_regexes, isEnabled);
     console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);
     console.info(`[Script]   将会禁用以下被禁用的全局脚本: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
     console.info(`[Script]   将会禁用以下未开启 "在编辑时运行" 的全局脚本: ${JSON.stringify(nonediting_character_regexes.map(toName))}`);

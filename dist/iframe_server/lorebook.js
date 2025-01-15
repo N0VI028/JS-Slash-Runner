@@ -1,10 +1,9 @@
 export { handleLorebook };
 import { characters, this_chid } from "../../../../../../script.js";
-import { lodash } from "../../../../../../lib.js";
 // @ts-ignore
 import { groups, selected_group } from "../../../../../group-chats.js";
 import { getTagsList } from "../../../../../tags.js";
-import { equalsIgnoreCaseAndAccents, getCharaFilename, debounce } from "../../../../../utils.js";
+import { equalsIgnoreCaseAndAccents, getCharaFilename, onlyUnique, debounce } from "../../../../../utils.js";
 import { createNewWorldInfo, createWorldInfoEntry, deleteWIOriginalDataValue, deleteWorldInfo, getWorldInfoSettings, loadWorldInfo, originalWIDataKeyMap, saveWorldInfo, setWIOriginalDataValue, world_info, world_names } from "../../../../../world-info.js";
 // TODO: don't repeat this in all files
 function getIframeName(event) {
@@ -184,7 +183,7 @@ const event_handlers = {
         if (!character) {
             throw new Error(`[Lorebook][getCharLorebooks](${iframe_name}) 未找到名为 '${option.name}' 的角色卡`);
         }
-        const books = [];
+        let books = [];
         if (option.type === 'all' || option.type === 'primary') {
             books.push(character.data?.extensions?.world);
         }
@@ -196,10 +195,11 @@ const event_handlers = {
                 books.push(...extraCharLore.extraBooks);
             }
         }
+        books = books.filter(onlyUnique);
         event.source.postMessage({
             request: 'iframe_get_char_lorebooks_callback',
             uid: uid,
-            result: lodash.uniq(books),
+            result: books,
         }, { targetOrigin: "*" });
         console.info(`[Lorebook][getCharLorebooks](${iframe_name}) 获取角色卡绑定的世界书, 选项: ${JSON.stringify(option)}, 获取结果: ${JSON.stringify(books)}`);
     },
