@@ -55,6 +55,7 @@ import {
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { script_url } from "./script_url.js";
 import { libraries_text, library_load_events, initializeLibraries } from "./library.js";
+import { third_party } from "./third_party.js";
 
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -473,13 +474,7 @@ async function renderMessagesInIframes(
           html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}
           .user_avatar{background-image:url('${avatarPath}')}
           </style>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css" integrity="sha512-TFee0335YRJoyiqz8hA8KV3P0tXa5CpRBSoM0Wnkn7JoJx1kaq1yXL/rb8YFpWXkMOjRcv5txv+C6UluttluCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js" integrity="sha512-MSOo1aY+3pXCOCdGAYoBZ6YGI0aragoQsg1mKKBHXCYPIWxamwOE7Drh+N5CPgGI5SA9IEKJiPjdfqWFWmZtRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js" integrity="sha512-f/K0Q5lZ1SrdNdjc2BO2I5kTx8E5Uw1EU3PhSUB9fYPohap5rPWEmQRCjtpDxNmQB4/+MMI/Cf+nvh1VSiwrTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          ${third_party}
           <script src="${script_url.get(iframe_client)}"></script>
           ${libraries_text}
         </head>
@@ -1955,9 +1950,12 @@ jQuery(async () => {
   buttonHtml.css("display", "flex");
   $("#extensionsMenu").append(buttonHtml);
 
-  $("#copy_third_party").on("pointerup", function() {
+  $("#copy_third_party_installation").on("pointerup", function() {
     navigator.clipboard.writeText("npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs");
-  })
+  });
+  $("#copy_third_party_tag").on("pointerup", function() {
+    navigator.clipboard.writeText(third_party);
+  });
   $("#js_slash_runner_container").on("click", function () {
     const currentChecked = $("#activate_setting").prop("checked");
     $("#activate_setting").prop("checked", !currentChecked);
