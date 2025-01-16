@@ -343,9 +343,10 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId =
           .user_avatar{background-image:url('${avatarPath}')}
           </style>
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css" integrity="sha512-TFee0335YRJoyiqz8hA8KV3P0tXa5CpRBSoM0Wnkn7JoJx1kaq1yXL/rb8YFpWXkMOjRcv5txv+C6UluttluCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js" integrity="sha512-MSOo1aY+3pXCOCdGAYoBZ6YGI0aragoQsg1mKKBHXCYPIWxamwOE7Drh+N5CPgGI5SA9IEKJiPjdfqWFWmZtRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css" integrity="sha512-TFee0335YRJoyiqz8hA8KV3P0tXa5CpRBSoM0Wnkn7JoJx1kaq1yXL/rb8YFpWXkMOjRcv5txv+C6UluttluCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
           <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js" integrity="sha512-f/K0Q5lZ1SrdNdjc2BO2I5kTx8E5Uw1EU3PhSUB9fYPohap5rPWEmQRCjtpDxNmQB4/+MMI/Cf+nvh1VSiwrTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
           <script src="${script_url.get(iframe_client)}"></script>
@@ -1468,6 +1469,46 @@ function injectLoadingStyles() {
     }`;
     document.head.appendChild(styleSheet);
 }
+function formatSlashCommands() {
+    const cmdList = Object
+        .keys(SlashCommandParser.commands)
+        .filter(key => SlashCommandParser.commands[key].name === key) // exclude aliases
+        .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+        .map(key => SlashCommandParser.commands[key]);
+    const transform_arg = (arg) => {
+        const transformers = {
+            name: (value) => ({ name: value }),
+            // description: (value: SlashCommandNamedArgument['description']) => ({ description: value }),
+            isRequired: (value) => ({ is_required: value }),
+            defaultValue: (value) => (value !== null ? { default_value: value } : {}),
+            acceptsMultiple: (value) => ({ accepts_multiple: value }),
+            enumList: (value) => (value.length > 0 ? { enum_list: value.map(e => e.value) } : {}),
+            typeList: (value) => (value.length > 0 ? { type_list: value } : {}),
+        };
+        return Object.entries(arg)
+            .filter(([_, value]) => value !== undefined)
+            .reduce((result, [key, value]) => ({
+            ...result,
+            // @ts-ignore
+            ...transformers[key]?.(value)
+        }), {});
+    };
+    const transform_help_string = (help_string) => {
+        const content = document.createElement('span');
+        content.innerHTML = help_string;
+        return content.textContent?.split('\n').map(line => line.trim()).filter(line => line !== '').join(' ');
+    };
+    return cmdList
+        .map(cmd => ({
+        name: cmd.name,
+        named_args: cmd.namedArgumentList.map(transform_arg) ?? [],
+        unnamed_args: cmd.unnamedArgumentList.map(transform_arg) ?? [],
+        return_type: cmd.returns ?? 'void',
+        help_string: transform_help_string(cmd.helpString) ?? 'NO DETAILS',
+    }))
+        .map(cmd => `/${cmd.name}${cmd.named_args.length > 0 ? ` ` : ``}${cmd.named_args.map(arg => `[${arg.accepts_multiple ? `...` : ``}${arg.name}=${arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')}]${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`).join(' ')}${cmd.unnamed_args.length > 0 ? ` ` : ``}${cmd.unnamed_args.map(arg => `(${arg.accepts_multiple ? `...` : ``}${arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')})${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`).join(' ')} // ${cmd.help_string}`)
+        .join('\n');
+}
 jQuery(async () => {
     const getContainer = () => $(document.getElementById("audio_container") ??
         document.getElementById("extensions_settings"));
@@ -1485,6 +1526,12 @@ jQuery(async () => {
         const currentChecked = $("#activate_setting").prop("checked");
         $("#activate_setting").prop("checked", !currentChecked);
         onExtensionToggle();
+    });
+    $("#download_slash_commands").on("click", function () {
+        const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: "text/plain" }));
+        $(this).attr("href", url);
+        $(this).attr("download", "slash_command.txt");
+        setTimeout(() => URL.revokeObjectURL(url), 0);
     });
     $("#activate_setting").on("click", onExtensionToggle);
     if ($("#activate_setting").prop("checked")) {
