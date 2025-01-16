@@ -2,101 +2,64 @@
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
       <b>前端助手</b>
-      <div
-        class="inline-drawer-icon fa-solid fa-circle-chevron-down down"
-      ></div>
+      <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
-      <div
-        class="extension_info flex-container spaceBetween alignItemsCenter paddingLeftRight5"
-      >
+      <div class="extension_info flex-container spaceBetween alignItemsCenter paddingLeftRight5">
         <small>Ver 2.0.16</small>
         <div>
           <small>
-            <a
-              href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_faq.md"
-              target="_blank"
-              style="cursor: pointer"
-            >
+            <a href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_faq.md" target="_blank"
+              style="cursor: pointer">
               常见问题
-              <i
-                class="fa-solid fa-sm fa-arrow-up-right-from-square margin-r5"
-              ></i>
+              <i class="fa-solid fa-sm fa-arrow-up-right-from-square margin-r5"></i>
             </a>
-            <a
-              href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_usage.md"
-              target="_blank"
-              style="cursor: pointer"
-            >
+            <a href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_usage.md" target="_blank"
+              style="cursor: pointer">
               编写方法
-              <i
-                class="fa-solid fa-sm fa-arrow-up-right-from-square margin-r5"
-              ></i>
+              <i class="fa-solid fa-sm fa-arrow-up-right-from-square margin-r5"></i>
             </a>
-          </small>
 
-          <div class="inline-block script-library-button">
-            <div
-              title="编写脚本相关的资料库"
-              class="menu_button menu_button_icon interactable"
-              id="scriptLibraryButton"
-              tabindex="0"
-            >
-              <i class="fa-solid fa-book"></i>
+            <div class="inline-block script-library-button">
+              <div title="编写脚本相关的资料库" class="menu_button menu_button_icon interactable" id="scriptLibraryButton"
+                tabindex="0">
+                编写参考
+                <i class="fa-solid fa-book"></i>
+              </div>
+              <div class="list-group" id="scriptLibraryPopup" data-popper-placement="left">
+                <small>
+                  <div class="list-group-item">
+                    <a id="copy_third_party_tag" target="_blank" style="cursor: pointer"
+                      title="复制在 VSCode 中预览 html 需要插入的 tag">
+                      内置库插入
+                      <i class="fa-solid fa-sm fa-copy"></i>
+                    </a>
+                  </div>
+                  <div class="list-group-item">
+                    <a id="copy_third_party_installation" target="_blank" style="cursor: pointer"
+                      title="复制在 VSCode 中编写前端助手角色卡应该执行的安装命令">
+                      内置库安装
+                      <i class="fa-solid fa-sm fa-copy"></i>
+                    </a>
+                  </div>
+                  <!-- TODO: bundle 之后自己做这部分 -->
+                  <div class="list-group-item">
+                    <a href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client"
+                      target="_blank" title="最新前端助手提供的所有 TypeScript 函数">
+                      前端函数
+                      <i class="fa-solid fa-sm fa-download"></i>
+                    </a>
+                  </div>
+                  <div class="list-group-item">
+                    <a id="download_slash_commands" target="_blank" style="cursor: pointer" title="你所用酒馆版本及扩展所提供的酒馆命令">
+                      酒馆命令
+                      <i class="fa-solid fa-sm fa-download"></i>
+                    </a>
+                  </div>
+                </small>
+              </div>
             </div>
-            <div
-              class="list-group"
-              id="scriptLibraryPopup"
-              data-popper-placement="left"
-            >
-              <small>
-                <div class="list-group-item">
-                  <i class="fa-solid fa-sm fa-copy"></i
-                  ><a
-                    id="copy_third_party_tag"
-                    target="_blank"
-                    style="cursor: pointer"
-                    title="复制在 VSCode 中预览 html 需要插入的 tag"
-                  >
-                    内置库插入
-                  </a>
-                </div>
-                <div class="list-group-item">
-                  <i class="fa-solid fa-sm fa-copy"></i>
-                  <a
-                    id="copy_third_party_installation"
-                    target="_blank"
-                    style="cursor: pointer"
-                    title="复制在 VSCode 中编写前端助手角色卡应该执行的安装命令"
-                  >
-                    内置库安装
-                  </a>
-                </div>
-                <!-- TODO: bundle 之后自己做这部分 -->
-                <div class="list-group-item">
-                  <i class="fa-solid fa-sm fa-download"></i>
-                  <a
-                    href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client"
-                    target="_blank"
-                    title="最新前端助手提供的所有 TypeScript 函数"
-                  >
-                    前端函数
-                  </a>
-                </div>
-                <div class="list-group-item">
-                  <i class="fa-solid fa-sm fa-download"></i>
-                  <a
-                    id="download_slash_commands"
-                    target="_blank"
-                    style="cursor: pointer"
-                    title="你所用酒馆版本及扩展所提供的酒馆命令"
-                  >
-                    酒馆命令
-                  </a>
-                </div>
-              </small>
-            </div>
-          </div>
+          </small>
         </div>
       </div>
       <hr class="sysHR" />
@@ -109,41 +72,19 @@
         <label for="audio_enabled">启用播放器</label>
       </div>
       <div class="extension_block flex-container">
-        <input
-          type="checkbox"
-          id="auto_enable_character_regex"
-          name="auto_enable_character_regex"
-        />
+        <input type="checkbox" id="auto_enable_character_regex" name="auto_enable_character_regex" />
         <label for="auto_enable_character_regex">自动开启局部正则</label>
       </div>
       <div class="extension_block flex-container">
-        <input
-          type="checkbox"
-          id="auto_disable_incompatible_options"
-          name="auto_disable_incompatible_options"
-        />
-        <label
-          for="auto_disable_incompatible_options"
-          title='自动关闭"自动修复 Markdown"、"修剪不完整的句子"、和"禁止外部媒体"选项'
-        >
-          自动关闭不兼容选项<span
-            class="fa-solid fa-circle-question note-link-span"
-          ></span>
+        <input type="checkbox" id="auto_disable_incompatible_options" name="auto_disable_incompatible_options" />
+        <label for="auto_disable_incompatible_options" title='自动关闭"自动修复 Markdown"、"修剪不完整的句子"、和"禁止外部媒体"选项'>
+          自动关闭不兼容选项<span class="fa-solid fa-circle-question note-link-span"></span>
         </label>
       </div>
       <div class="extension_block flex-container">
-        <input
-          id="tampermonkey_compatibility"
-          type="checkbox"
-          name="tampermonkey_compatibility"
-        />
-        <label
-          for="tampermonkey_compatibility"
-          title="兼容油猴脚本版注入插件的st-text、qr-button等特殊类名"
-        >
-          启用油猴版兼容模式<span
-            class="fa-solid fa-circle-question note-link-span"
-          ></span>
+        <input id="tampermonkey_compatibility" type="checkbox" name="tampermonkey_compatibility" />
+        <label for="tampermonkey_compatibility" title="兼容油猴脚本版注入插件的st-text、qr-button等特殊类名">
+          启用油猴版兼容模式<span class="fa-solid fa-circle-question note-link-span"></span>
         </label>
       </div>
       <div class="extension_block flex-container">
@@ -153,14 +94,7 @@
             <span>（0为处理全部楼层）</span>
           </small>
         </label>
-        <input
-          max="999"
-          min="0"
-          class="text_pole"
-          id="process_depth"
-          type="number"
-          value="0"
-        />
+        <input max="999" min="0" class="text_pole" id="process_depth" type="number" value="0" />
       </div>
       <hr class="sysHR" />
     </div>
@@ -179,65 +113,32 @@
             <label for="audio_bgm_volume_slider">音乐</label>
             <label class="checkbox flex-container" for="enable_bgm">
               <input type="checkbox" id="enable_bgm" name="enable_bgm" />
-              <span
-                class="bgm-toggle-on fa-solid fa-toggle-on"
-                title="禁用BGM播放器"
-              ></span>
-              <span
-                class="bgm-toggle-off fa-solid fa-toggle-off"
-                title="启用BGM播放器"
-              ></span>
+              <span class="bgm-toggle-on fa-solid fa-toggle-on" title="禁用BGM播放器"></span>
+              <span class="bgm-toggle-off fa-solid fa-toggle-off" title="启用BGM播放器"></span>
             </label>
-            <div
-              id="bgm_manager_button"
-              title="管理音乐链接"
-              class="menu_button menu_button_icon manager-button"
-            >
+            <div id="bgm_manager_button" title="管理音乐链接" class="menu_button menu_button_icon manager-button">
               <i class="fa-solid fa-list-ol"></i>
             </div>
           </div>
           <div class="audio-container">
             <div class="mute-vol-wrapper">
               <div class="mute-div">
-                <div
-                  id="audio_bgm_mute"
-                  class="menu_button audio-player-button"
-                >
-                  <i
-                    class="fa-solid fa-volume-high fa-lg fa-fw"
-                    id="audio_bgm_mute_icon"
-                  ></i>
+                <div id="audio_bgm_mute" class="menu_button audio-player-button">
+                  <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_bgm_mute_icon"></i>
                 </div>
               </div>
               <div class="vol" id="volume-control">
-                <input
-                  type="range"
-                  class="audio-slider vertical-slider"
-                  id="audio_bgm_volume_slider"
-                  value="100"
-                  maxlength="100"
-                />
+                <input type="range" class="audio-slider vertical-slider" id="audio_bgm_volume_slider" value="100"
+                  maxlength="100" />
               </div>
             </div>
             <div class="play-pause-div">
-              <div
-                id="audio_bgm_play_pause"
-                class="menu_button audio-player-button"
-              >
-                <i
-                  class="fa-solid fa-play fa-lg fa-fw"
-                  id="audio_bgm_play_pause_icon"
-                ></i>
+              <div id="audio_bgm_play_pause" class="menu_button audio-player-button">
+                <i class="fa-solid fa-play fa-lg fa-fw" id="audio_bgm_play_pause_icon"></i>
               </div>
             </div>
             <div class="progress-div">
-              <input
-                type="range"
-                class="audio-slider"
-                id="audio_bgm_progress_slider"
-                value="0"
-                maxlength="100"
-              />
+              <input type="range" class="audio-slider" id="audio_bgm_progress_slider" value="0" maxlength="100" />
             </div>
           </div>
           <div class="audio-adjust">
@@ -246,10 +147,7 @@
             </div>
             <div class="audio-mixer-element audio-mixer-mode">
               <div id="audio_bgm_mode" class="menu_button audio-player-button">
-                <i
-                  class="fa-solid fa-repeat fa-lg fa-fw"
-                  id="audio_bgm_mode_icon"
-                ></i>
+                <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_bgm_mode_icon"></i>
               </div>
             </div>
           </div>
@@ -259,91 +157,51 @@
           <div class="title_restorable space-between align-center">
             <label for="audio_ambient_volume_slider">音效</label>
             <label class="checkbox flex-container" for="enable_ambient">
-              <input
-                type="checkbox"
-                id="enable_ambient"
-                name="enable_ambient"
-              />
-              <span
-                class="ambient-toggle-on fa-solid fa-toggle-on"
-                title="禁用Ambient播放器"
-              ></span>
-              <span
-                class="ambient-toggle-off fa-solid fa-toggle-off"
-                title="启用Ambient播放器"
-              ></span>
+              <input type="checkbox" id="enable_ambient" name="enable_ambient" />
+              <span class="ambient-toggle-on fa-solid fa-toggle-on" title="禁用Ambient播放器"></span>
+              <span class="ambient-toggle-off fa-solid fa-toggle-off" title="启用Ambient播放器"></span>
             </label>
-            <div id="ambient_manager_button" title="管理音效链接" " class="
-            menu_button menu_button_icon manager-button">
-            <i class="fa-solid fa-list-ol"></i>
+            <div id="ambient_manager_button" title="管理音效链接" " class=" menu_button menu_button_icon manager-button">
+              <i class="fa-solid fa-list-ol"></i>
+            </div>
           </div>
-        </div>
-        <div class="audio-container">
-          <div class="mute-vol-wrapper">
-            <div class="mute-div">
-              <div
-                id="audio_ambient_mute"
-                class="menu_button audio-player-button"
-              >
-                <i
-                  class="fa-solid fa-volume-high fa-lg fa-fw"
-                  id="audio_ambient_mute_icon"
-                ></i>
+          <div class="audio-container">
+            <div class="mute-vol-wrapper">
+              <div class="mute-div">
+                <div id="audio_ambient_mute" class="menu_button audio-player-button">
+                  <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_ambient_mute_icon"></i>
+                </div>
+              </div>
+              <div class="vol" id="ambient-volume-control">
+                <input type="range" class="audio-slider vertical-slider" id="audio_ambient_volume_slider" value="100"
+                  maxlength="100" />
               </div>
             </div>
-            <div class="vol" id="ambient-volume-control">
-              <input
-                type="range"
-                class="audio-slider vertical-slider"
-                id="audio_ambient_volume_slider"
-                value="100"
-                maxlength="100"
-              />
+            <div class="play-pause-div">
+              <div id="audio_ambient_play_pause" class="menu_button audio-player-button">
+                <i class="fa-solid fa-play fa-lg fa-fw" id="audio_ambient_play_pause_icon"></i>
+              </div>
+            </div>
+            <div class="progress-div">
+              <input type="range" class="audio-slider" id="audio_ambient_progress_slider" value="0" maxlength="100" />
             </div>
           </div>
-          <div class="play-pause-div">
-            <div
-              id="audio_ambient_play_pause"
-              class="menu_button audio-player-button"
-            >
-              <i
-                class="fa-solid fa-play fa-lg fa-fw"
-                id="audio_ambient_play_pause_icon"
-              ></i>
+          <div class="audio-adjust">
+            <div class="playlist">
+              <select id="audio_ambient_select"></select>
+            </div>
+            <div class="audio-mixer-element audio-mixer-mode">
+              <div id="audio_ambient_mode" class="menu_button audio-player-button">
+                <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_ambient_mode_icon"></i>
+              </div>
             </div>
           </div>
-          <div class="progress-div">
-            <input
-              type="range"
-              class="audio-slider"
-              id="audio_ambient_progress_slider"
-              value="0"
-              maxlength="100"
-            />
-          </div>
+          <audio id="audio_ambient" controls src=""></audio>
         </div>
-        <div class="audio-adjust">
-          <div class="playlist">
-            <select id="audio_ambient_select"></select>
-          </div>
-          <div class="audio-mixer-element audio-mixer-mode">
-            <div
-              id="audio_ambient_mode"
-              class="menu_button audio-player-button"
-            >
-              <i
-                class="fa-solid fa-repeat fa-lg fa-fw"
-                id="audio_ambient_mode_icon"
-              ></i>
-            </div>
-          </div>
+        <div>
+          <label for="audio_bgm_cooldown">淡入淡出时间(秒)</label>
+          <input id="audio_bgm_cooldown" class="text_pole wide30p" />
         </div>
-        <audio id="audio_ambient" controls src=""></audio>
-      </div>
-      <div>
-        <label for="audio_bgm_cooldown">淡入淡出时间(秒)</label>
-        <input id="audio_bgm_cooldown" class="text_pole wide30p" />
       </div>
     </div>
   </div>
-</div>
