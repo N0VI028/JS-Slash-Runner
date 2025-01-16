@@ -34,6 +34,7 @@ let list_ambients = null;
 let bgmEnded = true;
 let ambientEnded = true;
 let cooldownBGM = 0;
+let isScriptLibraryOpen = false;
 const RENDER_MODES = {
     FULL: "FULL",
     PARTIAL: "PARTIAL",
@@ -1517,16 +1518,28 @@ jQuery(async () => {
   </div>`);
     buttonHtml.css("display", "flex");
     $("#extensionsMenu").append(buttonHtml);
-    $("#scriptLibraryBlockToggle")
+    $("#scriptLibraryButton")
         .off("click")
         .on("click", function () {
-        $("#scriptLibraryBlock").slideToggle(200, "swing");
+        isScriptLibraryOpen = !isScriptLibraryOpen;
+        $("#scriptLibraryPopup").slideToggle(200, "swing");
+    });
+    $(document).on("mousedown touchstart", function (e) {
+        const clickTarget = $(e.target);
+        if (isScriptLibraryOpen &&
+            clickTarget.closest("#scriptLibraryButton").length === 0 &&
+            clickTarget.closest("#scriptLibraryPopup").length === 0) {
+            $("#scriptLibraryPopup").slideUp(200, "swing");
+            isScriptLibraryOpen = false;
+        }
     });
     $("#copy_third_party_installation").on("pointerup", function () {
         navigator.clipboard.writeText("npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs");
+        executeCommand("/echo severity=success 已复制到剪贴板!");
     });
     $("#copy_third_party_tag").on("pointerup", function () {
         navigator.clipboard.writeText(third_party);
+        executeCommand("/echo severity=success 已复制到剪贴板!");
     });
     $("#js_slash_runner_container").on("click", function () {
         const currentChecked = $("#activate_setting").prop("checked");

@@ -9,15 +9,17 @@ padding-right: 5px;
 .fa-refresh{
     font-size: 0.7em;
 }
-.script_library {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+.script-library-button {
+  position: relative;
 }
-.script-library-item {
+#scriptLibraryPopup {
+    position: absolute;
+    inset: 0px 25px auto auto;
+    display: none;
+}
+#scriptLibraryPopup a {
+  color: var(--SmartThemeBodyColor);
   white-space: nowrap;
-  display: inline-block;
 }
 #audio_settings .flex {
     display: flex;

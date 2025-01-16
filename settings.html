@@ -7,17 +7,97 @@
       ></div>
     </div>
     <div class="inline-drawer-content">
-      <div class="extension_info flex-container spaceBetween paddingLeftRight5">
+      <div
+        class="extension_info flex-container spaceBetween alignItemsCenter paddingLeftRight5"
+      >
         <small>Ver 2.0.16</small>
-        <small>
-          <a
-            href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_faq.md"
-            target="_blank"
-          >
-            常见问题
-            <i class="fa-solid fa-sm fa-arrow-up-right-from-square"></i>
-          </a>
-        </small>
+        <div>
+          <small>
+            <a
+              href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_faq.md"
+              target="_blank"
+              style="cursor: pointer"
+            >
+              常见问题
+              <i
+                class="fa-solid fa-sm fa-arrow-up-right-from-square margin-r5"
+              ></i>
+            </a>
+            <a
+              href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_usage.md"
+              target="_blank"
+              style="cursor: pointer"
+            >
+              编写方法
+              <i
+                class="fa-solid fa-sm fa-arrow-up-right-from-square margin-r5"
+              ></i>
+            </a>
+          </small>
+
+          <div class="inline-block script-library-button">
+            <div
+              title="编写脚本相关的资料库"
+              class="menu_button menu_button_icon interactable"
+              id="scriptLibraryButton"
+              tabindex="0"
+            >
+              <i class="fa-solid fa-book"></i>
+            </div>
+            <div
+              class="list-group"
+              id="scriptLibraryPopup"
+              data-popper-placement="left"
+            >
+              <small>
+                <div class="list-group-item">
+                  <i class="fa-solid fa-sm fa-copy"></i
+                  ><a
+                    id="copy_third_party_tag"
+                    target="_blank"
+                    style="cursor: pointer"
+                    title="复制在 VSCode 中预览 html 需要插入的 tag"
+                  >
+                    内置库插入
+                  </a>
+                </div>
+                <div class="list-group-item">
+                  <i class="fa-solid fa-sm fa-copy"></i>
+                  <a
+                    id="copy_third_party_installation"
+                    target="_blank"
+                    style="cursor: pointer"
+                    title="复制在 VSCode 中编写前端助手角色卡应该执行的安装命令"
+                  >
+                    内置库安装
+                  </a>
+                </div>
+                <!-- TODO: bundle 之后自己做这部分 -->
+                <div class="list-group-item">
+                  <i class="fa-solid fa-sm fa-download"></i>
+                  <a
+                    href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client"
+                    target="_blank"
+                    title="最新前端助手提供的所有 TypeScript 函数"
+                  >
+                    前端函数
+                  </a>
+                </div>
+                <div class="list-group-item">
+                  <i class="fa-solid fa-sm fa-download"></i>
+                  <a
+                    id="download_slash_commands"
+                    target="_blank"
+                    style="cursor: pointer"
+                    title="你所用酒馆版本及扩展所提供的酒馆命令"
+                  >
+                    酒馆命令
+                  </a>
+                </div>
+              </small>
+            </div>
+          </div>
+        </div>
       </div>
       <hr class="sysHR" />
       <div class="extension_block flex-container">
@@ -264,82 +344,6 @@
         <label for="audio_bgm_cooldown">淡入淡出时间(秒)</label>
         <input id="audio_bgm_cooldown" class="text_pole wide30p" />
       </div>
-    </div>
-    <hr class="sysHR" />
-    <div class="script_library">
-      <div
-        title="编写脚本相关的资料库"
-        class="menu_button menu_button_icon interactable"
-        id="scriptLibraryBlockToggle"
-        tabindex="0"
-      >
-        <i class="fa-solid fa-book"></i>
-        <span>资料库</span>
-      </div>
-    </div>
-    <div
-      class="extension_info flex-container spaceBetween padding5"
-      id="scriptLibraryBlock"
-      style="display: none"
-    >
-      <small>
-        <span class="script-library-item">
-          <a
-            href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_usage.md"
-            target="_blank"
-            style="cursor: pointer"
-            title="Github文档"
-          >
-            编写方法
-            <i
-              class="fa-solid fa-sm fa-arrow-up-right-from-square margin-right-10px"
-            ></i>
-          </a>
-        </span>
-        <span class="script-library-item">
-          <a
-            id="copy_third_party_tag"
-            target="_blank"
-            style="cursor: pointer"
-            title="复制在 VSCode 中预览 html 需要插入的 tag"
-          >
-            内置库插入
-            <i class="fa-solid fa-sm fa-copy margin-right-10px"></i>
-          </a>
-        </span>
-        <span class="script-library-item">
-          <a
-            id="copy_third_party_installation"
-            target="_blank"
-            style="cursor: pointer"
-            title="复制在 VSCode 中编写前端助手角色卡应该执行的安装命令"
-          >
-            内置库安装
-            <i class="fa-solid fa-sm fa-copy margin-right-10px"></i>
-          </a>
-        </span>
-        <!-- TODO: bundle 之后自己做这部分 -->
-        <span class="script-library-item">
-          <a
-            href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client"
-            target="_blank"
-            title="最新前端助手提供的所有 TypeScript 函数"
-          >
-            前端函数
-            <i class="fa-solid fa-sm fa-download margin-right-10px"></i>
-          </a>
-        </span>
-        <span class="script-library-item">
-          <a
-            id="download_slash_commands"
-            target="_blank"
-            style="cursor: pointer"
-            title="你所用酒馆版本及扩展所提供的酒馆命令"
-          >
-            酒馆命令
-            <i class="fa-solid fa-sm fa-download"></i> </a
-        ></span>
-      </small>
     </div>
   </div>
 </div>
