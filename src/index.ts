@@ -1891,6 +1891,50 @@ function injectLoadingStyles() {
   document.head.appendChild(styleSheet);
 }
 
+function formatSlashCommands(): string {
+  const cmdList = Object
+    .keys(SlashCommandParser.commands)
+    .filter(key => SlashCommandParser.commands[key].name === key) // exclude aliases
+    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+    .map(key => SlashCommandParser.commands[key])
+    ;
+  const transform_arg = (arg: SlashCommandNamedArgument) => {
+    const transformers = {
+      name: (value: SlashCommandNamedArgument['name']) => ({ name: value }),
+      // description: (value: SlashCommandNamedArgument['description']) => ({ description: value }),
+      isRequired: (value: SlashCommandNamedArgument['isRequired']) => ({ is_required: value }),
+      defaultValue: (value: SlashCommandNamedArgument['defaultValue']) => (value !== null ? { default_value: value } : {}),
+      acceptsMultiple: (value: SlashCommandNamedArgument['acceptsMultiple']) => ({ accepts_multiple: value }),
+      enumList: (value: SlashCommandNamedArgument['enumList']) => (value.length > 0 ? { enum_list: value.map(e => e.value) } : {}),
+      typeList: (value: SlashCommandNamedArgument['typeList']) => (value.length > 0 ? { type_list: value } : {}),
+    };
+
+    return Object.entries(arg)
+      .filter(([_, value]) => value !== undefined)
+      .reduce((result, [key, value]) => ({
+        ...result,
+        // @ts-ignore
+        ...transformers[key]?.(value)
+      }), {});
+  }
+  const transform_help_string = (help_string: string) => {
+    const content = document.createElement('span');
+    content.innerHTML = help_string;
+    return content.textContent?.split('\n').map(line => line.trim()).filter(line => line !== '').join(' ');
+  }
+
+  return cmdList
+    .map(cmd => ({
+      name: cmd.name,
+      named_args: cmd.namedArgumentList.map(transform_arg) ?? [],
+      unnamed_args: cmd.unnamedArgumentList.map(transform_arg) ?? [],
+      return_type: cmd.returns ?? 'void',
+      help_string: transform_help_string(cmd.helpString) ?? 'NO DETAILS',
+    }))
+    .map(cmd => `/${cmd.name}${cmd.named_args.length > 0 ? ` ` : ``}${cmd.named_args.map(arg => `[${arg.accepts_multiple ? `...` : ``}${arg.name}=${arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')}]${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`).join(' ')}${cmd.unnamed_args.length > 0 ? ` ` : ``}${cmd.unnamed_args.map(arg => `(${arg.accepts_multiple ? `...` : ``}${arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')})${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`).join(' ')} // ${cmd.help_string}`)
+    .join('\n')
+}
+
 jQuery(async () => {
   const getContainer = () =>
     $(
@@ -1914,6 +1958,13 @@ jQuery(async () => {
     const currentChecked = $("#activate_setting").prop("checked");
     $("#activate_setting").prop("checked", !currentChecked);
     onExtensionToggle();
+  });
+
+  $("#download_slash_commands").on("click", function () {
+    const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: "text/plain" }));
+    $(this).attr("href", url)
+    $(this).attr("download", "slash_command.txt")
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   });
 
   $("#activate_setting").on("click", onExtensionToggle);

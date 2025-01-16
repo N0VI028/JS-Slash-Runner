@@ -129,10 +129,10 @@
 通过 file-saver, 你可以很方便地下载文件, 所以你也许可以内置检查角色卡更新等? 这是 iframe 本来就支持的功能, 加入 file-saver 只是为了方便我们的某些功能.
 
 <details>
-<summary>示例: 利用 Blob 下载字符串</summary>
+<summary>示例: 利用 Blob 下载字符串或其他内容</summary>
 
 ```typescript
-let blob = new Blob(["hello, world!"], {type: "text/plain;charset=utf-8"});
+const blob = new Blob(["hello, world!"], {type: "text/plain;charset=utf-8"});
 saveAs(blob, "filename.txt");
 ```
 

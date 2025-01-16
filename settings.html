@@ -8,6 +8,13 @@
       <div class="extension_info flex-container spaceBetween paddingLeftRight5">
         <small>Ver 2.0.15</small>
         <small>
+          <!-- TODO: bundle 之后自己做这部分 -->
+          <a href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client" target="_blank">前端助手函数
+            <i class="fa-solid fa-sm fa-download margin-right-10px"></i>
+          </a>
+          <a id="download_slash_commands" target="_blank" style="cursor: pointer;">酒馆命令
+            <i class="fa-solid fa-sm fa-download margin-right-10px"></i>
+          </a>
           <a href="https://github.com/N0VI028/JS-Slash-Runner/blob/main/README_usage.md" target="_blank">编写方法
             <i class="fa-solid fa-sm fa-arrow-up-right-from-square margin-right-10px"></i>
           </a>
@@ -31,12 +38,15 @@
       </div>
       <div class="extension_block flex-container">
         <input type="checkbox" id="auto_disable_incompatible_options" name="auto_disable_incompatible_options" />
-        <label for="auto_disable_incompatible_options">自动关闭不兼容选项</label>
+        <label for="auto_disable_incompatible_options" title='自动关闭"自动修复 Markdown"、"修剪不完整的句子"、和"禁止外部媒体"选项'>
+          自动关闭不兼容选项<span class="fa-solid fa-circle-question note-link-span"></span>
+        </label>
       </div>
       <div class="extension_block flex-container">
         <input id="tampermonkey_compatibility" type="checkbox" name="tampermonkey_compatibility" />
-        <label for="tampermonkey_compatibility" title="兼容油猴脚本版注入插件的st-text、qr-button等特殊类名">启用油猴版兼容模式<span
-            class="fa-solid fa-circle-question note-link-span"></span></label>
+        <label for="tampermonkey_compatibility" title="兼容油猴脚本版注入插件的st-text、qr-button等特殊类名">
+          启用油猴版兼容模式<span class="fa-solid fa-circle-question note-link-span"></span>
+        </label>
       </div>
       <div class="extension_block flex-container">
         <label for="process_depth">
