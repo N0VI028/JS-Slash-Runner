@@ -1949,11 +1949,15 @@ jQuery(async () => {
   </div>`);
   buttonHtml.css("display", "flex");
   $("#extensionsMenu").append(buttonHtml);
-
-  $("#copy_third_party_installation").on("pointerup", function() {
+  $("#scriptLibraryBlockToggle")
+    .off("click")
+    .on("click", function () {
+      $("#scriptLibraryBlock").slideToggle(200, "swing");
+    });
+  $("#copy_third_party_installation").on("pointerup", function () {
     navigator.clipboard.writeText("npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs");
   });
-  $("#copy_third_party_tag").on("pointerup", function() {
+  $("#copy_third_party_tag").on("pointerup", function () {
     navigator.clipboard.writeText(third_party);
   });
   $("#js_slash_runner_container").on("click", function () {

@@ -9,6 +9,12 @@ padding-right: 5px;
 .fa-refresh{
     font-size: 0.7em;
 }
+.script_library {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
 #audio_settings .flex {
     display: flex;
 }

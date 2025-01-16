@@ -1517,6 +1517,11 @@ jQuery(async () => {
   </div>`);
     buttonHtml.css("display", "flex");
     $("#extensionsMenu").append(buttonHtml);
+    $("#scriptLibraryBlockToggle")
+        .off("click")
+        .on("click", function () {
+        $("#scriptLibraryBlock").slideToggle(200, "swing");
+    });
     $("#copy_third_party_installation").on("pointerup", function () {
         navigator.clipboard.writeText("npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs");
     });
