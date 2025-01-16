@@ -12,6 +12,9 @@ padding-right: 5px;
 .script-library-button {
   position: relative;
 }
+#scriptLibraryButton{
+  margin: 0!important;
+}
 #scriptLibraryPopup {
     position: absolute;
     inset: 0px 25px auto auto;
