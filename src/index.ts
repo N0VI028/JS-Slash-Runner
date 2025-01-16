@@ -1954,6 +1954,10 @@ jQuery(async () => {
   </div>`);
   buttonHtml.css("display", "flex");
   $("#extensionsMenu").append(buttonHtml);
+
+  $("#copy_third_party").on("pointerup", function() {
+    navigator.clipboard.writeText("npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs");
+  })
   $("#js_slash_runner_container").on("click", function () {
     const currentChecked = $("#activate_setting").prop("checked");
     $("#activate_setting").prop("checked", !currentChecked);
