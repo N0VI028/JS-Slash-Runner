@@ -11,14 +11,14 @@ interface LorebookSettings {
   max_depth: number;  // 0 表示无限制
   max_recursion_steps: number;
 
+  insertion_strategy: 'evenly' | 'character_first' | 'global_first';
+
   include_names: boolean;
   recursive: boolean;
   case_sensitive: boolean;
   match_whole_words: boolean;
   use_group_scoring: boolean;
   overflow_alert: boolean;
-
-  insertion_strategy: 'evenly' | 'character_first' | 'global_first';
 };
 
 /**

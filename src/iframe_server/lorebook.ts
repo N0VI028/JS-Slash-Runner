@@ -53,14 +53,14 @@ function toLorebookSettings(world_info_settings: ReturnType<typeof getWorldInfoS
     max_depth: world_info_settings.world_info_min_activations_depth_max,
     max_recursion_steps: world_info_settings.world_info_max_recursion_steps,
 
+    insertion_strategy: ({ 0: 'evenly', 1: 'character_first', 2: 'global_first' }[world_info_settings.world_info_character_strategy]) as 'evenly' | 'character_first' | 'global_first',
+
     include_names: world_info_settings.world_info_include_names,
     recursive: world_info_settings.world_info_recursive,
     case_sensitive: world_info_settings.world_info_case_sensitive,
     match_whole_words: world_info_settings.world_info_match_whole_words,
     use_group_scoring: world_info_settings.world_info_use_group_scoring,
     overflow_alert: world_info_settings.world_info_overflow_alert,
-
-    insertion_strategy: ({ 0: 'evenly', 1: 'character_first', 2: 'global_first' }[world_info_settings.world_info_character_strategy]) as 'evenly' | 'character_first' | 'global_first',
   };
 }
 
@@ -69,15 +69,16 @@ const event_handlers = {
     const iframe_name = getIframeName(event);
     const uid = event.data.uid;
 
+    const lorebook_settings = toLorebookSettings(getWorldInfoSettings());
     (event.source as MessageEventSource).postMessage({
       request: 'iframe_get_lorebook_settings_callback',
       uid: uid,
-      result: toLorebookSettings(getWorldInfoSettings()),
+      result: lorebook_settings,
     },
       { targetOrigin: "*" }
     );
 
-    console.info(`[Lorebook][getLorebookSettings](${iframe_name}) 获取世界书全局设置`);
+    console.info(`[Lorebook][getLorebookSettings](${iframe_name}) 获取世界书全局设置: ${JSON.stringify(lorebook_settings)}`);
   },
 
   iframe_get_char_lorebooks: async (event: MessageEvent<IframeGetCharLorebooks>): Promise<void> => {
