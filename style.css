@@ -14,6 +14,16 @@ padding-right: 5px;
 }
 #scriptLibraryButton{
   margin: 0!important;
+  position: relative;
+}
+.popup-menu {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin-right: 5px;
+  /* 可选：添加一些间距 */
+  z-index: 1000;
+  /* 其他样式保持不变 */
 }
 #scriptLibraryPopup {
     position: absolute;

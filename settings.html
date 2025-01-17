@@ -46,11 +46,7 @@
                 <i class="fa-solid fa-book"></i>
               </div>
             </small>
-            <div
-              class="list-group"
-              id="scriptLibraryPopup"
-              data-popper-placement="left"
-            >
+            <div class="list-group popup-menu" id="scriptLibraryPopup">
               <small>
                 <div class="list-group-item">
                   <a
@@ -176,109 +172,104 @@
         </div>
       </div>
       <div>
-        <div class="audio-ui-block">
-          <div class="title_restorable space-between align-center">
-            <label for="audio_bgm_volume_slider">音乐</label>
-            <label class="checkbox flex-container" for="enable_bgm">
-              <input type="checkbox" id="enable_bgm" name="enable_bgm" />
-              <span
-                class="bgm-toggle-on fa-solid fa-toggle-on"
-                title="禁用BGM播放器"
-              ></span>
-              <span
-                class="bgm-toggle-off fa-solid fa-toggle-off"
-                title="启用BGM播放器"
-              ></span>
-            </label>
-            <div
-              id="bgm_manager_button"
-              title="管理音乐链接"
-              class="menu_button menu_button_icon manager-button"
-            >
-              <i class="fa-solid fa-list-ol"></i>
-            </div>
+        <div class="title_restorable space-between align-center">
+          <label for="audio_bgm_volume_slider">音乐</label>
+          <label class="checkbox flex-container" for="enable_bgm">
+            <input type="checkbox" id="enable_bgm" name="enable_bgm" />
+            <span
+              class="bgm-toggle-on fa-solid fa-toggle-on"
+              title="禁用BGM播放器"
+            ></span>
+            <span
+              class="bgm-toggle-off fa-solid fa-toggle-off"
+              title="启用BGM播放器"
+            ></span>
+          </label>
+          <div
+            id="bgm_manager_button"
+            title="管理音乐链接"
+            class="menu_button menu_button_icon manager-button"
+          >
+            <i class="fa-solid fa-list-ol"></i>
           </div>
-          <div class="audio-container">
-            <div class="mute-vol-wrapper">
-              <div class="mute-div">
-                <div
-                  id="audio_bgm_mute"
-                  class="menu_button audio-player-button"
-                >
-                  <i
-                    class="fa-solid fa-volume-high fa-lg fa-fw"
-                    id="audio_bgm_mute_icon"
-                  ></i>
-                </div>
-              </div>
-              <div class="vol" id="volume-control">
-                <input
-                  type="range"
-                  class="audio-slider vertical-slider"
-                  id="audio_bgm_volume_slider"
-                  value="100"
-                  maxlength="100"
-                />
-              </div>
-            </div>
-            <div class="play-pause-div">
-              <div
-                id="audio_bgm_play_pause"
-                class="menu_button audio-player-button"
-              >
+        </div>
+        <div class="audio-container">
+          <div class="mute-vol-wrapper">
+            <div class="mute-div">
+              <div id="audio_bgm_mute" class="menu_button audio-player-button">
                 <i
-                  class="fa-solid fa-play fa-lg fa-fw"
-                  id="audio_bgm_play_pause_icon"
+                  class="fa-solid fa-volume-high fa-lg fa-fw"
+                  id="audio_bgm_mute_icon"
                 ></i>
               </div>
             </div>
-            <div class="progress-div">
+            <div class="vol" id="volume-control">
               <input
                 type="range"
-                class="audio-slider"
-                id="audio_bgm_progress_slider"
-                value="0"
+                class="audio-slider vertical-slider"
+                id="audio_bgm_volume_slider"
+                value="100"
                 maxlength="100"
               />
             </div>
           </div>
-          <div class="audio-adjust">
-            <div class="playlist">
-              <select id="audio_bgm_select"></select>
-            </div>
-            <div class="audio-mixer-element audio-mixer-mode">
-              <div id="audio_bgm_mode" class="menu_button audio-player-button">
-                <i
-                  class="fa-solid fa-repeat fa-lg fa-fw"
-                  id="audio_bgm_mode_icon"
-                ></i>
-              </div>
+          <div class="play-pause-div">
+            <div
+              id="audio_bgm_play_pause"
+              class="menu_button audio-player-button"
+            >
+              <i
+                class="fa-solid fa-play fa-lg fa-fw"
+                id="audio_bgm_play_pause_icon"
+              ></i>
             </div>
           </div>
-          <audio id="audio_bgm" controls src=""></audio>
+          <div class="progress-div">
+            <input
+              type="range"
+              class="audio-slider"
+              id="audio_bgm_progress_slider"
+              value="0"
+              maxlength="100"
+            />
+          </div>
         </div>
-        <div>
-          <div class="title_restorable space-between align-center">
-            <label for="audio_ambient_volume_slider">音效</label>
-            <label class="checkbox flex-container" for="enable_ambient">
-              <input
-                type="checkbox"
-                id="enable_ambient"
-                name="enable_ambient"
-              />
-              <span
-                class="ambient-toggle-on fa-solid fa-toggle-on"
-                title="禁用Ambient播放器"
-              ></span>
-              <span
-                class="ambient-toggle-off fa-solid fa-toggle-off"
-                title="启用Ambient播放器"
-              ></span>
-            </label>
-            <div id="ambient_manager_button" title="管理音效链接" " class="
-            menu_button menu_button_icon manager-button">
+        <div class="audio-adjust">
+          <div class="playlist">
+            <select id="audio_bgm_select"></select>
+          </div>
+          <div class="audio-mixer-element audio-mixer-mode">
+            <div id="audio_bgm_mode" class="menu_button audio-player-button">
+              <i
+                class="fa-solid fa-repeat fa-lg fa-fw"
+                id="audio_bgm_mode_icon"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <audio id="audio_bgm" controls src=""></audio>
+      </div>
+      <div>
+        <div class="title_restorable space-between align-center">
+          <label for="audio_ambient_volume_slider">音效</label>
+          <label class="checkbox flex-container" for="enable_ambient">
+            <input type="checkbox" id="enable_ambient" name="enable_ambient" />
+            <span
+              class="ambient-toggle-on fa-solid fa-toggle-on"
+              title="禁用Ambient播放器"
+            ></span>
+            <span
+              class="ambient-toggle-off fa-solid fa-toggle-off"
+              title="启用Ambient播放器"
+            ></span>
+          </label>
+          <div
+            id="ambient_manager_button"
+            title="管理音效链接"
+            class="menu_button menu_button_icon manager-button"
+          >
             <i class="fa-solid fa-list-ol"></i>
-          </a>
+          </div>
         </div>
         <div class="audio-container">
           <div class="mute-vol-wrapper">
