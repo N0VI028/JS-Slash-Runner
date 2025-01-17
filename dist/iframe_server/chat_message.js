@@ -1,14 +1,9 @@
 import { chat, messageFormatting, reloadCurrentChat, saveChatConditional, substituteParamsExtended, system_message_types } from "../../../../../../script.js";
 import { stringToRange } from "../../../../../utils.js";
 import { handlePartialRender } from "../index.js";
-export { handleChatMessage };
-// TODO: don't repeat this in all files
-function getIframeName(event) {
-    const window = event.source;
-    return window.frameElement?.id;
-}
-const event_handlers = {
-    iframe_get_chat_messages: async (event) => {
+import { getIframeName, registerIframeHandler } from "./index.js";
+export function registerIframeChatMessageHandler() {
+    registerIframeHandler('iframe_get_chat_messages', async (event) => {
         const iframe_name = getIframeName(event);
         const range_demacroed = substituteParamsExtended(event.data.range);
         const range = stringToRange(range_demacroed, 0, chat.length - 1);
@@ -22,7 +17,6 @@ const event_handlers = {
         if (!['all', 'hidden', 'unhidden'].includes(option.hide_state)) {
             throw Error(`[Chat Message][getChatMessages](${iframe_name}) 提供的 hide_state 无效, 请提供 'all', 'hidden' 或 'unhidden', 你提供的是: ${option.hide_state}`);
         }
-        const uid = event.data.uid;
         const { start, end } = range;
         const getRole = (chat_message) => {
             const is_narrator = chat_message.extra?.type === system_message_types.NARRATOR;
@@ -69,14 +63,10 @@ const event_handlers = {
             promises.push(process_message(i));
         }
         const chat_messages = (await Promise.all(promises)).filter((chat_message) => chat_message !== null);
-        event.source.postMessage({
-            request: 'iframe_get_chat_messages_callback',
-            uid: uid,
-            result: chat_messages,
-        }, { targetOrigin: "*" });
         console.info(`[Chat Message][getChatMessages](${iframe_name}) 获取${start == end ? `第 ${start} ` : ` ${start}-${end} `} 楼的消息, 选项: ${JSON.stringify(option)} `);
-    },
-    iframe_set_chat_message: async (event) => {
+        return chat_messages;
+    });
+    registerIframeHandler('iframe_set_chat_message', async (event) => {
         const iframe_name = getIframeName(event);
         const message = event.data.message;
         const message_id = event.data.message_id;
@@ -155,20 +145,6 @@ const event_handlers = {
             await saveChatConditional();
         }
         console.info(`[Chat Message][setChatMessage](${iframe_name}) 设置第 ${message_id} 楼消息, 选项: ${JSON.stringify(option)}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index} `);
-    },
-};
-async function handleChatMessage(event) {
-    if (!event.data)
-        return;
-    try {
-        const handler = event_handlers[event.data.request];
-        if (handler) {
-            handler(event);
-        }
-    }
-    catch (error) {
-        console.error(`${error} `);
-        throw error;
-    }
+    });
 }
 //# sourceMappingURL=chat_message.js.map

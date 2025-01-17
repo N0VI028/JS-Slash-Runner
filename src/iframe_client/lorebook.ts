@@ -26,20 +26,9 @@ interface LorebookSettings {
  *
  * @returns 当前的世界书全局设置
  */
-function getLorebookSettings(): Promise<LorebookSettings> {
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_get_lorebook_settings_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_get_lorebook_settings",
-      uid: uid,
-    }, "*");
+async function getLorebookSettings(): Promise<LorebookSettings> {
+  return detail.makeIframePromise({
+    request: "iframe_get_lorebook_settings",
   });
 }
 
@@ -57,25 +46,14 @@ interface GetCharLorebooksOption {
  *
  * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
  */
-function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]> {
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]> {
   option = {
     name: option.name,
     type: option.type ?? 'all'
   } as Required<GetCharLorebooksOption>;
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_get_char_lorebooks_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_get_char_lorebooks",
-      uid: uid,
-      option: option,
-    }, "*");
+  return detail.makeIframePromise({
+    request: "iframe_get_char_lorebooks",
+    option: option
   });
 }
 
@@ -84,7 +62,7 @@ function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]
  *
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
-function getCurrentCharPrimaryLorebook(): Promise<string | null> {
+async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
   return getCharLorebooks({ type: 'primary' }).then(lorebooks => lorebooks[0]);
 }
 
@@ -93,7 +71,7 @@ function getCurrentCharPrimaryLorebook(): Promise<string | null> {
  *
  * @returns 聊天世界书的名称
  */
-function getOrCreateChatLorebook(): Promise<string> {
+async function getOrCreateChatLorebook(): Promise<string> {
   return triggerSlashWithResult("/getchatbook") as Promise<string>;
 }
 
@@ -102,20 +80,9 @@ function getOrCreateChatLorebook(): Promise<string> {
  *
  * @returns 世界书名称列表
  */
-function getLorebooks(): Promise<string[]> {
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_get_lorebooks_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_get_lorebooks",
-      uid: uid,
-    }, "*");
+async function getLorebooks(): Promise<string[]> {
+  return detail.makeIframePromise({
+    request: "iframe_get_lorebooks",
   });
 }
 
@@ -126,21 +93,10 @@ function getLorebooks(): Promise<string[]> {
  *
  * @returns 是否成功创建, 如果已经存在同名世界书会失败
  */
-function createLorebook(lorebook: string): Promise<boolean> {
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_create_lorebook_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_create_lorebook",
-      uid: uid,
-      lorebook: lorebook,
-    }, "*");
+async function createLorebook(lorebook: string): Promise<boolean> {
+  return detail.makeIframePromise({
+    request: "iframe_create_lorebook",
+    lorebook: lorebook,
   });
 }
 
@@ -150,20 +106,9 @@ function createLorebook(lorebook: string): Promise<boolean> {
  * @param lorebook 世界书名称
  * @returns 是否成功删除, 可能因世界书不存在等原因而失败
  */
-function deleteLorebook(lorebook: string): Promise<boolean> {
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_delete_lorebook_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_delete_lorebook",
-      uid: uid,
-      lorebook: lorebook,
-    }, "*");
-  });
+async function deleteLorebook(lorebook: string): Promise<boolean> {
+  return detail.makeIframePromise({
+    request: "iframe_delete_lorebook",
+    lorebook: lorebook,
+  });;
 }

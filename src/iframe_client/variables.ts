@@ -33,25 +33,15 @@ interface VariableOption {
  *   ...
  * }
  */
-function getVariables(option: VariableOption = {}): Promise<JsonObject> {
+async function getVariables(option: VariableOption = {}): Promise<JsonObject> {
   option = {
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_get_variables_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_get_variables",
-      uid: uid,
-      option: option,
-    }, "*");
+  return detail.makeIframePromise({
+    request: "iframe_get_variables",
+    option: option,
   });
+
 }
 
 /**
@@ -66,24 +56,24 @@ function getVariables(option: VariableOption = {}): Promise<JsonObject> {
  *
  * @example
  * // 执行前的聊天变量: `{爱城华恋: {好感度: 5}}`
- * replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
+ * await replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后的聊天变量: `{神乐光: {好感度: 5, 认知度: 0}}`
  *
  * @example
  * // 删除 `{神乐光: {好感度: 5}}` 变量
  * let variables = await getVariables();
  * _.unset(variables, "神乐光.好感度");
- * replaceVariables(variables);
+ * await replaceVariables(variables);
  */
-function replaceVariables(variables: JsonObject, option: VariableOption = {}): void {
+async function replaceVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
   option = {
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
-  window.parent.postMessage({
+  return detail.makeIframePromise({
     request: "iframe_replace_variables",
     option: option,
     variables: variables,
-  }, "*");
+  });
 }
 
 /**
@@ -115,7 +105,7 @@ async function updateVariablesWith(updater: (variables: JsonObject) => JsonObjec
 
   let variables = await getVariables(option);
   variables = updater(variables);
-  replaceVariables(variables, option);
+  await replaceVariables(variables, option);
 
   console.info(`[Chat Message][updateVariablesWith](${getIframeName()}) 用函数对${option.type == 'chat' ? `聊天` : `全局`}变量表进行更新, 结果: ${JSON.stringify(variables)}, 使用的函数:\n\n ${JSON.stringify(format_updater_string(updater.toString()))}`);
   return variables;
@@ -205,16 +195,16 @@ async function deleteVariable(variable_path: string, option: VariableOption = {}
  *   insertOrSetVariables(variables);
  * }
  */
-function setVariables(message_id: number, new_or_updated_variables: JsonObject): void;
+async function setVariables(message_id: number, new_or_updated_variables: JsonObject): Promise<void>;
 
 /**
  * 如果当前楼层是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量, **只能在消息楼层 iframe 中使用**.
  *
  * @deprecated 这个函数是在事件监听功能之前制作的, 现在请使用 `insertOrSetVariables` 然后用事件监听或条件判断来控制怎么更新
  */
-function setVariables(new_or_updated_variables: JsonObject): void;
+async function setVariables(new_or_updated_variables: JsonObject): Promise<void>;
 
-function setVariables(message_id: number | JsonObject, new_or_updated_variables?: JsonObject): void {
+async function setVariables(message_id: number | JsonObject, new_or_updated_variables?: JsonObject): Promise<void> {
   let actual_message_id: number;
   let actual_variables: JsonObject;
   if (new_or_updated_variables) {
@@ -224,13 +214,13 @@ function setVariables(message_id: number | JsonObject, new_or_updated_variables?
     actual_message_id = getCurrentMessageId();
     actual_variables = message_id as JsonObject;
   }
-  if (typeof actual_message_id === 'number' && typeof actual_variables === 'object') {
-    window.parent.postMessage({
-      request: "iframe_set_variables",
-      message_id: actual_message_id,
-      variables: actual_variables,
-    }, "*");
-  } else {
+  if (typeof actual_message_id !== 'number' || typeof actual_variables !== 'object') {
     console.error("[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确");
+    return;
   }
+  return detail.makeIframePromise({
+    request: "iframe_set_variables",
+    message_id: actual_message_id,
+    variables: actual_variables,
+  });
 }

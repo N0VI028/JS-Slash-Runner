@@ -1,9 +1,8 @@
-export { slashEventEmit };
 import { eventSource } from "../../../../../../script.js";
 import { SlashCommand } from "../../../../../slash-commands/SlashCommand.js";
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from "../../../../../slash-commands/SlashCommandArgument.js";
 import { SlashCommandParser } from "../../../../../slash-commands/SlashCommandParser.js";
-async function slashEventEmit(args, value) {
+export async function slashEventEmit(args, value) {
     const data = args.data ?? [];
     const event_type = value;
     if (!data) {

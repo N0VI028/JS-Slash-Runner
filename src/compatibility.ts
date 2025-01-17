@@ -1,7 +1,7 @@
 // for compatibility with old sillytavern versions
-import { characters, this_chid } from "../../../../../../script.js";
-import { getTagsList } from "../../../../../tags.js";
-import { equalsIgnoreCaseAndAccents } from "../../../../../utils.js";
+import { characters, this_chid } from "../../../../../script.js";
+import { getTagsList } from "../../../../tags.js";
+import { equalsIgnoreCaseAndAccents } from "../../../../utils.js";
 
 // for 1.12.6
 /**

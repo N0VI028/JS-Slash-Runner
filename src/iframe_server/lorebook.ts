@@ -1,47 +1,33 @@
-export { handleLorebook }
-
 import { characters, this_chid } from "../../../../../../script.js";
 // @ts-ignore
-import { groups, selected_group } from "../../../../../group-chats.js";
+import { selected_group } from "../../../../../group-chats.js";
 import { getCharaFilename, onlyUnique } from "../../../../../utils.js";
 import { createNewWorldInfo, deleteWorldInfo, getWorldInfoSettings, world_info, world_names } from "../../../../../world-info.js";
 
-import { findChar } from "./compatibility.js"
+import { findChar } from "../compatibility.js"
+import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
 
-interface IframeGetLorebookSettings {
+interface IframeGetLorebookSettings extends IframeMessage {
   request: 'iframe_get_lorebook_settings';
-  uid: number;
 }
 
-interface IframeGetCharLorebooks {
+interface IframeGetCharLorebooks extends IframeMessage {
   request: "iframe_get_char_lorebooks";
-  uid: string;
   option: GetCharLorebooksOption;
 }
 
-interface IframeGetLorebooks {
+interface IframeGetLorebooks extends IframeMessage {
   request: "iframe_get_lorebooks";
-  uid: string;
 }
 
-interface IframeDeleteLorebook {
+interface IframeDeleteLorebook extends IframeMessage {
   request: "iframe_delete_lorebook";
-  uid: string;
   lorebook: string;
 }
 
-interface IframeCreateLorebook {
+interface IframeCreateLorebook extends IframeMessage {
   request: "iframe_create_lorebook";
-  uid: string;
   lorebook: string;
-}
-
-type IframeLorebook = IframeGetLorebookSettings | IframeGetCharLorebooks | IframeGetLorebooks | IframeDeleteLorebook | IframeCreateLorebook;
-
-// TODO: don't repeat this in all files
-function getIframeName(event: MessageEvent<IframeLorebook>): string {
-  const window = event.source as Window;
-  return window.frameElement?.id as string;
 }
 
 function toLorebookSettings(world_info_settings: ReturnType<typeof getWorldInfoSettings>): LorebookSettings {
@@ -64,127 +50,92 @@ function toLorebookSettings(world_info_settings: ReturnType<typeof getWorldInfoS
   };
 }
 
-const event_handlers = {
-  iframe_get_lorebook_settings: async (event: MessageEvent<IframeGetLorebookSettings>): Promise<void> => {
-    const iframe_name = getIframeName(event);
-    const uid = event.data.uid;
+export function registerIframeLorebookHandler() {
+  registerIframeHandler(
+    'iframe_get_lorebook_settings',
+    async (event: MessageEvent<IframeGetLorebookSettings>): Promise<LorebookSettings> => {
+      const iframe_name = getIframeName(event);
 
-    const lorebook_settings = toLorebookSettings(getWorldInfoSettings());
-    (event.source as MessageEventSource).postMessage({
-      request: 'iframe_get_lorebook_settings_callback',
-      uid: uid,
-      result: lorebook_settings,
+      const lorebook_settings = toLorebookSettings(getWorldInfoSettings());
+
+      console.info(`[Lorebook][getLorebookSettings](${iframe_name}) 获取世界书全局设置: ${JSON.stringify(lorebook_settings)}`);
+      return lorebook_settings;
     },
-      { targetOrigin: "*" }
-    );
+  );
 
-    console.info(`[Lorebook][getLorebookSettings](${iframe_name}) 获取世界书全局设置: ${JSON.stringify(lorebook_settings)}`);
-  },
-
-  iframe_get_char_lorebooks: async (event: MessageEvent<IframeGetCharLorebooks>): Promise<void> => {
-    const iframe_name = getIframeName(event);
-    const uid = event.data.uid;
-    const option = event.data.option;
-    if (!['all', 'primary', 'additional'].includes(option.type as string)) {
-      throw Error(`[Lorebook][getCharLorebooks](${iframe_name}) 提供的 type 无效, 请提供 'all', 'primary' 或 'additional', 你提供的是: ${option.type}`);
-    }
-
-    // @ts-ignore
-    if (selected_group && !option.name) {
-      throw new Error(`[Lorebook][getCharLorebooks](${iframe_name}) 不要在群组中调用这个功能`);
-    }
-    option.name = option.name ?? characters[this_chid]?.avatar ?? null;
-    // @ts-ignore
-    const character = findChar({ name: option.name });
-    if (!character) {
-      throw new Error(`[Lorebook][getCharLorebooks](${iframe_name}) 未找到名为 '${option.name}' 的角色卡`);
-    }
-
-    let books = [];
-    if (option.type === 'all' || option.type === 'primary') {
-      books.push(character.data?.extensions?.world);
-    }
-    if (option.type === 'all' || option.type === 'additional') {
-      const fileName = getCharaFilename(characters.indexOf(character));
-      // @ts-ignore 2339
-      const extraCharLore = world_info.charLore?.find((e) => e.name === fileName);
-      if (extraCharLore && Array.isArray(extraCharLore.extraBooks)) {
-        books.push(...extraCharLore.extraBooks);
+  registerIframeHandler(
+    'iframe_get_char_lorebooks',
+    async (event: MessageEvent<IframeGetCharLorebooks>): Promise<string[]> => {
+      const iframe_name = getIframeName(event);
+      const option = event.data.option;
+      if (!['all', 'primary', 'additional'].includes(option.type as string)) {
+        throw Error(`[Lorebook][getCharLorebooks](${iframe_name}) 提供的 type 无效, 请提供 'all', 'primary' 或 'additional', 你提供的是: ${option.type}`);
       }
-    }
 
-    books = books.filter(onlyUnique);
-    (event.source as MessageEventSource).postMessage({
-      request: 'iframe_get_char_lorebooks_callback',
-      uid: uid,
-      result: books,
+      // @ts-ignore
+      if (selected_group && !option.name) {
+        throw Error(`[Lorebook][getCharLorebooks](${iframe_name}) 不要在群组中调用这个功能`);
+      }
+      option.name = option.name ?? characters[this_chid]?.avatar ?? null;
+      // @ts-ignore
+      const character = findChar({ name: option.name });
+      if (!character) {
+        throw Error(`[Lorebook][getCharLorebooks](${iframe_name}) 未找到名为 '${option.name}' 的角色卡`);
+      }
+
+      let books: string[] = [];
+      if (option.type === 'all' || option.type === 'primary') {
+        books.push(character.data?.extensions?.world);
+      }
+      if (option.type === 'all' || option.type === 'additional') {
+        const fileName = getCharaFilename(characters.indexOf(character));
+        // @ts-ignore 2339
+        const extraCharLore = world_info.charLore?.find((e) => e.name === fileName);
+        if (extraCharLore && Array.isArray(extraCharLore.extraBooks)) {
+          books.push(...extraCharLore.extraBooks);
+        }
+      }
+
+      books = books.filter(onlyUnique);
+
+      console.info(`[Lorebook][getCharLorebooks](${iframe_name}) 获取角色卡绑定的世界书, 选项: ${JSON.stringify(option)}, 获取结果: ${JSON.stringify(books)}`);
+      return books;
     },
-      { targetOrigin: "*" }
-    );
+  );
 
-    console.info(`[Lorebook][getCharLorebooks](${iframe_name}) 获取角色卡绑定的世界书, 选项: ${JSON.stringify(option)}, 获取结果: ${JSON.stringify(books)}`);
-  },
+  registerIframeHandler(
+    'iframe_get_lorebooks',
+    async (event: MessageEvent<IframeGetLorebooks>): Promise<string[]> => {
+      const iframe_name = getIframeName(event);
 
-  iframe_get_lorebooks: async (event: MessageEvent<IframeGetLorebooks>): Promise<void> => {
-    const iframe_name = getIframeName(event);
-    const uid = event.data.uid;
-
-    (event.source as MessageEventSource).postMessage({
-      request: 'iframe_get_lorebooks_callback',
-      uid: uid,
-      result: world_names,
+      console.info(`[Lorebook][getLorebooks](${iframe_name}) 获取世界书列表: ${JSON.stringify(world_names)}`);
+      return world_names;
     },
-      { targetOrigin: "*" }
-    );
+  );
 
-    console.info(`[Lorebook][getLorebooks](${iframe_name}) 获取世界书列表: ${JSON.stringify(world_names)}`);
-  },
+  registerIframeHandler(
+    'iframe_delete_lorebook',
+    async (event: MessageEvent<IframeDeleteLorebook>): Promise<boolean> => {
+      const iframe_name = getIframeName(event);
+      const lorebook = event.data.lorebook;
 
-  iframe_delete_lorebook: async (event: MessageEvent<IframeDeleteLorebook>): Promise<void> => {
-    const iframe_name = getIframeName(event);
-    const uid = event.data.uid;
-    const lorebook = event.data.lorebook;
+      const success = await deleteWorldInfo(lorebook);
 
-    const success = await deleteWorldInfo(lorebook);
-    (event.source as MessageEventSource).postMessage({
-      request: 'iframe_delete_lorebook_callback',
-      uid: uid,
-      result: success,
+      console.info(`[Lorebook][deleteLorebook](${iframe_name}) 移除世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
+      return success;
     },
-      { targetOrigin: "*" }
-    );
+  );
 
-    console.info(`[Lorebook][deleteLorebook](${iframe_name}) 移除世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
-  },
+  registerIframeHandler(
+    'iframe_create_lorebook',
+    async (event: MessageEvent<IframeCreateLorebook>): Promise<boolean> => {
+      const iframe_name = getIframeName(event);
+      const lorebook = event.data.lorebook;
 
-  iframe_create_lorebook: async (event: MessageEvent<IframeCreateLorebook>): Promise<void> => {
-    const iframe_name = getIframeName(event);
-    const uid = event.data.uid;
-    const lorebook = event.data.lorebook;
+      const success = await createNewWorldInfo(lorebook, { interactive: false });
 
-    const success = await createNewWorldInfo(lorebook, { interactive: false });
-    (event.source as MessageEventSource).postMessage({
-      request: 'iframe_create_lorebook_callback',
-      uid: uid,
-      result: success,
+      console.info(`[Lorebook][createLorebook](${iframe_name}) 新建世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
+      return success;
     },
-      { targetOrigin: "*" }
-    );
-
-    console.info(`[Lorebook][createLorebook](${iframe_name}) 新建世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
-  },
-};
-
-async function handleLorebook(event: MessageEvent<IframeLorebook>): Promise<void> {
-  if (!event.data) return;
-
-  try {
-    const handler = event_handlers[event.data.request];
-    if (handler) {
-      handler(event as any);
-    }
-  } catch (error) {
-    console.error(`${error}`);
-    throw error;
-  }
+  );
 }

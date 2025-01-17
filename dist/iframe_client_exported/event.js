@@ -19,8 +19,8 @@ export const iframe_client_event = `
  * }
  * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  */
-function eventOn(event_type, listener) {
-    detail.listen_event("on", event_type, listener);
+async function eventOn(event_type, listener) {
+    return detail.listen_event("on", event_type, listener);
 }
 /**
  * 让 \`listener\` 监听 \`event_type\`, 当事件发生时自动在最后运行 \`listener\`.
@@ -33,8 +33,8 @@ function eventOn(event_type, listener) {
  * @example
  * eventMakeLast(要监听的事件, 要注册的函数);
  */
-function eventMakeLast(event_type, listener) {
-    detail.listen_event("make_last", event_type, listener);
+async function eventMakeLast(event_type, listener) {
+    return detail.listen_event("make_last", event_type, listener);
 }
 /**
  * 让 \`listener\` 监听 \`event_type\`, 当事件发生时自动在最先运行 \`listener\`.
@@ -47,8 +47,8 @@ function eventMakeLast(event_type, listener) {
  * @example
  * eventMakeFirst(要监听的事件, 要注册的函数);
  */
-function eventMakeFirst(event_type, listener) {
-    detail.listen_event("make_first", event_type, listener);
+async function eventMakeFirst(event_type, listener) {
+    return detail.listen_event("make_first", event_type, listener);
 }
 /**
  * 让 \`listener\` 仅监听下一次 \`event_type\`, 当该次事件发生时运行 \`listener\`, 此后取消监听.
@@ -61,17 +61,17 @@ function eventMakeFirst(event_type, listener) {
  * @example
  * eventOnce(要监听的事件, 要注册的函数);
  */
-function eventOnce(event_type, listener) {
-    detail.listen_event("once", event_type, listener);
+async function eventOnce(event_type, listener) {
+    return detail.listen_event("once", event_type, listener);
 }
 async function eventWaitOnce(event_type, listener) {
     if (!listener) {
-        eventOnce(event_type, dummy_listener);
-        return eventWaitOnce(event_type, dummy_listener);
+        eventOnce(event_type, detail.do_nothing);
+        return eventWaitOnce(event_type, detail.do_nothing);
     }
     const listener_string = listener.toString();
     const entry = \`\${event_type}#\${listener_string}\`;
-    return await new Promise((resolve, _) => {
+    return new Promise((resolve, _) => {
         const uid = Date.now() + Math.random();
         function handleMessage(event) {
             if (event.data?.request === "iframe_event_wait_callback" && event.data.uid == uid) {
@@ -106,22 +106,11 @@ async function eventWaitOnce(event_type, listener) {
  * // 发送时携带数据 ["你好", 0]
  * eventEmit("事件", "你好", 0);
  */
-function eventEmit(event_type, ...data) {
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_event_emit_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve();
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_event_emit",
-            uid: uid,
-            event_type: event_type,
-            data: data
-        }, "*");
+async function eventEmit(event_type, ...data) {
+    return detail.makeIframePromise({
+        request: "iframe_event_emit",
+        event_type: event_type,
+        data: data
     });
 }
 /**
@@ -135,44 +124,44 @@ function eventEmit(event_type, ...data) {
  * @example
  * eventRemoveListener(要监听的事件, 要取消注册的函数);
  */
-function eventRemoveListener(event_type, listener) {
-    window.parent.postMessage({
+async function eventRemoveListener(event_type, listener) {
+    return detail.makeIframePromise({
         request: \`iframe_event_remove_listener\`,
         event_type: event_type,
         listener_uid: detail.listener_uid_map.get(listener),
         listener_string: listener.toString(),
-    }, '*');
+    });
 }
 /**
  * 取消本 iframe 中对 \`event_type\` 的所有监听
  *
  * @param event_type 要取消监听的事件
  */
-function eventClearEvent(event_type) {
-    window.parent.postMessage({
+async function eventClearEvent(event_type) {
+    return detail.makeIframePromise({
         request: 'iframe_event_clear_event',
         event_type: event_type,
-    }, '*');
+    });
 }
 /**
  * 取消本 iframe 中 \`listener\` 的的所有监听
  *
  * @param listener 要取消注册的函数
  */
-function eventClearListener(listener) {
-    window.parent.postMessage({
+async function eventClearListener(listener) {
+    return detail.makeIframePromise({
         request: \`iframe_event_clear_listener\`,
         listener_uid: detail.listener_uid_map.get(listener),
         listener_string: listener.toString(),
-    }, '*');
+    });
 }
 /**
  * 取消本 iframe 中对所有事件的所有监听
  */
-function eventClearAll() {
-    window.parent.postMessage({
+async function eventClearAll() {
+    return detail.makeIframePromise({
         request: 'iframe_event_clear_all'
-    }, '*');
+    });
 }
 // iframe 事件
 const iframe_events = {
@@ -246,7 +235,6 @@ const tavern_events = {
     TOOL_CALLS_RENDERED: 'tool_calls_rendered',
 };
 //------------------------------------------------------------------------------------------------------------------------
-const dummy_listener = () => { };
 var detail;
 (function (detail) {
     function console_listener_string(listener_string) {
@@ -262,19 +250,19 @@ var detail;
     // TODO: 可能最好重写整个 tavern_event 的 client 和 server?
     detail.listener_uid_map = new Map();
     detail.uid_listener_map = new Map();
-    function listen_event(request, event_type, listener) {
+    async function listen_event(request, event_type, listener) {
         let listener_uid = 0;
         if (!detail.listener_uid_map.has(listener)) {
             listener_uid = Date.now() + Math.random();
             detail.listener_uid_map.set(listener, listener_uid);
             detail.uid_listener_map.set(listener_uid, listener);
         }
-        window.parent.postMessage({
+        return detail.makeIframePromise({
             request: \`iframe_event_\${request}\`,
             event_type: event_type,
             listener_uid: detail.listener_uid_map.get(listener),
             listener_string: listener.toString(),
-        }, '*');
+        });
     }
     detail.listen_event = listen_event;
     detail.waiting_event_map = new ArrayMultimap();
