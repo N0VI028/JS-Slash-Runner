@@ -45,6 +45,7 @@ import { iframe_client } from "./iframe_client_exported/index.js";
 import { handleChatMessage } from "./iframe_server/chat_message.js";
 import { handleEvent } from "./iframe_server/event.js";
 import { handleLorebook } from "./iframe_server/lorebook.js";
+import { handleLorebookEntry } from "./iframe_server/lorebook_entry.js";
 import { handleRegexData } from "./iframe_server/regex_data.js";
 import { handleVariables, latest_set_variables_message_id } from "./iframe_server/variables.js";
 import {
@@ -839,6 +840,7 @@ async function onExtensionToggle() {
     window.addEventListener("message", handleChatMessage);
     window.addEventListener("message", handleEvent);
     window.addEventListener("message", handleLorebook);
+    window.addEventListener("message", handleLorebookEntry);
     window.addEventListener("message", handleRegexData);
     window.addEventListener("message", handleVariables);
 
@@ -880,6 +882,7 @@ async function onExtensionToggle() {
     window.removeEventListener("message", handleChatMessage);
     window.removeEventListener("message", handleEvent);
     window.removeEventListener("message", handleLorebook);
+    window.removeEventListener("message", handleLorebookEntry);
     window.removeEventListener("message", handleRegexData);
     window.removeEventListener("message", handleVariables);
 
