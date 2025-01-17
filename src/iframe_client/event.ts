@@ -81,7 +81,7 @@ async function eventOnce<T extends EventType>(event_type: T, listener: ListenerT
  * @param event_type 要等待的事件
  *
  * @example
- * eventWaitOnce(tavern_events.MESSAGE_DELETED);
+ * await eventWaitOnce(tavern_events.MESSAGE_DELETED);
  */
 async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
 
@@ -97,7 +97,7 @@ async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
  *
  * @example
  * eventOnce("存档", save);
- * eventWaitOnce("存档", save);
+ * await eventWaitOnce("存档", save);
  */
 async function eventWaitOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<any | undefined>;
 

@@ -13,7 +13,7 @@ export const iframe_client_displayed_message = `
  * @returns 处理结果
  *
  * @example
- * const text = formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
+ * const text = await formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
  * text == "<p>少女歌剧 speaks in 5</p>";
  */
 async function formatAsDisplayedMessage(text, option = {}) {
@@ -40,7 +40,7 @@ async function formatAsDisplayedMessage(text, option = {}) {
  *
  * @example
  * // 修改第 0 楼的消息内容文本
- * // - 这样的修改只会影响本次显示, 不会保存到消息文件中, 因此刷新后就会回到原样;
+ * // - 这样的修改只会影响本次显示, 不会保存到消息文件中, 因此重新加载消息或刷新网页等操作后就会回到原样;
  * // - 如果需要实际修改消息文件, 请使用 \`setChatMessage\`
  * retrieveDisplayedMessage(0).text("new text");
  * retrieveDisplayedMessage(0).append("<pre>new text</pre>");

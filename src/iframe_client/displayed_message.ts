@@ -15,7 +15,7 @@ interface FormatAsDisplayedMessageOption {
  * @returns 处理结果
  *
  * @example
- * const text = formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
+ * const text = await formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
  * text == "<p>少女歌剧 speaks in 5</p>";
  */
 async function formatAsDisplayedMessage(text: string, option: FormatAsDisplayedMessageOption = {}): Promise<string> {
