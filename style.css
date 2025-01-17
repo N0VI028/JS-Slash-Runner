@@ -17,7 +17,7 @@ padding-right: 5px;
 }
 #scriptLibraryPopup {
     position: absolute;
-    inset: 0px 25px auto auto;
+    inset: 0px 77px auto auto;
     display: none;
 }
 #scriptLibraryPopup a {
