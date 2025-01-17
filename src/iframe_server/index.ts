@@ -37,7 +37,6 @@ export async function handleIframe(event: MessageEvent<IframeMessage>): Promise<
     }
   } catch (error) {
     console.error(`${error}`);
-    throw error;
   } finally {
     (event.source as MessageEventSource).postMessage(
       {
