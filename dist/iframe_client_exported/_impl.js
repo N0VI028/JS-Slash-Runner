@@ -3,7 +3,7 @@ var detail;
 (function (detail) {
     detail.do_nothing = () => { };
     ;
-    async function makeIframePromise(message) {
+    async function make_iframe_promise(message) {
         return new Promise((resolve, _) => {
             const uid = Date.now() + Math.random();
             function handleMessage(event) {
@@ -19,7 +19,7 @@ var detail;
             }, "*");
         });
     }
-    detail.makeIframePromise = makeIframePromise;
+    detail.make_iframe_promise = make_iframe_promise;
 })(detail || (detail = {}));
 `;
 //# sourceMappingURL=_impl.js.map

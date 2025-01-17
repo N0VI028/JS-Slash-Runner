@@ -93,7 +93,7 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
     filter: option.filter ?? 'none',
     fields: option.fields ?? 'all',
   } as Required<GetLorebookEntriesOption>;
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_get_lorebook_entries",
     lorebook: lorebook,
     option: option,
@@ -137,7 +137,7 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
  * await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
  */
 async function setLorebookEntries(lorebook: string, entries: LorebookEntry_Partial_RequireUid[]): Promise<void> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_set_lorebook_entries",
     lorebook: lorebook,
     entries: entries,
@@ -156,7 +156,7 @@ async function setLorebookEntries(lorebook: string, entries: LorebookEntry_Parti
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
 async function createLorebookEntry(lorebook: string, field_values: LorebookEntry_Partial_OmitUid): Promise<string> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_create_lorebook_entry",
     lorebook: lorebook,
     field_values: field_values,
@@ -172,7 +172,7 @@ async function createLorebookEntry(lorebook: string, field_values: LorebookEntry
  * @returns 是否成功删除, 可能因世界书不存在、对应条目不存在等原因失败
  */
 async function deleteLorebookEntry(lorebook: string, uid: number): Promise<boolean> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_delete_lorebook_entry",
     lorebook: lorebook,
     lorebook_uid: uid,

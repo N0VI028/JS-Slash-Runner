@@ -7,7 +7,7 @@ namespace detail {
     result?: any;
   };
 
-  export async function makeIframePromise(message: any): Promise<any> {
+  export async function make_iframe_promise(message: any): Promise<any> {
     return new Promise((resolve, _) => {
       const uid = Date.now() + Math.random();
       function handleMessage(event: MessageEvent<IframeCallbackMessage>) {

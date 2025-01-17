@@ -107,7 +107,7 @@ async function eventWaitOnce(event_type, listener) {
  * eventEmit("事件", "你好", 0);
  */
 async function eventEmit(event_type, ...data) {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_event_emit",
         event_type: event_type,
         data: data
@@ -125,7 +125,7 @@ async function eventEmit(event_type, ...data) {
  * eventRemoveListener(要监听的事件, 要取消注册的函数);
  */
 async function eventRemoveListener(event_type, listener) {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: \`iframe_event_remove_listener\`,
         event_type: event_type,
         listener_uid: detail.listener_uid_map.get(listener),
@@ -138,7 +138,7 @@ async function eventRemoveListener(event_type, listener) {
  * @param event_type 要取消监听的事件
  */
 async function eventClearEvent(event_type) {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: 'iframe_event_clear_event',
         event_type: event_type,
     });
@@ -149,7 +149,7 @@ async function eventClearEvent(event_type) {
  * @param listener 要取消注册的函数
  */
 async function eventClearListener(listener) {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: \`iframe_event_clear_listener\`,
         listener_uid: detail.listener_uid_map.get(listener),
         listener_string: listener.toString(),
@@ -159,7 +159,7 @@ async function eventClearListener(listener) {
  * 取消本 iframe 中对所有事件的所有监听
  */
 async function eventClearAll() {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: 'iframe_event_clear_all'
     });
 }
@@ -257,7 +257,7 @@ var detail;
             detail.listener_uid_map.set(listener, listener_uid);
             detail.uid_listener_map.set(listener_uid, listener);
         }
-        return detail.makeIframePromise({
+        return detail.make_iframe_promise({
             request: \`iframe_event_\${request}\`,
             event_type: event_type,
             listener_uid: detail.listener_uid_map.get(listener),

@@ -8,7 +8,7 @@
  * await triggerSlash('/echo hello!');
  */
 function triggerSlash(command: string): Promise<void> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: 'iframe_trigger_slash',
     command: command,
   });
@@ -25,7 +25,7 @@ function triggerSlash(command: string): Promise<void> {
  * const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
  */
 function triggerSlashWithResult(command: string): Promise<string | undefined> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: 'iframe_trigger_slash_with_result',
     command: command,
   });

@@ -148,7 +148,7 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
  * eventEmit("事件", "你好", 0);
  */
 async function eventEmit(event_type: EventType, ...data: any[]): Promise<void> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_event_emit",
     event_type: event_type,
     data: data
@@ -167,7 +167,7 @@ async function eventEmit(event_type: EventType, ...data: any[]): Promise<void> {
  * eventRemoveListener(要监听的事件, 要取消注册的函数);
  */
 async function eventRemoveListener(event_type: EventType, listener: Function): Promise<void> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: `iframe_event_remove_listener`,
     event_type: event_type,
     listener_uid: detail.listener_uid_map.get(listener),
@@ -181,7 +181,7 @@ async function eventRemoveListener(event_type: EventType, listener: Function): P
  * @param event_type 要取消监听的事件
  */
 async function eventClearEvent(event_type: EventType): Promise<void> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: 'iframe_event_clear_event',
     event_type: event_type,
   });
@@ -193,7 +193,7 @@ async function eventClearEvent(event_type: EventType): Promise<void> {
  * @param listener 要取消注册的函数
  */
 async function eventClearListener(listener: Function): Promise<void> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: `iframe_event_clear_listener`,
     listener_uid: detail.listener_uid_map.get(listener),
     listener_string: listener.toString(),
@@ -204,7 +204,7 @@ async function eventClearListener(listener: Function): Promise<void> {
  * 取消本 iframe 中对所有事件的所有监听
  */
 async function eventClearAll(): Promise<void> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: 'iframe_event_clear_all'
   });
 }
@@ -379,7 +379,7 @@ namespace detail {
       listener_uid_map.set(listener, listener_uid);
       uid_listener_map.set(listener_uid, listener);
     }
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
       request: `iframe_event_${request}`,
       event_type: event_type,
       listener_uid: listener_uid_map.get(listener),

@@ -6,7 +6,7 @@
  * @returns 局部正则是否被启用
  */
 async function isCharacterRegexEnabled(): Promise<boolean> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_is_character_regex_enabled",
   });
 }
@@ -62,7 +62,7 @@ async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[
     scope: option.scope ?? 'all',
     enable_state: option.enable_state ?? 'all',
   } as Required<GetRegexDataOption>;
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_get_regex_data",
     option: option,
   });

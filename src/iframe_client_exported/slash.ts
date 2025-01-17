@@ -9,7 +9,7 @@ export const iframe_client_slash = `
  * await triggerSlash('/echo hello!');
  */
 function triggerSlash(command) {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: 'iframe_trigger_slash',
         command: command,
     });
@@ -25,7 +25,7 @@ function triggerSlash(command) {
  * const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
  */
 function triggerSlashWithResult(command) {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: 'iframe_trigger_slash_with_result',
         command: command,
     });

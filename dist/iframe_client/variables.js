@@ -31,7 +31,7 @@ async function getVariables(option = {}) {
     option = {
         type: option.type ?? 'chat',
     };
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_get_variables",
         option: option,
     });
@@ -61,7 +61,7 @@ async function replaceVariables(variables, option = {}) {
     option = {
         type: option.type ?? 'chat',
     };
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_replace_variables",
         option: option,
         variables: variables,
@@ -170,7 +170,7 @@ async function setVariables(message_id, new_or_updated_variables) {
         console.error("[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确");
         return;
     }
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_set_variables",
         message_id: actual_message_id,
         variables: actual_variables,

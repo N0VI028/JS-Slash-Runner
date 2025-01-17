@@ -7,7 +7,7 @@
  * @returns 局部正则是否被启用
  */
 async function isCharacterRegexEnabled() {
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_is_character_regex_enabled",
     });
 }
@@ -31,7 +31,7 @@ async function getRegexData(option = {}) {
         scope: option.scope ?? 'all',
         enable_state: option.enable_state ?? 'all',
     };
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_get_regex_data",
         option: option,
     });

@@ -28,7 +28,7 @@ interface LorebookSettings {
  * @returns 当前的世界书全局设置
  */
 async function getLorebookSettings(): Promise<LorebookSettings> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_get_lorebook_settings",
   });
 }
@@ -52,7 +52,7 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<st
     name: option.name,
     type: option.type ?? 'all'
   } as Required<GetCharLorebooksOption>;
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_get_char_lorebooks",
     option: option
   });
@@ -82,7 +82,7 @@ async function getOrCreateChatLorebook(): Promise<string> {
  * @returns 世界书名称列表
  */
 async function getLorebooks(): Promise<string[]> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_get_lorebooks",
   });
 }
@@ -95,7 +95,7 @@ async function getLorebooks(): Promise<string[]> {
  * @returns 是否成功创建, 如果已经存在同名世界书会失败
  */
 async function createLorebook(lorebook: string): Promise<boolean> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_create_lorebook",
     lorebook: lorebook,
   });
@@ -108,7 +108,7 @@ async function createLorebook(lorebook: string): Promise<boolean> {
  * @returns 是否成功删除, 可能因世界书不存在等原因而失败
  */
 async function deleteLorebook(lorebook: string): Promise<boolean> {
-  return detail.makeIframePromise({
+  return detail.make_iframe_promise({
     request: "iframe_delete_lorebook",
     lorebook: lorebook,
   });;

@@ -44,7 +44,7 @@ async function getChatMessages(range, option = {}) {
         hide_state: option.hide_state ?? 'all',
         include_swipe: option.include_swipe ?? false,
     };
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_get_chat_messages",
         range: range.toString(),
         option: option,
@@ -74,7 +74,7 @@ async function setChatMessage(message, message_id, option = {}) {
         swipe_id: option.swipe_id ?? 'current',
         refresh: option.refresh ?? 'display_and_render_current',
     };
-    return detail.makeIframePromise({
+    return detail.make_iframe_promise({
         request: "iframe_set_chat_message",
         message: message,
         message_id: message_id,
