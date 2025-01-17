@@ -63,7 +63,7 @@ export function registerIframeChatMessageHandler() {
             promises.push(process_message(i));
         }
         const chat_messages = (await Promise.all(promises)).filter((chat_message) => chat_message !== null);
-        console.info(`[Chat Message][getChatMessages](${iframe_name}) 获取${start == end ? `第 ${start} ` : ` ${start}-${end} `} 楼的消息, 选项: ${JSON.stringify(option)} `);
+        console.info(`[Chat Message][getChatMessages](${iframe_name}) 获取${start == end ? `第 ${start} ` : ` ${start}-${end} `}楼的消息, 选项: ${JSON.stringify(option)} `);
         return chat_messages;
     });
     registerIframeHandler('iframe_set_chat_message', async (event) => {
