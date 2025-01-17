@@ -1,9 +1,10 @@
 // TODO: 没给接口做不到设置世界书全局设置, 服了
-// TODO: 是否有获取当前全局世界书的需求?
 // TODO: 查询哪些条目被激活?
 // TODO: 绑定/解绑世界书?
 
 interface LorebookSettings {
+  selected_global_lorebooks: string[];
+
   scan_depth: number;
   context_percentage: number;
   budget_cap: number;  // 0 表示禁用

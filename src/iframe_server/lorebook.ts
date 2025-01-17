@@ -32,6 +32,8 @@ interface IframeCreateLorebook extends IframeMessage {
 
 function toLorebookSettings(world_info_settings: ReturnType<typeof getWorldInfoSettings>): LorebookSettings {
   return {
+    selected_global_lorebooks: (world_info_settings.world_info as { globalSelect: string[] }).globalSelect,
+
     scan_depth: world_info_settings.world_info_depth,
     context_percentage: world_info_settings.world_info_budget,
     budget_cap: world_info_settings.world_info_budget_cap,

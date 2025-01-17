@@ -7,6 +7,7 @@ import { findChar } from "../compatibility.js";
 import { getIframeName, registerIframeHandler } from "./index.js";
 function toLorebookSettings(world_info_settings) {
     return {
+        selected_global_lorebooks: world_info_settings.world_info.globalSelect,
         scan_depth: world_info_settings.world_info_depth,
         context_percentage: world_info_settings.world_info_budget,
         budget_cap: world_info_settings.world_info_budget_cap,
