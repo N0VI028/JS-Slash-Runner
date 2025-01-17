@@ -6,11 +6,11 @@
 
 ## 编写前端助手角色卡的推荐方案
 
-### Cursor
+### Cursor (推荐!)
 
 如果你在电脑上写卡, **推荐安装 Cursor 来编写**, 参考[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html).
 
-配置好后, iframe_client 文件夹和 slash_command.txt 文件中即分别记录了前端助手的功能和酒馆最新版本的所有 slash command. 你可以将它们发给 ai, 让 ai 来写, **具体在上面的配置文档中有提示.**
+配置好后, iframe_client 文件夹和 slash_command.txt 文件中即分别记录了前端助手的功能和酒馆最新版本的所有 slash command. 你可以将它们发给 ai, 让 ai 来写, **具体在上面的配置文档链接中有提示.**
 
 ### html 工具角色卡
 
@@ -625,6 +625,83 @@ function setChatMessage(message: string, message_id: number, option: SetChatMess
 setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
 setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
 setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
+```
+
+### 消息显示操作
+
+#### 将字符串处理为酒馆用于显示的 html 格式
+
+```typescript
+interface FormatAsDisplayedMessageOption {
+  message_id?: 'last' | 'last_user' | 'last_char' | number;  // 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为 'last'
+};
+
+/**
+ * 将字符串处理为酒馆用于显示的 html 格式. 将会,
+ * 1. 替换字符串中的酒馆宏
+ * 2. 对字符串应用对应的酒馆正则
+ * 3. 将字符串调整为 html 格式
+ *
+ * @param text 要处理的字符串
+ * @param option 可选选项
+ *   - `message_id?:number`: 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为最新楼层
+ *
+ * @returns 处理结果
+ */
+async function formatAsDisplayedMessage(text: string, option: FormatAsDisplayedMessageOption = {}): Promise<string>
+```
+
+示例:
+
+```typescript
+const text = formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
+text == "<p>少女歌剧 speaks in 5</p>";
+```
+
+#### 获取消息楼层号对应的消息内容 JQuery
+
+**相比于一个实用函数, 这更像是一个告诉你可以这样用 JQuery 的示例.**
+
+```typescript
+/**
+ * 获取消息楼层号对应的消息内容 JQuery
+ *
+ * 相比于一个实用函数, 这更像是一个告诉你可以这样用 JQuery 的示例
+ *
+ * @param message_id 要获取的消息楼层号, 必须要酒馆页面显示了该消息楼层才能获取到
+ * @returns 如果能获取到该消息楼层的 html, 则返回对应的 JQuery; 否则返回空 JQuery
+ *
+ * @example
+ * // 获取第 0 楼的消息内容文本
+ * const text = retrieveMessageTextHtml(0).text();
+ *
+ * @example
+ * // 修改第 0 楼的消息内容文本
+ * // - 这样的修改只会影响本次显示, 不会保存到消息文件中, 因此重新加载消息或刷新网页等操作后就会回到原样;
+ * // - 如果需要实际修改消息文件, 请使用 `setChatMessage`
+ * retrieveDisplayedMessage(0).text("new text");
+ * retrieveDisplayedMessage(0).append("<pre>new text</pre>");
+ * retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
+ */
+function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement> {
+  return $(`div.mes[mesid = "${message_id}"]`, window.parent.document).find(`div.mes_text`);
+}
+```
+
+示例:
+
+```typescript
+// 获取第 0 楼的消息内容文本
+const text = retrieveMessageTextHtml(0).text();
+```
+
+```typescript
+// 修改第 0 楼的消息内容文本
+// - 这样的修改只会影响本次显示, 不会保存到消息文件中, 因此重新加载消息或刷新网页等操作后就会回到原样;
+// - 如果需要实际修改消息文件, 请使用 `setChatMessage`
+retrieveDisplayedMessage(0).text("new text");
+retrieveDisplayedMessage(0).append("<pre>new text</pre>");
+retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
 ```
 
 ### 正则操作
@@ -1455,6 +1532,20 @@ function getMessageId(iframe_name: string): number
  * @returns 楼层 id
  */
 function getCurrentMessageId(): number
+```
+
+```typescript
+/**
+ * 替换字符串中的酒馆宏
+ *
+ * @param text 要替换的字符串
+ * @returns 替换结果
+ *
+ * @example
+ * const text = substitudeMacros("{{char}} speaks in {{lastMessageId}}");
+ * text == "少女歌剧 speaks in 5";
+ */
+async function substitudeMacros(text: string): Promise<string>
 ```
 
 ```typescript

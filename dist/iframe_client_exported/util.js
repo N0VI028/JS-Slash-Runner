@@ -29,12 +29,32 @@ function getCurrentMessageId() {
     return getMessageId(getIframeName());
 }
 /**
+ * 替换字符串中的酒馆宏
+ *
+ * @param text 要替换的字符串
+ * @returns 替换结果
+ *
+ * @example
+ * const text = substitudeMacros("{{char}} speaks in {{lastMessageId}}");
+ * text == "少女歌剧 speaks in 5";
+ */
+async function substitudeMacros(text) {
+    // QUESTION: 像这样额外编写一个 request, 还是直接用 \`await triggerSlashWithResult('/pass "{{char}} speaks in {{lastMessageId}}"')\`?
+    return detail.make_iframe_promise({
+        request: 'iframe_substitude_macros',
+        text: text,
+    });
+}
+/**
  * 获取最新楼层 id
  *
  * @returns 最新楼层id
  */
 async function getLastMessageId() {
-    const result = await triggerSlashWithResult("/pass {{lastMessageId}}");
+    const result = await substitudeMacros("{{lastMessageId}}");
+    if (result === "") {
+        throw Error("[Util][getLastMessageId] 未找到任何消息楼层");
+    }
     return parseInt(result);
 }
 `;

@@ -104,7 +104,7 @@ export function registerIframeChatMessageHandler() {
       const message = event.data.message;
       const message_id = event.data.message_id;
       const option = event.data.option;
-      if (option.swipe_id !== 'current' && typeof option.swipe_id !== 'number') {
+      if (typeof option.swipe_id !== 'number' && option.swipe_id !== 'current') {
         throw Error(`[ChatMessage][setChatMessage](${iframe_name}) 提供的 swipe_id 无效, 请提供 'current' 或序号, 你提供的是: ${option.swipe_id} `)
       }
       if (!['none', 'display_current', 'display_and_render_current', 'all'].includes(option.refresh)) {
