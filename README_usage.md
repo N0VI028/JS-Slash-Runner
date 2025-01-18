@@ -1058,7 +1058,7 @@ await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_r
  *
  * @returns 新条目的 uid
  */
-async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<string>
+async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number>
 ```
 
 示例:

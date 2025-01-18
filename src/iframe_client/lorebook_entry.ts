@@ -155,7 +155,7 @@ async function setLorebookEntries(lorebook: string, entries: LorebookEntry_Parti
  * @example
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
-async function createLorebookEntry(lorebook: string, field_values: LorebookEntry_Partial_OmitUid): Promise<string> {
+async function createLorebookEntry(lorebook: string, field_values: LorebookEntry_Partial_OmitUid): Promise<number> {
   return detail.make_iframe_promise({
     request: "iframe_create_lorebook_entry",
     lorebook: lorebook,
