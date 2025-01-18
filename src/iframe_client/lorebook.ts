@@ -59,6 +59,11 @@ interface GetCharLorebooksOption {
   type?: 'all' | 'primary' | 'additional';  // 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
 };
 
+interface CharLorebook {
+  name: string,
+  type: 'primary' | 'additional',
+}
+
 /**
  * 获取角色卡绑定的世界书
  *
@@ -66,9 +71,9 @@ interface GetCharLorebooksOption {
  *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
  *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
  *
- * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
+ * @returns 一个 CharLorebook 数组
  */
-async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]> {
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebook[]> {
   option = {
     name: option.name,
     type: option.type ?? 'all'
@@ -85,7 +90,11 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<st
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
-  return getCharLorebooks({ type: 'primary' }).then(lorebooks => lorebooks[0]);
+  const lorebooks = await getCharLorebooks({ type: 'primary' })
+  if (lorebooks.length <= 0) {
+    throw Error(`[Lorebook][getCurrentCharPrimaryLorebook](${getIframeName()}) 当前角色卡未绑定有主要世界书`);
+  }
+  return lorebooks[0].name;
 }
 
 /**

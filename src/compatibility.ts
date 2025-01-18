@@ -1,5 +1,7 @@
 // for compatibility with old sillytavern versions
 import { characters, this_chid } from "../../../../../script.js";
+  // @ts-ignore
+import { selected_group } from "../../../../group-chats.js";
 import { getTagsList } from "../../../../tags.js";
 import { equalsIgnoreCaseAndAccents } from "../../../../utils.js";
 
