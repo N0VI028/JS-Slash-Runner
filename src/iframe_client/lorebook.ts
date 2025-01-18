@@ -26,10 +26,31 @@ interface LorebookSettings {
  * 获取当前的世界书全局设置
  *
  * @returns 当前的世界书全局设置
+ *
+ * @example
+ * // 获取全局启用的世界书
+ * const settings = await getLorebookSettings();
+ * alert(settings.selected_global_lorebooks);
  */
 async function getLorebookSettings(): Promise<LorebookSettings> {
   return detail.make_iframe_promise({
     request: "iframe_get_lorebook_settings",
+  });
+}
+
+/**
+ * 修改世界书全局设置
+ *
+ * @returns 修改世界书全局设置
+ *
+ * @example
+ * // 修改上下文百分比为 100%, 启用递归扫描
+ * await setLorebookSettings({context_percentage: 100, recursive: true});
+ */
+async function setLorebookSettings(settings: Partial<LorebookSettings>): Promise<void> {
+  return detail.make_iframe_promise({
+    request: "iframe_set_lorebook_settings",
+    settings: settings,
   });
 }
 

@@ -787,6 +787,8 @@ const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'}
 
 ```typescript
 interface LorebookSettings {
+  selected_global_lorebooks: string[];
+
   scan_depth: number;
   context_percentage: number;
   budget_cap: number;  // 0 表示禁用
@@ -810,6 +812,23 @@ interface LorebookSettings {
  * @returns 当前的世界书全局设置
  */
 async function getLorebookSettings(): Promise<LorebookSettings>
+```
+
+示例:
+
+```typescript
+// 获取全局启用的世界书
+const settings = await getLorebookSettings();
+alert(settings.selected_global_lorebooks);
+```
+
+#### 修改世界书全局设置
+
+示例:
+
+```typescript
+// 修改上下文百分比为 100%, 启用递归扫描
+await setLorebookSettings({context_percentage: 100, recursive: true});
 ```
 
 #### 获取角色卡绑定的世界书

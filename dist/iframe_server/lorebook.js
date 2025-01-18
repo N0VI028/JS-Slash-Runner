@@ -1,8 +1,8 @@
-import { characters, this_chid } from "../../../../../../script.js";
+import { characters, saveSettings, this_chid } from "../../../../../../script.js";
 // @ts-ignore
 import { selected_group } from "../../../../../group-chats.js";
 import { getCharaFilename, onlyUnique } from "../../../../../utils.js";
-import { createNewWorldInfo, deleteWorldInfo, getWorldInfoSettings, world_info, world_names } from "../../../../../world-info.js";
+import { createNewWorldInfo, deleteWorldInfo, getWorldInfoSettings, selected_world_info, world_info, world_names } from "../../../../../world-info.js";
 import { findChar } from "../compatibility.js";
 import { getIframeName, registerIframeHandler } from "./index.js";
 function toLorebookSettings(world_info_settings) {
@@ -23,12 +23,82 @@ function toLorebookSettings(world_info_settings) {
         overflow_alert: world_info_settings.world_info_overflow_alert,
     };
 }
+function assignPartialLorebookSettings(settings) {
+    const for_eachs = {
+        selected_global_lorebooks: (value) => {
+            $('#world_info').find('option[value!=""]').remove();
+            world_names.forEach((item, i) => $('#world_info').append(`<option value='${i}'${value.includes(item) ? ' selected' : ''}>${item}</option>`));
+            selected_world_info.length = 0;
+            selected_world_info.push(...value);
+            saveSettings();
+        },
+        scan_depth: (value) => {
+            $('#world_info_depth').val(value).trigger('input');
+        },
+        context_percentage: (value) => {
+            $('#world_info_budget').val(value).trigger('input');
+        },
+        budget_cap: (value) => {
+            $('#world_info_budget_cap').val(value).trigger('input');
+        },
+        min_activations: (value) => {
+            $('#world_info_min_activations').val(value).trigger('input');
+        },
+        max_depth: (value) => {
+            $('#world_info_min_activations_depth_max').val(value).trigger('input');
+        },
+        max_recursion_steps: (value) => {
+            $('#world_info_max_recursion_steps').val(value).trigger('input');
+        },
+        insertion_strategy: (value) => {
+            const converted_value = { 'evenly': 0, 'character_first': 1, 'global_first': 2 }[value];
+            $(`#world_info_character_strategy option[value='${converted_value}']`).prop('selected', true);
+            $('#world_info_character_strategy').val(converted_value).trigger('change');
+        },
+        include_names: (value) => {
+            $('#world_info_include_names').prop('checked', value).trigger('input');
+        },
+        recursive: (value) => {
+            $('#world_info_recursive').prop('checked', value).trigger('input');
+        },
+        case_sensitive: (value) => {
+            $('#world_info_case_sensitive').prop('checked', value).trigger('input');
+        },
+        match_whole_words: (value) => {
+            $('#world_info_match_whole_words').prop('checked', value).trigger('input');
+        },
+        use_group_scoring: (value) => {
+            $('#world_info_use_group_scoring').prop('checked', value).trigger('change');
+        },
+        overflow_alert: (value) => {
+            $('#world_info_overflow_alert').prop('checked', value).trigger('change');
+        },
+    };
+    Object.entries(settings)
+        .filter(([_, value]) => value !== undefined)
+        .forEach(([field, value]) => {
+        // @ts-ignore
+        for_eachs[field]?.(value);
+    });
+}
 export function registerIframeLorebookHandler() {
     registerIframeHandler('iframe_get_lorebook_settings', async (event) => {
         const iframe_name = getIframeName(event);
         const lorebook_settings = toLorebookSettings(getWorldInfoSettings());
         console.info(`[Lorebook][getLorebookSettings](${iframe_name}) 获取世界书全局设置: ${JSON.stringify(lorebook_settings)}`);
         return lorebook_settings;
+    });
+    registerIframeHandler('iframe_set_lorebook_settings', async (event) => {
+        const iframe_name = getIframeName(event);
+        const settings = event.data.settings;
+        if (settings.selected_global_lorebooks) {
+            const inexisting_lorebooks = settings.selected_global_lorebooks.filter(lorebook => !world_names.includes(lorebook));
+            if (inexisting_lorebooks.length > 0) {
+                throw Error(`[Lorebook][setLorebookSettings](${iframe_name}) 尝试修改要全局启用的世界书, 但未找到以下世界书: ${inexisting_lorebooks}`);
+            }
+        }
+        assignPartialLorebookSettings(settings);
+        console.info(`[Lorebook][setLorebookSettings](${iframe_name}) 修改世界书全局设置: ${JSON.stringify(settings)}`);
     });
     registerIframeHandler('iframe_get_char_lorebooks', async (event) => {
         const iframe_name = getIframeName(event);

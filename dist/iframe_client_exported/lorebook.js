@@ -13,6 +13,17 @@ async function getLorebookSettings() {
         request: "iframe_get_lorebook_settings",
     });
 }
+/**
+ * 修改世界书全局设置
+ *
+ * @returns 修改世界书全局设置
+ */
+async function setLorebookSettings(settings) {
+    return detail.make_iframe_promise({
+        request: "iframe_set_lorebook_settings",
+        settings: settings,
+    });
+}
 ;
 /**
  * 获取角色卡绑定的世界书
