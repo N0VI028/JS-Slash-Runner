@@ -834,6 +834,11 @@ await setLorebookSettings({context_percentage: 100, recursive: true});
 #### 获取角色卡绑定的世界书
 
 ```typescript
+interface CharLorebook {
+  name: string,
+  type: 'primary' | 'additional',
+}
+
 /**
  * 获取角色卡绑定的世界书
  *
@@ -841,8 +846,9 @@ await setLorebookSettings({context_percentage: 100, recursive: true});
  *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
  *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
  *
- * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
+ * @returns 一个 CharLorebook 数组
  */
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebook[]>
 async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
 ```
 
