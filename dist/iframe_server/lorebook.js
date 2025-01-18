@@ -118,14 +118,14 @@ export function registerIframeLorebookHandler() {
         }
         let books = [];
         if (option.type === 'all' || option.type === 'primary') {
-            books.push(character.data?.extensions?.world);
+            books.push({ name: character.data?.extensions?.world, type: 'primary' });
         }
         if (option.type === 'all' || option.type === 'additional') {
             const fileName = getCharaFilename(characters.indexOf(character));
             // @ts-ignore 2339
             const extraCharLore = world_info.charLore?.find((e) => e.name === fileName);
             if (extraCharLore && Array.isArray(extraCharLore.extraBooks)) {
-                books.push(...extraCharLore.extraBooks);
+                books.push(...(extraCharLore.extraBooks.map((book) => ({ name: book, type: 'additional' }))));
             }
         }
         books = books.filter(onlyUnique);

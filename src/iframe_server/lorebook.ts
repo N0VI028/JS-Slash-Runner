@@ -156,7 +156,7 @@ export function registerIframeLorebookHandler() {
 
   registerIframeHandler(
     'iframe_get_char_lorebooks',
-    async (event: MessageEvent<IframeGetCharLorebooks>): Promise<string[]> => {
+    async (event: MessageEvent<IframeGetCharLorebooks>): Promise<CharLorebook[]> => {
       const iframe_name = getIframeName(event);
       const option = event.data.option;
       if (!['all', 'primary', 'additional'].includes(option.type as string)) {
@@ -174,16 +174,16 @@ export function registerIframeLorebookHandler() {
         throw Error(`[Lorebook][getCharLorebooks](${iframe_name}) 未找到名为 '${option.name}' 的角色卡`);
       }
 
-      let books: string[] = [];
+      let books: CharLorebook[] = [];
       if (option.type === 'all' || option.type === 'primary') {
-        books.push(character.data?.extensions?.world);
+        books.push({ name: character.data?.extensions?.world, type: 'primary' });
       }
       if (option.type === 'all' || option.type === 'additional') {
         const fileName = getCharaFilename(characters.indexOf(character));
         // @ts-ignore 2339
         const extraCharLore = world_info.charLore?.find((e) => e.name === fileName);
         if (extraCharLore && Array.isArray(extraCharLore.extraBooks)) {
-          books.push(...extraCharLore.extraBooks);
+          books.push(...(extraCharLore.extraBooks.map((book: string) => ({ name: book, type: 'additional' }))));
         }
       }
 
