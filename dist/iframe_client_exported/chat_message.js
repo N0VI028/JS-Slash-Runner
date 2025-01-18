@@ -19,7 +19,7 @@ export const iframe_client_chat_message = `
  * // 获取所有楼层的所有消息页
  * const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
  */
-function getChatMessages(range, option = {}) {
+async function getChatMessages(range, option = {}) {
     // @todo @deprecated 在未来移除它
     if (Object.hasOwn(option, 'hidden')) {
         console.warn("\`hidden\` 已经被弃用, 请使用 \`hide_state\`");
@@ -44,21 +44,10 @@ function getChatMessages(range, option = {}) {
         hide_state: option.hide_state ?? 'all',
         include_swipe: option.include_swipe ?? false,
     };
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_get_chat_messages_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_get_chat_messages",
-            uid: uid,
-            range: range.toString(),
-            option: option,
-        }, "*");
+    return detail.make_iframe_promise({
+        request: "iframe_get_chat_messages",
+        range: range.toString(),
+        option: option,
     });
 }
 /**
@@ -76,21 +65,21 @@ function getChatMessages(range, option = {}) {
  *     - \`'all'\`: 重新载入整个聊天消息, 将会触发 \`tavern_events.CHAT_CHANGED\` 进而重新加载全局脚本和楼层消息
  *
  * @example
- * setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
- * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
- * setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
+ * await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
+ * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
+ * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
  */
-function setChatMessage(message, message_id, option = {}) {
+async function setChatMessage(message, message_id, option = {}) {
     option = {
         swipe_id: option.swipe_id ?? 'current',
         refresh: option.refresh ?? 'display_and_render_current',
     };
-    window.parent.postMessage({
+    return detail.make_iframe_promise({
         request: "iframe_set_chat_message",
         message: message,
         message_id: message_id,
         option: option,
-    }, "*");
+    });
 }
 `;
 //# sourceMappingURL=chat_message.js.map

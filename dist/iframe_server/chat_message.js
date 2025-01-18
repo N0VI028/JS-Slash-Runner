@@ -1,28 +1,22 @@
 import { chat, messageFormatting, reloadCurrentChat, saveChatConditional, substituteParamsExtended, system_message_types } from "../../../../../../script.js";
 import { stringToRange } from "../../../../../utils.js";
 import { handlePartialRender } from "../index.js";
-export { handleChatMessage };
-// TODO: don't repeat this in all files
-function getIframeName(event) {
-    const window = event.source;
-    return window.frameElement?.id;
-}
-const event_handlers = {
-    iframe_get_chat_messages: async (event) => {
+import { getIframeName, registerIframeHandler } from "./index.js";
+export function registerIframeChatMessageHandler() {
+    registerIframeHandler('iframe_get_chat_messages', async (event) => {
         const iframe_name = getIframeName(event);
         const range_demacroed = substituteParamsExtended(event.data.range);
         const range = stringToRange(range_demacroed, 0, chat.length - 1);
         const option = event.data.option;
         if (!range) {
-            throw Error(`[Chat Message][getChatMessages](${iframe_name}) 提供的消息范围 range 无效: ${range_demacroed}`);
+            throw Error(`[ChatMessage][getChatMessages](${iframe_name}) 提供的消息范围 range 无效: ${range_demacroed}`);
         }
         if (!['all', 'system', 'assistant', 'user'].includes(option.role)) {
-            throw Error(`[Chat Message][getChatMessages](${iframe_name}) 提供的 role 无效, 请提供 'all', 'system', 'assistant' 或 'user', 你提供的是: ${option.role}`);
+            throw Error(`[ChatMessage][getChatMessages](${iframe_name}) 提供的 role 无效, 请提供 'all', 'system', 'assistant' 或 'user', 你提供的是: ${option.role}`);
         }
         if (!['all', 'hidden', 'unhidden'].includes(option.hide_state)) {
-            throw Error(`[Chat Message][getChatMessages](${iframe_name}) 提供的 hide_state 无效, 请提供 'all', 'hidden' 或 'unhidden', 你提供的是: ${option.hide_state}`);
+            throw Error(`[ChatMessage][getChatMessages](${iframe_name}) 提供的 hide_state 无效, 请提供 'all', 'hidden' 或 'unhidden', 你提供的是: ${option.hide_state}`);
         }
-        const uid = event.data.uid;
         const { start, end } = range;
         const getRole = (chat_message) => {
             const is_narrator = chat_message.extra?.type === system_message_types.NARRATOR;
@@ -40,16 +34,16 @@ const event_handlers = {
         const process_message = async (message_id) => {
             const chat_message = chat[message_id];
             if (!chat_message) {
-                console.warn(`[Chat Message][getChatMessages](${iframe_name}) 没找到第 ${message_id} 楼的消息`);
+                console.warn(`[ChatMessage][getChatMessages](${iframe_name}) 没找到第 ${message_id} 楼的消息`);
                 return null;
             }
             const role = getRole(chat_message);
             if (option.role !== 'all' && role !== option.role) {
-                console.debug(`[Chat Message][getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它的身份不是 ${option.role}`);
+                console.debug(`[ChatMessage][getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它的身份不是 ${option.role}`);
                 return null;
             }
             if (option.hide_state !== 'all' && ((option.hide_state === 'hidden') !== chat_message.is_system)) {
-                console.debug(`[Chat Message][getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它${option.hide_state === 'hidden' ? `` : `没`} 被隐藏`);
+                console.debug(`[ChatMessage][getChatMessages](${iframe_name}) 筛去了第 ${message_id} 楼的消息因为它${option.hide_state === 'hidden' ? `` : `没`} 被隐藏`);
                 return null;
             }
             return {
@@ -69,27 +63,23 @@ const event_handlers = {
             promises.push(process_message(i));
         }
         const chat_messages = (await Promise.all(promises)).filter((chat_message) => chat_message !== null);
-        event.source.postMessage({
-            request: 'iframe_get_chat_messages_callback',
-            uid: uid,
-            result: chat_messages,
-        }, { targetOrigin: "*" });
-        console.info(`[Chat Message][getChatMessages](${iframe_name}) 获取${start == end ? `第 ${start} ` : ` ${start}-${end} `} 楼的消息, 选项: ${JSON.stringify(option)} `);
-    },
-    iframe_set_chat_message: async (event) => {
+        console.info(`[ChatMessage][getChatMessages](${iframe_name}) 获取${start == end ? `第 ${start} ` : ` ${start}-${end} `}楼的消息, 选项: ${JSON.stringify(option)} `);
+        return chat_messages;
+    });
+    registerIframeHandler('iframe_set_chat_message', async (event) => {
         const iframe_name = getIframeName(event);
         const message = event.data.message;
         const message_id = event.data.message_id;
         const option = event.data.option;
-        if (option.swipe_id !== 'current' && typeof option.swipe_id !== 'number') {
-            throw Error(`[Chat Message][setChatMessage](${iframe_name}) 提供的 swipe_id 无效, 请提供 'current' 或序号, 你提供的是: ${option.swipe_id} `);
+        if (typeof option.swipe_id !== 'number' && option.swipe_id !== 'current') {
+            throw Error(`[ChatMessage][setChatMessage](${iframe_name}) 提供的 swipe_id 无效, 请提供 'current' 或序号, 你提供的是: ${option.swipe_id} `);
         }
         if (!['none', 'display_current', 'display_and_render_current', 'all'].includes(option.refresh)) {
-            throw Error(`[Chat Message][setChatMessage](${iframe_name}) 提供的 refresh 无效, 请提供 'none', 'display_current', 'display_and_render_current' 或 'all', 你提供的是: ${option.refresh} `);
+            throw Error(`[ChatMessage][setChatMessage](${iframe_name}) 提供的 refresh 无效, 请提供 'none', 'display_current', 'display_and_render_current' 或 'all', 你提供的是: ${option.refresh} `);
         }
         const chat_message = chat[message_id];
         if (!chat_message) {
-            console.warn(`[Chat Message][setChatMessage](${iframe_name}) 未找到第 ${message_id} 楼的消息`);
+            console.warn(`[ChatMessage][setChatMessage](${iframe_name}) 未找到第 ${message_id} 楼的消息`);
             return;
         }
         const add_swipes_if_required = () => {
@@ -154,21 +144,7 @@ const event_handlers = {
             // QUESTION: saveChatDebounced 还是 await saveChatConditional?
             await saveChatConditional();
         }
-        console.info(`[Chat Message][setChatMessage](${iframe_name}) 设置第 ${message_id} 楼消息, 选项: ${JSON.stringify(option)}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index} `);
-    },
-};
-async function handleChatMessage(event) {
-    if (!event.data)
-        return;
-    try {
-        const handler = event_handlers[event.data.request];
-        if (handler) {
-            handler(event);
-        }
-    }
-    catch (error) {
-        console.error(`${error} `);
-        throw error;
-    }
+        console.info(`[ChatMessage][setChatMessage](${iframe_name}) 设置第 ${message_id} 楼消息, 选项: ${JSON.stringify(option)}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index} `);
+    });
 }
 //# sourceMappingURL=chat_message.js.map

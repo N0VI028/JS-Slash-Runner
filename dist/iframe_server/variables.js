@@ -1,11 +1,7 @@
 import { chat_metadata, saveSettingsDebounced } from "../../../../../../script.js";
 import { extension_settings, getContext, saveMetadataDebounced } from "../../../../../extensions.js";
-export { handleVariables, latest_set_variables_message_id };
-// TODO: don't repeat this in all files
-function getIframeName(event) {
-    const window = event.source;
-    return window.frameElement?.id;
-}
+import { getIframeName, registerIframeHandler } from "./index.js";
+export { latest_set_variables_message_id };
 function getVariablesByType(type) {
     switch (type) {
         case 'chat':
@@ -19,20 +15,15 @@ function getVariablesByType(type) {
     }
 }
 let latest_set_variables_message_id = null;
-const event_handlers = {
-    iframe_get_variables: async (event) => {
+export function registerIframeVariableHandler() {
+    registerIframeHandler('iframe_get_variables', async (event) => {
         const iframe_name = getIframeName(event);
-        const uid = event.data.uid;
         const option = event.data.option;
         const result = getVariablesByType(option.type);
-        event.source.postMessage({
-            request: 'iframe_get_variables_callback',
-            uid: uid,
-            result: result,
-        }, { targetOrigin: "*" });
         console.info(`[Chat Message][getVariables](${iframe_name}) 获取${option.type == 'chat' ? `聊天` : `全局`}变量表: ${JSON.stringify(result)}`);
-    },
-    iframe_replace_variables: async (event) => {
+        return result;
+    });
+    registerIframeHandler('iframe_replace_variables', async (event) => {
         const iframe_name = getIframeName(event);
         const variables = event.data.variables;
         const option = event.data.option;
@@ -47,8 +38,8 @@ const event_handlers = {
                 break;
         }
         console.info(`[Chat Message][replaceVariables](${iframe_name}) 将${option.type == 'chat' ? `聊天` : `全局`}变量表替换为: ${JSON.stringify(variables)}`);
-    },
-    iframe_set_variables: async (event) => {
+    });
+    registerIframeHandler('iframe_set_variables', async (event) => {
         const iframe_name = getIframeName(event);
         const variables = event.data.variables;
         const message_id = event.data.message_id;
@@ -58,8 +49,7 @@ const event_handlers = {
         const chat_length = getContext().chat.length;
         const latest_message_id = chat_length - 1;
         if (message_id !== latest_message_id) {
-            console.info(`[Chat Message][setVariables](${iframe_name}) 因为 ${message_id} 楼不是最新楼层 ${latest_message_id} 楼, 取消设置聊天变量. 原本要设置的变量: ${JSON.stringify(variables)} `);
-            return;
+            throw Error(`[Chat Message][setVariables](${iframe_name}) 因为 ${message_id} 楼不是最新楼层 ${latest_message_id} 楼, 取消设置聊天变量. 原本要设置的变量: ${JSON.stringify(variables)} `);
         }
         latest_set_variables_message_id = message_id;
         if (
@@ -98,20 +88,6 @@ const event_handlers = {
         chat_metadata.variables.tempVariables = tempVariables;
         saveMetadataDebounced();
         console.info(`[Chat Message][setVariables](${iframe_name}) 设置聊天变量, 要设置的变量: ${JSON.stringify(variables)} `);
-    },
-};
-async function handleVariables(event) {
-    if (!event.data)
-        return;
-    try {
-        const handler = event_handlers[event.data.request];
-        if (handler) {
-            handler(event);
-        }
-    }
-    catch (error) {
-        console.error(`${error} `);
-        throw error;
-    }
+    });
 }
 //# sourceMappingURL=variables.js.map

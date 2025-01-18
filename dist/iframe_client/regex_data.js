@@ -6,20 +6,9 @@
  *
  * @returns 局部正则是否被启用
  */
-function isCharacterRegexEnabled() {
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_is_character_regex_enabled_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_is_character_regex_enabled",
-            uid: uid,
-        }, "*");
+async function isCharacterRegexEnabled() {
+    return detail.make_iframe_promise({
+        request: "iframe_is_character_regex_enabled",
     });
 }
 /**
@@ -37,25 +26,14 @@ function isCharacterRegexEnabled() {
  * // 获取当前角色卡目前被启用的局部正则
  * const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
  */
-function getRegexData(option = {}) {
+async function getRegexData(option = {}) {
     option = {
         scope: option.scope ?? 'all',
         enable_state: option.enable_state ?? 'all',
     };
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_get_regex_data_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_get_regex_data",
-            uid: uid,
-            option: option,
-        }, "*");
+    return detail.make_iframe_promise({
+        request: "iframe_get_regex_data",
+        option: option,
     });
 }
 //# sourceMappingURL=regex_data.js.map

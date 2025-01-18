@@ -14,16 +14,13 @@ import { enumIcons, commonEnumProviders, } from "../../../../slash-commands/Slas
 import { POPUP_TYPE, callGenericPopup } from "../../../../popup.js";
 import { isMobile } from "../../../../RossAscends-mods.js";
 import { power_user } from "../../../../power-user.js";
+import { handleIframe } from "./iframe_server/index.js";
 import { iframe_client } from "./iframe_client_exported/index.js";
-import { handleChatMessage } from "./iframe_server/chat_message.js";
-import { handleEvent } from "./iframe_server/event.js";
-import { handleLorebook } from "./iframe_server/lorebook.js";
-import { handleRegexData } from "./iframe_server/regex_data.js";
-import { handleVariables, latest_set_variables_message_id } from "./iframe_server/variables.js";
-import { script_load_events, initializeScripts, destroyScriptsIfInitialized, } from "./script_iframe.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
-import { script_url } from "./script_url.js";
+import { latest_set_variables_message_id } from "./iframe_server/variables.js";
 import { libraries_text, library_load_events, initializeLibraries } from "./library.js";
+import { script_load_events, initializeScripts, destroyScriptsIfInitialized, } from "./script_iframe.js";
+import { script_url } from "./script_url.js";
 import { third_party } from "./third_party.js";
 const extensionName = "JS-Slash-Runner";
 const extensionFolderPath = `third-party/${extensionName}`;
@@ -500,33 +497,6 @@ function extractTextFromCode(codeElement) {
     });
     return textContent;
 }
-async function handleIframeCommand(event) {
-    if (event.data) {
-        if (event.data.request === "command") {
-            const commandText = event.data.commandText;
-            await executeCommand(commandText);
-        }
-        else if (event.data.request === "commandWithResult") {
-            const commandText = event.data.commandText;
-            const messageId = event.data.messageId;
-            try {
-                const result = await executeCommand(commandText);
-                event.source.postMessage({
-                    request: "commandResult",
-                    result: result.pipe,
-                    messageId: messageId,
-                }, "*");
-            }
-            catch (error) {
-                event.source.postMessage({
-                    request: "commandResult",
-                    error: error.toString(),
-                    messageId: messageId,
-                }, "*");
-            }
-        }
-    }
-}
 function clearTempVariables() {
     if (chat_metadata.variables &&
         chat_metadata.variables.tempVariables &&
@@ -630,12 +600,7 @@ async function onExtensionToggle() {
         script_load_events.forEach((eventType) => {
             eventSource.on(eventType, initializeScripts);
         });
-        window.addEventListener("message", handleIframeCommand);
-        window.addEventListener("message", handleChatMessage);
-        window.addEventListener("message", handleEvent);
-        window.addEventListener("message", handleLorebook);
-        window.addEventListener("message", handleRegexData);
-        window.addEventListener("message", handleVariables);
+        window.addEventListener("message", handleIframe);
         fullRenderEvents.forEach((eventType) => {
             eventSource.on(eventType, handleFullRender);
         });
@@ -667,12 +632,7 @@ async function onExtensionToggle() {
             eventSource.removeListener(eventType, initializeScripts);
         });
         destroyScriptsIfInitialized();
-        window.removeEventListener("message", handleIframeCommand);
-        window.removeEventListener("message", handleChatMessage);
-        window.removeEventListener("message", handleEvent);
-        window.removeEventListener("message", handleLorebook);
-        window.removeEventListener("message", handleRegexData);
-        window.removeEventListener("message", handleVariables);
+        window.removeEventListener("message", handleIframe);
         fullRenderEvents.forEach((eventType) => {
             eventSource.removeListener(eventType, handleFullRender);
         });

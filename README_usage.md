@@ -6,11 +6,11 @@
 
 ## 编写前端助手角色卡的推荐方案
 
-### Cursor
+### Cursor (推荐!)
 
 如果你在电脑上写卡, **推荐安装 Cursor 来编写**, 参考[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html).
 
-配置好后, iframe_client 文件夹和 slash_command.txt 文件中即分别记录了前端助手的功能和酒馆最新版本的所有 slash command. 你可以将它们发给 ai, 让 ai 来写, **具体在上面的配置文档中有提示.**
+配置好后, iframe_client 文件夹和 slash_command.txt 文件中即分别记录了前端助手的功能和酒馆最新版本的所有 slash command. 你可以将它们发给 ai, 让 ai 来写, **具体在上面的配置文档链接中有提示.**
 
 ### html 工具角色卡
 
@@ -331,14 +331,14 @@ saveAs("https://gitgud.io/SmilingFace/tavern_resource/-/raw/main/角色卡/妹�
  *
  * @param commandText 要运行的 Slash 命令
  */
-function triggerSlash(commandText: string): void
+async function triggerSlash(commandText: string): Promise<void>
 ```
 
 示例:
 
 ```typescript
 // 在酒馆界面弹出提示语 `hello!`
-triggerSlash('/echo hello!');
+await triggerSlash('/echo hello!');
 ```
 
 #### `triggerSlashWithResult(commandText)`
@@ -350,7 +350,7 @@ triggerSlash('/echo hello!');
  * @param commandText 要运行的 Slash 命令
  * @returns Slash 管道结果, 如果命令出错或执行了 `/abort` 则返回 `undefined`
  */
-function triggerSlashWithResult(commandText: string): Promise<string | undefined>
+async function triggerSlashWithResult(commandText: string): Promise<string | undefined>
 ```
 
 示例:
@@ -373,7 +373,7 @@ const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
  *
  * @returns 变量表
  */
-function getVariables(option: VariableOption = {}): Promise<JsonObject>
+async function getVariables(option: VariableOption = {}): Promise<JsonObject>
 ```
 
 示例:
@@ -406,14 +406,14 @@ if (_.has(variables, "神乐光.好感度")) {
  * @param option 可选选项
  *   - `type?:'chat'|'global'`: 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  */
-function replaceVariables(variables: JsonObject, option: VariableOption = {}): void
+async function replaceVariables(variables: JsonObject, option: VariableOption = {}): Promise<void>
 ```
 
 示例:
 
 ```typescript
 // 执行前的聊天变量: `{爱城华恋: {好感度: 5}}`
-replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
+await replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
 // 执行后的聊天变量: `{神乐光: {好感度: 5, 认知度: 0}}`
 ```
 
@@ -421,7 +421,7 @@ replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
 // 删除 `{神乐光: {好感度: 5}}` 变量
 let variables = await getVariables();
 _.unset(variables, "神乐光.好感度");
-replaceVariables(variables);
+await replaceVariables(variables);
 ```
 
 #### 用一个函数更新变量表
@@ -565,7 +565,7 @@ interface GetChatMessagesOption {
  *
  * @returns 一个数组, 数组的元素是每楼的消息 `ChatMessage`. 该数组依据按 message_id 从低到高排序.
  */
-function getChatMessages(range: string | number, option: GetChatMessagesOption = {}): Promise<ChatMessage[]>
+async function getChatMessages(range: string | number, option: GetChatMessagesOption = {}): Promise<ChatMessage[]>
 ```
 
 示例:
@@ -616,15 +616,92 @@ interface SetChatMessageOption {
  *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
  *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
  */
-function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): void
+async function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): Promise<void>
 ```
 
 示例:
 
 ```typescript
-setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
-setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
-setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
+await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
+await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
+await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
+```
+
+### 消息显示操作
+
+#### 将字符串处理为酒馆用于显示的 html 格式
+
+```typescript
+interface FormatAsDisplayedMessageOption {
+  message_id?: 'last' | 'last_user' | 'last_char' | number;  // 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为 'last'
+};
+
+/**
+ * 将字符串处理为酒馆用于显示的 html 格式. 将会,
+ * 1. 替换字符串中的酒馆宏
+ * 2. 对字符串应用对应的酒馆正则
+ * 3. 将字符串调整为 html 格式
+ *
+ * @param text 要处理的字符串
+ * @param option 可选选项
+ *   - `message_id?:number`: 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为最新楼层
+ *
+ * @returns 处理结果
+ */
+async function formatAsDisplayedMessage(text: string, option: FormatAsDisplayedMessageOption = {}): Promise<string>
+```
+
+示例:
+
+```typescript
+const text = await formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
+text == "<p>少女歌剧 speaks in 5</p>";
+```
+
+#### 获取消息楼层号对应的消息内容 JQuery
+
+**相比于一个实用函数, 这更像是一个告诉你可以这样用 JQuery 的示例.**
+
+```typescript
+/**
+ * 获取消息楼层号对应的消息内容 JQuery
+ *
+ * 相比于一个实用函数, 这更像是一个告诉你可以这样用 JQuery 的示例
+ *
+ * @param message_id 要获取的消息楼层号, 必须要酒馆页面显示了该消息楼层才能获取到
+ * @returns 如果能获取到该消息楼层的 html, 则返回对应的 JQuery; 否则返回空 JQuery
+ *
+ * @example
+ * // 获取第 0 楼的消息内容文本
+ * const text = retrieveMessageTextHtml(0).text();
+ *
+ * @example
+ * // 修改第 0 楼的消息内容文本
+ * // - 这样的修改只会影响本次显示, 不会保存到消息文件中, 因此重新加载消息或刷新网页等操作后就会回到原样;
+ * // - 如果需要实际修改消息文件, 请使用 `setChatMessage`
+ * retrieveDisplayedMessage(0).text("new text");
+ * retrieveDisplayedMessage(0).append("<pre>new text</pre>");
+ * retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
+ */
+function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement> {
+  return $(`div.mes[mesid = "${message_id}"]`, window.parent.document).find(`div.mes_text`);
+}
+```
+
+示例:
+
+```typescript
+// 获取第 0 楼的消息内容文本
+const text = retrieveMessageTextHtml(0).text();
+```
+
+```typescript
+// 修改第 0 楼的消息内容文本
+// - 这样的修改只会影响本次显示, 不会保存到消息文件中, 因此重新加载消息或刷新网页等操作后就会回到原样;
+// - 如果需要实际修改消息文件, 请使用 `setChatMessage`
+retrieveDisplayedMessage(0).text("new text");
+retrieveDisplayedMessage(0).append("<pre>new text</pre>");
+retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
 ```
 
 ### 正则操作
@@ -691,7 +768,7 @@ interface GetRegexDataOption {
  *
  * @returns 一个数组, 数组的元素是正则 `RegexData`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
-function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]>
+async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]>
 ```
 
 示例:
@@ -710,6 +787,8 @@ const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'}
 
 ```typescript
 interface LorebookSettings {
+  selected_global_lorebooks: string[];
+
   scan_depth: number;
   context_percentage: number;
   budget_cap: number;  // 0 表示禁用
@@ -732,14 +811,34 @@ interface LorebookSettings {
  *
  * @returns 当前的世界书全局设置
  */
-function getLorebookSettings(): Promise<LorebookSettings>
+async function getLorebookSettings(): Promise<LorebookSettings>
 ```
 
-遗憾的是没给接口, 只能获取不能修改世界书全局设置.
+示例:
+
+```typescript
+// 获取全局启用的世界书
+const settings = await getLorebookSettings();
+alert(settings.selected_global_lorebooks);
+```
+
+#### 修改世界书全局设置
+
+示例:
+
+```typescript
+// 修改上下文百分比为 100%, 启用递归扫描
+await setLorebookSettings({context_percentage: 100, recursive: true});
+```
 
 #### 获取角色卡绑定的世界书
 
 ```typescript
+interface CharLorebook {
+  name: string,
+  type: 'primary' | 'additional',
+}
+
 /**
  * 获取角色卡绑定的世界书
  *
@@ -747,9 +846,10 @@ function getLorebookSettings(): Promise<LorebookSettings>
  *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
  *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
  *
- * @returns 一个数组, 元素是各世界书的名称. 主要世界书将会排列在附加世界书的前面.
+ * @returns 一个 CharLorebook 数组
  */
-function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebook[]>
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
 ```
 
 ```typescript
@@ -758,7 +858,7 @@ function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]
  *
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
-function getCurrentCharPrimaryLorebook(): Promise<string | null>
+async function getCurrentCharPrimaryLorebook(): Promise<string | null>
 ```
 
 #### 获取聊天绑定的世界书
@@ -769,7 +869,7 @@ function getCurrentCharPrimaryLorebook(): Promise<string | null>
  *
  * @returns 聊天世界书的名称
  */
-function getOrCreateChatLorebook(): Promise<string>
+async function getOrCreateChatLorebook(): Promise<string>
 ```
 
 #### 获取世界书列表
@@ -780,7 +880,7 @@ function getOrCreateChatLorebook(): Promise<string>
  *
  * @returns 世界书名称列表
  */
-function getLorebooks(): Promise<string[]>
+async function getLorebooks(): Promise<string[]>
 ```
 
 #### 新建世界书
@@ -793,7 +893,7 @@ function getLorebooks(): Promise<string[]>
  *
  * @returns 是否成功创建, 如果已经存在同名世界书会失败
  */
-function createLorebook(lorebook: string): Promise<boolean>
+async function createLorebook(lorebook: string): Promise<boolean>
 ```
 
 #### 删除世界书
@@ -805,7 +905,7 @@ function createLorebook(lorebook: string): Promise<boolean>
  * @param lorebook 世界书名称
  * @returns 是否成功删除, 可能因世界书不存在等原因而失败
  */
-function deleteLorebook(lorebook: string): Promise<boolean>
+async function deleteLorebook(lorebook: string): Promise<boolean>
 ```
 
 ### 世界书条目操作
@@ -882,7 +982,7 @@ interface GetLorebookEntriesOption {
  *   - 如果使用了 `filter` 筛选条目, 则数组只会包含满足要求的元素.
  *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as LorebookEntry_Partial_RequireUid[]`.
  */
-function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]>
+async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]>
 ```
 
 示例:
@@ -924,20 +1024,8 @@ const entries = await getLoreBookEntries("eramgt少女歌剧", {fields: ["uid", 
  *
  * @param lorebook 条目所在的世界书名称
  * @param entries 一个数组, 元素是各条目信息. 其中必须有 "uid", 而其他字段可选.
- *
- * @example
- * const lorebook = "eramgt少女歌剧";
- *
- * // 你可以自己指定 uid 来设置
- * setLorebookEntries(lorebook, [{uid: 0, comment: "新标题"}]);
- *
- * // 也可以用从 `getLorebookEntries` 获取的条目
- * const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
- * entries[0].sticky = 5;
- * entries[1].enabled = false;
- * setLorebookEntries(lorebook, [entries[0], entries[1]]);
  */
-function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void
+async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void
 ```
 
 示例:
@@ -948,15 +1036,15 @@ const lorebook = "eramgt少女歌剧";
 // 禁止所有条目递归, 保持其他设置不变
 const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
 // `...entry` 表示展开 `entry` 中的内容; 而 `prevent_recursion: true` 放在后面会覆盖或设置 `prevent_recursion` 字段
-setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
 
 // 也就是说, 其实我们获取 `uid` 字段就够了
 const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as LorebookEntry_Partial_RequireUid[];
-setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
 
 // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
 const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
-setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
+await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
 ```
 
 #### 在世界书中新增条目
@@ -970,7 +1058,7 @@ setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursi
  *
  * @returns 新条目的 uid
  */
-function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<string>
+async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number>
 ```
 
 示例:
@@ -990,7 +1078,7 @@ const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", c
  *
  * @returns 是否成功删除, 可能因世界书不存在、对应条目不存在等原因失败
  */
-function deleteLorebookEntry(lorebook: string, uid: number): Promise<boolean>
+async function deleteLorebookEntry(lorebook: string, uid: number): Promise<boolean>
 ```
 
 ### 监听和发送事件
@@ -1069,7 +1157,7 @@ function detectMessageEdited(message_id) {
 }
 
 // 酒馆事件 tavern_events.MESSAGE_UPDATED 会传递被更新的楼层 id
-tavernOn(tavern_events.MESSAGE_UPDATED, detectMessageEdited);
+eventOn(tavern_events.MESSAGE_UPDATED, detectMessageEdited);
 ```
 
 <details>
@@ -1143,7 +1231,6 @@ const tavern_events = {
   // TODO: Naming convention is inconsistent with other events
   CHARACTER_DELETED: 'characterDeleted',
   CHARACTER_DUPLICATED: 'character_duplicated',
-  /** @deprecated The event is aliased to STREAM_TOKEN_RECEIVED. */
   STREAM_TOKEN_RECEIVED: 'stream_token_received',
   FILE_ATTACHMENT_DELETED: 'file_attachment_deleted',
   WORLDINFO_FORCE_ACTIVATE: 'worldinfo_force_activate',
@@ -1256,7 +1343,7 @@ type ListenerType = {
  * }
  * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  */
-function eventOn(event_type: EventType, listener: Function): void
+async function eventOn(event_type: EventType, listener: Function): Promise<void>
 ```
 
 ```typescript
@@ -1271,7 +1358,7 @@ function eventOn(event_type: EventType, listener: Function): void
  * @example
  * eventMakeLast(要监听的事件, 要注册的函数);
  */
-function eventMakeLast(event_type: EventType, listener: Function): void
+async function eventMakeLast(event_type: EventType, listener: Function): Promise<void>
 ```
 
 ```typescript
@@ -1286,7 +1373,7 @@ function eventMakeLast(event_type: EventType, listener: Function): void
  * @example
  * eventMakeFirst(要监听的事件, 要注册的函数);
  */
-function eventMakeFirst(event_type: EventType, listener: Function): void
+async function eventMakeFirst(event_type: EventType, listener: Function): Promise<void>
 ```
 
 ```typescript
@@ -1301,7 +1388,7 @@ function eventMakeFirst(event_type: EventType, listener: Function): void
  * @example
  * eventOnce(要监听的事件, 要注册的函数);
  */
-function eventOnce(event_type: EventType, listener: Function): void
+async function eventOnce(event_type: EventType, listener: Function): Promise<void>
 ```
 
 #### 等待事件
@@ -1313,7 +1400,7 @@ function eventOnce(event_type: EventType, listener: Function): void
  * @param event_type 要等待的事件
  *
  * @example
- * eventWaitOnce(tavern_events.MESSAGE_DELETED);
+ * await eventWaitOnce(tavern_events.MESSAGE_DELETED);
  */
 async function eventWaitOnce(event_type: EventType): Promise<any | undefined>
 ```
@@ -1331,7 +1418,7 @@ async function eventWaitOnce(event_type: EventType): Promise<any | undefined>
  *
  * @example
  * eventOnce("存档", save);
- * eventWaitOnce("存档", save);
+ * await eventWaitOnce("存档", save);
  */
 async function eventWaitOnce(event_type: EventType, listener: Function): Promise<any | undefined>
 ```
@@ -1381,7 +1468,7 @@ eventEmit("事件", "你好", 0);
  * @example
  * eventRemoveListener(要监听的事件, 要取消注册的函数);
  */
-function eventRemoveListener(event_type: EventType, listener: Function): void
+async function eventRemoveListener(event_type: EventType, listener: Function): Promise<void>
 ```
 
 ```typescript
@@ -1390,7 +1477,7 @@ function eventRemoveListener(event_type: EventType, listener: Function): void
  *
  * @param event_type 要取消监听的事件
  */
-function eventClearEvent(event_type: EventType): void
+async function eventClearEvent(event_type: EventType): Promise<void>
 ```
 
 ```typescript
@@ -1399,14 +1486,14 @@ function eventClearEvent(event_type: EventType): void
  *
  * @param listener 要取消注册的函数
  */
-function eventClearListener(listener: Function): void
+async function eventClearListener(listener: Function): Promise<void>
 ```
 
 ```typescript
 /**
  * 取消本 iframe 中对所有事件的所有监听
  */
-function eventClearAll(): void
+async function eventClearAll(): Promise<void>
 ```
 
 #### Quick Reply 命令
@@ -1455,6 +1542,20 @@ function getMessageId(iframe_name: string): number
  * @returns 楼层 id
  */
 function getCurrentMessageId(): number
+```
+
+```typescript
+/**
+ * 替换字符串中的酒馆宏
+ *
+ * @param text 要替换的字符串
+ * @returns 替换结果
+ *
+ * @example
+ * const text = substitudeMacros("{{char}} speaks in {{lastMessageId}}");
+ * text == "少女歌剧 speaks in 5";
+ */
+async function substitudeMacros(text: string): Promise<string>
 ```
 
 ```typescript

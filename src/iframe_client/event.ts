@@ -26,8 +26,8 @@ type EventType = IframeEventType | TavernEventType | string;
  * }
  * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  */
-function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  detail.listen_event("on", event_type, listener);
+async function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<void> {
+  return detail.listen_event("on", event_type, listener);
 }
 
 /**
@@ -41,8 +41,8 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
  * @example
  * eventMakeLast(要监听的事件, 要注册的函数);
  */
-function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  detail.listen_event("make_last", event_type, listener);
+async function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<void> {
+  return detail.listen_event("make_last", event_type, listener);
 }
 
 /**
@@ -56,8 +56,8 @@ function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerTyp
  * @example
  * eventMakeFirst(要监听的事件, 要注册的函数);
  */
-function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  detail.listen_event("make_first", event_type, listener);
+async function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<void> {
+  return detail.listen_event("make_first", event_type, listener);
 }
 
 /**
@@ -71,8 +71,8 @@ function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerTy
  * @example
  * eventOnce(要监听的事件, 要注册的函数);
  */
-function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  detail.listen_event("once", event_type, listener);
+async function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<void> {
+  return detail.listen_event("once", event_type, listener);
 }
 
 /**
@@ -81,14 +81,14 @@ function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]
  * @param event_type 要等待的事件
  *
  * @example
- * eventWaitOnce(tavern_events.MESSAGE_DELETED);
+ * await eventWaitOnce(tavern_events.MESSAGE_DELETED);
  */
 async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
 
 /**
  * 等待 `listener` 监听到一次 `event_type` 且执行完成, 返回 `listener` 的执行结果
  *
- * 在调用本函数前, `listener` 必须已经在监听 `event_type`
+ * 如果填入 `listener`, 则在调用本函数前 `listener` 必须已经在监听 `event_type`
  *
  * @param event_type `listener` 在监听的事件
  * @param listener 已经在监听 `event_type` 的函数
@@ -97,18 +97,18 @@ async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
  *
  * @example
  * eventOnce("存档", save);
- * eventWaitOnce("存档", save);
+ * await eventWaitOnce("存档", save);
  */
 async function eventWaitOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<any | undefined>;
 
 async function eventWaitOnce<T extends EventType>(event_type: T, listener?: ListenerType[T]): Promise<any | undefined> {
   if (!listener) {
-    eventOnce(event_type, dummy_listener);
-    return eventWaitOnce(event_type, dummy_listener);
+    eventOnce(event_type, detail.do_nothing);
+    return eventWaitOnce(event_type, detail.do_nothing);
   }
   const listener_string = listener.toString();
   const entry = `${event_type}#${listener_string}`
-  return await new Promise((resolve, _) => {
+  return new Promise((resolve, _) => {
     const uid = Date.now() + Math.random();
 
     function handleMessage(event: MessageEvent) {
@@ -117,13 +117,13 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
         resolve(event.data.result);
         detail.waiting_event_map.deleteEntry(entry, uid);
 
-        console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(event.data.result)}\n\n  ${detail.console_listener_string(listener_string)}`)
+        console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(event.data.result)}\n\n  ${detail.console_listener_string(listener_string)}`);
       }
     }
     window.addEventListener("message", handleMessage);
     detail.waiting_event_map.put(entry, uid);
 
-    console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待函数被 '${event_type}' 事件触发\n\n  ${detail.console_listener_string(listener_string)}`)
+    console.info(`[Event][eventWaitOnce](${getIframeName()}) 等待函数被 '${event_type}' 事件触发\n\n  ${detail.console_listener_string(listener_string)}`);
   });
 }
 
@@ -147,24 +147,11 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
  * // 发送时携带数据 ["你好", 0]
  * eventEmit("事件", "你好", 0);
  */
-function eventEmit(event_type: EventType, ...data: any[]): Promise<void> {
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_event_emit_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve();
-      }
-    }
-    window.addEventListener("message", handleMessage);
-
-    window.parent.postMessage({
-      request: "iframe_event_emit",
-      uid: uid,
-      event_type: event_type,
-      data: data
-    }, "*");
+async function eventEmit(event_type: EventType, ...data: any[]): Promise<void> {
+  return detail.make_iframe_promise({
+    request: "iframe_event_emit",
+    event_type: event_type,
+    data: data
   });
 }
 
@@ -179,13 +166,13 @@ function eventEmit(event_type: EventType, ...data: any[]): Promise<void> {
  * @example
  * eventRemoveListener(要监听的事件, 要取消注册的函数);
  */
-function eventRemoveListener(event_type: EventType, listener: Function): void {
-  window.parent.postMessage({
+async function eventRemoveListener(event_type: EventType, listener: Function): Promise<void> {
+  return detail.make_iframe_promise({
     request: `iframe_event_remove_listener`,
     event_type: event_type,
     listener_uid: detail.listener_uid_map.get(listener),
     listener_string: listener.toString(),
-  }, '*');
+  });
 }
 
 /**
@@ -193,11 +180,11 @@ function eventRemoveListener(event_type: EventType, listener: Function): void {
  *
  * @param event_type 要取消监听的事件
  */
-function eventClearEvent(event_type: EventType): void {
-  window.parent.postMessage({
+async function eventClearEvent(event_type: EventType): Promise<void> {
+  return detail.make_iframe_promise({
     request: 'iframe_event_clear_event',
     event_type: event_type,
-  }, '*')
+  });
 }
 
 /**
@@ -205,21 +192,21 @@ function eventClearEvent(event_type: EventType): void {
  *
  * @param listener 要取消注册的函数
  */
-function eventClearListener(listener: Function): void {
-  window.parent.postMessage({
+async function eventClearListener(listener: Function): Promise<void> {
+  return detail.make_iframe_promise({
     request: `iframe_event_clear_listener`,
     listener_uid: detail.listener_uid_map.get(listener),
     listener_string: listener.toString(),
-  }, '*');
+  });
 }
 
 /**
  * 取消本 iframe 中对所有事件的所有监听
  */
-function eventClearAll(): void {
-  window.parent.postMessage({
+async function eventClearAll(): Promise<void> {
+  return detail.make_iframe_promise({
     request: 'iframe_event_clear_all'
-  }, '*')
+  });
 }
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -371,7 +358,6 @@ type ListenerType = {
 };
 
 //------------------------------------------------------------------------------------------------------------------------
-const dummy_listener = () => { };
 namespace detail {
   export function console_listener_string(listener_string: string) {
     const index = listener_string.indexOf('\n');
@@ -386,20 +372,19 @@ namespace detail {
   export let listener_uid_map: Map<Function, number> = new Map();
   export let uid_listener_map: Map<number, Function> = new Map();
 
-  export function listen_event<T extends EventType>(request: string, event_type: T, listener: ListenerType[T]): void {
+  export async function listen_event<T extends EventType>(request: string, event_type: T, listener: ListenerType[T]): Promise<void> {
     let listener_uid: number = 0;
     if (!listener_uid_map.has(listener)) {
       listener_uid = Date.now() + Math.random();
       listener_uid_map.set(listener, listener_uid);
       uid_listener_map.set(listener_uid, listener);
     }
-
-    window.parent.postMessage({
+    return detail.make_iframe_promise({
       request: `iframe_event_${request}`,
       event_type: event_type,
       listener_uid: listener_uid_map.get(listener),
       listener_string: listener.toString(),
-    }, '*');
+    })
   }
 
   export let waiting_event_map: ArrayMultimap<string, number> = new ArrayMultimap();

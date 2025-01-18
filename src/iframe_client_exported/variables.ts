@@ -27,24 +27,13 @@ function isJsonArray(value) {
  *   ...
  * }
  */
-function getVariables(option = {}) {
+async function getVariables(option = {}) {
     option = {
         type: option.type ?? 'chat',
     };
-    return new Promise((resolve, _) => {
-        const uid = Date.now() + Math.random();
-        function handleMessage(event) {
-            if (event.data?.request === "iframe_get_variables_callback" && event.data.uid == uid) {
-                window.removeEventListener("message", handleMessage);
-                resolve(event.data.result);
-            }
-        }
-        window.addEventListener("message", handleMessage);
-        window.parent.postMessage({
-            request: "iframe_get_variables",
-            uid: uid,
-            option: option,
-        }, "*");
+    return detail.make_iframe_promise({
+        request: "iframe_get_variables",
+        option: option,
     });
 }
 /**
@@ -59,24 +48,24 @@ function getVariables(option = {}) {
  *
  * @example
  * // 执行前的聊天变量: \`{爱城华恋: {好感度: 5}}\`
- * replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
+ * await replaceVariables({神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后的聊天变量: \`{神乐光: {好感度: 5, 认知度: 0}}\`
  *
  * @example
  * // 删除 \`{神乐光: {好感度: 5}}\` 变量
  * let variables = await getVariables();
  * _.unset(variables, "神乐光.好感度");
- * replaceVariables(variables);
+ * await replaceVariables(variables);
  */
-function replaceVariables(variables, option = {}) {
+async function replaceVariables(variables, option = {}) {
     option = {
         type: option.type ?? 'chat',
     };
-    window.parent.postMessage({
+    return detail.make_iframe_promise({
         request: "iframe_replace_variables",
         option: option,
         variables: variables,
-    }, "*");
+    });
 }
 /**
  * 用 \`updater\` 函数更新变量表
@@ -107,7 +96,7 @@ async function updateVariablesWith(updater, option = {}) {
     };
     let variables = await getVariables(option);
     variables = updater(variables);
-    replaceVariables(variables, option);
+    await replaceVariables(variables, option);
     console.info(\`[Chat Message][updateVariablesWith](\${getIframeName()}) 用函数对\${option.type == 'chat' ? \`聊天\` : \`全局\`}变量表进行更新, 结果: \${JSON.stringify(variables)}, 使用的函数:\\n\\n \${JSON.stringify(format_updater_string(updater.toString()))}\`);
     return variables;
 }
@@ -166,7 +155,7 @@ async function deleteVariable(variable_path, option = {}) {
     await updateVariablesWith(old_variables => { result = _.unset(old_variables, variable_path); return old_variables; }, option);
     return result;
 }
-function setVariables(message_id, new_or_updated_variables) {
+async function setVariables(message_id, new_or_updated_variables) {
     let actual_message_id;
     let actual_variables;
     if (new_or_updated_variables) {
@@ -177,15 +166,14 @@ function setVariables(message_id, new_or_updated_variables) {
         actual_message_id = getCurrentMessageId();
         actual_variables = message_id;
     }
-    if (typeof actual_message_id === 'number' && typeof actual_variables === 'object') {
-        window.parent.postMessage({
-            request: "iframe_set_variables",
-            message_id: actual_message_id,
-            variables: actual_variables,
-        }, "*");
-    }
-    else {
+    if (typeof actual_message_id !== 'number' || typeof actual_variables !== 'object') {
         console.error("[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确");
+        return;
     }
+    return detail.make_iframe_promise({
+        request: "iframe_set_variables",
+        message_id: actual_message_id,
+        variables: actual_variables,
+    });
 }
 `

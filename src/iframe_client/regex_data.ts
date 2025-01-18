@@ -5,20 +5,9 @@
  *
  * @returns 局部正则是否被启用
  */
-function isCharacterRegexEnabled(): Promise<boolean> {
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_is_character_regex_enabled_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_is_character_regex_enabled",
-      uid: uid,
-    }, "*");
+async function isCharacterRegexEnabled(): Promise<boolean> {
+  return detail.make_iframe_promise({
+    request: "iframe_is_character_regex_enabled",
   });
 }
 
@@ -68,24 +57,13 @@ interface GetRegexDataOption {
  * // 获取当前角色卡目前被启用的局部正则
  * const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
  */
-function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]> {
+async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]> {
   option = {
     scope: option.scope ?? 'all',
     enable_state: option.enable_state ?? 'all',
   } as Required<GetRegexDataOption>;
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === "iframe_get_regex_data_callback" && event.data.uid == uid) {
-        window.removeEventListener("message", handleMessage);
-        resolve(event.data.result);
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    window.parent.postMessage({
-      request: "iframe_get_regex_data",
-      uid: uid,
-      option: option,
-    }, "*");
+  return detail.make_iframe_promise({
+    request: "iframe_get_regex_data",
+    option: option,
   });
 }

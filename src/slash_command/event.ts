@@ -1,10 +1,9 @@
-export { slashEventEmit }
 import { eventSource } from "../../../../../../script.js";
 import { SlashCommand } from "../../../../../slash-commands/SlashCommand.js";
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from "../../../../../slash-commands/SlashCommandArgument.js";
 import { SlashCommandParser } from "../../../../../slash-commands/SlashCommandParser.js";
 
-async function slashEventEmit(args: any, value: any): Promise<any> {
+export async function slashEventEmit(args: any, value: any): Promise<any> {
   const data: any | null = args.data ?? [];
   const event_type: string = value;
 

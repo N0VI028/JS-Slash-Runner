@@ -1,12 +1,8 @@
-export { handleRegexData, isCharacterRegexEnabled, getGlobalRegexes, getCharacterRegexes };
+export { isCharacterRegexEnabled, getGlobalRegexes, getCharacterRegexes };
 import { characters, this_chid } from "../../../../../../script.js";
 import { extension_settings } from "../../../../../extensions.js";
 import { regex_placement } from "../../../../regex/engine.js";
-// TODO: don't repeat this in all files
-function getIframeName(event) {
-    const window = event.source;
-    return window.frameElement?.id;
-}
+import { getIframeName, registerIframeHandler } from "./index.js";
 function isCharacterRegexEnabled() {
     // @ts-ignore 2345
     return extension_settings?.character_allowed_regex?.includes(characters?.[this_chid]?.avatar);
@@ -40,20 +36,15 @@ function toRegexData(regex_script_data, scope) {
         max_depth: typeof regex_script_data.maxDepth === 'number' ? regex_script_data.maxDepth : undefined,
     };
 }
-const event_handlers = {
-    iframe_is_character_regex_enabled: async (event) => {
+export function registerIframeRegexDataHandler() {
+    registerIframeHandler('iframe_is_character_regex_enabled', async (event) => {
         const iframe_name = getIframeName(event);
-        const uid = event.data.uid;
-        event.source.postMessage({
-            request: 'iframe_is_character_regex_enabled_callback',
-            uid: uid,
-            result: isCharacterRegexEnabled(),
-        }, { targetOrigin: "*" });
-        console.info(`[Regex][isCharacterRegexEnabled](${iframe_name}) 获取局部正则是否被启用`);
-    },
-    iframe_get_regex_data: async (event) => {
+        const result = isCharacterRegexEnabled();
+        console.info(`[Regex][isCharacterRegexEnabled](${iframe_name}) 查询到局部正则${result ? '被启用' : '被禁用'}`);
+        return result;
+    });
+    registerIframeHandler('iframe_get_regex_data', async (event) => {
         const iframe_name = getIframeName(event);
-        const uid = event.data.uid;
         const option = event.data.option;
         if (!['all', 'enabled', 'disabled'].includes(option.enable_state)) {
             throw Error(`[Regex][getRegexData](${iframe_name}) 提供的 enable_state 无效, 请提供 'all', 'enabled' 或 'disabled', 你提供的是: ${option.enable_state}`);
@@ -71,26 +62,8 @@ const event_handlers = {
         if (option.enable_state !== 'all') {
             regexes = regexes.filter(regex => regex.enabled === (option.enable_state === 'enabled'));
         }
-        event.source.postMessage({
-            request: 'iframe_get_regex_data_callback',
-            uid: uid,
-            result: regexes,
-        }, { targetOrigin: "*" });
         console.info(`[Regex][getRegexData](${iframe_name}) 获取正则数据, 选项: ${JSON.stringify(option)}`);
-    },
-};
-async function handleRegexData(event) {
-    if (!event.data)
-        return;
-    try {
-        const handler = event_handlers[event.data.request];
-        if (handler) {
-            handler(event);
-        }
-    }
-    catch (error) {
-        console.error(`${error}`);
-        throw error;
-    }
+        return regexes;
+    });
 }
 //# sourceMappingURL=regex_data.js.map
