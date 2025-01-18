@@ -252,7 +252,7 @@ export function registerIframeLorebookEntryHandler() {
 
   registerIframeHandler(
     'iframe_create_lorebook_entry',
-    async (event: MessageEvent<IframeCreateLorebookEntry>): Promise<string> => {
+    async (event: MessageEvent<IframeCreateLorebookEntry>): Promise<number> => {
       const iframe_name = getIframeName(event);
       const lorebook = event.data.lorebook;
       const field_values = event.data.field_values;
