@@ -964,7 +964,6 @@ interface LorebookEntry {
 ```typescript
 interface GetLorebookEntriesOption {
   filter?: 'none' | Partial<LorebookEntry>;  // 按照指定字段值筛选条目, 如 `{position: 'at_depth_as_system'}` 表示仅获取处于 @D⚙ 的条目; 默认为不进行筛选. 由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
-  fields?: 'all' | (keyof LorebookEntry)[];  // 指定要获取世界书条目哪些字段, 如 `['uid', 'comment', 'content']` 表示仅获取这三个字段; 默认为获取全部字段.
 };
 
 /**
@@ -975,14 +974,10 @@ interface GetLorebookEntriesOption {
  *   - `filter:'none'|LorebookEntry的一个子集`: 按照指定字段值筛选条目, 要求对应字段值包含制定的内容; 默认为不进行筛选.
  *                                       如 `{content: '神乐光'}` 表示内容中必须有 `'神乐光'`, `{type: 'selective'}` 表示仅获取绿灯条目.
  *                                       由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
- *   - `fields:'all'|数组,元素是LorebookEntry里的字段`: 指定要获取世界书条目哪些字段, 如 `['uid', 'comment', 'content']` 表示仅获取这三个字段; 默认为获取全部字段.
  *
  * @returns 一个数组, 元素是各条目信息.
- *   - 如果使用了 `fields` 指定获取哪些字段, 则数组元素只具有那些字段.
- *   - 如果使用了 `filter` 筛选条目, 则数组只会包含满足要求的元素.
- *   - 你应该根据你的 `fields` 参数断言返回类型, 如 `await getLoreBookEntries(...) as LorebookEntry_Partial_RequireUid[]`.
  */
-async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOption = {}): Promise<Partial<LorebookEntry>[]>
+async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOption = {}): Promise<LorebookEntry[]>
 ```
 
 示例:
@@ -995,23 +990,6 @@ const entries = await getLorebookEntries("eramgt少女歌剧");
 ```typescript
 // 按内容筛选, content 中必须出现 `'神乐光'`
 const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}})
-```
-
-```typescript
-// 仅获取世界书的 uid 和名称.
-const entries = await getLorebookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]});
-```
-
-```typescript
-// 筛选后仅获取世界书的 uid
-const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}, fields: ["uid"]})
-```
-
-**如果你在写 TypeScript, 你应该根据给的 `fields` 参数断言返回类型**:
-
-```typescript
-const entries = await getLoreBookEntries("eramgt少女歌剧") as LorebookEntry[];
-const entries = await getLoreBookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]}) as Pick<LorebookEntry, "uid" | "comment">[];
 ```
 
 #### 修改世界书中的条目信息
@@ -1034,17 +1012,17 @@ async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry
 const lorebook = "eramgt少女歌剧";
 
 // 禁止所有条目递归, 保持其他设置不变
-const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
+const entries = await getLorebookEntries(lorebook);
 // `...entry` 表示展开 `entry` 中的内容; 而 `prevent_recursion: true` 放在后面会覆盖或设置 `prevent_recursion` 字段
 await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
 
-// 也就是说, 其实我们获取 `uid` 字段就够了
-const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as LorebookEntry_Partial_RequireUid[];
-await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+// 实际上我们只需要为条目指出它的 uid, 并设置 `prevent_recursion: true`
+const entries = await getLorebookEntries(lorebook);
+await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: true })));
 
 // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
-const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
-await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
+const entries = await getLorebookEntries(lorebook);
+await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
 ```
 
 #### 在世界书中新增条目
