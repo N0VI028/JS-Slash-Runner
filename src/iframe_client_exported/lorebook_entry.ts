@@ -8,12 +8,9 @@ export const iframe_client_lorebook_entry = `
  *   - \`filter:'none'|LorebookEntry的一个子集\`: 按照指定字段值筛选条目, 要求对应字段值包含制定的内容; 默认为不进行筛选.
  *                                       如 \`{content: '神乐光'}\` 表示内容中必须有 \`'神乐光'\`, \`{type: 'selective'}\` 表示仅获取绿灯条目.
  *                                       由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
- *   - \`fields:'all'|数组,元素是LorebookEntry里的字段\`: 指定要获取世界书条目哪些字段, 如 \`['uid', 'comment', 'content']\` 表示仅获取这三个字段; 默认为获取全部字段.
  *
  * @returns 一个数组, 元素是各条目信息.
  *   - 如果使用了 \`fields\` 指定获取哪些字段, 则数组元素只具有那些字段.
- *   - 如果使用了 \`filter\` 筛选条目, 则数组只会包含满足要求的元素.
- *   - 你应该根据你的 \`fields\` 参数断言返回类型, 如 \`await getLoreBookEntries(...) as LorebookEntry_Partial_RequireUid[]\`.
  *
  * @example
  * // 获取世界书中所有条目的所有信息
@@ -29,8 +26,8 @@ export const iframe_client_lorebook_entry = `
  *
  * @example
  * // 如果你在写 TypeScript, 你应该根据给的 \`fields\` 参数断言返回类型
- * const entries = await getLoreBookEntries("eramgt少女歌剧") as LorebookEntry[];
- * const entries = await getLoreBookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]}) as Pick<LorebookEntry, "uid" | "comment">[];
+ * const entries = await getLoreBookEntries("eramgt少女歌剧");
+ * const entries = await getLoreBookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]});
  *
  * @example
  * // 筛选后仅获取世界书的 uid
@@ -39,7 +36,6 @@ export const iframe_client_lorebook_entry = `
 async function getLorebookEntries(lorebook, option = {}) {
     option = {
         filter: option.filter ?? 'none',
-        fields: option.fields ?? 'all',
     };
     return detail.make_iframe_promise({
         request: "iframe_get_lorebook_entries",
@@ -62,7 +58,7 @@ async function getLorebookEntries(lorebook, option = {}) {
  * await setLorebookEntries(lorebook, [{uid: 0, comment: "新标题"}]);
  *
  * // 也可以用从 \`getLorebookEntries\` 获取的条目
- * const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
+ * const entries = await getLorebookEntries(lorebook);
  * entries[0].sticky = 5;
  * entries[1].enabled = false;
  * await setLorebookEntries(lorebook, [entries[0], entries[1]]);
@@ -71,17 +67,17 @@ async function getLorebookEntries(lorebook, option = {}) {
  * const lorebook = "eramgt少女歌剧";
  *
  * // 禁止所有条目递归, 保持其他设置不变
- * const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
+ * const entries = await getLorebookEntries(lorebook);
  * // \`...entry\` 表示展开 \`entry\` 中的内容; 而 \`prevent_recursion: true\` 放在后面会覆盖或设置 \`prevent_recursion\` 字段
  * await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
  *
- * // 也就是说, 其实我们获取 \`uid\` 字段就够了
- * const entries = await getLorebookEntries(lorebook, {fields: ["uid"]}) as LorebookEntry_Partial_RequireUid[];
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+ * // 实际上我们只需要为条目指出它的 uid, 并设置 \`prevent_recursion: true\`
+ * const entries = await getLorebookEntries(lorebook);
+ * await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: true })));
  *
  * // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
- * const entries = await getLorebookEntries(lorebook) as LorebookEntry[];
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: !entry.prevent_recursion })));
+ * const entries = await getLorebookEntries(lorebook);
+ * await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
  */
 async function setLorebookEntries(lorebook, entries) {
     return detail.make_iframe_promise({
@@ -123,4 +119,5 @@ async function deleteLorebookEntry(lorebook, uid) {
         lorebook_uid: uid,
     });
 }
+;
 `
