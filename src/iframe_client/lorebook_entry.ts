@@ -127,7 +127,7 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
  * const entries = await getLorebookEntries(lorebook);
  * await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
  */
-async function setLorebookEntries(lorebook: string, entries: LorebookEntry_Partial_RequireUid[]): Promise<void> {
+async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): Promise<void> {
   return detail.make_iframe_promise({
     request: "iframe_set_lorebook_entries",
     lorebook: lorebook,
@@ -146,7 +146,7 @@ async function setLorebookEntries(lorebook: string, entries: LorebookEntry_Parti
  * @example
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
-async function createLorebookEntry(lorebook: string, field_values: LorebookEntry_Partial_OmitUid): Promise<number> {
+async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number> {
   return detail.make_iframe_promise({
     request: "iframe_create_lorebook_entry",
     lorebook: lorebook,
