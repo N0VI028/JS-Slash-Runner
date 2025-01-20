@@ -154,11 +154,6 @@ export function registerIframeLorebookEntryHandler() {
                 return entry_value === expected_value;
             }));
         }
-        if (option.fields !== 'all') {
-            entries = entries.map(entry => Object.fromEntries(Object.entries(entry)
-                // @ts-ignore
-                .filter(([field]) => option.fields.includes(field))));
-        }
         event.source.postMessage({
             request: 'iframe_get_lorebook_entries_callback',
             uid: uid,
