@@ -10,7 +10,6 @@ export const iframe_client_lorebook_entry = `
  *                                       由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
  *
  * @returns 一个数组, 元素是各条目信息.
- *   - 如果使用了 \`fields\` 指定获取哪些字段, 则数组元素只具有那些字段.
  *
  * @example
  * // 获取世界书中所有条目的所有信息
@@ -19,19 +18,6 @@ export const iframe_client_lorebook_entry = `
  * @example
  * // 按内容筛选, content 中必须出现 \`'神乐光'\`
  * const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}})
- *
- * @example
- * // 仅获取世界书的 uid 和名称.
- * const entries = await getLorebookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]});
- *
- * @example
- * // 如果你在写 TypeScript, 你应该根据给的 \`fields\` 参数断言返回类型
- * const entries = await getLoreBookEntries("eramgt少女歌剧");
- * const entries = await getLoreBookEntries("eramgt少女歌剧", {fields: ["uid", "comment"]});
- *
- * @example
- * // 筛选后仅获取世界书的 uid
- * const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content: '神乐光'}, fields: ["uid"]})
  */
 async function getLorebookEntries(lorebook, option = {}) {
     option = {
