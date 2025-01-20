@@ -4,7 +4,10 @@ export function registerIframeSlashHandler() {
     registerIframeHandler('iframe_trigger_slash', async (event) => {
         const iframe_name = getIframeName(event);
         const command = event.data.command;
-        await executeSlashCommandsWithOptions(command);
+        const result = await executeSlashCommandsWithOptions(command);
+        if (result.isError) {
+            throw Error(`[Slash][TriggerSlash]${iframe_name} 运行 Slash 命令 '${command}' 时出错: ${result.errorMessage}`);
+        }
         console.info(`[Slash][TriggerSlash](${iframe_name}) 运行 Slash 命令: ${command}`);
     });
     registerIframeHandler('iframe_trigger_slash_with_result', async (event) => {
@@ -14,7 +17,7 @@ export function registerIframeSlashHandler() {
         if (result.isError) {
             throw Error(`[Slash][TriggerSlashWithResult]${iframe_name} 运行 Slash 命令 '${command}' 时出错: ${result.errorMessage}`);
         }
-        console.info(`[Slash][TriggerSlashWithResult](${iframe_name}) 运行 Slash 命令: ${command}`);
+        console.info(`[Slash][TriggerSlashWithResult](${iframe_name}) 运行 Slash 命令 '${command}', 结果: ${result.pipe}`);
         return result.pipe;
     });
 }
