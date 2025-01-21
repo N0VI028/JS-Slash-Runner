@@ -467,21 +467,43 @@ function observeIframeContent(iframe) {
     if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body) {
         return;
     }
-    const doc = iframe.contentWindow.document.body;
-    let resizeTimeout = null;
-    const resizeObserver = new ResizeObserver(() => {
-        if (resizeTimeout) {
-            clearTimeout(resizeTimeout);
+    const docBody = iframe.contentWindow.document.body;
+    let mutationTimeout = null;
+    adjustIframeHeight(iframe);
+    const mutationObserver = new MutationObserver(() => {
+        if (mutationTimeout) {
+            clearTimeout(mutationTimeout);
         }
-        resizeTimeout = setTimeout(() => {
+        mutationTimeout = setTimeout(() => {
             adjustIframeHeight(iframe);
         }, 100);
     });
-    resizeObserver.observe(doc);
+    mutationObserver.observe(docBody, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        characterData: true,
+    });
+    const parentNode = iframe.parentNode;
+    const removalObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const removedNode of mutation.removedNodes) {
+                if (removedNode === parentNode) {
+                    if (typeof iframe.cleanup === "function") {
+                        iframe.cleanup();
+                    }
+                }
+            }
+        }
+    });
+    if (parentNode && parentNode.parentNode) {
+        removalObserver.observe(parentNode.parentNode, { childList: true });
+    }
     iframe.cleanup = () => {
-        resizeObserver.disconnect();
-        if (resizeTimeout) {
-            clearTimeout(resizeTimeout);
+        mutationObserver.disconnect();
+        removalObserver.disconnect();
+        if (mutationTimeout) {
+            clearTimeout(mutationTimeout);
         }
     };
 }
