@@ -8,7 +8,7 @@
 
 ### Cursor (推荐!)
 
-如果你在电脑上写卡, **推荐安装 Cursor 来编写**, 参考[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html).
+如果你在电脑上写卡, **推荐安装 Cursor 来编写**, 参考[基于前端助手编写角色卡的 VSCode 环境配置](https://sillytavern-stage-girls-dog.readthedocs.io/tool_and_experience/js_slash_runner/index.html), 你可以关注[类脑帖子: 用前端助手编写角色卡的 VSCode/Cursor 环境搭建](https://discord.com/channels/1134557553011998840/1320081111451439166)来得知该教程的更新情况.
 
 配置好后, iframe_client 文件夹和 slash_command.txt 文件中即分别记录了前端助手的功能和酒馆最新版本的所有 slash command. 你可以将它们连同 tsconfig.json 发给 ai, 让 ai 来写, 并说明 "所有内容均可直接使用, 不需要 import module", **具体在上面的配置文档链接中有提示.**
 
