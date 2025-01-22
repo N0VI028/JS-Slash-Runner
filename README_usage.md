@@ -522,6 +522,187 @@ async function deleteVariable(variable_path: string, option: VariableOption = {}
   return result;
 }
 ```
+### 请求生成
+
+前端助手提供了一个函数用于更加灵活地请求 AI 生成回复，你可以通过它来自定义生成的提示词配置。
+
+#### `generateRequest(event)`
+
+```typescript
+/**
+ * 请求 AI 生成回复
+ * 
+ * @param event 生成参数配置
+ * @param event.userInput 用户输入的文本
+ * @param event.usePreset 是否使用预设
+ * @param event.promptConfig 提示词配置
+ * @returns Promise<any> 生成的回复
+ */
+async function generateRequest(event: GenerateParams): Promise<any>
+```
+
+##### 参数类型
+
+```typescript
+interface GenerateParams {
+  userInput?: string;      // 用户输入的文本
+  usePreset?: boolean;     // 是否使用预设
+  promptConfig?: PromptConfig;  // 提示词配置
+}
+
+interface PromptConfig {
+  filter?: string[];       // 用于过滤提示词的数组
+  overrides?: (Override | ChatHistoryOverride)[];  // 要覆盖的提示词
+  maxChatHistory?: number; // 聊天记录的最高插入数
+  inject?: {
+    role: 'system' | 'user' | 'assistant';  // 消息角色
+    content: string;       // 提示词内容
+    position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT' ;  // 注入位置
+    depth?: number;        // 注入深度
+    scan?: boolean;        // 是否允许扫描
+  }[];
+  order?: (string | {     // 默认提示词和自定义提示词混合的提示词顺序配置
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  })[];
+}
+
+interface Override {
+  id: string;
+  content: string;
+}
+
+interface ChatHistoryOverride {
+  id: 'chatHistory';
+  content: ChatMessage[];
+}
+
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+```
+
+##### 示例
+
+```typescript
+// 基本使用
+const response = await generateRequest({
+  userInput: "你好",
+  usePreset: true
+});
+
+// 使用注入提示词与最大聊天历史插入限制
+const response = await generateRequest({
+  userInput: "你好",
+  promptConfig: {
+    inject: [{
+      role: 'system',
+      content: '你是一个友善的助手',
+      position: 'BEFORE_PROMPT'
+    }],
+    maxChatHistory: 5
+  }
+});
+
+// 覆盖聊天历史
+const response = await generateRequest({
+  userInput: "继续",
+  promptConfig: {
+    overrides: [{
+      id: 'chatHistory',
+      content: [
+        { role: 'user', content: '楼层1' },
+        { role: 'assistant', content: '楼层2' }
+      ]
+    }]
+  }
+});
+
+// 自定义提示词顺序
+const response = await generateRequest({
+  userInput: "你好",
+  usePreset: false
+  promptConfig: {
+    order: [
+      'char',
+      { role: 'system', content: '系统提示' },
+      'chat'
+    ]
+  }
+});
+```
+
+##### 提示词配置说明
+
+1. `filter`: 用于过滤不需要的提示词，具有最高优先级，被过滤的内容即使在其他部分（如 order）中指定也是无效的。可过滤的字段包括：
+   ```typescript
+   [
+     "worldInfoBefore",      // 世界书（角色定义之前的部分）
+     "personaDescription",   // 用户描述
+     "charDescription",      // 角色描述
+     "charPersonality",      // 角色高级定义-性格
+     "scenario",            // 场景
+     "worldInfoAfter",      // 世界书（角色定义之后的部分）
+     "dialogueExamples",    // 角色高级定义-对话示例
+     "worldInfoDepth",      // 世界书中的深度注入
+     "chatHistory",         // 聊天历史
+     "authorsNote",          // 作者注释
+   ]
+   ```
+2. `overrides`: 覆盖现有的提示词或聊天历史，与可过滤字段相比不可覆盖注入聊天历史中的部分，也就是作者注释和世界书深度注入：
+   ```typescript
+   [
+     "worldInfoBefore",      // 世界书（角色定义之前的部分）
+     "personaDescription",   // 用户描述
+     "charDescription",      // 角色描述
+     "charPersonality",      // 角色高级定义-性格
+     "scenario",            // 场景
+     "worldInfoAfter",      // 世界书（角色定义之后的部分）
+     "dialogueExamples",    // 角色高级定义-对话示例
+     "chatHistory",         // 聊天历史
+   ]
+   ```
+3. `maxChatHistory`: 限制聊天历史的最大插入条数
+4. `inject`: 注入自定义提示词
+   - `position`: 注入位置
+     - `IN_PROMPT`: 在主提示词中
+     - `IN_CHAT`: 在聊天历史中
+     - `BEFORE_PROMPT`: 在主提示词之前
+5. `order`: 自定义提示词的顺序，仅在 `usePreset: false` 时生效。可以是预定义的提示词 ID 或自定义消息。
+
+##### 使用预设与不使用预设的差异
+
+1. 使用预设（`usePreset: true`）：
+   - 将使用酒馆预设的提示词顺序
+   - `order` 参数无效
+   - 其他配置（`filter`、`overrides`、`maxChatHistory`、`inject`）正常生效
+
+2. 不使用预设（`usePreset: false`）：
+   - 需要通过 `order` 自定义提示词顺序
+   - `inject`的 `position` 参数无效，只会注入到 `IN_CHAT` 也就是聊天记录中
+   - 是否进行连续相同系统消息的合并取决于用户使用的当前预设是否勾选了**压缩系统消息**
+   - 对于`order`中聊天记录`chatHistory`和用户输入`userInput`的处理有以下规则：
+     - 当聊天记录被过滤时：
+       - 如果用户输入未在 order 中指明：将自动添加到所有提示词的最后面
+       - 如果用户输入在 order 中指明：以用户输入在 order 中的位置为准
+     - 当聊天记录未被过滤时：
+       - 如果用户输入未在 order 中指明：将自动插入到最新一条聊天记录后
+       - 如果用户输入在 order 中指明：用户输入和聊天记录会分别插入到 order 中指示的位置
+   - 默认提示词顺序（如不指定 order），将会默认使用以下顺序排列提示词：
+   ```typescript
+   [
+     "worldInfoBefore",      // 世界书（角色定义之前的部分）
+     "personaDescription",   // 用户描述
+     "charDescription",      // 角色描述
+     "charPersonality",      // 角色高级定义-性格
+     "scenario",            // 场景
+     "worldInfoAfter",      // 世界书（角色定义之后的部分）
+     "dialogueExamples",    // 角色高级定义-对话示例
+     "chatHistory",         // 聊天历史
+     "userInput",          // 用户输入
+   ]
+   ```
 
 ### 楼层消息操作
 
