@@ -3,6 +3,7 @@ import { iframe_client__multimap } from "./_multimap.js";
 import { iframe_client_chat_message } from "./chat_message.js";
 import { iframe_client_displayed_message } from "./displayed_message.js";
 import { iframe_client_event } from "./event.js";
+import { iframe_client_generate } from "./generate.js";
 import { iframe_client_lorebook } from "./lorebook.js";
 import { iframe_client_lorebook_entry } from "./lorebook_entry.js";
 import { iframe_client_regex_data } from "./regex_data.js";
@@ -15,6 +16,7 @@ export const iframe_client = [
     iframe_client_chat_message,
     iframe_client_displayed_message,
     iframe_client_event,
+    iframe_client_generate,
     iframe_client_lorebook,
     iframe_client_lorebook_entry,
     iframe_client_regex_data,
