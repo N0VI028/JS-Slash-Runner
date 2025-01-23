@@ -5,8 +5,8 @@ import {iframe_client_displayed_message} from "./displayed_message.js"
 import {iframe_client_event} from "./event.js"
 import {iframe_client_lorebook} from "./lorebook.js"
 import {iframe_client_lorebook_entry} from "./lorebook_entry.js"
-import {iframe_client_regex_data} from "./regex_data.js"
 import {iframe_client_slash} from "./slash.js"
+import {iframe_client_tavern_regex} from "./tavern_regex.js"
 import {iframe_client_util} from "./util.js"
 import {iframe_client_variables} from "./variables.js"
 
@@ -18,8 +18,8 @@ export const iframe_client = [
   iframe_client_event, 
   iframe_client_lorebook, 
   iframe_client_lorebook_entry, 
-  iframe_client_regex_data, 
   iframe_client_slash, 
+  iframe_client_tavern_regex, 
   iframe_client_util, 
   iframe_client_variables, 
 ].join('\n');

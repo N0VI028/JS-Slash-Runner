@@ -41,7 +41,7 @@ function getCurrentMessageId() {
 async function substitudeMacros(text) {
     // QUESTION: 像这样额外编写一个 request, 还是直接用 \`await triggerSlashWithResult('/pass "{{char}} speaks in {{lastMessageId}}"')\`?
     return detail.make_iframe_promise({
-        request: 'iframe_substitude_macros',
+        request: '[Utils][substitudeMacros]',
         text: text,
     });
 }
@@ -56,6 +56,18 @@ async function getLastMessageId() {
         throw Error("[Util][getLastMessageId] 未找到任何消息楼层");
     }
     return parseInt(result);
+}
+/**
+ * 生成唯一的 uuidv4 标识符
+ *
+ * @returns 唯一的 uuidv4 标识符
+ */
+function generateUuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 `;
 //# sourceMappingURL=util.js.map

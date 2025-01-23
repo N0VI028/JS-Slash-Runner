@@ -34,7 +34,7 @@ interface LorebookSettings {
  */
 async function getLorebookSettings(): Promise<LorebookSettings> {
   return detail.make_iframe_promise({
-    request: "iframe_get_lorebook_settings",
+    request: "[Lorebook][getLorebookSettings]",
   });
 }
 
@@ -49,19 +49,18 @@ async function getLorebookSettings(): Promise<LorebookSettings> {
  */
 async function setLorebookSettings(settings: Partial<LorebookSettings>): Promise<void> {
   return detail.make_iframe_promise({
-    request: "iframe_set_lorebook_settings",
+    request: "[Lorebook][setLorebookSettings]",
     settings: settings,
   });
 }
 
 interface GetCharLorebooksOption {
-  name?: string;                            // 要查询的角色卡名称; 不指明则为当前角色卡
-  type?: 'all' | 'primary' | 'additional';  // 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
+  name?: string;  // 要查询的角色卡名称; 不指明则为当前角色卡
 };
 
-interface CharLorebook {
-  name: string,
-  type: 'primary' | 'additional',
+interface CharLorebooks {
+  primary: string | null;
+  additional: string[];
 }
 
 /**
@@ -69,17 +68,15 @@ interface CharLorebook {
  *
  * @param option 可选选项
  *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
- *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
  *
- * @returns 一个 CharLorebook 数组
+ * @returns 角色卡绑定的世界书
  */
-async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebook[]> {
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebooks> {
   option = {
     name: option.name,
-    type: option.type ?? 'all'
   } as Required<GetCharLorebooksOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_char_lorebooks",
+    request: "[Lorebook][getCharLorebooks]",
     option: option
   });
 }
@@ -90,11 +87,19 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<Ch
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
-  const lorebooks = await getCharLorebooks({ type: 'primary' })
-  if (lorebooks.length <= 0) {
-    throw Error(`[Lorebook][getCurrentCharPrimaryLorebook](${getIframeName()}) 当前角色卡未绑定有主要世界书`);
-  }
-  return lorebooks[0].name;
+  return (await getCharLorebooks()).primary;
+}
+
+/**
+ * 将当前角色卡换为绑定 `lorebooks`
+ *
+ * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
+ */
+async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void> {
+  return detail.make_iframe_promise({
+    request: '[Lorebook][setCurrentCharLorebooks]',
+    lorebooks: lorebooks,
+  });
 }
 
 /**
@@ -113,7 +118,7 @@ async function getOrCreateChatLorebook(): Promise<string> {
  */
 async function getLorebooks(): Promise<string[]> {
   return detail.make_iframe_promise({
-    request: "iframe_get_lorebooks",
+    request: "[Lorebook][getLorebooks]",
   });
 }
 
@@ -126,7 +131,7 @@ async function getLorebooks(): Promise<string[]> {
  */
 async function createLorebook(lorebook: string): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: "iframe_create_lorebook",
+    request: "[Lorebook][createLorebook]",
     lorebook: lorebook,
   });
 }
@@ -139,7 +144,7 @@ async function createLorebook(lorebook: string): Promise<boolean> {
  */
 async function deleteLorebook(lorebook: string): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: "iframe_delete_lorebook",
+    request: "[Lorebook][deleteLorebook]",
     lorebook: lorebook,
   });;
 }

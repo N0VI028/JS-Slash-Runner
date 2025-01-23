@@ -38,7 +38,7 @@ async function getVariables(option: VariableOption = {}): Promise<JsonObject> {
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_variables",
+    request: "[Variables][getVariables]",
     option: option,
   });
 
@@ -48,7 +48,7 @@ async function getVariables(option: VariableOption = {}): Promise<JsonObject> {
  * 完全替换变量表为 `variables`
  *
  * 之所以提供这么直接的函数, 是因为前端助手内置了 lodash 库:
- * `insertOrAssignVariables` 等函数其实就是先 `getVariables` 获取变量表, 用 lodash 库处理, 再 `replaceVariables` 替换变量表.
+ *   `insertOrAssignVariables` 等函数其实就是先 `getVariables` 获取变量表, 用 lodash 库处理, 再 `replaceVariables` 替换变量表.
  *
  * @param variables 要用于替换的变量表
  * @param option 可选选项
@@ -70,7 +70,7 @@ async function replaceVariables(variables: JsonObject, option: VariableOption = 
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
   return detail.make_iframe_promise({
-    request: "iframe_replace_variables",
+    request: "[Variables][replaceVariables]",
     option: option,
     variables: variables,
   });
@@ -94,20 +94,14 @@ async function replaceVariables(variables: JsonObject, option: VariableOption = 
  * await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
  */
 async function updateVariablesWith(updater: (variables: JsonObject) => JsonObject, option: VariableOption = {}): Promise<JsonObject> {
-  const format_updater_string = (updater_string: string) => {
-    const index = updater_string.indexOf('\n');
-    if (index > -1) {
-      return updater_string.slice(0, index);
-    } else {
-      return updater_string;
-    }
-  };
-
+  option = {
+    type: option.type ?? 'chat',
+  } as Required<VariableOption>;
   let variables = await getVariables(option);
   variables = updater(variables);
   await replaceVariables(variables, option);
 
-  console.info(`[Chat Message][updateVariablesWith](${getIframeName()}) 用函数对${option.type == 'chat' ? `聊天` : `全局`}变量表进行更新, 结果: ${JSON.stringify(variables)}, 使用的函数:\n\n ${JSON.stringify(format_updater_string(updater.toString()))}`);
+  console.info(`[Chat Message][updateVariablesWith](${getIframeName()}) 用函数对${option.type === 'chat' ? `聊天` : `全局`}变量表进行更新, 结果: ${JSON.stringify(variables)}, 使用的函数:\n\n ${JSON.stringify(detail.format_function_to_string(updater))}`);
   return variables;
 }
 
@@ -219,7 +213,7 @@ async function setVariables(message_id: number | JsonObject, new_or_updated_vari
     return;
   }
   return detail.make_iframe_promise({
-    request: "iframe_set_variables",
+    request: "[Variables][setVariables]",
     message_id: actual_message_id,
     variables: actual_variables,
   });

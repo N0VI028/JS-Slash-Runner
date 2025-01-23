@@ -3,8 +3,8 @@ import { registerIframeDisplayedMessageHandler } from "./displayed_message.js";
 import { registerIframeEventHandler } from "./event.js";
 import { registerIframeLorebookHandler } from "./lorebook.js";
 import { registerIframeLorebookEntryHandler } from "./lorebook_entry.js";
-import { registerIframeRegexDataHandler } from "./regex_data.js";
 import { registerIframeSlashHandler } from "./slash.js";
+import { registerIframeTavernRegexHandler } from "./tavern_regex.js";
 import { registerIframeUtilHandler } from "./util.js";
 import { registerIframeVariableHandler } from "./variables.js";
 
@@ -16,6 +16,10 @@ export interface IframeMessage {
 export function getIframeName<T extends IframeMessage>(event: MessageEvent<T>): string {
   const window = event.source as Window;
   return window.frameElement?.id as string;
+}
+
+export function getLogPrefix<T extends IframeMessage>(event: MessageEvent<T>): string {
+  return `${event.data.request}(${getIframeName(event)}) `;
 }
 
 type IframeHandlers = {
@@ -37,8 +41,9 @@ export async function handleIframe(event: MessageEvent<IframeMessage>): Promise<
     if (handler) {
       result = await handler(event);
     }
-  } catch (error) {
-    console.error(`${error}`);
+  } catch (err) {
+    const error = err as Error;
+    console.error(error);
   } finally {
     (event.source as MessageEventSource).postMessage(
       {
@@ -58,7 +63,7 @@ registerIframeDisplayedMessageHandler();
 registerIframeEventHandler();
 registerIframeLorebookEntryHandler();
 registerIframeLorebookHandler();
-registerIframeRegexDataHandler();
 registerIframeSlashHandler();
+registerIframeTavernRegexHandler();
 registerIframeUtilHandler();
 registerIframeVariableHandler();

@@ -3,13 +3,16 @@ import { registerIframeDisplayedMessageHandler } from "./displayed_message.js";
 import { registerIframeEventHandler } from "./event.js";
 import { registerIframeLorebookHandler } from "./lorebook.js";
 import { registerIframeLorebookEntryHandler } from "./lorebook_entry.js";
-import { registerIframeRegexDataHandler } from "./regex_data.js";
 import { registerIframeSlashHandler } from "./slash.js";
+import { registerIframeTavernRegexHandler } from "./tavern_regex.js";
 import { registerIframeUtilHandler } from "./util.js";
 import { registerIframeVariableHandler } from "./variables.js";
 export function getIframeName(event) {
     const window = event.source;
     return window.frameElement?.id;
+}
+export function getLogPrefix(event) {
+    return `${event.data.request}(${getIframeName(event)}) `;
 }
 const iframe_handlers = {};
 export function registerIframeHandler(request, handler) {
@@ -25,8 +28,9 @@ export async function handleIframe(event) {
             result = await handler(event);
         }
     }
-    catch (error) {
-        console.error(`${error}`);
+    catch (err) {
+        const error = err;
+        console.error(error);
     }
     finally {
         event.source.postMessage({
@@ -43,8 +47,8 @@ registerIframeDisplayedMessageHandler();
 registerIframeEventHandler();
 registerIframeLorebookEntryHandler();
 registerIframeLorebookHandler();
-registerIframeRegexDataHandler();
 registerIframeSlashHandler();
+registerIframeTavernRegexHandler();
 registerIframeUtilHandler();
 registerIframeVariableHandler();
 //# sourceMappingURL=index.js.map

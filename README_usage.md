@@ -14,7 +14,7 @@
 
 ### html 工具角色卡
 
-如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: https://discord.com/channels/1134557553011998840/1279910607348564079
+如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: [【工具】html UI美化大师（已整合正则助手，支持前端助手）](https://discord.com/channels/1134557553011998840/1279910607348564079)
 
 但要注意它世界书中对前端助手和 slash command 的提示词是复制粘贴的, 因而在之后如果前端助手或酒馆更新, 则提示词不会涵盖更新内容.
 
@@ -614,7 +614,12 @@ interface SetChatMessageOption {
  *     - `'none'`: 不更新页面的显示和 iframe 渲染
  *     - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
  *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
- *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
+ *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息. 这意味着如果你在全局脚本中使用该选项, 则该函数之后的内容将不会被执行.
+ *
+ * @example
+ * await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
+ * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
+ * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
  */
 async function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): Promise<void>
 ```
@@ -704,27 +709,12 @@ retrieveDisplayedMessage(0).append("<pre>new text</pre>");
 retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
 ```
 
-### 正则操作
+### 酒馆正则操作
 
-#### 获取局部正则是否被启用
-
-```typescript
-/**
- * 判断局部正则是否被启用.
- *
- * 如果你是在被写在局部正则中的全局脚本调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
- *
- * @returns 局部正则是否被启用
- */
-function isCharacterRegexEnabled(): Promise<boolean>;
-```
-
-#### 获取正则数据
-
-其获取到的结果是一个数组, 数组的元素类型为 `RegexData`, 有以下内容:
+酒馆正则将会以以下类型表示:
 
 ```typescript
-interface RegexData {
+interface TavernRegex {
   id: string;
   script_name: string;
   enabled: boolean;
@@ -746,12 +736,25 @@ interface RegexData {
     prompt: boolean;
   };
 
-  min_depth: number | undefined;
-  max_depth: number | undefined;
+  min_depth: number | null;
+  max_depth: number | null;
 }
 ```
 
-具体函数为:
+#### 获取局部正则是否被启用
+
+```typescript
+/**
+ * 判断酒馆局部正则是否被启用. 注意, 前端插件已经更新了 "自动启用局部正则" 选项, 所以你其实没必要用这个?
+ *
+ * 如果你是在局部正则中调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
+ *
+ * @returns 局部正则是否被启用
+ */
+async function isCharacterTavernRegexEnabled(): Promise<boolean>;
+```
+
+#### 获取酒馆正则
 
 ```typescript
 interface GetRegexDataOption {
@@ -760,13 +763,13 @@ interface GetRegexDataOption {
 }
 
 /**
- * 获取正则
+ * 获取酒馆正则
  *
- * @param option 对获取正则进行可选设置
- *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选正则; 默认为 `'all'`
- *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选正则; 默认为 `'all'`
+ * @param option 可选设置
+ *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选酒馆正则; 默认为 `'all'`
+ *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选酒馆正则; 默认为 `'all'`
  *
- * @returns 一个数组, 数组的元素是正则 `RegexData`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
+ * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
 async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]>
 ```
@@ -774,11 +777,76 @@ async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[
 示例:
 
 ```typescript
-// 获取所有正则
-const regexes = await getRegexData();
+// 获取所有酒馆正则
+const regexes = await getTavernRegexes();
+```
 
+```typescript
 // 获取当前角色卡目前被启用的局部正则
-const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
+const regexes = await getTavernRegexes({scope: 'character', enable_state: 'enabled'});
+```
+
+#### 替换酒馆正则
+
+```typescript
+interface ReplaceTavernRegexesOption {
+  scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'.
+}
+
+/**
+ * 完全替换酒馆正则为 `regexes`.
+ * - **这是一个很慢的操作!** 尽量对正则做完所有事后再一次性 replaceTavernRegexes.
+ * - **为了重新应用正则, 它会重新载入整个聊天消息**, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息.
+ *     这意味着如果你在全局脚本中运行本函数, 则该函数之后的内容将不会被执行.
+ *
+ * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等.
+ *
+ * @param regexes 要用于替换的酒馆正则
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
+ */
+async function replaceTavernRegexes(regexes: TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<void>
+```
+
+示例:
+
+```typescript
+// 开启所有名字里带 "舞台少女" 的正则
+let regexes = await getTavernRegexes();
+regexes.forEach(regex => {
+  if (regex.script_name.includes('舞台少女')) {
+    regex.enabled = true;
+  }
+});
+await replaceTavernRegexes(regexes);
+```
+
+#### 用一个函数更新酒馆正则
+
+```typescript
+/**
+ * 用 `updater` 函数更新酒馆正则
+ *
+ * @param updater 用于更新酒馆正则的函数. 它应该接收酒馆正则作为参数, 并返回更新后的酒馆正则.
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
+ *
+ * @returns 更新后的酒馆正则
+ */
+async function updateTavernRegexesWith(updater: (variables: TavernRegex[]) => TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<TavernRegex[]>
+```
+
+示例:
+
+```typescript
+await updateTavernRegexesWith(regexes => {
+  regexes.forEach(regex => {
+    if (regex.script_name.includes('舞台少女')) {
+      regex.enabled = true;
+    }
+  });
+  return regexes;
+});
 ```
 
 ### 世界书操作
@@ -834,9 +902,13 @@ await setLorebookSettings({context_percentage: 100, recursive: true});
 #### 获取角色卡绑定的世界书
 
 ```typescript
-interface CharLorebook {
-  name: string,
-  type: 'primary' | 'additional',
+interface GetCharLorebooksOption {
+  name?: string;  // 要查询的角色卡名称; 不指明则为当前角色卡
+};
+
+interface CharLorebooks {
+  primary: string | null;
+  additional: string[];
 }
 
 /**
@@ -844,12 +916,10 @@ interface CharLorebook {
  *
  * @param option 可选选项
  *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
- *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
  *
- * @returns 一个 CharLorebook 数组
+ * @returns 角色卡绑定的世界书
  */
-async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebook[]>
-async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebooks>
 ```
 
 ```typescript
@@ -859,6 +929,15 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<st
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 async function getCurrentCharPrimaryLorebook(): Promise<string | null>
+```
+
+```typescript
+/**
+ * 将当前角色卡换为绑定 `lorebooks`
+ *
+ * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
+ */
+async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void>
 ```
 
 #### 获取聊天绑定的世界书
@@ -1001,7 +1080,7 @@ const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content
  * 这只是修改信息, 不能创建新的条目, 因此要求条目必须已经在世界书中.
  *
  * @param lorebook 条目所在的世界书名称
- * @param entries 一个数组, 元素是各条目信息. 其中必须有 "uid", 而其他字段可选.
+ * @param entries 一个数组, 元素是各条目信息. 其中必须有 `uid`, 而其他字段可选.
  */
 async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void
 ```
@@ -1014,15 +1093,15 @@ const lorebook = "eramgt少女歌剧";
 // 禁止所有条目递归, 保持其他设置不变
 const entries = await getLorebookEntries(lorebook);
 // `...entry` 表示展开 `entry` 中的内容; 而 `prevent_recursion: true` 放在后面会覆盖或设置 `prevent_recursion` 字段
-await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map(entry => ({ ...entry, prevent_recursion: true })));
 
 // 实际上我们只需要为条目指出它的 uid, 并设置 `prevent_recursion: true`
 const entries = await getLorebookEntries(lorebook);
-await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: true })));
 
 // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
 const entries = await getLorebookEntries(lorebook);
-await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
+await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
 ```
 
 #### 在世界书中新增条目
@@ -1034,9 +1113,9 @@ await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, pre
  * @param lorebook 世界书名称
  * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. **不能设置 `uid`**.
  *
- * @returns 新条目的 uid
+ * @returns 新条目的 `uid`
  */
-async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number>
+async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number> 
 ```
 
 示例:
@@ -1543,6 +1622,15 @@ async function substitudeMacros(text: string): Promise<string>
  * @returns 最新楼层id
  */
 async function getLastMessageId(): Promise<number>;
+```
+
+```typescript
+/**
+ * 生成唯一的 uuidv4 标识符
+ *
+ * @returns 唯一的 uuidv4 标识符
+ */
+function generateUuidv4(): string
 ```
 
 ## 播放器功能

@@ -15,7 +15,7 @@ export const iframe_client_lorebook = `
  */
 async function getLorebookSettings() {
     return detail.make_iframe_promise({
-        request: "iframe_get_lorebook_settings",
+        request: "[Lorebook][getLorebookSettings]",
     });
 }
 /**
@@ -29,7 +29,7 @@ async function getLorebookSettings() {
  */
 async function setLorebookSettings(settings) {
     return detail.make_iframe_promise({
-        request: "iframe_set_lorebook_settings",
+        request: "[Lorebook][setLorebookSettings]",
         settings: settings,
     });
 }
@@ -39,17 +39,15 @@ async function setLorebookSettings(settings) {
  *
  * @param option 可选选项
  *   - \`name?:string\`: 要查询的角色卡名称; 默认为当前角色卡
- *   - \`type?:'all'|'primary'|'additional'\`: 按角色世界书的绑定类型筛选世界书; 默认为 \`'all'\`
  *
- * @returns 一个 CharLorebook 数组
+ * @returns 角色卡绑定的世界书
  */
 async function getCharLorebooks(option = {}) {
     option = {
         name: option.name,
-        type: option.type ?? 'all'
     };
     return detail.make_iframe_promise({
-        request: "iframe_get_char_lorebooks",
+        request: "[Lorebook][getCharLorebooks]",
         option: option
     });
 }
@@ -59,11 +57,18 @@ async function getCharLorebooks(option = {}) {
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 \`null\`
  */
 async function getCurrentCharPrimaryLorebook() {
-    const lorebooks = await getCharLorebooks({ type: 'primary' });
-    if (lorebooks.length <= 0) {
-        throw Error(\`[Lorebook][getCurrentCharPrimaryLorebook](\${getIframeName()}) 当前角色卡未绑定有主要世界书\`);
-    }
-    return lorebooks[0].name;
+    return (await getCharLorebooks()).primary;
+}
+/**
+ * 将当前角色卡换为绑定 \`lorebooks\`
+ *
+ * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
+ */
+async function setCurrentCharLorebooks(lorebooks) {
+    return detail.make_iframe_promise({
+        request: '[Lorebook][setCurrentCharLorebooks]',
+        lorebooks: lorebooks,
+    });
 }
 /**
  * 获取或创建当前聊天绑定的世界书
@@ -80,7 +85,7 @@ async function getOrCreateChatLorebook() {
  */
 async function getLorebooks() {
     return detail.make_iframe_promise({
-        request: "iframe_get_lorebooks",
+        request: "[Lorebook][getLorebooks]",
     });
 }
 /**
@@ -92,7 +97,7 @@ async function getLorebooks() {
  */
 async function createLorebook(lorebook) {
     return detail.make_iframe_promise({
-        request: "iframe_create_lorebook",
+        request: "[Lorebook][createLorebook]",
         lorebook: lorebook,
     });
 }
@@ -104,7 +109,7 @@ async function createLorebook(lorebook) {
  */
 async function deleteLorebook(lorebook) {
     return detail.make_iframe_promise({
-        request: "iframe_delete_lorebook",
+        request: "[Lorebook][deleteLorebook]",
         lorebook: lorebook,
     });
     ;

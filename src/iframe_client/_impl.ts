@@ -23,4 +23,14 @@ namespace detail {
       }, "*");
     });
   }
+
+  export function format_function_to_string(fn: Function): string {
+    const string = fn.toString();
+    const index = string.indexOf('\n');
+    if (index > -1) {
+      return string.slice(0, index);
+    } else {
+      return string;
+    }
+  }
 }

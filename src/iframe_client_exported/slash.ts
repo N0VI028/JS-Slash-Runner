@@ -10,7 +10,7 @@ export const iframe_client_slash = `
  */
 function triggerSlash(command) {
     return detail.make_iframe_promise({
-        request: 'iframe_trigger_slash',
+        request: '[Slash][triggerSlash]',
         command: command,
     });
 }
@@ -26,7 +26,7 @@ function triggerSlash(command) {
  */
 function triggerSlashWithResult(command) {
     return detail.make_iframe_promise({
-        request: 'iframe_trigger_slash_with_result',
+        request: '[Slash][triggerSlashWithResult]',
         command: command,
     });
 }

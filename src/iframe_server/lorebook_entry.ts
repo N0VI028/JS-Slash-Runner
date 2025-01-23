@@ -1,27 +1,27 @@
 import { debounce } from "../../../../../utils.js";
 import { createWorldInfoEntry, deleteWIOriginalDataValue, loadWorldInfo, originalWIDataKeyMap, saveWorldInfo, setWIOriginalDataValue, world_names } from "../../../../../world-info.js";
-import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
+import { getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeGetLorebookEntries extends IframeMessage {
-  request: "iframe_get_lorebook_entries";
+  request: "[LorebookEntry][getLorebookEntries]";
   lorebook: string;
   option: Required<GetLorebookEntriesOption>;
 }
 
 interface IframeSetLorebookEntries extends IframeMessage {
-  request: "iframe_set_lorebook_entries";
+  request: "[LorebookEntry][setLorebookEntries]";
   lorebook: string;
   entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[];
 }
 
 interface IframeCreateLorebookEntry extends IframeMessage {
-  request: "iframe_create_lorebook_entry";
+  request: "[LorebookEntry][createLorebookEntry]";
   lorebook: string;
   field_values: Partial<Omit<LorebookEntry, "uid">>;
 }
 
 interface IframeDeleteLorebookEntry extends IframeMessage {
-  request: "iframe_delete_lorebook_entry";
+  request: "[LorebookEntry][deleteLorebookEntry]";
   lorebook: string;
   lorebook_uid: number;
 }
@@ -173,19 +173,17 @@ const reloadEditorDebounced = debounce(reloadEditor);
 
 export function registerIframeLorebookEntryHandler() {
   registerIframeHandler(
-    'iframe_get_lorebook_entries',
-    async (event: MessageEvent<IframeGetLorebookEntries>): Promise<void> => {
-      const iframe_name = getIframeName(event);
-      const uid = event.data.uid;
+    '[LorebookEntry][getLorebookEntries]',
+    async (event: MessageEvent<IframeGetLorebookEntries>): Promise<LorebookEntry[]> => {
       const lorebook = event.data.lorebook;
       const option = event.data.option;
 
       if (!world_names.includes(lorebook)) {
-        throw Error(`[LorebookEntry][getLorebookEntries](${iframe_name}) 未能找到世界书 '${lorebook}'`);
+        throw Error(`未能找到世界书 '${lorebook}'`);
       }
 
       // @ts-ignore
-      let entries: Partial<LorebookEntry>[] = (Object.values((await loadWorldInfo(lorebook)).entries)).map(toLorebookEntry);
+      let entries: LorebookEntry[] = (Object.values((await loadWorldInfo(lorebook)).entries)).map(toLorebookEntry);
       if (option.filter !== 'none') {
         entries = entries.filter(entry =>
           Object.entries(option.filter)
@@ -202,27 +200,19 @@ export function registerIframeLorebookEntryHandler() {
             }));
       }
 
-      (event.source as MessageEventSource).postMessage({
-        request: 'iframe_get_lorebook_entries_callback',
-        uid: uid,
-        result: entries,
-      },
-        { targetOrigin: "*" }
-      );
-
-      console.info(`[LorebookEntry][getLorebookEntries](${iframe_name}) 获取世界书 '${lorebook}' 中的条目, 选项: ${JSON.stringify(option)}`);
+      console.info(`${getLogPrefix(event)}获取世界书 '${lorebook}' 中的条目, 选项: ${JSON.stringify(option)}`);
+      return entries;
     },
   );
 
   registerIframeHandler(
-    'iframe_set_lorebook_entries',
+    '[LorebookEntry][setLorebookEntries]',
     async (event: MessageEvent<IframeSetLorebookEntries>): Promise<void> => {
-      const iframe_name = getIframeName(event);
       const lorebook = event.data.lorebook;
       const entries = event.data.entries;
 
       if (!world_names.includes(lorebook)) {
-        throw Error(`[LorebookEntry][setLorebookEntries](${iframe_name}) 未能找到世界书 '${lorebook}'`);
+        throw Error(`${getLogPrefix(event)}未能找到世界书 '${lorebook}'`);
       }
       const data = await loadWorldInfo(lorebook);
 
@@ -230,7 +220,7 @@ export function registerIframeLorebookEntryHandler() {
         // @ts-ignore
         const wi_entry = data.entries[entry.uid];
         if (!wi_entry) {
-          throw Error(`[LorebookEntry][setLorebookEntries](${iframe_name}) 未能在世界书 '${lorebook}' 中找到 uid=${entry.uid} 的条目`);
+          throw Error(`${getLogPrefix(event)}未能在世界书 '${lorebook}' 中找到 uid=${entry.uid} 的条目`);
         }
         assignFieldValuesToWiEntry(data, wi_entry, fromPartialLorebookEntry(entry));
       }
@@ -239,19 +229,18 @@ export function registerIframeLorebookEntryHandler() {
       await saveWorldInfo(lorebook, data);
       reloadEditorDebounced(lorebook);
 
-      console.info(`[LorebookEntry][setLorebookEntries](${iframe_name}) 修改世界书 '${lorebook}' 中以下条目的以下字段: ${JSON.stringify(entries)}`);
+      console.info(`${getLogPrefix(event)}修改世界书 '${lorebook}' 中以下条目的以下字段: ${JSON.stringify(entries)}`);
     },
   );
 
   registerIframeHandler(
-    'iframe_create_lorebook_entry',
+    '[LorebookEntry][createLorebookEntry]',
     async (event: MessageEvent<IframeCreateLorebookEntry>): Promise<number> => {
-      const iframe_name = getIframeName(event);
       const lorebook = event.data.lorebook;
       const field_values = event.data.field_values;
 
       if (!world_names.includes(lorebook)) {
-        throw Error(`[LorebookEntry][createLorebookEntry](${iframe_name}) 未能找到世界书 '${lorebook}'`);
+        throw Error(`${getLogPrefix(event)}未能找到世界书 '${lorebook}'`);
       }
       const data = await loadWorldInfo(lorebook);
       const wi_entry = createWorldInfoEntry(lorebook, data) as any;
@@ -260,15 +249,14 @@ export function registerIframeLorebookEntryHandler() {
       await saveWorldInfo(lorebook, data);
       reloadEditorDebounced(lorebook);
 
-      console.info(`[LorebookEntry][createLorebookEntry](${iframe_name}) 在世界书 '${lorebook}' 中新建 uid='${wi_entry.uid}' 条目, 并设置内容: ${JSON.stringify(field_values)}`);
+      console.info(`${getLogPrefix(event)}在世界书 '${lorebook}' 中新建 uid='${wi_entry.uid}' 条目, 并设置内容: ${JSON.stringify(field_values)}`);
       return wi_entry.uid;
     },
   );
 
   registerIframeHandler(
-    'iframe_delete_lorebook_entry',
+    '[LorebookEntry][deleteLorebookEntry]',
     async (event: MessageEvent<IframeDeleteLorebookEntry>): Promise<boolean> => {
-      const iframe_name = getIframeName(event);
       const lorebook = event.data.lorebook;
       const lorebook_uid = event.data.lorebook_uid;
 
@@ -288,7 +276,7 @@ export function registerIframeLorebookEntryHandler() {
         reloadEditorDebounced(lorebook);
       }
 
-      console.info(`[LorebookEntry][deleteLorebookEntry](${iframe_name}) 删除世界书 '${lorebook}' 中的 uid='${lorebook_uid}' 条目${deleted ? '成功' : '失败'}`);
+      console.info(`${getLogPrefix(event)}删除世界书 '${lorebook}' 中的 uid='${lorebook_uid}' 条目${deleted ? '成功' : '失败'}`);
       return deleted;
     },
   );

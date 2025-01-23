@@ -24,7 +24,7 @@ async function getLorebookEntries(lorebook, option = {}) {
         filter: option.filter ?? 'none',
     };
     return detail.make_iframe_promise({
-        request: "iframe_get_lorebook_entries",
+        request: "[LorebookEntry][getLorebookEntries]",
         lorebook: lorebook,
         option: option,
     });
@@ -35,7 +35,7 @@ async function getLorebookEntries(lorebook, option = {}) {
  * 这只是修改信息, 不能创建新的条目, 因此要求条目必须已经在世界书中.
  *
  * @param lorebook 条目所在的世界书名称
- * @param entries 一个数组, 元素是各条目信息. 其中必须有 "uid", 而其他字段可选.
+ * @param entries 一个数组, 元素是各条目信息. 其中必须有 \`uid\`, 而其他字段可选.
  *
  * @example
  * const lorebook = "eramgt少女歌剧";
@@ -55,19 +55,19 @@ async function getLorebookEntries(lorebook, option = {}) {
  * // 禁止所有条目递归, 保持其他设置不变
  * const entries = await getLorebookEntries(lorebook);
  * // \`...entry\` 表示展开 \`entry\` 中的内容; 而 \`prevent_recursion: true\` 放在后面会覆盖或设置 \`prevent_recursion\` 字段
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+ * await setLorebookEntries(lorebook, entries.map(entry => ({ ...entry, prevent_recursion: true })));
  *
  * // 实际上我们只需要为条目指出它的 uid, 并设置 \`prevent_recursion: true\`
  * const entries = await getLorebookEntries(lorebook);
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: true })));
+ * await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: true })));
  *
  * // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
  * const entries = await getLorebookEntries(lorebook);
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
+ * await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
  */
 async function setLorebookEntries(lorebook, entries) {
     return detail.make_iframe_promise({
-        request: "iframe_set_lorebook_entries",
+        request: "[LorebookEntry][setLorebookEntries]",
         lorebook: lorebook,
         entries: entries,
     });
@@ -78,14 +78,14 @@ async function setLorebookEntries(lorebook, entries) {
  * @param lorebook 世界书名称
  * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. **不能设置 \`uid\`**.
  *
- * @returns 新条目的 uid
+ * @returns 新条目的 \`uid\`
  *
  * @example
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
 async function createLorebookEntry(lorebook, field_values) {
     return detail.make_iframe_promise({
-        request: "iframe_create_lorebook_entry",
+        request: "[LorebookEntry][createLorebookEntry]",
         lorebook: lorebook,
         field_values: field_values,
     });
@@ -100,7 +100,7 @@ async function createLorebookEntry(lorebook, field_values) {
  */
 async function deleteLorebookEntry(lorebook, uid) {
     return detail.make_iframe_promise({
-        request: "iframe_delete_lorebook_entry",
+        request: "[LorebookEntry][deleteLorebookEntry]",
         lorebook: lorebook,
         lorebook_uid: uid,
     });
