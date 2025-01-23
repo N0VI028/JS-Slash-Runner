@@ -731,8 +731,8 @@ interface TavernRegex {
     prompt: boolean;
   };
 
-  min_depth: number | undefined;
-  max_depth: number | undefined;
+  min_depth: number | null;
+  max_depth: number | null;
 }
 ```
 
