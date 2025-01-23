@@ -105,7 +105,7 @@ async function setTavernRegexes(regexes: (Pick<TavernRegex, "id"> & Omit<Partial
  * @example
  * const id = await createRegexData({scope: 'global', find_regex: '[\s\S]*', replace_string: ''});
  */
-async function createTavernRegex(field_values: (Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">)): Promise<string> {
+async function createTavernRegex(field_values: Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">): Promise<string> {
   return detail.make_iframe_promise({
     request: 'iframe_create_tavern_regex',
     field_values: field_values,

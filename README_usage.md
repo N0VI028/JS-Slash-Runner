@@ -822,7 +822,7 @@ await setTavernRegexes(regexes.map(entry => ({ id: entry.id, enabled: true })));
  * @example
  * const id = await createRegexData({scope: 'global', find_regex: '[\s\S]*', replace_string: ''});
  */
-async function createTavernRegex(field_values: (Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">)): Promise<string>
+async function createTavernRegex(field_values: Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">): Promise<string>
 ```
 
 示例:
