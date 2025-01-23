@@ -1,7 +1,8 @@
-import { characters, this_chid } from "../../../../../../script.js";
+import { characters, reloadCurrentChat, saveSettingsDebounced, this_chid } from "../../../../../../script.js";
 import { RegexScriptData } from "../../../../../char-data.js";
-import { extension_settings } from "../../../../../extensions.js";
-import { regex_placement } from "../../../../regex/engine.js";
+import { extension_settings, writeExtensionField } from "../../../../../extensions.js";
+import { regex_placement, substitute_find_regex } from "../../../../regex/engine.js";
+import { partition } from "../util/helper.js";
 import { getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeIsCharacterTavernRegexEnabled extends IframeMessage {
@@ -13,19 +14,10 @@ interface IframeGetTavernRegexes extends IframeMessage {
   option: Required<GetTavernRegexesOption>;
 }
 
-interface IframeSetTavernRegexes extends IframeMessage {
-  request: '[TavernRegex][setTavernRegexes]';
-  regexes: (Pick<TavernRegex, "id"> & Omit<Partial<TavernRegex>, "id">)[];
-}
-
-interface IframeCreateTavernRegex extends IframeMessage {
-  request: '[TavernRegex][createTavernRegex]';
-  field_values: Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">;
-}
-
-interface IframeDeleteTavernRegex extends IframeMessage {
-  request: '[TavernRegex][deleteTavernRegex]';
-  id: string;
+interface IframeReplaceTavernRegexes extends IframeMessage {
+  request: '[TavernRegex][replaceTavernRegexes]';
+  regexes: TavernRegex[];
+  option: Required<ReplaceTavernRegexesOption>;
 }
 
 export function isCharacterTavernRegexEnabled(): boolean {
@@ -69,44 +61,33 @@ function toTavernRegex(regex_script_data: RegexScriptData, scope: 'global' | 'ch
   };
 }
 
-function fromPartialTavernRegex(tavern_regex: Partial<TavernRegex>): { data: Partial<RegexScriptData>, scope?: 'global' | 'character' } {
-  const transformers = {
-    id: (value: TavernRegex['id']) => ({ id: value }),
-    script_name: (value: TavernRegex['script_name']) => ({ scriptName: value }),
-    enabled: (value: TavernRegex['enabled']) => ({ disabled: !value }),
-    run_on_edit: (value: TavernRegex['run_on_edit']) => ({ runOnEdit: !value }),
+function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
+  return {
+    id: tavern_regex.id,
+    scriptName: tavern_regex.script_name,
+    disabled: !tavern_regex.enabled,
+    runOnEdit: tavern_regex.run_on_edit,
 
-    find_regex: (value: TavernRegex['find_regex']) => ({ findRegex: value }),
-    replace_string: (value: TavernRegex['replace_string']) => ({ replaceString: value }),
+    findRegex: tavern_regex.find_regex,
+    replaceString: tavern_regex.replace_string,
+    trimStrings: [],  // TODO: handle this?
 
-    min_depth: (value: TavernRegex['min_depth']) => ({ minDepth: value }),
-    max_depth: (value: TavernRegex['max_depth']) => ({ maxDepth: value }),
-
-    destination: (value: TavernRegex['destination']) => ({ markdownOnly: value.display, promptOnly: value.prompt }),
-  };
-
-  const placement: number[] | undefined = tavern_regex.source
-    ? [
+    placement: [
       ...(tavern_regex.source.user_input ? [regex_placement.USER_INPUT] : []),
       ...(tavern_regex.source.ai_output ? [regex_placement.AI_OUTPUT] : []),
       ...(tavern_regex.source.slash_command ? [regex_placement.SLASH_COMMAND] : []),
       ...(tavern_regex.source.world_info ? [regex_placement.WORLD_INFO] : []),
-    ]
-    : undefined;
+    ],
 
-  return {
-    data: Object.entries(tavern_regex)
-      .filter(([_, value]) => value !== undefined)
-      .reduce((result, [field, value]) => (
-        {
-          ...result,
-          // @ts-ignore
-          ...transformers[field]?.(value)
-        }),
-        {
-          placement: placement
-        }),
-    scope: tavern_regex.scope,
+    substituteRegex: substitute_find_regex.NONE,  // TODO: handle this?
+
+    // @ts-ignore
+    minDepth: tavern_regex.min_depth,
+    // @ts-ignore
+    maxDepth: tavern_regex.max_depth,
+
+    markdownOnly: tavern_regex.destination.display,
+    promptOnly: tavern_regex.destination.prompt,
   };
 }
 
@@ -150,25 +131,35 @@ export function registerIframeTavernRegexHandler() {
   );
 
   registerIframeHandler(
-    '[TavernRegex][setTavernRegexes]',
-    async (event: MessageEvent<IframeSetTavernRegexes>): Promise<void> => {
+    '[TavernRegex][replaceTavernRegexes]',
+    async (event: MessageEvent<IframeReplaceTavernRegexes>): Promise<void> => {
       const regexes = event.data.regexes;
-
-      const setting_regexes = [...getGlobalRegexes(), ...getCharacterRegexes()];
-      const process_regex = async (regex: typeof regexes[0]): Promise<void> => {
-        const setting_regex = setting_regexes.find(setting_regex => setting_regex.id == regex.id);
-        if (!setting_regex) {
-          throw Error(`${getLogPrefix(event)}未能找到 id=${regex.id} 的酒馆正则`);
-        }
-        const updated_regex = { setting_regex, ...fromPartialTavernRegex(regex) };
-        if (updated_regex.setting_regex.scriptName === '') {
-          throw Error(`${getLogPrefix(event)}id=${regex.id} 的酒馆正则名称被设置为空字符串`);
-        }
+      const option = event.data.option;
+      if (!['all', 'global', 'character'].includes(option.scope)) {
+        throw Error(`${getLogPrefix(event)}提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${option.scope}`)
       }
 
-      await Promise.all(regexes.map(process_regex));
+      // FIXME: `trimStrings` and `substituteRegex` are not considered
+      const emptied_regexes = regexes.filter(regex => regex.script_name == '');
+      if (emptied_regexes.length > 0) {
+        throw Error(`${getLogPrefix(event)}不能将酒馆正则的名称设置为空字符串: ${JSON.stringify(emptied_regexes.map(regex => regex.id))}`);
+      }
+      const [global_regexes, character_regexes]
+        = partition(regexes, regex => regex.scope === 'global')
+          .map(regexes => regexes.map(fromTavernRegex));
 
-      console.info(`${getLogPrefix(event)}修改以下酒馆正则中的以下字段: ${JSON.stringify(regexes)}`);
+      if (option.scope === 'all' || option.scope === 'global') {
+        extension_settings.regex = global_regexes;
+      }
+      if (option.scope === 'all' || option.scope === 'character') {
+        characters[this_chid].data.extensions.regex_scripts = character_regexes;
+        await writeExtensionField(this_chid, 'regex_scripts', character_regexes);
+      }
+      saveSettingsDebounced();
+
+      reloadCurrentChat();
+
+      console.info(`${getLogPrefix(event)}修改以下酒馆正则中的以下字段: ${JSON.stringify(option.scope === 'all' ? regexes : (option.scope === 'global' ? global_regexes : character_regexes))}`);
     },
   );
 }

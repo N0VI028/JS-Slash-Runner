@@ -781,63 +781,65 @@ const regexes = await getTavernRegexes();
 const regexes = await getTavernRegexes({scope: 'character', enable_state: 'enabled'});
 ```
 
-#### 修改酒馆正则
+#### 替换酒馆正则
 
 ```typescript
+interface ReplaceTavernRegexesOption {
+  scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'.
+}
+
 /**
- * 将酒馆正则信息修改回对应的酒馆正则, 如果某个字段不存在, 则该字段采用原来的值.
+ * 完全替换酒馆正则为 `regexes`
  *
- * 这只是修改信息, 不能创建新的酒馆正则, 因此要求酒馆正则已经实际存在.
+ * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等操作, 且前端助手内置了 lodash 库:
+ *   `setTavernRegexes` 等函数其实就是先 `getTavernRegexes` 获取酒馆正则, 用 lodash 或其他方式进行处理, 再 `replaceTavernRegexes` 替换酒馆正则.
  *
- * @param regexes 一个数组, 元素是各正则信息. 其中必须有 `id`, 而其他字段可选.
+ * @param regexes 要用于替换的酒馆正则
+ * @param option 可选设置
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
  */
-async function setTavernRegexes(regexes: (Pick<TavernRegex, "id"> & Omit<Partial<TavernRegex>, "id">)[]): Promise<void>
+async function replaceTavernRegexes(regexes: TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<void>
 ```
 
 示例:
-
-```typescript
-// 让所有酒馆正则开启 "仅格式提示词"
-const regexes = await getTavernRegexes();
-await setTavernRegexes(regexes.map(entry => ({ id: entry.id, destination: {prompt: true} })));
-```
 
 ```typescript
 // 开启所有名字里带 "舞台少女" 的正则
-const regexes = await getTavernRegexes();
-regexes = regexes.filter(entry => entry.script_name.includes('舞台少女'));
-await setTavernRegexes(regexes.map(entry => ({ id: entry.id, enabled: true })));
+let regexes = await getTavernRegexes();
+regexes.forEach(regex => {
+  if (regex.script_name.includes('舞台少女')) {
+    regex.enabled = true;
+  }
+});
+await replaceTavernRegexes(regexes);
 ```
 
-#### 新增酒馆正则
+#### 用一个函数更新酒馆正则
 
 ```typescript
 /**
- * 新增一个酒馆正则
+ * 用 `updater` 函数更新酒馆正则
  *
- * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. 其中必须有 `script_name` 和 `scope`, **不能设置 `id`**.
+ * @param updater 用于更新酒馆正则的函数. 它应该接收酒馆正则作为参数, 并返回更新后的酒馆正则.
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
  *
- * @returns 新酒馆正则的 `id`
- *
- * @example
- * const id = await createRegexData({scope: 'global', find_regex: '[\s\S]*', replace_string: ''});
+ * @returns 更新后的酒馆正则
  */
-async function createTavernRegex(field_values: Pick<TavernRegex, "script_name" | "scope"> & Omit<Partial<TavernRegex>, "id" | "script_name" | "scope">): Promise<string>: Promise<string>
+async function updateTavernRegexesWith(updater: (variables: TavernRegex[]) => TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<TavernRegex[]>
 ```
 
 示例:
 
-#### 删除酒馆正则
-
 ```typescript
-/**
- * 删除某个酒馆正则
- *
- * @param id 要删除的酒馆正则 id
- *
- * @returns 是否成功删除, 可能因为酒馆正则不存在等原因失败
- */
-async function deleteTavernRegex(id: string): Promise<boolean>
+await updateTavernRegexesWith(regexes => {
+  regexes.forEach(regex => {
+    if (regex.script_name.includes('舞台少女')) {
+      regex.enabled = true;
+    }
+  });
+  return regexes;
+});
 ```
 
 ### 世界书操作
@@ -1613,6 +1615,15 @@ async function substitudeMacros(text: string): Promise<string>
  * @returns 最新楼层id
  */
 async function getLastMessageId(): Promise<number>;
+```
+
+```typescript
+/**
+ * 生成唯一的 uuidv4 标识符
+ *
+ * @returns 唯一的 uuidv4 标识符
+ */
+function generateUuidv4(): string
 ```
 
 ## 播放器功能

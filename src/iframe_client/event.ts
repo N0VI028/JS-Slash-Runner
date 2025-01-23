@@ -398,6 +398,8 @@ namespace detail {
         return;
       }
 
+      console.info(`[Event][callback '${event.data.event_type}'](${getIframeName()}) 函数因监听到 '${event.data.event_type}' 事件而触发\n\n  ${detail.console_listener_string(event.data.listener_string)}`);
+
       const result = await listener.call(null, ...(event.data.args ?? []));
 
       const uid = detail.waiting_event_map.get(`${event.data.event_type}#${event.data.listener_string}`)[0];
@@ -408,8 +410,6 @@ namespace detail {
           result: result,
         }, '*');
       }
-
-      console.info(`[Event][callback '${event.data.event_type}'](${getIframeName()}) 函数因监听到 '${event.data.event_type}' 事件而触发\n\n  ${detail.console_listener_string(event.data.listener_string)}`);
     }
   });
 }

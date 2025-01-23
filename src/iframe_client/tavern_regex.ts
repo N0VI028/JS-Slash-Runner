@@ -45,7 +45,7 @@ interface GetTavernRegexesOption {
 /**
  * 获取酒馆正则
  *
- * @param option 可选设置
+ * @param option 可选选项
  *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选酒馆正则; 默认为 `'all'`
  *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选酒馆正则; 默认为 `'all'`
  *
@@ -70,60 +70,71 @@ async function getTavernRegexes(option: GetTavernRegexesOption = {}): Promise<Ta
   });
 }
 
+interface ReplaceTavernRegexesOption {
+  scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'.
+}
+
 /**
- * 将酒馆正则信息修改回对应的酒馆正则, 如果某个字段不存在, 则该字段采用原来的值.
+ * 完全替换酒馆正则为 `regexes`. **这是一个很慢的操作! 尽量对正则做完所有事后再一次性 replaceTavernRegexes.**
  *
- * 这只是修改信息, 不能创建新的酒馆正则, 因此要求酒馆正则已经实际存在.
+ * 之所以提供这么直接的函数, 是因为这个操作太慢了, 而且你可能需要调换正则顺序等操作. 此外, 前端助手内置了 lodash 库:
+ *   `setTavernRegexes` 等函数其实就是先 `getTavernRegexes` 获取酒馆正则, 用 lodash 或其他方式进行处理, 再 `replaceTavernRegexes` 替换酒馆正则.
  *
- * @param regexes 一个数组, 元素是各正则信息. 其中必须有 `id`, 而其他字段可选.
- *
- * @example
- * // 让所有酒馆正则开启 "仅格式提示词"
- * const regexes = await getTavernRegexes();
- * await setTavernRegexes(regexes.map(entry => ({ id: entry.id, destination: {prompt: true} })));
+ * @param regexes 要用于替换的酒馆正则
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
  *
  * @example
  * // 开启所有名字里带 "舞台少女" 的正则
- * const regexes = await getTavernRegexes();
- * regexes = regexes.filter(entry => entry.script_name.includes('舞台少女'));
- * await setTavernRegexes(regexes.map(entry => ({ id: entry.id, enabled: true })));
+ * let regexes = await getTavernRegexes();
+ * regexes.forEach(regex => {
+ *   if (regex.script_name.includes('舞台少女')) {
+ *     regex.enabled = true;
+ *   }
+ * });
+ * await replaceTavernRegexes(regexes);
  */
-async function setTavernRegexes(regexes: (Pick<TavernRegex, "id"> & Omit<Partial<TavernRegex>, "id">)[]): Promise<void> {
+async function replaceTavernRegexes(regexes: TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<void> {
+  option = {
+    scope: option.scope ?? 'all',
+  } as Required<ReplaceTavernRegexesOption>;
   return detail.make_iframe_promise({
-    request: '[TavernRegex][setTavernRegexes]',
+    request: '[TavernRegex][replaceTavernRegexes]',
     regexes: regexes,
+    option: option,
   });
 }
 
 /**
- * 新增一个酒馆正则
+ * 用 `updater` 函数更新酒馆正则
  *
- * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. 其中必须有 `script_name` 和 `scope`, **不能设置 `id`**.
+ * @param updater 用于更新酒馆正则的函数. 它应该接收酒馆正则作为参数, 并返回更新后的酒馆正则.
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
  *
- * @returns 新酒馆正则的 `id`
+ * @returns 更新后的酒馆正则
  *
  * @example
- * const id = await createRegexData({scope: 'global', find_regex: '[\s\S]*', replace_string: ''});
+ * // 开启所有名字里带 "舞台少女" 的正则
+ * await updateTavernRegexesWith(regexes => {
+ *   regexes.forEach(regex => {
+ *     if (regex.script_name.includes('舞台少女')) {
+ *       regex.enabled = true;
+ *     }
+ *   });
+ *   return regexes;
+ * });
  */
-async function createTavernRegex(field_values: Pick<TavernRegex, "script_name" | "scope"> & Omit<Partial<TavernRegex>, "id" | "script_name" | "scope">): Promise<string> {
-  return detail.make_iframe_promise({
-    request: '[TavernRegex][createTavernRegex]',
-    field_values: field_values,
-  });
-}
+async function updateTavernRegexesWith(updater: (variables: TavernRegex[]) => TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<TavernRegex[]> {
+  const defaulted_option: Required<ReplaceTavernRegexesOption> = {
+    scope: option.scope ?? 'all',
+  } as Required<ReplaceTavernRegexesOption>;
+  let regexes = await getTavernRegexes(defaulted_option);
+  regexes = updater(regexes);
+  await replaceTavernRegexes(regexes, defaulted_option);
 
-/**
- * 删除某个酒馆正则
- *
- * @param id 要删除的酒馆正则 id
- *
- * @returns 是否成功删除, 可能因为酒馆正则不存在等原因失败
- */
-async function deleteTavernRegex(id: string): Promise<boolean> {
-  return detail.make_iframe_promise({
-    request: '[TavernRegex][deleteTavernRegex]',
-    id: id,
-  });
+  console.info(`[Chat Message][updateVariablesWith](${getIframeName()}) 用函数对${{ all: '全部', global: '全局', character: '局部' }[defaulted_option.scope]}变量表进行更新, 结果: ${JSON.stringify(regexes)}, 使用的函数:\n\n ${JSON.stringify(detail.format_function_to_string(updater))}`);
+  return regexes;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
