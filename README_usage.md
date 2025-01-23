@@ -937,7 +937,7 @@ async function getCurrentCharPrimaryLorebook(): Promise<string | null>
  *
  * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
  */
-async function setCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void>
+async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void>
 ```
 
 #### 获取聊天绑定的世界书

@@ -21,8 +21,8 @@ interface IframeGetCharLorebooks extends IframeMessage {
   option: GetCharLorebooksOption;
 }
 
-interface IframeSetCharLorebooks extends IframeMessage {
-  request: "[Lorebook][setCharLorebooks]";
+interface IframesetCurrentCharLorebooks extends IframeMessage {
+  request: "[Lorebook][setCurrentCharLorebooks]";
   lorebooks: Partial<CharLorebooks>;
 }
 
@@ -234,8 +234,8 @@ export function registerIframeLorebookHandler() {
   );
 
   registerIframeHandler(
-    '[Lorebook][setCharLorebooks]',
-    async (event: MessageEvent<IframeSetCharLorebooks>): Promise<void> => {
+    '[Lorebook][setCurrentCharLorebooks]',
+    async (event: MessageEvent<IframesetCurrentCharLorebooks>): Promise<void> => {
       const lorebooks = event.data.lorebooks;
 
       // @ts-ignore

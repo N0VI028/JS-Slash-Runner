@@ -95,9 +95,9 @@ async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
  *
  * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
  */
-async function setCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void> {
+async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void> {
   return detail.make_iframe_promise({
-    request: '[Lorebook][setCharLorebooks]',
+    request: '[Lorebook][setCurrentCharLorebooks]',
     lorebooks: lorebooks,
   });
 }
