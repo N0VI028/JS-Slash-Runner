@@ -617,22 +617,26 @@ function createGlobalAudioManager() {
 }
 
 function adjustIframeHeight(iframe) {
+  if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body) {
+    return;
+  }
   const doc = iframe.contentWindow.document;
   const newHeight = doc.documentElement.offsetHeight;
   const currentHeight = parseFloat(iframe.style.height) || 0;
-
   if (Math.abs(currentHeight - newHeight) > 1) {
     iframe.style.height = newHeight + "px";
   }
 }
-
 function observeIframeContent(iframe) {
   if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body) {
     return;
   }
+
   const docBody = iframe.contentWindow.document.body;
   let mutationTimeout = null;
+
   adjustIframeHeight(iframe);
+
   const mutationObserver = new MutationObserver(() => {
     if (mutationTimeout) {
       clearTimeout(mutationTimeout);
@@ -641,12 +645,47 @@ function observeIframeContent(iframe) {
       adjustIframeHeight(iframe);
     }, 100);
   });
+
   mutationObserver.observe(docBody, {
     childList: true,
     subtree: true,
     attributes: true,
     characterData: true,
   });
+
+  const mesTextParent = iframe.closest(".mes_text");
+  if (mesTextParent) {
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(() => {
+        if (
+          iframe &&
+          iframe.contentWindow &&
+          iframe.contentWindow.document &&
+          document.body.contains(iframe)
+        ) {
+          const updatedHeight =
+            iframe.contentWindow.document.documentElement.offsetHeight;
+          if (updatedHeight > 0) {
+            iframe.style.height = updatedHeight + "px";
+          }
+        } else {
+          if (typeof iframe.cleanup === "function") {
+            iframe.cleanup();
+          }
+        }
+      });
+    });
+
+    resizeObserver.observe(mesTextParent);
+
+    iframe.cleanup = () => {
+      mutationObserver.disconnect();
+      resizeObserver.disconnect();
+      if (mutationTimeout) {
+        clearTimeout(mutationTimeout);
+      }
+    };
+  }
 
   const parentNode = iframe.parentNode;
   const removalObserver = new MutationObserver((mutations) => {
@@ -660,17 +699,20 @@ function observeIframeContent(iframe) {
       }
     }
   });
+
   if (parentNode && parentNode.parentNode) {
     removalObserver.observe(parentNode.parentNode, { childList: true });
   }
 
-  iframe.cleanup = () => {
-    mutationObserver.disconnect();
-    removalObserver.disconnect();
-    if (mutationTimeout) {
-      clearTimeout(mutationTimeout);
-    }
-  };
+  if (!iframe.cleanup) {
+    iframe.cleanup = () => {
+      mutationObserver.disconnect();
+      removalObserver.disconnect();
+      if (mutationTimeout) {
+        clearTimeout(mutationTimeout);
+      }
+    };
+  }
 }
 
 function extractTextFromCode(codeElement) {

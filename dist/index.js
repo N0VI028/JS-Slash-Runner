@@ -456,6 +456,9 @@ function createGlobalAudioManager() {
     });
 }
 function adjustIframeHeight(iframe) {
+    if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body) {
+        return;
+    }
     const doc = iframe.contentWindow.document;
     const newHeight = doc.documentElement.offsetHeight;
     const currentHeight = parseFloat(iframe.style.height) || 0;
@@ -484,6 +487,35 @@ function observeIframeContent(iframe) {
         attributes: true,
         characterData: true,
     });
+    const mesTextParent = iframe.closest(".mes_text");
+    if (mesTextParent) {
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => {
+                if (iframe &&
+                    iframe.contentWindow &&
+                    iframe.contentWindow.document &&
+                    document.body.contains(iframe)) {
+                    const updatedHeight = iframe.contentWindow.document.documentElement.offsetHeight;
+                    if (updatedHeight > 0) {
+                        iframe.style.height = updatedHeight + "px";
+                    }
+                }
+                else {
+                    if (typeof iframe.cleanup === "function") {
+                        iframe.cleanup();
+                    }
+                }
+            });
+        });
+        resizeObserver.observe(mesTextParent);
+        iframe.cleanup = () => {
+            mutationObserver.disconnect();
+            resizeObserver.disconnect();
+            if (mutationTimeout) {
+                clearTimeout(mutationTimeout);
+            }
+        };
+    }
     const parentNode = iframe.parentNode;
     const removalObserver = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
@@ -499,13 +531,15 @@ function observeIframeContent(iframe) {
     if (parentNode && parentNode.parentNode) {
         removalObserver.observe(parentNode.parentNode, { childList: true });
     }
-    iframe.cleanup = () => {
-        mutationObserver.disconnect();
-        removalObserver.disconnect();
-        if (mutationTimeout) {
-            clearTimeout(mutationTimeout);
-        }
-    };
+    if (!iframe.cleanup) {
+        iframe.cleanup = () => {
+            mutationObserver.disconnect();
+            removalObserver.disconnect();
+            if (mutationTimeout) {
+                clearTimeout(mutationTimeout);
+            }
+        };
+    }
 }
 function extractTextFromCode(codeElement) {
     let textContent = "";
