@@ -2,7 +2,7 @@ import { characters, this_chid } from "../../../../../../script.js";
 import { RegexScriptData } from "../../../../../char-data.js";
 import { extension_settings } from "../../../../../extensions.js";
 import { regex_placement } from "../../../../regex/engine.js";
-import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
+import { getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeIsCharacterTavernRegexEnabled extends IframeMessage {
   request: '[TavernRegex][isCharacterTavernRegexesEnabled]';
@@ -114,11 +114,9 @@ export function registerIframeTavernRegexHandler() {
   registerIframeHandler(
     '[TavernRegex][isCharacterTavernRegexesEnabled]',
     async (event: MessageEvent<IframeIsCharacterTavernRegexEnabled>): Promise<boolean> => {
-      const iframe_name = getIframeName(event);
-
       const result = isCharacterTavernRegexEnabled();
 
-      console.info(`[Regex][isCharacterRegexEnabled](${iframe_name}) 查询到局部正则${result ? '被启用' : '被禁用'}`);
+      console.info(`${getLogPrefix(event)}查询到局部正则${result ? '被启用' : '被禁用'}`);
       return result;
     },
   );
@@ -126,14 +124,13 @@ export function registerIframeTavernRegexHandler() {
   registerIframeHandler(
     '[TavernRegex][getTavernRegexes]',
     async (event: MessageEvent<IframeGetTavernRegexes>): Promise<TavernRegex[]> => {
-      const iframe_name = getIframeName(event);
       const option = event.data.option;
 
       if (!['all', 'enabled', 'disabled'].includes(option.enable_state)) {
-        throw Error(`[Regex][getTavernRegexes](${iframe_name}) 提供的 enable_state 无效, 请提供 'all', 'enabled' 或 'disabled', 你提供的是: ${option.enable_state}`)
+        throw Error(`${getLogPrefix(event)}提供的 enable_state 无效, 请提供 'all', 'enabled' 或 'disabled', 你提供的是: ${option.enable_state}`)
       }
       if (!['all', 'global', 'character'].includes(option.scope)) {
-        throw Error(`[Regex][getTavernRegexes](${iframe_name}) 提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${option.scope}`)
+        throw Error(`${getLogPrefix(event)}提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${option.scope}`)
       }
 
       let regexes: TavernRegex[] = [];
@@ -147,7 +144,7 @@ export function registerIframeTavernRegexHandler() {
         regexes = regexes.filter(regex => regex.enabled === (option.enable_state === 'enabled'));
       }
 
-      console.info(`[Regex][getTavernRegexes](${iframe_name}) 获取酒馆正则数据, 选项: ${JSON.stringify(option)}`);
+      console.info(`${getLogPrefix(event)}获取酒馆正则数据, 选项: ${JSON.stringify(option)}`);
       return regexes;
     },
   );
@@ -155,24 +152,23 @@ export function registerIframeTavernRegexHandler() {
   registerIframeHandler(
     '[TavernRegex][setTavernRegexes]',
     async (event: MessageEvent<IframeSetTavernRegexes>): Promise<void> => {
-      const iframe_name = getIframeName(event);
       const regexes = event.data.regexes;
 
       const setting_regexes = [...getGlobalRegexes(), ...getCharacterRegexes()];
       const process_regex = async (regex: typeof regexes[0]): Promise<void> => {
         const setting_regex = setting_regexes.find(setting_regex => setting_regex.id == regex.id);
         if (!setting_regex) {
-          throw Error(`[Regex][setTavernRegexes](${iframe_name}) 未能找到 id=${regex.id} 的酒馆正则`);
+          throw Error(`${getLogPrefix(event)}未能找到 id=${regex.id} 的酒馆正则`);
         }
         const updated_regex = { setting_regex, ...fromPartialTavernRegex(regex) };
         if (updated_regex.setting_regex.scriptName === '') {
-          throw Error(`[Regex][setTavernRegexes](${iframe_name}) id=${regex.id} 的酒馆正则名称被设置为空字符串`);
+          throw Error(`${getLogPrefix(event)}id=${regex.id} 的酒馆正则名称被设置为空字符串`);
         }
       }
 
       await Promise.all(regexes.map(process_regex));
 
-      console.info(`[Regex][setTavernRegexes](${iframe_name}) 修改以下酒馆正则中的以下字段: ${JSON.stringify(regexes)}`);
+      console.info(`${getLogPrefix(event)}修改以下酒馆正则中的以下字段: ${JSON.stringify(regexes)}`);
     },
   );
 }

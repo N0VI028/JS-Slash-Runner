@@ -18,6 +18,10 @@ export function getIframeName<T extends IframeMessage>(event: MessageEvent<T>): 
   return window.frameElement?.id as string;
 }
 
+export function getLogPrefix<T extends IframeMessage>(event: MessageEvent<T>): string {
+  return `${event.data.request}(${getLogPrefix(event)}) `;
+}
+
 type IframeHandlers = {
   [request: string]: (event: MessageEvent<any>) => Promise<any | void>;
 };

@@ -1,7 +1,7 @@
 import { extract, get_or_set } from "../util/helper.js";
 
 import { eventSource } from "../../../../../../script.js";
-import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
+import { getIframeName, getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 
 type eventCallback = (...args: any[]) => Promise<any>;
 
@@ -163,13 +163,12 @@ export function registerIframeEventHandler() {
   registerIframeHandler(
     '[Event][eventEmit]',
     async (event: MessageEvent<IframeEventEmit>): Promise<void> => {
-      const iframe_name = (event.source as Window).frameElement?.id as string;
       const event_type = event.data.event_type;
       const data = event.data.data;
 
       await eventSource.emit(event_type, ...data);
 
-      console.info(`[Event][eventEmit](${iframe_name}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
+      console.info(`${getLogPrefix(event)}发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
     },
   );
 
@@ -207,7 +206,7 @@ export function registerIframeEventHandler() {
           }
         })
 
-      console.info(`[Event][eventClearEvent](${iframe_name}) 所有函数都不再监听 '${event_type}' 事件`);
+      console.info(`${getLogPrefix(event)}所有函数都不再监听 '${event_type}' 事件`);
     },
   );
 
@@ -228,7 +227,7 @@ export function registerIframeEventHandler() {
         }
       }
 
-      console.info(`[Event][eventClearListener](${iframe_name}) 函数不再监听任何事件\n\n  ${console_listener_string(listener_string)}`);
+      console.info(`${getLogPrefix(event)}函数不再监听任何事件\n\n  ${console_listener_string(listener_string)}`);
     },
   );
 
@@ -238,7 +237,7 @@ export function registerIframeEventHandler() {
       const iframe_name = getIframeName(event);
       clearIframeEventListeners(iframe_name);
 
-      console.info(`[Event][eventClearAll](${iframe_name}) 取消所有函数对所有事件的监听`);
+      console.info(`${getLogPrefix(event)}取消所有函数对所有事件的监听`);
     },
   );
 
