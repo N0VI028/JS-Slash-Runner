@@ -3,8 +3,8 @@ import { registerIframeDisplayedMessageHandler } from "./displayed_message.js";
 import { registerIframeEventHandler } from "./event.js";
 import { registerIframeLorebookHandler } from "./lorebook.js";
 import { registerIframeLorebookEntryHandler } from "./lorebook_entry.js";
-import { registerIframeRegexDataHandler } from "./regex_data.js";
 import { registerIframeSlashHandler } from "./slash.js";
+import { registerIframeTavernRegexHandler } from "./tavern_regex.js";
 import { registerIframeUtilHandler } from "./util.js";
 import { registerIframeVariableHandler } from "./variables.js";
 export function getIframeName(event) {
@@ -43,8 +43,8 @@ registerIframeDisplayedMessageHandler();
 registerIframeEventHandler();
 registerIframeLorebookEntryHandler();
 registerIframeLorebookHandler();
-registerIframeRegexDataHandler();
 registerIframeSlashHandler();
+registerIframeTavernRegexHandler();
 registerIframeUtilHandler();
 registerIframeVariableHandler();
 //# sourceMappingURL=index.js.map

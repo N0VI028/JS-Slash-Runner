@@ -39,14 +39,12 @@ async function setLorebookSettings(settings) {
  *
  * @param option 可选选项
  *   - \`name?:string\`: 要查询的角色卡名称; 默认为当前角色卡
- *   - \`type?:'all'|'primary'|'additional'\`: 按角色世界书的绑定类型筛选世界书; 默认为 \`'all'\`
  *
- * @returns 一个 CharLorebook 数组
+ * @returns 角色卡绑定的世界书
  */
 async function getCharLorebooks(option = {}) {
     option = {
         name: option.name,
-        type: option.type ?? 'all'
     };
     return detail.make_iframe_promise({
         request: "iframe_get_char_lorebooks",
@@ -59,11 +57,18 @@ async function getCharLorebooks(option = {}) {
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 \`null\`
  */
 async function getCurrentCharPrimaryLorebook() {
-    const lorebooks = await getCharLorebooks({ type: 'primary' });
-    if (lorebooks.length <= 0) {
-        throw Error(\`[Lorebook][getCurrentCharPrimaryLorebook](\${getIframeName()}) 当前角色卡未绑定有主要世界书\`);
-    }
-    return lorebooks[0].name;
+    return (await getCharLorebooks()).primary;
+}
+/**
+ * 将当前角色卡换为绑定 \`lorebooks\`
+ *
+ * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
+ */
+async function setCharLorebooks(lorebooks) {
+    return detail.make_iframe_promise({
+        request: 'iframe_set_char_lorebooks',
+        lorebooks: lorebooks,
+    });
 }
 /**
  * 获取或创建当前聊天绑定的世界书

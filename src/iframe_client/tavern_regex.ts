@@ -7,7 +7,7 @@
  */
 async function isCharacterRegexEnabled(): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: "iframe_is_character_regex_enabled",
+    request: "iframe_is_character_tavern_regexes_enabled",
   });
 }
 
@@ -63,7 +63,7 @@ async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[
     enable_state: option.enable_state ?? 'all',
   } as Required<GetRegexDataOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_regex_data",
+    request: "iframe_get_tavern_regexes",
     option: option,
   });
 }

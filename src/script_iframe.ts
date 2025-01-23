@@ -5,7 +5,7 @@ import { event_types } from '../../../../../script.js';
 
 import { iframe_client } from './iframe_client_exported/index.js';
 import { script_url } from './script_url.js';
-import { getCharacterRegexes, getGlobalRegexes, isCharacterRegexEnabled } from './iframe_server/regex_data.js';
+import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from './iframe_server/tavern_regex.js';
 import { libraries_text } from './library.js';
 import { partition } from './util/helper.js';
 import { third_party } from './third_party.js';
@@ -38,7 +38,7 @@ function loadScripts(): Script[] {
   scripts = [...scripts, ...enabled_global_regexes];
 
   const character_regexes = getCharacterRegexes().filter(filterScriptFromRegex);
-  if (isCharacterRegexEnabled()) {
+  if (isCharacterTavernRegexEnabled()) {
     console.info(`[Script] 局部正则目前正启用, 加载局部正则中的全局脚本:`);
     const [enabled_character_regexes, disabled_character_regexes] = partition(character_regexes, isEnabled);
     console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);

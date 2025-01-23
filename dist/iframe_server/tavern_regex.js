@@ -1,16 +1,15 @@
-export { isCharacterRegexEnabled, getGlobalRegexes, getCharacterRegexes };
 import { characters, this_chid } from "../../../../../../script.js";
 import { extension_settings } from "../../../../../extensions.js";
 import { regex_placement } from "../../../../regex/engine.js";
 import { getIframeName, registerIframeHandler } from "./index.js";
-function isCharacterRegexEnabled() {
+export function isCharacterTavernRegexEnabled() {
     // @ts-ignore 2345
     return extension_settings?.character_allowed_regex?.includes(characters?.[this_chid]?.avatar);
 }
-function getGlobalRegexes() {
+export function getGlobalRegexes() {
     return extension_settings.regex ?? [];
 }
-function getCharacterRegexes() {
+export function getCharacterRegexes() {
     return characters[this_chid]?.data?.extensions?.regex_scripts ?? [];
 }
 function toRegexData(regex_script_data, scope) {
@@ -36,14 +35,14 @@ function toRegexData(regex_script_data, scope) {
         max_depth: typeof regex_script_data.maxDepth === 'number' ? regex_script_data.maxDepth : undefined,
     };
 }
-export function registerIframeRegexDataHandler() {
-    registerIframeHandler('iframe_is_character_regex_enabled', async (event) => {
+export function registerIframeTavernRegexHandler() {
+    registerIframeHandler('iframe_is_character_tavern_regexes_enabled', async (event) => {
         const iframe_name = getIframeName(event);
-        const result = isCharacterRegexEnabled();
+        const result = isCharacterTavernRegexEnabled();
         console.info(`[Regex][isCharacterRegexEnabled](${iframe_name}) 查询到局部正则${result ? '被启用' : '被禁用'}`);
         return result;
     });
-    registerIframeHandler('iframe_get_regex_data', async (event) => {
+    registerIframeHandler('iframe_get_tavern_regexes', async (event) => {
         const iframe_name = getIframeName(event);
         const option = event.data.option;
         if (!['all', 'enabled', 'disabled'].includes(option.enable_state)) {
@@ -66,4 +65,4 @@ export function registerIframeRegexDataHandler() {
         return regexes;
     });
 }
-//# sourceMappingURL=regex_data.js.map
+//# sourceMappingURL=tavern_regex.js.map

@@ -1,5 +1,3 @@
-export { isCharacterRegexEnabled, getGlobalRegexes, getCharacterRegexes }
-
 import { characters, this_chid } from "../../../../../../script.js";
 import { RegexScriptData } from "../../../../../char-data.js";
 import { extension_settings } from "../../../../../extensions.js";
@@ -7,24 +5,24 @@ import { regex_placement } from "../../../../regex/engine.js";
 import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeIsCharacterRegexEnabled extends IframeMessage {
-  request: 'iframe_is_character_regex_enabled';
+  request: 'iframe_is_character_tavern_regexes_enabled';
 }
 
 interface IframeGetRegexData extends IframeMessage {
-  request: 'iframe_get_regex_data';
+  request: 'iframe_get_tavern_regexes';
   option: Required<GetRegexDataOption>;
 }
 
-function isCharacterRegexEnabled(): boolean {
+export function isCharacterTavernRegexEnabled(): boolean {
   // @ts-ignore 2345
   return extension_settings?.character_allowed_regex?.includes(characters?.[this_chid]?.avatar);
 }
 
-function getGlobalRegexes(): RegexScriptData[] {
+export function getGlobalRegexes(): RegexScriptData[] {
   return extension_settings.regex ?? [];
 }
 
-function getCharacterRegexes(): RegexScriptData[] {
+export function getCharacterRegexes(): RegexScriptData[] {
   return characters[this_chid]?.data?.extensions?.regex_scripts ?? [];
 }
 
@@ -56,13 +54,13 @@ function toRegexData(regex_script_data: RegexScriptData, scope: 'global' | 'char
   };
 }
 
-export function registerIframeRegexDataHandler() {
+export function registerIframeTavernRegexHandler() {
   registerIframeHandler(
-    'iframe_is_character_regex_enabled',
+    'iframe_is_character_tavern_regexes_enabled',
     async (event: MessageEvent<IframeIsCharacterRegexEnabled>): Promise<boolean> => {
       const iframe_name = getIframeName(event);
 
-      const result = isCharacterRegexEnabled();
+      const result = isCharacterTavernRegexEnabled();
 
       console.info(`[Regex][isCharacterRegexEnabled](${iframe_name}) 查询到局部正则${result ? '被启用' : '被禁用'}`);
       return result;
@@ -71,7 +69,7 @@ export function registerIframeRegexDataHandler() {
 
 
   registerIframeHandler(
-    'iframe_get_regex_data',
+    'iframe_get_tavern_regexes',
     async (event: MessageEvent<IframeGetRegexData>): Promise<RegexData[]> => {
       const iframe_name = getIframeName(event);
       const option = event.data.option;

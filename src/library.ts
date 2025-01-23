@@ -2,7 +2,7 @@ export { libraries_text, library_load_events, initializeLibraries }
 
 import { RegexScriptData } from '../../../../char-data.js';
 
-import { getCharacterRegexes, getGlobalRegexes, isCharacterRegexEnabled } from './iframe_server/regex_data.js';
+import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from './iframe_server/tavern_regex.js';
 import { event_types } from '../../../../../script.js';
 import { partition } from './util/helper.js';
 
@@ -29,7 +29,7 @@ function initializeLibraries(): void {
   scripts = [...scripts, ...enabled_global_regexes];
 
   const character_regexes = getCharacterRegexes().filter(filterScriptFromRegex);
-  if (isCharacterRegexEnabled()) {
+  if (isCharacterTavernRegexEnabled()) {
     console.info(`[Library] 局部正则目前正启用, 加载局部正则中的库:`);
     const [enabled_character_regexes, disabled_character_regexes] = partition(character_regexes, isEnabled);
     console.info(`[Library]   将会使用: ${JSON.stringify(enabled_character_regexes.map(toName))}`);

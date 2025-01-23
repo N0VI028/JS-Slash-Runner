@@ -40,7 +40,7 @@ async function setLorebookSettings(settings) {
  * @param option 可选选项
  *   - \`name?:string\`: 要查询的角色卡名称; 默认为当前角色卡
  *
- * @returns 一个 CharLorebook 数组
+ * @returns 角色卡绑定的世界书
  */
 async function getCharLorebooks(option = {}) {
     option = {
@@ -60,7 +60,7 @@ async function getCurrentCharPrimaryLorebook() {
     return (await getCharLorebooks()).primary;
 }
 /**
- * 将当前角色卡换为绑定 \`lorebooks\`, 取消原来所有世界书的绑定
+ * 将当前角色卡换为绑定 \`lorebooks\`
  *
  * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
  */
