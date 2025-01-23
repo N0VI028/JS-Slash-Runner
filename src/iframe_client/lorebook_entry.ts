@@ -103,15 +103,15 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
  * // 禁止所有条目递归, 保持其他设置不变
  * const entries = await getLorebookEntries(lorebook);
  * // `...entry` 表示展开 `entry` 中的内容; 而 `prevent_recursion: true` 放在后面会覆盖或设置 `prevent_recursion` 字段
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+ * await setLorebookEntries(lorebook, entries.map(entry => ({ ...entry, prevent_recursion: true })));
  *
  * // 实际上我们只需要为条目指出它的 uid, 并设置 `prevent_recursion: true`
  * const entries = await getLorebookEntries(lorebook);
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: true })));
+ * await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: true })));
  *
  * // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
  * const entries = await getLorebookEntries(lorebook);
- * await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
+ * await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
  */
 async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): Promise<void> {
   return detail.make_iframe_promise({

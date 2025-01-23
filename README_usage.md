@@ -704,27 +704,12 @@ retrieveDisplayedMessage(0).append("<pre>new text</pre>");
 retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
 ```
 
-### 正则操作
+### 酒馆正则操作
 
-#### 获取局部正则是否被启用
-
-```typescript
-/**
- * 判断局部正则是否被启用.
- *
- * 如果你是在被写在局部正则中的全局脚本调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
- *
- * @returns 局部正则是否被启用
- */
-function isCharacterRegexEnabled(): Promise<boolean>;
-```
-
-#### 获取正则数据
-
-其获取到的结果是一个数组, 数组的元素类型为 `RegexData`, 有以下内容:
+酒馆正则将会以以下类型表示:
 
 ```typescript
-interface RegexData {
+interface TavernRegex {
   id: string;
   script_name: string;
   enabled: boolean;
@@ -751,7 +736,20 @@ interface RegexData {
 }
 ```
 
-具体函数为:
+#### 获取局部正则是否被启用
+
+```typescript
+/**
+ * 判断酒馆局部正则是否被启用. 注意, 前端插件已经更新了 "自动启用局部正则" 选项, 所以你其实没必要用这个?
+ *
+ * 如果你是在局部正则中调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
+ *
+ * @returns 局部正则是否被启用
+ */
+async function isCharacterTavernRegexEnabled(): Promise<boolean>;
+```
+
+#### 获取酒馆正则
 
 ```typescript
 interface GetRegexDataOption {
@@ -760,13 +758,13 @@ interface GetRegexDataOption {
 }
 
 /**
- * 获取正则
+ * 获取酒馆正则
  *
- * @param option 对获取正则进行可选设置
- *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选正则; 默认为 `'all'`
- *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选正则; 默认为 `'all'`
+ * @param option 可选设置
+ *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选酒馆正则; 默认为 `'all'`
+ *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选酒馆正则; 默认为 `'all'`
  *
- * @returns 一个数组, 数组的元素是正则 `RegexData`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
+ * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
 async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]>
 ```
@@ -774,11 +772,72 @@ async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[
 示例:
 
 ```typescript
-// 获取所有正则
-const regexes = await getRegexData();
+// 获取所有酒馆正则
+const regexes = await getTavernRegexes();
+```
 
+```typescript
 // 获取当前角色卡目前被启用的局部正则
-const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
+const regexes = await getTavernRegexes({scope: 'character', enable_state: 'enabled'});
+```
+
+#### 修改酒馆正则
+
+```typescript
+/**
+ * 将酒馆正则信息修改回对应的酒馆正则, 如果某个字段不存在, 则该字段采用原来的值.
+ *
+ * 这只是修改信息, 不能创建新的酒馆正则, 因此要求酒馆正则已经实际存在.
+ *
+ * @param regexes 一个数组, 元素是各正则信息. 其中必须有 `id`, 而其他字段可选.
+ */
+async function setTavernRegexes(regexes: (Pick<TavernRegex, "id"> & Omit<Partial<TavernRegex>, "id">)[]): Promise<void>
+```
+
+示例:
+
+```typescript
+// 让所有酒馆正则开启 "仅格式提示词"
+const regexes = await getTavernRegexes();
+await setTavernRegexes(regexes.map(entry => ({ id: entry.id, destination: {prompt: true} })));
+```
+
+```typescript
+// 开启所有名字里带 "舞台少女" 的正则
+const regexes = await getTavernRegexes();
+regexes = regexes.filter(entry => entry.script_name.includes('舞台少女'));
+await setTavernRegexes(regexes.map(entry => ({ id: entry.id, enabled: true })));
+```
+
+#### 新增酒馆正则
+
+```typescript
+/**
+ * 新增一个酒馆正则
+ *
+ * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. 其中必须有 `scope`, **不能设置 `id`**.
+ *
+ * @returns 新酒馆正则的 `id`
+ *
+ * @example
+ * const id = await createRegexData({scope: 'global', find_regex: '[\s\S]*', replace_string: ''});
+ */
+async function createTavernRegex(field_values: (Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">)): Promise<string>
+```
+
+示例:
+
+#### 删除酒馆正则
+
+```typescript
+/**
+ * 删除某个酒馆正则
+ *
+ * @param id 要删除的酒馆正则 id
+ *
+ * @returns 是否成功删除, 可能因为酒馆正则不存在等原因失败
+ */
+async function deleteTavernRegex(id: string): Promise<boolean>
 ```
 
 ### 世界书操作
@@ -1025,15 +1084,15 @@ const lorebook = "eramgt少女歌剧";
 // 禁止所有条目递归, 保持其他设置不变
 const entries = await getLorebookEntries(lorebook);
 // `...entry` 表示展开 `entry` 中的内容; 而 `prevent_recursion: true` 放在后面会覆盖或设置 `prevent_recursion` 字段
-await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map(entry => ({ ...entry, prevent_recursion: true })));
 
 // 实际上我们只需要为条目指出它的 uid, 并设置 `prevent_recursion: true`
 const entries = await getLorebookEntries(lorebook);
-await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: true })));
 
 // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
 const entries = await getLorebookEntries(lorebook);
-await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
+await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
 ```
 
 #### 在世界书中新增条目

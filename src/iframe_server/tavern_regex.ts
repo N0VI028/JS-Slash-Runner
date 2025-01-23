@@ -10,7 +10,7 @@ interface IframeIsCharacterRegexEnabled extends IframeMessage {
 
 interface IframeGetRegexData extends IframeMessage {
   request: 'iframe_get_tavern_regexes';
-  option: Required<GetRegexDataOption>;
+  option: Required<GetTavernRegexesOption>;
 }
 
 export function isCharacterTavernRegexEnabled(): boolean {
@@ -26,7 +26,7 @@ export function getCharacterRegexes(): RegexScriptData[] {
   return characters[this_chid]?.data?.extensions?.regex_scripts ?? [];
 }
 
-function toRegexData(regex_script_data: RegexScriptData, scope: 'global' | 'character'): RegexData {
+function toRegexData(regex_script_data: RegexScriptData, scope: 'global' | 'character'): TavernRegex {
   return {
     id: regex_script_data.id,
     script_name: regex_script_data.scriptName,
@@ -70,7 +70,7 @@ export function registerIframeTavernRegexHandler() {
 
   registerIframeHandler(
     'iframe_get_tavern_regexes',
-    async (event: MessageEvent<IframeGetRegexData>): Promise<RegexData[]> => {
+    async (event: MessageEvent<IframeGetRegexData>): Promise<TavernRegex[]> => {
       const iframe_name = getIframeName(event);
       const option = event.data.option;
 
@@ -81,7 +81,7 @@ export function registerIframeTavernRegexHandler() {
         throw Error(`[Regex][getRegexData](${iframe_name}) 提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${option.scope}`)
       }
 
-      let regexes: RegexData[] = [];
+      let regexes: TavernRegex[] = [];
       if (option.scope === 'all' || option.scope === 'global') {
         regexes = [...regexes, ...getGlobalRegexes().map(regex => toRegexData(regex, 'global'))]
       }
