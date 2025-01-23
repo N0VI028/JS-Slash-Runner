@@ -14,9 +14,9 @@
  * alert(settings.selected_global_lorebooks);
  */
 async function getLorebookSettings() {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][getLorebookSettings]",
-  });
+    return detail.make_iframe_promise({
+        request: "[Lorebook][getLorebookSettings]",
+    });
 }
 /**
  * 修改世界书全局设置
@@ -28,10 +28,10 @@ async function getLorebookSettings() {
  * await setLorebookSettings({context_percentage: 100, recursive: true});
  */
 async function setLorebookSettings(settings) {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][setLorebookSettings]",
-    settings: settings,
-  });
+    return detail.make_iframe_promise({
+        request: "[Lorebook][setLorebookSettings]",
+        settings: settings,
+    });
 }
 ;
 /**
@@ -43,13 +43,13 @@ async function setLorebookSettings(settings) {
  * @returns 角色卡绑定的世界书
  */
 async function getCharLorebooks(option = {}) {
-  option = {
-    name: option.name,
-  };
-  return detail.make_iframe_promise({
-    request: "[Lorebook][getCharLorebooks]",
-    option: option
-  });
+    option = {
+        name: option.name,
+    };
+    return detail.make_iframe_promise({
+        request: "[Lorebook][getCharLorebooks]",
+        option: option
+    });
 }
 /**
  * 获取当前角色卡绑定的主要世界书
@@ -57,7 +57,7 @@ async function getCharLorebooks(option = {}) {
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 async function getCurrentCharPrimaryLorebook() {
-  return (await getCharLorebooks()).primary;
+    return (await getCharLorebooks()).primary;
 }
 /**
  * 将当前角色卡换为绑定 `lorebooks`
@@ -65,10 +65,10 @@ async function getCurrentCharPrimaryLorebook() {
  * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
  */
 async function setCurrentCharLorebooks(lorebooks) {
-  return detail.make_iframe_promise({
-    request: '[Lorebook][setCurrentCharLorebooks]',
-    lorebooks: lorebooks,
-  });
+    return detail.make_iframe_promise({
+        request: '[Lorebook][setCurrentCharLorebooks]',
+        lorebooks: lorebooks,
+    });
 }
 /**
  * 获取或创建当前聊天绑定的世界书
@@ -76,7 +76,7 @@ async function setCurrentCharLorebooks(lorebooks) {
  * @returns 聊天世界书的名称
  */
 async function getOrCreateChatLorebook() {
-  return triggerSlashWithResult("/getchatbook");
+    return triggerSlashWithResult("/getchatbook");
 }
 /**
  * 获取世界书列表
@@ -84,9 +84,9 @@ async function getOrCreateChatLorebook() {
  * @returns 世界书名称列表
  */
 async function getLorebooks() {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][getLorebooks]",
-  });
+    return detail.make_iframe_promise({
+        request: "[Lorebook][getLorebooks]",
+    });
 }
 /**
  * 新建世界书
@@ -96,10 +96,10 @@ async function getLorebooks() {
  * @returns 是否成功创建, 如果已经存在同名世界书会失败
  */
 async function createLorebook(lorebook) {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][createLorebook]",
-    lorebook: lorebook,
-  });
+    return detail.make_iframe_promise({
+        request: "[Lorebook][createLorebook]",
+        lorebook: lorebook,
+    });
 }
 /**
  * 删除世界书
@@ -108,10 +108,10 @@ async function createLorebook(lorebook) {
  * @returns 是否成功删除, 可能因世界书不存在等原因而失败
  */
 async function deleteLorebook(lorebook) {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][deleteLorebook]",
-    lorebook: lorebook,
-  });
-  ;
+    return detail.make_iframe_promise({
+        request: "[Lorebook][deleteLorebook]",
+        lorebook: lorebook,
+    });
+    ;
 }
 //# sourceMappingURL=lorebook.js.map
