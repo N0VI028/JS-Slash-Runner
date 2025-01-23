@@ -1012,7 +1012,7 @@ const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content
  * 这只是修改信息, 不能创建新的条目, 因此要求条目必须已经在世界书中.
  *
  * @param lorebook 条目所在的世界书名称
- * @param entries 一个数组, 元素是各条目信息. 其中必须有 "uid", 而其他字段可选.
+ * @param entries 一个数组, 元素是各条目信息. 其中必须有 `uid`, 而其他字段可选.
  */
 async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void
 ```
@@ -1045,9 +1045,9 @@ await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, pre
  * @param lorebook 世界书名称
  * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. **不能设置 `uid`**.
  *
- * @returns 新条目的 uid
+ * @returns 新条目的 `uid`
  */
-async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number>
+async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number> 
 ```
 
 示例:

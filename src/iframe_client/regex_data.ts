@@ -37,10 +37,6 @@ interface RegexData {
   max_depth: number | undefined;
 }
 
-type RegexData_Partial = Partial<RegexData>;
-type RegexData_Partial_OmitId = Omit<RegexData_Partial, "id">;
-type RegexData_Partial_RequireId = Pick<RegexData, "id"> & RegexData_Partial_OmitId;
-
 interface GetRegexDataOption {
   scope?: 'all' | 'global' | 'character';         // 按所在区域筛选正则; 默认为 `'all'`
   enable_state?: 'all' | 'enabled' | 'disabled';  // 按是否被开启筛选正则; 默认为 `'all'`
@@ -73,18 +69,18 @@ async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[
 }
 
 /**
- * 将酒馆正则信息修改回对应的酒馆正则, 如果某个字段不存在, 则该字段采用原来的值
+ * 将酒馆正则信息修改回对应的酒馆正则, 如果某个字段不存在, 则该字段采用原来的值.
  *
  * 这只是修改信息, 不能创建新的酒馆正则, 因此要求酒馆正则已经实际存在.
  *
- * @param regex_data 一个数组, 元素是各正则信息. 其中必须有 "id", 而其他字段可选.
+ * @param regex_data 一个数组, 元素是各正则信息. 其中必须有 `id`, 而其他字段可选.
  *
  * @example
- * // 让所有酒馆正则 "仅格式提示词"
+ * // 让所有酒馆正则开启 "仅格式提示词"
  * const regex_data = await getRegexData();
  * await setLorebookEntries(regex_data.map((entry) => ({ id: entry.id, destination: {prompt: true} })));
  */
-async function setRegexData(regex_data: RegexData_Partial_RequireId[]): Promise<void> {
+async function setRegexData(regex_data: (Pick<RegexData, "id"> & Omit<Partial<RegexData>, "id">)[]): Promise<void> {
   return detail.make_iframe_promise({
     request: 'iframe_set_regex_data',
     regex_data: regex_data,
@@ -94,14 +90,14 @@ async function setRegexData(regex_data: RegexData_Partial_RequireId[]): Promise<
 /**
  * 新增一个酒馆正则
  *
- * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值, **不能设置 `id`**.
+ * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. 其中必须有 `scope`, **不能设置 `id`**.
  *
- * @returns 新酒馆正则的 id
+ * @returns 新酒馆正则的 `id`
  *
  * @example
  * const id = await createRegexData({find_regex: '[\s\S]*', replace_string: ''});
  */
-async function createRegexData(field_values: RegexData_Partial_OmitId[]): Promise<string> {
+async function createRegexData(field_values: (Pick<RegexData, "scope"> & Omit<Partial<RegexData>, "id" | "scope">)): Promise<string> {
   return detail.make_iframe_promise({
     request: 'iframe_create_regex_data',
     field_values: field_values,
