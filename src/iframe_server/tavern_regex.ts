@@ -94,11 +94,6 @@ function fromPartialTavernRegex(tavern_regex: Partial<TavernRegex>): { data: Par
     ]
     : undefined;
 
-  // destination: {
-  //   display: regex_script_data.markdownOnly,
-  //   prompt: regex_script_data.promptOnly,
-  // },
-
   return {
     data: Object.entries(tavern_regex)
       .filter(([_, value]) => value !== undefined)
@@ -162,6 +157,20 @@ export function registerIframeTavernRegexHandler() {
     async (event: MessageEvent<IframeSetTavernRegexes>): Promise<void> => {
       const iframe_name = getIframeName(event);
       const regexes = event.data.regexes;
+
+      const setting_regexes = [...getGlobalRegexes(), ...getCharacterRegexes()];
+      const process_regex = async (regex: typeof regexes[0]): Promise<void> => {
+        const setting_regex = setting_regexes.find(setting_regex => setting_regex.id == regex.id);
+        if (!setting_regex) {
+          throw Error(`[Regex][setTavernRegexes](${iframe_name}) 未能找到 id=${regex.id} 的酒馆正则`);
+        }
+        const updated_regex = { setting_regex, ...fromPartialTavernRegex(regex) };
+        if (updated_regex.setting_regex.scriptName === '') {
+          throw Error(`[Regex][setTavernRegexes](${iframe_name}) id=${regex.id} 的酒馆正则名称被设置为空字符串`);
+        }
+      }
+
+      await Promise.all(regexes.map(process_regex));
 
       console.info(`[Regex][setTavernRegexes](${iframe_name}) 修改以下酒馆正则中的以下字段: ${JSON.stringify(regexes)}`);
     },

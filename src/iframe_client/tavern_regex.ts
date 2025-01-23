@@ -98,14 +98,14 @@ async function setTavernRegexes(regexes: (Pick<TavernRegex, "id"> & Omit<Partial
 /**
  * 新增一个酒馆正则
  *
- * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. 其中必须有 `scope`, **不能设置 `id`**.
+ * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. 其中必须有 `script_name` 和 `scope`, **不能设置 `id`**.
  *
  * @returns 新酒馆正则的 `id`
  *
  * @example
  * const id = await createRegexData({scope: 'global', find_regex: '[\s\S]*', replace_string: ''});
  */
-async function createTavernRegex(field_values: Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">): Promise<string> {
+async function createTavernRegex(field_values: Pick<TavernRegex, "script_name" | "scope"> & Omit<Partial<TavernRegex>, "id" | "script_name" | "scope">): Promise<string> {
   return detail.make_iframe_promise({
     request: 'iframe_create_tavern_regex',
     field_values: field_values,
