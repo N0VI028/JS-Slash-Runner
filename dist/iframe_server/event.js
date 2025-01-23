@@ -1,6 +1,6 @@
 import { extract, get_or_set } from "../util/helper.js";
 import { eventSource } from "../../../../../../script.js";
-import { getIframeName, registerIframeHandler } from "./index.js";
+import { getIframeName, getLogPrefix, registerIframeHandler } from "./index.js";
 let iframe_listener_event_callback_map = new Map();
 function unpack(event) {
     return {
@@ -50,7 +50,7 @@ function console_listener_string(listener_string) {
     }
 }
 export function registerIframeEventHandler() {
-    registerIframeHandler('iframe_event_on', async (event) => {
+    registerIframeHandler('[Event][eventOn]', async (event) => {
         const data = unpack(event);
         if (tryGetEventCallback(event)) {
             console.warn(`[Event][eventOn](${data.iframe_name}) 函数已经在监听 '${data.event_type}' 事件, 调用无效\n\n  ${console_listener_string(data.listener_string)}`);
@@ -60,7 +60,7 @@ export function registerIframeEventHandler() {
         eventSource.on(data.event_type, callback);
         console.info(`[Event][eventOn](${data.iframe_name}) 函数开始监听 '${data.event_type}' 事件并将随事件触发\n\n  ${console_listener_string(data.listener_string)}`);
     });
-    registerIframeHandler('iframe_event_make_last', async (event) => {
+    registerIframeHandler('[Event][eventMakeLast]', async (event) => {
         const is_listening = tryGetEventCallback(event) !== undefined;
         const data = unpack(event);
         const callback = makeEventCallback(event, false);
@@ -72,7 +72,7 @@ export function registerIframeEventHandler() {
             console.info(`[Event][eventMakeLast](${data.iframe_name}) 函数开始监听 '${data.event_type}' 事件并将随事件最后触发\n\n  ${console_listener_string(data.listener_string)}`);
         }
     });
-    registerIframeHandler('iframe_event_make_first', async (event) => {
+    registerIframeHandler('[Event][eventMakeFirst]', async (event) => {
         const is_listening = tryGetEventCallback(event) !== undefined;
         const data = unpack(event);
         const callback = makeEventCallback(event, false);
@@ -84,7 +84,7 @@ export function registerIframeEventHandler() {
             console.info(`[Event][eventMakeFirst](${data.iframe_name}) 函数开始监听 '${data.event_type}' 事件并将随事件最先触发\n\n  ${console_listener_string(data.listener_string)}`);
         }
     });
-    registerIframeHandler('iframe_event_once', async (event) => {
+    registerIframeHandler('[Event][eventOnce]', async (event) => {
         const data = unpack(event);
         if (tryGetEventCallback(event)) {
             console.warn(`[Event][eventOnce](${data.iframe_name}) 函数已经在监听 '${data.event_type}' 事件, 调用无效\n\n  ${console_listener_string(data.listener_string)}`);
@@ -94,14 +94,13 @@ export function registerIframeEventHandler() {
         eventSource.once(data.event_type, callback);
         console.info(`[Event][eventOnce](${data.iframe_name}) 函数开始监听下一次 '${data.event_type}' 事件并仅在该次事件时触发\n\n  ${console_listener_string(data.listener_string)}`);
     });
-    registerIframeHandler('iframe_event_emit', async (event) => {
-        const iframe_name = event.source.frameElement?.id;
+    registerIframeHandler('[Event][eventEmit]', async (event) => {
         const event_type = event.data.event_type;
         const data = event.data.data;
         await eventSource.emit(event_type, ...data);
-        console.info(`[Event][eventEmit](${iframe_name}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
+        console.info(`${getLogPrefix(event)}发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
     });
-    registerIframeHandler('iframe_event_remove_listener', async (event) => {
+    registerIframeHandler('[Event][eventRemoveListener]', async (event) => {
         const data = unpack(event);
         const callback = tryGetEventCallback(event);
         if (!callback) {
@@ -112,7 +111,7 @@ export function registerIframeEventHandler() {
         removeEventCallback(event);
         console.info(`[Event][eventRemoveListener](${data.iframe_name}) 函数不再监听 '${data.event_type}' 事件\n\n  ${console_listener_string(data.listener_string)}`);
     });
-    registerIframeHandler('iframe_event_clear_event', async (event) => {
+    registerIframeHandler('[Event][eventClearEvent]', async (event) => {
         const iframe_name = getIframeName(event);
         const event_type = event.data.event_type;
         iframe_listener_event_callback_map
@@ -124,9 +123,9 @@ export function registerIframeEventHandler() {
                 event_callback_map.delete(event_type);
             }
         });
-        console.info(`[Event][eventClearEvent](${iframe_name}) 所有函数都不再监听 '${event_type}' 事件`);
+        console.info(`${getLogPrefix(event)}所有函数都不再监听 '${event_type}' 事件`);
     });
-    registerIframeHandler('iframe_event_clear_listener', async (event) => {
+    registerIframeHandler('[Event][eventClearListener]', async (event) => {
         const iframe_name = getIframeName(event);
         const listener_uid = event.data.listener_uid;
         const listener_string = event.data.listener_string;
@@ -139,12 +138,12 @@ export function registerIframeEventHandler() {
                 });
             }
         }
-        console.info(`[Event][eventClearListener](${iframe_name}) 函数不再监听任何事件\n\n  ${console_listener_string(listener_string)}`);
+        console.info(`${getLogPrefix(event)}函数不再监听任何事件\n\n  ${console_listener_string(listener_string)}`);
     });
-    registerIframeHandler('iframe_event_clear_all', async (event) => {
+    registerIframeHandler('[Event][eventClearAll]', async (event) => {
         const iframe_name = getIframeName(event);
         clearIframeEventListeners(iframe_name);
-        console.info(`[Event][eventClearAll](${iframe_name}) 取消所有函数对所有事件的监听`);
+        console.info(`${getLogPrefix(event)}取消所有函数对所有事件的监听`);
     });
     function clearIframeEventListeners(iframe_name) {
         const listener_event_callback_map = extract(iframe_listener_event_callback_map, iframe_name);

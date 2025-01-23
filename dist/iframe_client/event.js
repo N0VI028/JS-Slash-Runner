@@ -20,7 +20,7 @@
  * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
  */
 async function eventOn(event_type, listener) {
-    return detail.listen_event("on", event_type, listener);
+    return detail.listen_event("[eventOn]", event_type, listener);
 }
 /**
  * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`.
@@ -34,7 +34,7 @@ async function eventOn(event_type, listener) {
  * eventMakeLast(要监听的事件, 要注册的函数);
  */
 async function eventMakeLast(event_type, listener) {
-    return detail.listen_event("make_last", event_type, listener);
+    return detail.listen_event("[eventMakeLast]", event_type, listener);
 }
 /**
  * 让 `listener` 监听 `event_type`, 当事件发生时自动在最先运行 `listener`.
@@ -48,7 +48,7 @@ async function eventMakeLast(event_type, listener) {
  * eventMakeFirst(要监听的事件, 要注册的函数);
  */
 async function eventMakeFirst(event_type, listener) {
-    return detail.listen_event("make_first", event_type, listener);
+    return detail.listen_event("[eventMakeFirst]", event_type, listener);
 }
 /**
  * 让 `listener` 仅监听下一次 `event_type`, 当该次事件发生时运行 `listener`, 此后取消监听.
@@ -62,7 +62,7 @@ async function eventMakeFirst(event_type, listener) {
  * eventOnce(要监听的事件, 要注册的函数);
  */
 async function eventOnce(event_type, listener) {
-    return detail.listen_event("once", event_type, listener);
+    return detail.listen_event("[eventOnce]", event_type, listener);
 }
 async function eventWaitOnce(event_type, listener) {
     if (!listener) {
@@ -108,7 +108,7 @@ async function eventWaitOnce(event_type, listener) {
  */
 async function eventEmit(event_type, ...data) {
     return detail.make_iframe_promise({
-        request: "iframe_event_emit",
+        request: "[Event][eventEmit]",
         event_type: event_type,
         data: data
     });
@@ -126,7 +126,7 @@ async function eventEmit(event_type, ...data) {
  */
 async function eventRemoveListener(event_type, listener) {
     return detail.make_iframe_promise({
-        request: `iframe_event_remove_listener`,
+        request: '[Event][eventRemoveListener]',
         event_type: event_type,
         listener_uid: detail.listener_uid_map.get(listener),
         listener_string: listener.toString(),
@@ -139,7 +139,7 @@ async function eventRemoveListener(event_type, listener) {
  */
 async function eventClearEvent(event_type) {
     return detail.make_iframe_promise({
-        request: 'iframe_event_clear_event',
+        request: '[Event][eventClearEvent]',
         event_type: event_type,
     });
 }
@@ -150,7 +150,7 @@ async function eventClearEvent(event_type) {
  */
 async function eventClearListener(listener) {
     return detail.make_iframe_promise({
-        request: `iframe_event_clear_listener`,
+        request: '[Event][eventClearListener]',
         listener_uid: detail.listener_uid_map.get(listener),
         listener_string: listener.toString(),
     });
@@ -160,7 +160,7 @@ async function eventClearListener(listener) {
  */
 async function eventClearAll() {
     return detail.make_iframe_promise({
-        request: 'iframe_event_clear_all'
+        request: '[Event][eventClearAll]'
     });
 }
 // iframe 事件
@@ -258,7 +258,7 @@ var detail;
             detail.uid_listener_map.set(listener_uid, listener);
         }
         return detail.make_iframe_promise({
-            request: `iframe_event_${request}`,
+            request: `[Event]${request}`,
             event_type: event_type,
             listener_uid: detail.listener_uid_map.get(listener),
             listener_string: listener.toString(),
@@ -274,6 +274,7 @@ var detail;
                 console.warn(`[Event][callback '${event.data.event_type}'](${getIframeName()}) 监听到 '${event.data.event_type}' 事件, 但注册的函数触发失败或不存在\n\n  ${detail.console_listener_string(event.data.listener_string)}`);
                 return;
             }
+            console.info(`[Event][callback '${event.data.event_type}'](${getIframeName()}) 函数因监听到 '${event.data.event_type}' 事件而触发\n\n  ${detail.console_listener_string(event.data.listener_string)}`);
             const result = await listener.call(null, ...(event.data.args ?? []));
             const uid = detail.waiting_event_map.get(`${event.data.event_type}#${event.data.listener_string}`)[0];
             if (uid) {
@@ -283,7 +284,6 @@ var detail;
                     result: result,
                 }, '*');
             }
-            console.info(`[Event][callback '${event.data.event_type}'](${getIframeName()}) 函数因监听到 '${event.data.event_type}' 事件而触发\n\n  ${detail.console_listener_string(event.data.listener_string)}`);
         }
     });
 })(detail || (detail = {}));

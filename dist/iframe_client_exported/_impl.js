@@ -20,6 +20,17 @@ var detail;
         });
     }
     detail.make_iframe_promise = make_iframe_promise;
+    function format_function_to_string(fn) {
+        const string = fn.toString();
+        const index = string.indexOf('\\n');
+        if (index > -1) {
+            return string.slice(0, index);
+        }
+        else {
+            return string;
+        }
+    }
+    detail.format_function_to_string = format_function_to_string;
 })(detail || (detail = {}));
 `;
 //# sourceMappingURL=_impl.js.map

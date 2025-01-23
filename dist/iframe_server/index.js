@@ -11,6 +11,9 @@ export function getIframeName(event) {
     const window = event.source;
     return window.frameElement?.id;
 }
+export function getLogPrefix(event) {
+    return `${event.data.request}(${getIframeName(event)}) `;
+}
 const iframe_handlers = {};
 export function registerIframeHandler(request, handler) {
     iframe_handlers[request] = handler;
@@ -25,8 +28,9 @@ export async function handleIframe(event) {
             result = await handler(event);
         }
     }
-    catch (error) {
-        console.error(`${error}`);
+    catch (err) {
+        const error = err;
+        console.error(error);
     }
     finally {
         event.source.postMessage({

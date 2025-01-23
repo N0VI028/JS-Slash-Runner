@@ -15,7 +15,7 @@
  */
 async function getLorebookSettings() {
     return detail.make_iframe_promise({
-        request: "iframe_get_lorebook_settings",
+        request: "[Lorebook][getLorebookSettings]",
     });
 }
 /**
@@ -29,7 +29,7 @@ async function getLorebookSettings() {
  */
 async function setLorebookSettings(settings) {
     return detail.make_iframe_promise({
-        request: "iframe_set_lorebook_settings",
+        request: "[Lorebook][setLorebookSettings]",
         settings: settings,
     });
 }
@@ -47,7 +47,7 @@ async function getCharLorebooks(option = {}) {
         name: option.name,
     };
     return detail.make_iframe_promise({
-        request: "iframe_get_char_lorebooks",
+        request: "[Lorebook][getCharLorebooks]",
         option: option
     });
 }
@@ -66,7 +66,7 @@ async function getCurrentCharPrimaryLorebook() {
  */
 async function setCharLorebooks(lorebooks) {
     return detail.make_iframe_promise({
-        request: 'iframe_set_char_lorebooks',
+        request: '[Lorebook][setCharLorebooks]',
         lorebooks: lorebooks,
     });
 }
@@ -85,7 +85,7 @@ async function getOrCreateChatLorebook() {
  */
 async function getLorebooks() {
     return detail.make_iframe_promise({
-        request: "iframe_get_lorebooks",
+        request: "[Lorebook][getLorebooks]",
     });
 }
 /**
@@ -97,7 +97,7 @@ async function getLorebooks() {
  */
 async function createLorebook(lorebook) {
     return detail.make_iframe_promise({
-        request: "iframe_create_lorebook",
+        request: "[Lorebook][createLorebook]",
         lorebook: lorebook,
     });
 }
@@ -109,7 +109,7 @@ async function createLorebook(lorebook) {
  */
 async function deleteLorebook(lorebook) {
     return detail.make_iframe_promise({
-        request: "iframe_delete_lorebook",
+        request: "[Lorebook][deleteLorebook]",
         lorebook: lorebook,
     });
     ;

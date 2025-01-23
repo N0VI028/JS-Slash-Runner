@@ -1,86 +1,113 @@
 "use strict";
 /**
- * 判断局部正则是否被启用. 注意, 前端插件已经更新了 "自动启用局部正则" 选项, 所以你其实没必要用这个?
+ * 判断酒馆局部正则是否被启用. 注意, 前端插件已经更新了 "自动启用局部正则" 选项, 所以你其实没必要用这个?
  *
- * 如果你是在被写在局部正则中的全局脚本调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
+ * 如果你是在局部正则中调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
  *
  * @returns 局部正则是否被启用
  */
-async function isCharacterRegexEnabled() {
+async function isCharacterTavernRegexEnabled() {
     return detail.make_iframe_promise({
-        request: "iframe_is_character_tavern_regexes_enabled",
+        request: "[TavernRegex][isCharacterTavernRegexesEnabled]",
     });
 }
 /**
  * 获取酒馆正则
  *
- * @param option 可选设置
+ * @param option 可选选项
  *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选酒馆正则; 默认为 `'all'`
  *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选酒馆正则; 默认为 `'all'`
  *
- * @returns 一个数组, 数组的元素是正则 `RegexData`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
+ * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  *
  * @example
  * // 获取所有酒馆正则
- * const regexes = await getRegexData();
+ * const regexes = await getTavernRegexes();
+ *
+ * @example
  * // 获取当前角色卡目前被启用的局部正则
- * const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
+ * const regexes = await getTavernRegexes({scope: 'character', enable_state: 'enabled'});
  */
-async function getRegexData(option = {}) {
+async function getTavernRegexes(option = {}) {
     option = {
         scope: option.scope ?? 'all',
         enable_state: option.enable_state ?? 'all',
     };
     return detail.make_iframe_promise({
-        request: "iframe_get_tavern_regexes",
+        request: "[TavernRegex][getTavernRegexes]",
         option: option,
     });
 }
 /**
- * 将酒馆正则信息修改回对应的酒馆正则, 如果某个字段不存在, 则该字段采用原来的值.
+ * 完全替换酒馆正则为 `regexes`.
+ * - **这是一个很慢的操作!** 尽量对正则做完所有事后再一次性 replaceTavernRegexes.
+ * - **为了重新应用正则, 它会重新载入整个聊天消息**, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息.
+ *     这意味着如果你在全局脚本中运行本函数, 则该函数之后的内容将不会被执行.
  *
- * 这只是修改信息, 不能创建新的酒馆正则, 因此要求酒馆正则已经实际存在.
+ * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等.
  *
- * @param regex_data 一个数组, 元素是各正则信息. 其中必须有 `id`, 而其他字段可选.
+ * @param regexes 要用于替换的酒馆正则
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
  *
  * @example
- * // 让所有酒馆正则开启 "仅格式提示词"
- * const regex_data = await getRegexData();
- * await setLorebookEntries(regex_data.map((entry) => ({ id: entry.id, destination: {prompt: true} })));
+ * // 开启所有名字里带 "舞台少女" 的正则
+ * let regexes = await getTavernRegexes();
+ * regexes.forEach(regex => {
+ *   if (regex.script_name.includes('舞台少女')) {
+ *     regex.enabled = true;
+ *   }
+ * });
+ * await replaceTavernRegexes(regexes);
  */
-async function setRegexData(regex_data) {
+async function replaceTavernRegexes(regexes, option = {}) {
+    option = {
+        scope: option.scope ?? 'all',
+    };
     return detail.make_iframe_promise({
-        request: 'iframe_set_regex_data',
-        regex_data: regex_data,
+        request: '[TavernRegex][replaceTavernRegexes]',
+        regexes: regexes,
+        option: option,
     });
 }
 /**
- * 新增一个酒馆正则
+ * 用 `updater` 函数更新酒馆正则
  *
- * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. 其中必须有 `scope`, **不能设置 `id`**.
+ * @param updater 用于更新酒馆正则的函数. 它应该接收酒馆正则作为参数, 并返回更新后的酒馆正则.
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
  *
- * @returns 新酒馆正则的 `id`
+ * @returns 更新后的酒馆正则
  *
  * @example
- * const id = await createRegexData({find_regex: '[\s\S]*', replace_string: ''});
+ * // 开启所有名字里带 "舞台少女" 的正则
+ * await updateTavernRegexesWith(regexes => {
+ *   regexes.forEach(regex => {
+ *     if (regex.script_name.includes('舞台少女')) {
+ *       regex.enabled = true;
+ *     }
+ *   });
+ *   return regexes;
+ * });
  */
-async function createRegexData(field_values) {
-    return detail.make_iframe_promise({
-        request: 'iframe_create_regex_data',
-        field_values: field_values,
-    });
+async function updateTavernRegexesWith(updater, option = {}) {
+    const defaulted_option = {
+        scope: option.scope ?? 'all',
+    };
+    let regexes = await getTavernRegexes(defaulted_option);
+    regexes = updater(regexes);
+    await replaceTavernRegexes(regexes, defaulted_option);
+    console.info(`[Chat Message][updateVariablesWith](${getIframeName()}) 用函数对${{ all: '全部', global: '全局', character: '局部' }[defaulted_option.scope]}变量表进行更新, 结果: ${JSON.stringify(regexes)}, 使用的函数:\n\n ${JSON.stringify(detail.format_function_to_string(updater))}`);
+    return regexes;
 }
+//----------------------------------------------------------------------------------------------------------------------
+// 已被弃用的接口, 请尽量按照指示更新它们
 /**
- * 删除某个酒馆正则
- *
- * @param id 要删除的酒馆正则 id
- *
- * @returns 是否成功删除, 可能因为酒馆正则不存在等原因失败
+ * @deprecated 已弃用, 请使用 isCharacterTavernRegexEnabled
  */
-async function deleteRegexData(id) {
-    return detail.make_iframe_promise({
-        request: 'iframe_delete_regex_data',
-        id: id,
-    });
-}
+const isCharacterRegexEnabled = isCharacterTavernRegexEnabled;
+/**
+ * @deprecated 已弃用, 请使用 getTavernRegexes
+ */
+const getRegexData = getTavernRegexes;
 //# sourceMappingURL=tavern_regex.js.map
