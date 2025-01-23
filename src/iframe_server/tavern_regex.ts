@@ -1,4 +1,4 @@
-import { characters, reloadCurrentChat, saveSettingsDebounced, this_chid } from "../../../../../../script.js";
+import { characters, getCurrentChatId, reloadCurrentChat, saveSettingsDebounced, this_chid } from "../../../../../../script.js";
 import { RegexScriptData } from "../../../../../char-data.js";
 import { extension_settings, writeExtensionField } from "../../../../../extensions.js";
 import { regex_placement, substitute_find_regex } from "../../../../regex/engine.js";
@@ -157,9 +157,14 @@ export function registerIframeTavernRegexHandler() {
       }
       saveSettingsDebounced();
 
-      reloadCurrentChat();
+      const current_chat_id = getCurrentChatId();
+      if (current_chat_id !== undefined && current_chat_id !== null) {
+        await reloadCurrentChat();
+      }
 
-      console.info(`${getLogPrefix(event)}修改以下酒馆正则中的以下字段: ${JSON.stringify(option.scope === 'all' ? regexes : (option.scope === 'global' ? global_regexes : character_regexes))}`);
+      console.info(`${getLogPrefix(event)}替换酒馆正则\
+${option.scope === 'all' || option.scope === 'global' ? `, 全局正则: ${JSON.stringify(global_regexes)}` : ``}\
+${option.scope === 'all' || option.scope === 'character' ? `, 局部正则: ${JSON.stringify(character_regexes)}` : ``}`);
     },
   );
 }

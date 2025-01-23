@@ -75,10 +75,12 @@ interface ReplaceTavernRegexesOption {
 }
 
 /**
- * 完全替换酒馆正则为 `regexes`. **这是一个很慢的操作! 尽量对正则做完所有事后再一次性 replaceTavernRegexes.**
+ * 完全替换酒馆正则为 `regexes`.
+ * - **这是一个很慢的操作!** 尽量对正则做完所有事后再一次性 replaceTavernRegexes.
+ * - **为了重新应用正则, 它会重新载入整个聊天消息**, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息.
+ *     这意味着如果你在全局脚本中运行本函数, 则该函数之后的内容将不会被执行.
  *
- * 之所以提供这么直接的函数, 是因为这个操作太慢了, 而且你可能需要调换正则顺序等操作. 此外, 前端助手内置了 lodash 库:
- *   `setTavernRegexes` 等函数其实就是先 `getTavernRegexes` 获取酒馆正则, 用 lodash 或其他方式进行处理, 再 `replaceTavernRegexes` 替换酒馆正则.
+ * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等.
  *
  * @param regexes 要用于替换的酒馆正则
  * @param option 可选选项

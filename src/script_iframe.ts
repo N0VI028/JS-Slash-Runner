@@ -1,62 +1,18 @@
 export { script_load_events, initializeScripts, destroyScriptsIfInitialized }
 
-import { RegexScriptData } from '../../../../char-data.js';
 import { event_types } from '../../../../../script.js';
 
 import { iframe_client } from './iframe_client_exported/index.js';
 import { script_url } from './script_url.js';
-import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from './iframe_server/tavern_regex.js';
 import { libraries_text } from './library.js';
-import { partition } from './util/helper.js';
 import { third_party } from './third_party.js';
-
-interface Script {
-  name: string;
-  code: string;
-};
+import { loadScripts, Script } from './util/load_script.js';
 
 let script_map: Map<string, HTMLIFrameElement> = new Map();
 
 const script_load_events = [
   event_types.CHAT_CHANGED
 ];
-
-function loadScripts(): Script[] {
-  const filterScriptFromRegex = (script: RegexScriptData) => script.scriptName.startsWith("脚本-");
-  const isEnabled = (script: RegexScriptData) => !script.disabled;
-  const toName = (script: RegexScriptData) => script.scriptName.replace('脚本-', '');
-
-  let scripts: RegexScriptData[] = [];
-
-  console.info(`[Script] 加载全局脚本...`);
-
-  const global_regexes = getGlobalRegexes().filter(filterScriptFromRegex);
-  console.info(`[Script] 加载全局正则中的全局脚本:`);
-  const [enabled_global_regexes, disabled_global_regexes] = partition(global_regexes, isEnabled);
-  console.info(`[Script]   将会加载: ${JSON.stringify(enabled_global_regexes.map(toName))}`);
-  console.info(`[Script]   将会禁用: ${JSON.stringify(disabled_global_regexes.map(toName))}`);
-  scripts = [...scripts, ...enabled_global_regexes];
-
-  const character_regexes = getCharacterRegexes().filter(filterScriptFromRegex);
-  if (isCharacterTavernRegexEnabled()) {
-    console.info(`[Script] 局部正则目前正启用, 加载局部正则中的全局脚本:`);
-    const [enabled_character_regexes, disabled_character_regexes] = partition(character_regexes, isEnabled);
-    console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);
-    console.info(`[Script]   将会禁用: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
-    scripts = [...scripts, ...enabled_character_regexes];
-  } else {
-    console.info(`[Script] 局部正则目前正禁用, 仅加载局部正则中 "在编辑时运行" 的全局脚本:`);
-    const [editing_character_regexes, nonediting_character_regexes] = partition(character_regexes, script => script.runOnEdit);
-    const [enabled_character_regexes, disabled_character_regexes] = partition(editing_character_regexes, isEnabled);
-    console.info(`[Script]   将会加载: ${JSON.stringify(enabled_character_regexes.map(toName))}`);
-    console.info(`[Script]   将会禁用以下被禁用的全局脚本: ${JSON.stringify(disabled_character_regexes.map(toName))}`);
-    console.info(`[Script]   将会禁用以下未开启 "在编辑时运行" 的全局脚本: ${JSON.stringify(nonediting_character_regexes.map(toName))}`);
-    scripts = [...scripts, ...enabled_character_regexes];
-  }
-
-  const to_script = (script: RegexScriptData) => ({ name: toName(script), code: script.replaceString });
-  return scripts.map(to_script);
-}
 
 function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_promise: Promise<void>; } {
   const iframe = document.createElement('iframe');
@@ -105,7 +61,8 @@ async function initializeScripts(): Promise<void> {
   try {
     destroyScriptsIfInitialized();
 
-    const scripts = loadScripts();
+    const scripts = loadScripts("脚本-");
+    console.info(`[Script] 加载全局脚本: ${JSON.stringify(scripts.map(script => script.name))}`);
 
     const load_promises: Promise<void>[] = [];
 
@@ -116,7 +73,6 @@ async function initializeScripts(): Promise<void> {
     })
 
     await Promise.allSettled(load_promises);
-    console.log('[Script] 全局脚本加载成功!')
   } catch (error) {
     console.error('[Script] 全局脚本加载失败:', error);
     throw error;

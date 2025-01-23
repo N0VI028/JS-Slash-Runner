@@ -14,7 +14,7 @@
 
 ### html 工具角色卡
 
-如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: https://discord.com/channels/1134557553011998840/1279910607348564079
+如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: [【工具】html UI美化大师（已整合正则助手，支持前端助手）](https://discord.com/channels/1134557553011998840/1279910607348564079)
 
 但要注意它世界书中对前端助手和 slash command 的提示词是复制粘贴的, 因而在之后如果前端助手或酒馆更新, 则提示词不会涵盖更新内容.
 
@@ -614,7 +614,12 @@ interface SetChatMessageOption {
  *     - `'none'`: 不更新页面的显示和 iframe 渲染
  *     - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
  *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
- *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
+ *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息. 这意味着如果你在全局脚本中使用该选项, 则该函数之后的内容将不会被执行.
+ *
+ * @example
+ * await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
+ * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
+ * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
  */
 async function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): Promise<void>
 ```
@@ -789,13 +794,15 @@ interface ReplaceTavernRegexesOption {
 }
 
 /**
- * 完全替换酒馆正则为 `regexes`
+ * 完全替换酒馆正则为 `regexes`.
+ * - **这是一个很慢的操作!** 尽量对正则做完所有事后再一次性 replaceTavernRegexes.
+ * - **为了重新应用正则, 它会重新载入整个聊天消息**, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息.
+ *     这意味着如果你在全局脚本中运行本函数, 则该函数之后的内容将不会被执行.
  *
- * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等操作, 且前端助手内置了 lodash 库:
- *   `setTavernRegexes` 等函数其实就是先 `getTavernRegexes` 获取酒馆正则, 用 lodash 或其他方式进行处理, 再 `replaceTavernRegexes` 替换酒馆正则.
+ * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等.
  *
  * @param regexes 要用于替换的酒馆正则
- * @param option 可选设置
+ * @param option 可选选项
  *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
  */
 async function replaceTavernRegexes(regexes: TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<void>
