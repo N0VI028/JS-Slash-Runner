@@ -834,9 +834,13 @@ await setLorebookSettings({context_percentage: 100, recursive: true});
 #### 获取角色卡绑定的世界书
 
 ```typescript
-interface CharLorebook {
-  name: string,
-  type: 'primary' | 'additional',
+interface GetCharLorebooksOption {
+  name?: string;  // 要查询的角色卡名称; 不指明则为当前角色卡
+};
+
+interface CharLorebooks {
+  primary: string | null;
+  additional: string[];
 }
 
 /**
@@ -844,12 +848,10 @@ interface CharLorebook {
  *
  * @param option 可选选项
  *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
- *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
  *
- * @returns 一个 CharLorebook 数组
+ * @returns 角色卡绑定的世界书
  */
-async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebook[]>
-async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebooks>
 ```
 
 ```typescript
@@ -859,6 +861,15 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<st
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 async function getCurrentCharPrimaryLorebook(): Promise<string | null>
+```
+
+```typescript
+/**
+ * 将当前角色卡换为绑定 `lorebooks`
+ *
+ * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
+ */
+async function setCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void>
 ```
 
 #### 获取聊天绑定的世界书
