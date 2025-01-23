@@ -4,13 +4,13 @@ import { handlePartialRender } from "../index.js";
 import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeGetChatMessages extends IframeMessage {
-  request: 'iframe_get_chat_messages';
+  request: '[ChatMessage][getChatMessages]';
   range: string;
   option: Required<GetChatMessagesOption>;
 }
 
 interface IframeSetChatMessage extends IframeMessage {
-  request: 'iframe_set_chat_message';
+  request: '[ChatMessage][setChatMessage]';
   message: string;
   message_id: number;
   option: Required<SetChatMessageOption>;
@@ -18,7 +18,7 @@ interface IframeSetChatMessage extends IframeMessage {
 
 export function registerIframeChatMessageHandler() {
   registerIframeHandler(
-    'iframe_get_chat_messages',
+    '[ChatMessage][getChatMessages]',
     async (event: MessageEvent<IframeGetChatMessages>): Promise<ChatMessage[]> => {
       const iframe_name = getIframeName(event);
 
@@ -97,7 +97,7 @@ export function registerIframeChatMessageHandler() {
   );
 
   registerIframeHandler(
-    'iframe_set_chat_message',
+    '[ChatMessage][setChatMessage]',
     async (event: MessageEvent<IframeSetChatMessage>): Promise<void> => {
       const iframe_name = getIframeName(event);
 

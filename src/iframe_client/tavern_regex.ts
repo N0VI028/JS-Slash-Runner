@@ -7,7 +7,7 @@
  */
 async function isCharacterTavernRegexEnabled(): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: "iframe_is_character_tavern_regexes_enabled",
+    request: "[TavernRegex][isCharacterTavernRegexesEnabled]",
   });
 }
 
@@ -65,7 +65,7 @@ async function getTavernRegexes(option: GetTavernRegexesOption = {}): Promise<Ta
     enable_state: option.enable_state ?? 'all',
   } as Required<GetTavernRegexesOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_tavern_regexes",
+    request: "[TavernRegex][getTavernRegexes]",
     option: option,
   });
 }
@@ -90,7 +90,7 @@ async function getTavernRegexes(option: GetTavernRegexesOption = {}): Promise<Ta
  */
 async function setTavernRegexes(regexes: (Pick<TavernRegex, "id"> & Omit<Partial<TavernRegex>, "id">)[]): Promise<void> {
   return detail.make_iframe_promise({
-    request: 'iframe_set_tavern_regexes',
+    request: '[TavernRegex][setTavernRegexes]',
     regexes: regexes,
   });
 }
@@ -107,7 +107,7 @@ async function setTavernRegexes(regexes: (Pick<TavernRegex, "id"> & Omit<Partial
  */
 async function createTavernRegex(field_values: Pick<TavernRegex, "script_name" | "scope"> & Omit<Partial<TavernRegex>, "id" | "script_name" | "scope">): Promise<string> {
   return detail.make_iframe_promise({
-    request: 'iframe_create_tavern_regex',
+    request: '[TavernRegex][createTavernRegex]',
     field_values: field_values,
   });
 }
@@ -121,7 +121,7 @@ async function createTavernRegex(field_values: Pick<TavernRegex, "script_name" |
  */
 async function deleteTavernRegex(id: string): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: 'iframe_delete_tavern_regex',
+    request: '[TavernRegex][deleteTavernRegex]',
     id: id,
   });
 }

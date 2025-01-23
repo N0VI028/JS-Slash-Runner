@@ -32,7 +32,7 @@ async function getVariables(option = {}) {
         type: option.type ?? 'chat',
     };
     return detail.make_iframe_promise({
-        request: "iframe_get_variables",
+        request: "[Variables][getVariables]",
         option: option,
     });
 }
@@ -62,7 +62,7 @@ async function replaceVariables(variables, option = {}) {
         type: option.type ?? 'chat',
     };
     return detail.make_iframe_promise({
-        request: "iframe_replace_variables",
+        request: "[Variables][replaceVariables]",
         option: option,
         variables: variables,
     });
@@ -171,7 +171,7 @@ async function setVariables(message_id, new_or_updated_variables) {
         return;
     }
     return detail.make_iframe_promise({
-        request: "iframe_set_variables",
+        request: "[Variables][setVariables]",
         message_id: actual_message_id,
         variables: actual_variables,
     });

@@ -24,7 +24,7 @@ async function getLorebookEntries(lorebook, option = {}) {
         filter: option.filter ?? 'none',
     };
     return detail.make_iframe_promise({
-        request: "iframe_get_lorebook_entries",
+        request: "[LorebookEntry][getLorebookEntries]",
         lorebook: lorebook,
         option: option,
     });
@@ -67,7 +67,7 @@ async function getLorebookEntries(lorebook, option = {}) {
  */
 async function setLorebookEntries(lorebook, entries) {
     return detail.make_iframe_promise({
-        request: "iframe_set_lorebook_entries",
+        request: "[LorebookEntry][setLorebookEntries]",
         lorebook: lorebook,
         entries: entries,
     });
@@ -85,7 +85,7 @@ async function setLorebookEntries(lorebook, entries) {
  */
 async function createLorebookEntry(lorebook, field_values) {
     return detail.make_iframe_promise({
-        request: "iframe_create_lorebook_entry",
+        request: "[LorebookEntry][createLorebookEntry]",
         lorebook: lorebook,
         field_values: field_values,
     });
@@ -100,7 +100,7 @@ async function createLorebookEntry(lorebook, field_values) {
  */
 async function deleteLorebookEntry(lorebook, uid) {
     return detail.make_iframe_promise({
-        request: "iframe_delete_lorebook_entry",
+        request: "[LorebookEntry][deleteLorebookEntry]",
         lorebook: lorebook,
         lorebook_uid: uid,
     });

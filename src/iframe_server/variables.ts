@@ -5,19 +5,19 @@ import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js"
 export { latest_set_variables_message_id }
 
 interface IframeGetVariables extends IframeMessage {
-  request: 'iframe_get_variables';
+  request: '[Variables][getVariables]';
   option: Required<VariableOption>;
 }
 
 interface IframeReplaceVariables extends IframeMessage {
-  request: 'iframe_replace_variables';
+  request: '[Variables][replaceVariables]';
   option: Required<VariableOption>;
   variables: JsonObject;
 }
 
 // for compatibility
 interface IframeSetVariables extends IframeMessage {
-  request: 'iframe_set_variables';
+  request: '[Variables][setVariables]';
   message_id: number;
   variables: JsonObject;
 }
@@ -39,7 +39,7 @@ let latest_set_variables_message_id = null;
 
 export function registerIframeVariableHandler() {
   registerIframeHandler(
-    'iframe_get_variables',
+    '[Variables][getVariables]',
     async (event: MessageEvent<IframeGetVariables>): Promise<JsonObject> => {
       const iframe_name = getIframeName(event);
       const option = event.data.option;
@@ -52,7 +52,7 @@ export function registerIframeVariableHandler() {
   );
 
   registerIframeHandler(
-    'iframe_replace_variables',
+    '[Variables][replaceVariables]',
     async (event: MessageEvent<IframeReplaceVariables>): Promise<void> => {
       const iframe_name = getIframeName(event);
       const variables = event.data.variables;
@@ -74,7 +74,7 @@ export function registerIframeVariableHandler() {
   );
 
   registerIframeHandler(
-    'iframe_set_variables',
+    '[Variables][setVariables]',
     async (event: MessageEvent<IframeSetVariables>): Promise<void> => {
       const iframe_name = getIframeName(event);
 

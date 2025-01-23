@@ -71,7 +71,7 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
     filter: option.filter ?? 'none',
   } as Required<GetLorebookEntriesOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_lorebook_entries",
+    request: "[LorebookEntry][getLorebookEntries]",
     lorebook: lorebook,
     option: option,
   });
@@ -115,7 +115,7 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
  */
 async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): Promise<void> {
   return detail.make_iframe_promise({
-    request: "iframe_set_lorebook_entries",
+    request: "[LorebookEntry][setLorebookEntries]",
     lorebook: lorebook,
     entries: entries,
   });
@@ -134,7 +134,7 @@ async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry
  */
 async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number> {
   return detail.make_iframe_promise({
-    request: "iframe_create_lorebook_entry",
+    request: "[LorebookEntry][createLorebookEntry]",
     lorebook: lorebook,
     field_values: field_values,
   });
@@ -150,7 +150,7 @@ async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<
  */
 async function deleteLorebookEntry(lorebook: string, uid: number): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: "iframe_delete_lorebook_entry",
+    request: "[LorebookEntry][deleteLorebookEntry]",
     lorebook: lorebook,
     lorebook_uid: uid,
   });

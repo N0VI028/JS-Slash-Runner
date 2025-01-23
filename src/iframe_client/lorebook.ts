@@ -34,7 +34,7 @@ interface LorebookSettings {
  */
 async function getLorebookSettings(): Promise<LorebookSettings> {
   return detail.make_iframe_promise({
-    request: "iframe_get_lorebook_settings",
+    request: "[Lorebook][getLorebookSettings]",
   });
 }
 
@@ -49,7 +49,7 @@ async function getLorebookSettings(): Promise<LorebookSettings> {
  */
 async function setLorebookSettings(settings: Partial<LorebookSettings>): Promise<void> {
   return detail.make_iframe_promise({
-    request: "iframe_set_lorebook_settings",
+    request: "[Lorebook][setLorebookSettings]",
     settings: settings,
   });
 }
@@ -76,7 +76,7 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<Ch
     name: option.name,
   } as Required<GetCharLorebooksOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_char_lorebooks",
+    request: "[Lorebook][getCharLorebooks]",
     option: option
   });
 }
@@ -97,7 +97,7 @@ async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
  */
 async function setCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void> {
   return detail.make_iframe_promise({
-    request: 'iframe_set_char_lorebooks',
+    request: '[Lorebook][setCharLorebooks]',
     lorebooks: lorebooks,
   });
 }
@@ -118,7 +118,7 @@ async function getOrCreateChatLorebook(): Promise<string> {
  */
 async function getLorebooks(): Promise<string[]> {
   return detail.make_iframe_promise({
-    request: "iframe_get_lorebooks",
+    request: "[Lorebook][getLorebooks]",
   });
 }
 
@@ -131,7 +131,7 @@ async function getLorebooks(): Promise<string[]> {
  */
 async function createLorebook(lorebook: string): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: "iframe_create_lorebook",
+    request: "[Lorebook][createLorebook]",
     lorebook: lorebook,
   });
 }
@@ -144,7 +144,7 @@ async function createLorebook(lorebook: string): Promise<boolean> {
  */
 async function deleteLorebook(lorebook: string): Promise<boolean> {
   return detail.make_iframe_promise({
-    request: "iframe_delete_lorebook",
+    request: "[Lorebook][deleteLorebook]",
     lorebook: lorebook,
   });;
 }

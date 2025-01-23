@@ -23,7 +23,7 @@ async function formatAsDisplayedMessage(text: string, option: FormatAsDisplayedM
     message_id: option.message_id ?? 'last',
   } as Required<FormatAsDisplayedMessageOption>;
   return detail.make_iframe_promise({
-    request: 'iframe_format_as_displayed_message',
+    request: '[DisplayedMessage][formatAsDisplayedMessage]',
     text: text,
     option: option,
   });

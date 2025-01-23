@@ -2,13 +2,13 @@ import { executeSlashCommandsWithOptions } from "../../../../../slash-commands.j
 import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeSlash extends IframeMessage {
-  request: 'iframe_trigger_slash' | 'iframe_trigger_slash_with_result'
+  request: '[Slash][triggerSlash]' | '[Slash][triggerSlashWithResult]'
   command: string;
 }
 
 export function registerIframeSlashHandler() {
   registerIframeHandler(
-    'iframe_trigger_slash',
+    '[Slash][triggerSlash]',
     async (event: MessageEvent<IframeSlash>): Promise<void> => {
       const iframe_name = getIframeName(event);
       const command = event.data.command;
@@ -23,7 +23,7 @@ export function registerIframeSlashHandler() {
   )
 
   registerIframeHandler(
-    'iframe_trigger_slash_with_result',
+    '[Slash][triggerSlashWithResult]',
     async (event: MessageEvent<IframeSlash>): Promise<string | undefined> => {
       const iframe_name = getIframeName(event);
       const command = event.data.command;

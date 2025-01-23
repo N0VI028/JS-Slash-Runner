@@ -21,7 +21,7 @@ async function formatAsDisplayedMessage(text, option = {}) {
         message_id: option.message_id ?? 'last',
     };
     return detail.make_iframe_promise({
-        request: 'iframe_format_as_displayed_message',
+        request: '[DisplayedMessage][formatAsDisplayedMessage]',
         text: text,
         option: option,
     });

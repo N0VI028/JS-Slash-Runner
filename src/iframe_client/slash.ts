@@ -9,7 +9,7 @@
  */
 function triggerSlash(command: string): Promise<void> {
   return detail.make_iframe_promise({
-    request: 'iframe_trigger_slash',
+    request: '[Slash][triggerSlash]',
     command: command,
   });
 }
@@ -26,7 +26,7 @@ function triggerSlash(command: string): Promise<void> {
  */
 function triggerSlashWithResult(command: string): Promise<string | undefined> {
   return detail.make_iframe_promise({
-    request: 'iframe_trigger_slash_with_result',
+    request: '[Slash][triggerSlashWithResult]',
     command: command,
   });
 }

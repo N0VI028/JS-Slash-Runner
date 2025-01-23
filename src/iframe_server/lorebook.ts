@@ -8,35 +8,35 @@ import { findChar } from "../compatibility.js"
 import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeGetLorebookSettings extends IframeMessage {
-  request: 'iframe_get_lorebook_settings';
+  request: '[Lorebook][getLorebookSettings]';
 }
 
 interface IframeSetLorebookSettings extends IframeMessage {
-  request: 'iframe_set_lorebook_settings';
+  request: '[Lorebook][setLorebookSettings]';
   settings: Partial<LorebookSettings>;
 }
 
 interface IframeGetCharLorebooks extends IframeMessage {
-  request: "iframe_get_char_lorebooks";
+  request: "[Lorebook][getCharLorebooks]";
   option: GetCharLorebooksOption;
 }
 
 interface IframeSetCharLorebooks extends IframeMessage {
-  request: "iframe_set_char_lorebooks";
+  request: "[Lorebook][setCharLorebooks]";
   lorebooks: Partial<CharLorebooks>;
 }
 
 interface IframeGetLorebooks extends IframeMessage {
-  request: "iframe_get_lorebooks";
+  request: "[Lorebook][getLorebooks]";
 }
 
 interface IframeDeleteLorebook extends IframeMessage {
-  request: "iframe_delete_lorebook";
+  request: "[Lorebook][deleteLorebook]";
   lorebook: string;
 }
 
 interface IframeCreateLorebook extends IframeMessage {
-  request: "iframe_create_lorebook";
+  request: "[Lorebook][createLorebook]";
   lorebook: string;
 }
 
@@ -174,7 +174,7 @@ function assignPartialLorebookSettings(settings: Partial<LorebookSettings>): voi
 
 export function registerIframeLorebookHandler() {
   registerIframeHandler(
-    'iframe_get_lorebook_settings',
+    '[Lorebook][getLorebookSettings]',
     async (event: MessageEvent<IframeGetLorebookSettings>): Promise<LorebookSettings> => {
       const iframe_name = getIframeName(event);
 
@@ -186,7 +186,7 @@ export function registerIframeLorebookHandler() {
   );
 
   registerIframeHandler(
-    'iframe_set_lorebook_settings',
+    '[Lorebook][setLorebookSettings]',
     async (event: MessageEvent<IframeSetLorebookSettings>): Promise<void> => {
       const iframe_name = getIframeName(event);
       const settings = event.data.settings;
@@ -204,7 +204,7 @@ export function registerIframeLorebookHandler() {
   );
 
   registerIframeHandler(
-    'iframe_get_char_lorebooks',
+    '[Lorebook][getCharLorebooks]',
     async (event: MessageEvent<IframeGetCharLorebooks>): Promise<CharLorebooks> => {
       const iframe_name = getIframeName(event);
       const option = event.data.option;
@@ -238,7 +238,7 @@ export function registerIframeLorebookHandler() {
   );
 
   registerIframeHandler(
-    'iframe_set_char_lorebooks',
+    '[Lorebook][setCharLorebooks]',
     async (event: MessageEvent<IframeSetCharLorebooks>): Promise<void> => {
       const iframe_name = getIframeName(event);
       const lorebooks = event.data.lorebooks;
@@ -309,7 +309,7 @@ export function registerIframeLorebookHandler() {
   );
 
   registerIframeHandler(
-    'iframe_get_lorebooks',
+    '[Lorebook][getLorebooks]',
     async (event: MessageEvent<IframeGetLorebooks>): Promise<string[]> => {
       const iframe_name = getIframeName(event);
 
@@ -319,7 +319,7 @@ export function registerIframeLorebookHandler() {
   );
 
   registerIframeHandler(
-    'iframe_delete_lorebook',
+    '[Lorebook][deleteLorebook]',
     async (event: MessageEvent<IframeDeleteLorebook>): Promise<boolean> => {
       const iframe_name = getIframeName(event);
       const lorebook = event.data.lorebook;
@@ -332,7 +332,7 @@ export function registerIframeLorebookHandler() {
   );
 
   registerIframeHandler(
-    'iframe_create_lorebook',
+    '[Lorebook][createLorebook]',
     async (event: MessageEvent<IframeCreateLorebook>): Promise<boolean> => {
       const iframe_name = getIframeName(event);
       const lorebook = event.data.lorebook;

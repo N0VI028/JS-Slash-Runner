@@ -5,26 +5,26 @@ import { regex_placement } from "../../../../regex/engine.js";
 import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeIsCharacterTavernRegexEnabled extends IframeMessage {
-  request: 'iframe_is_character_tavern_regexes_enabled';
+  request: '[TavernRegex][isCharacterTavernRegexesEnabled]';
 }
 
 interface IframeGetTavernRegexes extends IframeMessage {
-  request: 'iframe_get_tavern_regexes';
+  request: '[TavernRegex][getTavernRegexes]';
   option: Required<GetTavernRegexesOption>;
 }
 
 interface IframeSetTavernRegexes extends IframeMessage {
-  request: 'iframe_set_tavern_regexes';
+  request: '[TavernRegex][setTavernRegexes]';
   regexes: (Pick<TavernRegex, "id"> & Omit<Partial<TavernRegex>, "id">)[];
 }
 
 interface IframeCreateTavernRegex extends IframeMessage {
-  request: 'iframe_create_tavern_regex';
+  request: '[TavernRegex][createTavernRegex]';
   field_values: Pick<TavernRegex, "scope"> & Omit<Partial<TavernRegex>, "id" | "scope">;
 }
 
 interface IframeDeleteTavernRegex extends IframeMessage {
-  request: 'iframe_delete_tavern_regex';
+  request: '[TavernRegex][deleteTavernRegex]';
   id: string;
 }
 
@@ -112,7 +112,7 @@ function fromPartialTavernRegex(tavern_regex: Partial<TavernRegex>): { data: Par
 
 export function registerIframeTavernRegexHandler() {
   registerIframeHandler(
-    'iframe_is_character_tavern_regexes_enabled',
+    '[TavernRegex][isCharacterTavernRegexesEnabled]',
     async (event: MessageEvent<IframeIsCharacterTavernRegexEnabled>): Promise<boolean> => {
       const iframe_name = getIframeName(event);
 
@@ -124,7 +124,7 @@ export function registerIframeTavernRegexHandler() {
   );
 
   registerIframeHandler(
-    'iframe_get_tavern_regexes',
+    '[TavernRegex][getTavernRegexes]',
     async (event: MessageEvent<IframeGetTavernRegexes>): Promise<TavernRegex[]> => {
       const iframe_name = getIframeName(event);
       const option = event.data.option;
@@ -153,7 +153,7 @@ export function registerIframeTavernRegexHandler() {
   );
 
   registerIframeHandler(
-    'iframe_set_tavern_regexes',
+    '[TavernRegex][setTavernRegexes]',
     async (event: MessageEvent<IframeSetTavernRegexes>): Promise<void> => {
       const iframe_name = getIframeName(event);
       const regexes = event.data.regexes;

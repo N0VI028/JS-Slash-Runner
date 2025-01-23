@@ -8,7 +8,7 @@ export const iframe_client_tavern_regex = `
  */
 async function isCharacterRegexEnabled() {
     return detail.make_iframe_promise({
-        request: "iframe_is_character_tavern_regexes_enabled",
+        request: "[TavernRegex][isCharacterTavernRegexesEnabled]",
     });
 }
 /**
@@ -32,7 +32,7 @@ async function getRegexData(option = {}) {
         enable_state: option.enable_state ?? 'all',
     };
     return detail.make_iframe_promise({
-        request: "iframe_get_tavern_regexes",
+        request: "[TavernRegex][getTavernRegexes]",
         option: option,
     });
 }

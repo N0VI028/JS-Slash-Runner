@@ -61,7 +61,7 @@ async function getChatMessages(range: string | number, option: GetChatMessagesOp
     include_swipe: option.include_swipe ?? false,
   } as Required<GetChatMessagesOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_chat_messages",
+    request: "[ChatMessage][getChatMessages]",
     range: range.toString(),
     option: option,
   });
@@ -107,7 +107,7 @@ async function setChatMessage(message: string, message_id: number, option: SetCh
     refresh: option.refresh ?? 'display_and_render_current',
   } as Required<SetChatMessageOption>;
   return detail.make_iframe_promise({
-    request: "iframe_set_chat_message",
+    request: "[ChatMessage][setChatMessage]",
     message: message,
     message_id: message_id,
     option: option,

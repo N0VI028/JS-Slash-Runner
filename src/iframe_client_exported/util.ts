@@ -41,7 +41,7 @@ function getCurrentMessageId() {
 async function substitudeMacros(text) {
     // QUESTION: 像这样额外编写一个 request, 还是直接用 \`await triggerSlashWithResult('/pass "{{char}} speaks in {{lastMessageId}}"')\`?
     return detail.make_iframe_promise({
-        request: 'iframe_substitude_macros',
+        request: '[Utils][substitudeMacros]',
         text: text,
     });
 }

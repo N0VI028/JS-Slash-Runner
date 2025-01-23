@@ -5,14 +5,14 @@ import { getLastMessageId } from "../../../../../macros.js";
 
 
 interface IframeFormatAsDisplayedMessage extends IframeMessage {
-  request: 'iframe_format_as_displayed_message';
+  request: '[DisplayedMessage][formatAsDisplayedMessage]';
   text: string
   option: Required<FormatAsDisplayedMessageOption>;
 }
 
 export function registerIframeDisplayedMessageHandler() {
   registerIframeHandler(
-    'iframe_format_as_displayed_message',
+    '[DisplayedMessage][formatAsDisplayedMessage]',
     async (event: MessageEvent<IframeFormatAsDisplayedMessage>): Promise<string> => {
       const iframe_name = getIframeName(event);
       const text = event.data.text;

@@ -38,7 +38,7 @@ async function getVariables(option: VariableOption = {}): Promise<JsonObject> {
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
   return detail.make_iframe_promise({
-    request: "iframe_get_variables",
+    request: "[Variables][getVariables]",
     option: option,
   });
 
@@ -70,7 +70,7 @@ async function replaceVariables(variables: JsonObject, option: VariableOption = 
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
   return detail.make_iframe_promise({
-    request: "iframe_replace_variables",
+    request: "[Variables][replaceVariables]",
     option: option,
     variables: variables,
   });
@@ -219,7 +219,7 @@ async function setVariables(message_id: number | JsonObject, new_or_updated_vari
     return;
   }
   return detail.make_iframe_promise({
-    request: "iframe_set_variables",
+    request: "[Variables][setVariables]",
     message_id: actual_message_id,
     variables: actual_variables,
   });
