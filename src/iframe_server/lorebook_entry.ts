@@ -244,7 +244,11 @@ export function registerIframeLorebookEntryHandler() {
       }
       const data = await loadWorldInfo(lorebook);
       const wi_entry = createWorldInfoEntry(lorebook, data) as any;
-      assignFieldValuesToWiEntry(data, wi_entry, fromPartialLorebookEntry(field_values));
+      const partial_lorebook_entry = fromPartialLorebookEntry(field_values);
+      if (partial_lorebook_entry.uid) {
+        delete partial_lorebook_entry.uid;
+      }
+      assignFieldValuesToWiEntry(data, wi_entry, partial_lorebook_entry);
 
       await saveWorldInfo(lorebook, data);
       reloadEditorDebounced(lorebook);
