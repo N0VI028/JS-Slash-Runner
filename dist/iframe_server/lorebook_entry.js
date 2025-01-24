@@ -183,7 +183,11 @@ export function registerIframeLorebookEntryHandler() {
         }
         const data = await loadWorldInfo(lorebook);
         const wi_entry = createWorldInfoEntry(lorebook, data);
-        assignFieldValuesToWiEntry(data, wi_entry, fromPartialLorebookEntry(field_values));
+        const partial_lorebook_entry = fromPartialLorebookEntry(field_values);
+        if (partial_lorebook_entry.uid) {
+            delete partial_lorebook_entry.uid;
+        }
+        assignFieldValuesToWiEntry(data, wi_entry, partial_lorebook_entry);
         await saveWorldInfo(lorebook, data);
         reloadEditorDebounced(lorebook);
         console.info(`${getLogPrefix(event)}在世界书 '${lorebook}' 中新建 uid='${wi_entry.uid}' 条目, 并设置内容: ${JSON.stringify(field_values)}`);
