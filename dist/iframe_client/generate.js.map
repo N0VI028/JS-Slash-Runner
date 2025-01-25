@@ -1,1 +1,1 @@
-{"version": 3, "file": "generate.js", "sourceRoot": "", "sources": ["..\\..\\src\\iframe_client\\generate.ts"], "names": [], "mappings": ";AAuDA,KAAK,UAAU,eAAe,CAAC,KAAqB;IAClD,MAAM,MAAM,CAAC,mBAAmB,CAAC;QAC/B,OAAO,EAAE,iBAAiB;QAC1B,MAAM,EAAE;YACN,GAAG,KAAK;SACT;KACF,CAAC,CAAC;AACL,CAAC"}
+{"version": 3, "file": "generate.js", "sourceRoot": "", "sources": ["../../src/iframe_client/generate.ts"], "names": [], "mappings": ";AAuDA,KAAK,UAAU,eAAe,CAAC,KAAqB;IAClD,MAAM,MAAM,CAAC,mBAAmB,CAAC;QAC/B,OAAO,EAAE,iBAAiB;QAC1B,MAAM,EAAE;YACN,GAAG,KAAK;SACT;KACF,CAAC,CAAC;AACL,CAAC"}
