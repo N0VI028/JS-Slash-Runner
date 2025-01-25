@@ -1,42 +1,63 @@
-interface GenerateParams {
-  userInput?: string;  // 用户输入的文本
-  usePreset?: boolean;  // 是否使用预设
-  promptConfig?: PromptConfig;  // 提示词配置
-}
-interface PromptConfig {
-  filter?: string[];  // 用于过滤提示词的数组
-  overrides?: (Override | ChatHistoryOverride)[];  // 要覆盖的提示词
-  maxChatHistory?: number;  // 聊天记录的最高插入数
-  inject?: {
-    role: 'system' | 'user' | 'assistant';  // 消息角色
-    content: string;  // 提示词内容
-    position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT' | 'NONE';  // 注入位置
-    depth?: number;  // 注入深度
-    scan?: boolean;  // 是否允许扫描
-  }[];
-  order?: (string | {
-    role: 'system' | 'user' | 'assistant';
-    content: string;
-  })[];  // 混合类型的提示词顺序配置
-}
-interface ChatMessage {
+interface RolePrompt {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-interface Override {
-  id: string;
+interface InjectionPrompt {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+  position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT';
+  depth?: number;
+  scan?: boolean;
+}
+
+interface CustomPrompt {
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
-interface ChatHistoryOverride {
-  id: 'chatHistory';
-  content: ChatMessage[];
+
+// 覆盖配置类型
+interface OverrideConfig {
+  world_info_before?: string;      // 世界书（角色定义之前的部分）
+  persona_description?: string;    // 用户描述  
+  char_description?: string;       // 角色描述
+  char_personality?: string;       // 角色高级定义-性格
+  scenario?: string;              // 场景
+  world_info_after?: string;      // 世界书（角色定义之后的部分）
+  world_info_depth?: string;     // 世界书深度
+  dialogue_examples?: string;      // 角色高级定义-对话示例
+  chat_history?: RolePrompt[];   // 聊天历史
+  author_note?: string;           // 作者注释
 }
-async function generateRequest(event: GenerateParams) {
-  return detail.make_iframe_promise({
-    request: '[Generate][Generate]',
-    userInput: event.userInput,
-    usePreset: event.usePreset,
-    promptConfig: event.promptConfig,
+
+// 内置提示词条目类型
+type BuiltinPromptEntry =
+  | 'world_info_before'      // 世界书(角色定义前)
+  | 'persona_description'    // 用户描述
+  | 'char_description'       // 角色描述
+  | 'char_personality'       // 角色性格
+  | 'scenario'              // 场景
+  | 'world_info_after'      // 世界书(角色定义后)
+  | 'dialogue_examples'      // 对话示例
+  | 'chat_history'          // 聊天历史
+  | 'user_input';           // 用户输入
+
+// 生成参数类型
+interface GenerateParams {
+  user_input?: string;
+  use_preset?: boolean;
+  stream?: boolean;
+  overrides?: OverrideConfig;
+  max_chat_history?: number;
+  inject?: InjectionPrompt[];
+  order?: (BuiltinPromptEntry | CustomPrompt)[];
+}
+
+async function generateRequest(event: GenerateParams): Promise<void> {
+  await detail.make_iframe_promise({
+    request: 'iframe_generate',
+    option: {
+      ...event
+    }
   });
 }

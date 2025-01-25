@@ -1,10 +1,10 @@
 "use strict";
 async function generateRequest(event) {
-    return detail.make_iframe_promise({
-        request: '[Generate][Generate]',
-        userInput: event.userInput,
-        usePreset: event.usePreset,
-        promptConfig: event.promptConfig,
+    await detail.make_iframe_promise({
+        request: 'iframe_generate',
+        option: {
+            ...event
+        }
     });
 }
 //# sourceMappingURL=generate.js.map
