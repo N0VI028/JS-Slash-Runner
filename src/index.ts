@@ -45,7 +45,7 @@ import { handleIframe } from "./iframe_server/index.js";
 import { iframe_client } from "./iframe_client_exported/index.js";
 import { initSlashEventEmit } from "./slash_command/event.js";
 import { latest_set_variables_message_id } from "./iframe_server/variables.js";
-import { libraries_text, library_load_events, initializeLibraries } from "./library.js";
+import { libraries_text, library_load_events, initializeLibraries, clearLibraries } from "./library.js";
 import { script_load_events, initializeScripts, destroyScriptsIfInitialized, } from "./script_iframe.js";
 import { script_url } from "./script_url.js";
 import { third_party } from "./third_party.js";
@@ -887,7 +887,7 @@ async function onExtensionToggle() {
     library_load_events.forEach((eventType) => {
       eventSource.removeListener(eventType, initializeLibraries);
     });
-    libraries_text = "";
+    clearLibraries();
 
     script_load_events.forEach((eventType) => {
       eventSource.removeListener(eventType, initializeScripts);
