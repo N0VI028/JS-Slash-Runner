@@ -14,7 +14,7 @@
 
 ### html 工具角色卡
 
-如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: [【工具】html UI美化大师（已整合正则助手，支持前端助手）](https://discord.com/channels/1134557553011998840/1279910607348564079)
+如果实在不想安装 Cursor, 或你想在手机上编写, 可以使用: https://discord.com/channels/1134557553011998840/1279910607348564079
 
 但要注意它世界书中对前端助手和 slash command 的提示词是复制粘贴的, 因而在之后如果前端助手或酒馆更新, 则提示词不会涵盖更新内容.
 
@@ -524,63 +524,80 @@ async function deleteVariable(variable_path: string, option: VariableOption = {}
 ```
 ### 请求生成
 
-前端助手提供了一个函数用于更加灵活地请求 AI 生成回复，你可以通过它来自定义生成的提示词配置。
+前端助手提供了一个函数用于更加灵活地请求AI生成回复，你可以通过它来自定义生成的提示词配置。
 
 #### `generateRequest(event)`
 
 ```typescript
 /**
- * 请求 AI 生成回复
+ * 请求AI生成回复
  * 
  * @param event 生成参数配置
- * @param event.userInput 用户输入的文本
- * @param event.usePreset 是否使用预设
- * @param event.promptConfig 提示词配置
- * @returns Promise<any> 生成的回复
+ * @param event.user_input 用户输入的文本
+ * @param event.use_preset 是否使用预设，默认为true
+ * @param event.stream 是否使用流式生成，默认为false
+ * @param event.overrides 要覆盖的提示词配置
+ * @param event.max_chat_history 聊天记录的最高插入条数
+ * @param event.inject 要注入的提示词
+ * @param event.order 提示词顺序配置(仅在usePreset为false时生效)
+ * @returns Promise<void>
  */
-async function generateRequest(event: GenerateParams): Promise<any>
+async function generateRequest(event: GenerateParams): Promise<void>
 ```
 
 ##### 参数类型
 
 ```typescript
 interface GenerateParams {
-  userInput?: string;      // 用户输入的文本
-  usePreset?: boolean;     // 是否使用预设
-  promptConfig?: PromptConfig;  // 提示词配置
+  user_input?: string;      // 用户输入的文本
+  use_preset?: boolean;     // 是否使用预设，默认为true
+  stream?: boolean;         // 是否使用流式生成，默认为false
+  overrides?: OverrideConfig;  // 要覆盖的提示词
+  max_chat_history?: number;   // 聊天记录的最高插入数
+  inject?: InjectionPrompt[];  // 要注入的提示词
+  order?: (BuiltinPromptEntry | CustomPrompt)[];  // 提示词顺序配置
 }
 
-interface PromptConfig {
-  filter?: string[];       // 用于过滤提示词的数组
-  overrides?: (Override | ChatHistoryOverride)[];  // 要覆盖的提示词
-  maxChatHistory?: number; // 聊天记录的最高插入数
-  inject?: {
-    role: 'system' | 'user' | 'assistant';  // 消息角色
-    content: string;       // 提示词内容
-    position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT' ;  // 注入位置
-    depth?: number;        // 注入深度
-    scan?: boolean;        // 是否允许扫描
-  }[];
-  order?: (string | {     // 默认提示词和自定义提示词混合的提示词顺序配置
-    role: 'system' | 'user' | 'assistant';
-    content: string;
-  })[];
+// 可覆盖的提示词配置
+interface OverrideConfig {
+  world_info_before?: string;      // 世界书（角色定义之前的部分）
+  persona_description?: string;    // 用户描述  
+  char_description?: string;       // 角色描述
+  char_personality?: string;       // 角色高级定义-性格
+  scenario?: string;              // 场景
+  world_info_after?: string;      // 世界书（角色定义之后的部分）
+  world_info_depth?: string;      // 世界书深度
+  dialogue_examples?: string;      // 角色高级定义-对话示例
+  chat_history?: RolePrompt[];    // 聊天历史
+  author_note?: string;           // 作者注释
 }
 
-interface Override {
-  id: string;
-  content: string;
+// 自定义注入的提示词配置
+interface InjectionPrompt {
+  role: 'system' | 'user' | 'assistant';  // 消息角色
+  content: string;                        // 提示词内容
+  position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT';  // 注入位置
+  depth?: number;                         // 注入深度
+  scan?: boolean;                         // 是否允许世界书扫描
 }
 
-interface ChatHistoryOverride {
-  id: 'chatHistory';
-  content: ChatMessage[];
-}
-
-interface ChatMessage {
+// 自定义提示词
+interface CustomPrompt {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
+
+// 不使用预设且不自定义提示词顺序时, 提示词的默认顺序配置
+type BuiltinPromptEntry =
+  | 'world_info_before'      // 世界书(角色定义前)
+  | 'persona_description'    // 用户描述
+  | 'char_description'       // 角色描述 
+  | 'char_personality'       // 角色性格
+  | 'scenario'              // 场景
+  | 'world_info_after'      // 世界书(角色定义后)
+  | 'dialogue_examples'      // 对话示例
+  | 'chat_history'          // 聊天历史
+  | 'user_input';           // 用户输入
 ```
 
 ##### 示例
@@ -588,121 +605,116 @@ interface ChatMessage {
 ```typescript
 // 基本使用
 const response = await generateRequest({
-  userInput: "你好",
-  usePreset: true
+  user_input: "你好",
 });
 
-// 使用注入提示词与最大聊天历史插入限制
+// 使用流式生成
 const response = await generateRequest({
-  userInput: "你好",
-  promptConfig: {
-    inject: [{
-      role: 'system',
-      content: '你是一个友善的助手',
-      position: 'BEFORE_PROMPT'
-    }],
-    maxChatHistory: 5
+  user_input: "你好",
+  stream: true
+});
+
+// 覆盖提示词
+const response = await generateRequest({
+  user_input: "你好",
+  overrides: {
+    scenario: "在一个安静的图书馆里",
+    char_personality: "温柔"
   }
 });
 
-// 覆盖聊天历史
+// 不插入某部分提示词
 const response = await generateRequest({
-  userInput: "继续",
-  promptConfig: {
-    overrides: [{
-      id: 'chatHistory',
-      content: [
-        { role: 'user', content: '楼层1' },
-        { role: 'assistant', content: '楼层2' }
-      ]
-    }]
+  user_input: "你好",
+  overrides: {
+    chat_history: [],
+    world_info_depth: "",
   }
 });
 
-// 自定义提示词顺序
+// 注入提示词
 const response = await generateRequest({
-  userInput: "你好",
-  usePreset: false
-  promptConfig: {
-    order: [
-      'char',
-      { role: 'system', content: '系统提示' },
-      'chat'
-    ]
-  }
+  user_input: "你好",
+  inject: [{
+    role: 'system',
+    content: '你是一个友善的助手',
+    position: 'BEFORE_PROMPT'
+  }]
+});
+
+// 自定义提示词顺序(需要usePreset为false)
+const response = await generateRequest({
+  user_input: "你好",
+  use_preset: false,
+  order: [
+    'char_description',
+    { role: 'system', content: '系统提示' },
+    'chat_history',
+    'user_input'
+  ]
 });
 ```
 
-##### 提示词配置说明
+##### 使用说明
 
-1. `filter`: 用于过滤不需要的提示词，具有最高优先级，被过滤的内容即使在其他部分（如 order）中指定也是无效的。可过滤的字段包括：
+1. `use_preset`参数决定了生成时是否使用酒馆预设的提示词顺序:
+   - 当`use_preset: true`时(默认):
+     - 将使用酒馆预设的提示词顺序
+     - `order`参数无效
+     - 其他配置(`overrides`、`max_chat_history`、`inject`)正常生效
+   
+   - 当`use_preset: false`时:
+     - 需要通过`order`自定义提示词顺序
+     - `inject`的`position`参数无效，只会注入到`IN_CHAT`位置
+     - 自定义提示词顺序时，只可选择从`BuiltinPromptEntry`中定义的酒馆默认提示词以字符串形式在`order`中指定位置，其他内容需要使用`CustomPrompt`的格式在`order`中插入。一旦order中有值，则没有在order中出现的默认提示词将不会被插入。
+
+2. `stream`参数决定是否使用流式生成:
+   - 当`stream: true`时:
+     - 会临时开启流式生成，需要通过`eventOn`监听`"流式生成开始"`事件来获取流式生成结果
+   - 当`stream: false`时(默认):
+     - 使用普通生成方式，一次性获取生成结果，需要通过`eventOn`监听`"生成完成"`事件来获取最终结果
+
+3. `use_preset`参数决定了生成时是否使用酒馆预设的提示词顺序:
+   - 使用预设（`use_preset: true`）（默认）：
+     - 将使用酒馆预设的提示词顺序，因此`order` 参数无效
+     - 其他配置（`stream`、`overrides`、`max_chat_history`、`inject`）正常生效
+
+   - 不使用预设（`use_preset: false`）：
+     - 需要通过 `order` 自定义提示词顺序
+     - `inject`的 `position` 参数无效，只会注入到 `IN_CHAT` 也就是聊天记录中，如需要注入到其他地方，可以直接使用`CustomPrompt`的格式在`order`中任意位置插入
+     - 是否进行连续相同系统消息的合并取决于用户使用的当前预设是否勾选了**压缩系统消息**
+
+4.不想插入某部分提示词时，可以使用`overrides`参数，将该部分设置为空字符串
+
+5.对于`order`中聊天记录`chatHistory`和用户输入`userInput`的处理有以下规则：
+   - 当聊天记录被过滤时：
+     - 如果用户输入未在 `order` 中指明：将自动添加到所有提示词的最后面
+     - 如果用户输入在 `order` 中指明：以用户输入在 `order` 中的位置为准
+   - 当聊天记录未被过滤时：
+     - 如果用户输入未在 `order` 中指明：将自动插入到最新一条聊天记录后
+   - 如果用户输入在 `order` 中指明：用户输入和聊天记录会分别插入到 `order` 中指示的位置
+
+6. 默认提示词顺序（如不指定 `order` 或为空），将会默认使用以下顺序排列提示词：
    ```typescript
    [
-     "worldInfoBefore",      // 世界书（角色定义之前的部分）
-     "personaDescription",   // 用户描述
-     "charDescription",      // 角色描述
-     "charPersonality",      // 角色高级定义-性格
-     "scenario",            // 场景
-     "worldInfoAfter",      // 世界书（角色定义之后的部分）
-     "dialogueExamples",    // 角色高级定义-对话示例
-     "worldInfoDepth",      // 世界书中的深度注入
-     "chatHistory",         // 聊天历史
-     "authorsNote",          // 作者注释
+     "world_info_before",     // 世界书（角色定义之前的部分）
+     "persona_description",   // 用户描述
+     "char_description",      // 角色描述
+     "char_personality",      // 角色高级定义-性格
+     "scenario",             // 场景
+     "world_info_after",     // 世界书（角色定义之后的部分）
+     "dialogue_examples",     // 角色高级定义-对话示例
+     "chat_history",         // 聊天历史
+     "user_input",           // 用户输入
    ]
    ```
-2. `overrides`: 覆盖现有的提示词或聊天历史，与可过滤字段相比不可覆盖注入聊天历史中的部分，也就是作者注释和世界书深度注入：
-   ```typescript
-   [
-     "worldInfoBefore",      // 世界书（角色定义之前的部分）
-     "personaDescription",   // 用户描述
-     "charDescription",      // 角色描述
-     "charPersonality",      // 角色高级定义-性格
-     "scenario",            // 场景
-     "worldInfoAfter",      // 世界书（角色定义之后的部分）
-     "dialogueExamples",    // 角色高级定义-对话示例
-     "chatHistory",         // 聊天历史
-   ]
-   ```
-3. `maxChatHistory`: 限制聊天历史的最大插入条数
-4. `inject`: 注入自定义提示词
-   - `position`: 注入位置
-     - `IN_PROMPT`: 在主提示词中
-     - `IN_CHAT`: 在聊天历史中
-     - `BEFORE_PROMPT`: 在主提示词之前
-5. `order`: 自定义提示词的顺序，仅在 `usePreset: false` 时生效。可以是预定义的提示词 ID 或自定义消息。
 
-##### 使用预设与不使用预设的差异
-
-1. 使用预设（`usePreset: true`）：
-   - 将使用酒馆预设的提示词顺序
-   - `order` 参数无效
-   - 其他配置（`filter`、`overrides`、`maxChatHistory`、`inject`）正常生效
-
-2. 不使用预设（`usePreset: false`）：
-   - 需要通过 `order` 自定义提示词顺序
-   - `inject`的 `position` 参数无效，只会注入到 `IN_CHAT` 也就是聊天记录中
-   - 是否进行连续相同系统消息的合并取决于用户使用的当前预设是否勾选了**压缩系统消息**
-   - 对于`order`中聊天记录`chatHistory`和用户输入`userInput`的处理有以下规则：
-     - 当聊天记录被过滤时：
-       - 如果用户输入未在 order 中指明：将自动添加到所有提示词的最后面
-       - 如果用户输入在 order 中指明：以用户输入在 order 中的位置为准
-     - 当聊天记录未被过滤时：
-       - 如果用户输入未在 order 中指明：将自动插入到最新一条聊天记录后
-       - 如果用户输入在 order 中指明：用户输入和聊天记录会分别插入到 order 中指示的位置
-   - 默认提示词顺序（如不指定 order），将会默认使用以下顺序排列提示词：
-   ```typescript
-   [
-     "worldInfoBefore",      // 世界书（角色定义之前的部分）
-     "personaDescription",   // 用户描述
-     "charDescription",      // 角色描述
-     "charPersonality",      // 角色高级定义-性格
-     "scenario",            // 场景
-     "worldInfoAfter",      // 世界书（角色定义之后的部分）
-     "dialogueExamples",    // 角色高级定义-对话示例
-     "chatHistory",         // 聊天历史
-     "userInput",          // 用户输入
-   ]
-   ```
+7. `inject`的注入位置说明:
+   - `IN_PROMPT`: 在主提示词中注入
+   - `IN_CHAT`: 在聊天历史中注入
+   - `BEFORE_PROMPT`: 在主提示词之前注入
+   
+   注意: 当`use_preset: false`时，所有注入都会被视为`IN_CHAT`
 
 ### 楼层消息操作
 
@@ -795,12 +807,7 @@ interface SetChatMessageOption {
  *     - `'none'`: 不更新页面的显示和 iframe 渲染
  *     - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
  *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
- *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息. 这意味着如果你在全局脚本中使用该选项, 则该函数之后的内容将不会被执行.
- *
- * @example
- * await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
- * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
- * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
+ *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
  */
 async function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): Promise<void>
 ```
@@ -890,12 +897,27 @@ retrieveDisplayedMessage(0).append("<pre>new text</pre>");
 retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
 ```
 
-### 酒馆正则操作
+### 正则操作
 
-酒馆正则将会以以下类型表示:
+#### 获取局部正则是否被启用
 
 ```typescript
-interface TavernRegex {
+/**
+ * 判断局部正则是否被启用.
+ *
+ * 如果你是在被写在局部正则中的全局脚本调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
+ *
+ * @returns 局部正则是否被启用
+ */
+function isCharacterRegexEnabled(): Promise<boolean>;
+```
+
+#### 获取正则数据
+
+其获取到的结果是一个数组, 数组的元素类型为 `RegexData`, 有以下内容:
+
+```typescript
+interface RegexData {
   id: string;
   script_name: string;
   enabled: boolean;
@@ -917,25 +939,12 @@ interface TavernRegex {
     prompt: boolean;
   };
 
-  min_depth: number | null;
-  max_depth: number | null;
+  min_depth: number | undefined;
+  max_depth: number | undefined;
 }
 ```
 
-#### 获取局部正则是否被启用
-
-```typescript
-/**
- * 判断酒馆局部正则是否被启用. 注意, 前端插件已经更新了 "自动启用局部正则" 选项, 所以你其实没必要用这个?
- *
- * 如果你是在局部正则中调用这个函数, **请保证"在编辑时运行"被启用**, 这样这个脚本才会无视局部正则开启情况而运行.
- *
- * @returns 局部正则是否被启用
- */
-async function isCharacterTavernRegexEnabled(): Promise<boolean>;
-```
-
-#### 获取酒馆正则
+具体函数为:
 
 ```typescript
 interface GetRegexDataOption {
@@ -944,13 +953,13 @@ interface GetRegexDataOption {
 }
 
 /**
- * 获取酒馆正则
+ * 获取正则
  *
- * @param option 可选设置
- *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选酒馆正则; 默认为 `'all'`
- *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选酒馆正则; 默认为 `'all'`
+ * @param option 对获取正则进行可选设置
+ *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选正则; 默认为 `'all'`
+ *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选正则; 默认为 `'all'`
  *
- * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
+ * @returns 一个数组, 数组的元素是正则 `RegexData`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
 async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[]>
 ```
@@ -958,76 +967,11 @@ async function getRegexData(option: GetRegexDataOption = {}): Promise<RegexData[
 示例:
 
 ```typescript
-// 获取所有酒馆正则
-const regexes = await getTavernRegexes();
-```
+// 获取所有正则
+const regexes = await getRegexData();
 
-```typescript
 // 获取当前角色卡目前被启用的局部正则
-const regexes = await getTavernRegexes({scope: 'character', enable_state: 'enabled'});
-```
-
-#### 替换酒馆正则
-
-```typescript
-interface ReplaceTavernRegexesOption {
-  scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'.
-}
-
-/**
- * 完全替换酒馆正则为 `regexes`.
- * - **这是一个很慢的操作!** 尽量对正则做完所有事后再一次性 replaceTavernRegexes.
- * - **为了重新应用正则, 它会重新载入整个聊天消息**, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息.
- *     这意味着如果你在全局脚本中运行本函数, 则该函数之后的内容将不会被执行.
- *
- * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等.
- *
- * @param regexes 要用于替换的酒馆正则
- * @param option 可选选项
- *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
- */
-async function replaceTavernRegexes(regexes: TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<void>
-```
-
-示例:
-
-```typescript
-// 开启所有名字里带 "舞台少女" 的正则
-let regexes = await getTavernRegexes();
-regexes.forEach(regex => {
-  if (regex.script_name.includes('舞台少女')) {
-    regex.enabled = true;
-  }
-});
-await replaceTavernRegexes(regexes);
-```
-
-#### 用一个函数更新酒馆正则
-
-```typescript
-/**
- * 用 `updater` 函数更新酒馆正则
- *
- * @param updater 用于更新酒馆正则的函数. 它应该接收酒馆正则作为参数, 并返回更新后的酒馆正则.
- * @param option 可选选项
- *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
- *
- * @returns 更新后的酒馆正则
- */
-async function updateTavernRegexesWith(updater: (variables: TavernRegex[]) => TavernRegex[], option: ReplaceTavernRegexesOption = {}): Promise<TavernRegex[]>
-```
-
-示例:
-
-```typescript
-await updateTavernRegexesWith(regexes => {
-  regexes.forEach(regex => {
-    if (regex.script_name.includes('舞台少女')) {
-      regex.enabled = true;
-    }
-  });
-  return regexes;
-});
+const regexes = await getRegexData({scope: 'character', enable_state: 'enabled'});
 ```
 
 ### 世界书操作
@@ -1083,13 +1027,9 @@ await setLorebookSettings({context_percentage: 100, recursive: true});
 #### 获取角色卡绑定的世界书
 
 ```typescript
-interface GetCharLorebooksOption {
-  name?: string;  // 要查询的角色卡名称; 不指明则为当前角色卡
-};
-
-interface CharLorebooks {
-  primary: string | null;
-  additional: string[];
+interface CharLorebook {
+  name: string,
+  type: 'primary' | 'additional',
 }
 
 /**
@@ -1097,10 +1037,12 @@ interface CharLorebooks {
  *
  * @param option 可选选项
  *   - `name?:string`: 要查询的角色卡名称; 默认为当前角色卡
+ *   - `type?:'all'|'primary'|'additional'`: 按角色世界书的绑定类型筛选世界书; 默认为 `'all'`
  *
- * @returns 角色卡绑定的世界书
+ * @returns 一个 CharLorebook 数组
  */
-async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebooks>
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<CharLorebook[]>
+async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<string[]>
 ```
 
 ```typescript
@@ -1110,15 +1052,6 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<Ch
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 async function getCurrentCharPrimaryLorebook(): Promise<string | null>
-```
-
-```typescript
-/**
- * 将当前角色卡换为绑定 `lorebooks`
- *
- * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
- */
-async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void>
 ```
 
 #### 获取聊天绑定的世界书
@@ -1261,7 +1194,7 @@ const entries = await getLorebookEntries("eramgt少女歌剧", {filter: {content
  * 这只是修改信息, 不能创建新的条目, 因此要求条目必须已经在世界书中.
  *
  * @param lorebook 条目所在的世界书名称
- * @param entries 一个数组, 元素是各条目信息. 其中必须有 `uid`, 而其他字段可选.
+ * @param entries 一个数组, 元素是各条目信息. 其中必须有 "uid", 而其他字段可选.
  */
 async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): void
 ```
@@ -1274,15 +1207,15 @@ const lorebook = "eramgt少女歌剧";
 // 禁止所有条目递归, 保持其他设置不变
 const entries = await getLorebookEntries(lorebook);
 // `...entry` 表示展开 `entry` 中的内容; 而 `prevent_recursion: true` 放在后面会覆盖或设置 `prevent_recursion` 字段
-await setLorebookEntries(lorebook, entries.map(entry => ({ ...entry, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map((entry) => ({ ...entry, prevent_recursion: true })));
 
 // 实际上我们只需要为条目指出它的 uid, 并设置 `prevent_recursion: true`
 const entries = await getLorebookEntries(lorebook);
-await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: true })));
+await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: true })));
 
 // 当然你也可以做一些更复杂的事, 比如不再是禁用, 而是反转开关
 const entries = await getLorebookEntries(lorebook);
-await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
+await setLorebookEntries(lorebook, entries.map((entry) => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
 ```
 
 #### 在世界书中新增条目
@@ -1294,9 +1227,9 @@ await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, preve
  * @param lorebook 世界书名称
  * @param field_values 要对新条目设置的字段值, 如果不设置则采用酒馆给的默认值. **不能设置 `uid`**.
  *
- * @returns 新条目的 `uid`
+ * @returns 新条目的 uid
  */
-async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number> 
+async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number>
 ```
 
 示例:
@@ -1805,15 +1738,6 @@ async function substitudeMacros(text: string): Promise<string>
 async function getLastMessageId(): Promise<number>;
 ```
 
-```typescript
-/**
- * 生成唯一的 uuidv4 标识符
- *
- * @returns 唯一的 uuidv4 标识符
- */
-function generateUuidv4(): string
-```
-
 ## 播放器功能
 
 用于解决iframe之间难以继承播放进度的问题，变量操作的延伸功能。
@@ -1858,7 +1782,7 @@ function generateUuidv4(): string
 #### 导入音频到播放界面
 
 ```text
-/audioimport [type=bgm|ambient] [play=true|flase]? url
+/audioimport [type=bgm|ambient] [play=true|flase]? url
 ```
 
 - `type`: 音乐或音效
