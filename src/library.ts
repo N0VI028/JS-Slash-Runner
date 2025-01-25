@@ -13,3 +13,7 @@ export function initializeLibraries(): void {
 
   libraries_text = libraries.map(script => script.code).join('\n');
 }
+
+export function clearLibraries(): void {
+  libraries_text = "";
+}
