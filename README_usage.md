@@ -1560,13 +1560,13 @@ async function eventClearAll(): Promise<void>
 快速回复部分:
 
 ```text
-/event-emit data=8 "事件名称"
+/event-emit event="随便什么名称" data="这是一个 数据" data={{user}}
 ```
 
 iframe 部分:
 
 ```typescript
-tavernOn("事件名称", test);
+eventOn("随便什么名字", (data1, data2) => { console.info(data1, data2); });
 ```
 
 当我们按下该快速回复的按钮后, 正在监听 "事件名称" 消息频道的 js 代码将会获得 `data` 并开始执行.
