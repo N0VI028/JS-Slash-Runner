@@ -88,13 +88,8 @@ interface SetChatMessageOption {
  * @param message 要用于替换的消息
  * @param message_id 消息楼层id
  * @param option 可选选项
- * @enum
  *   - `swipe_id:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
  *   - `refresh:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
- *     - `'none'`: 不更新页面的显示和 iframe 渲染
- *     - `'display_current'`: 仅更新当前被替换楼层的显示, 如果替换的是没被使用的消息页, 则会自动切换为使用那一页
- *     - `'display_and_render_current'`: 与 `display_current` 相同, 但还会重新渲染该楼的 iframe
- *     - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息. 这意味着如果你在全局脚本中使用该选项, 则该函数之后的内容将不会被执行.
  *
  * @example
  * await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);

@@ -161,9 +161,8 @@ async function deleteVariable(variable_path: string, option: VariableOption = {}
  *
  * @param message_id 要判定的 `message_id`
  * @param new_or_updated_variables 用于更新的变量
- * @enum
- * - 如果该变量已经存在, 则更新值
- * - 如果不存在, 则新增变量
+ *   - 如果该变量已经存在, 则更新值
+ *   - 如果不存在, 则新增变量
  *
  * @example
  * const variables = {value: 5, data: 7};
