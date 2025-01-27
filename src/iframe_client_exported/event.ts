@@ -167,6 +167,10 @@ async function eventClearAll() {
 const iframe_events = {
     MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
     MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
+    GENERATION_STARTED: 'js_generation_started', // \`generate\` 函数开始生成
+    STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully', // 启用流式传输的 \`generate\` 函数传输当前完整文本: "这是", "这是一条", "这是一条流式传输"
+    STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally', // 启用流式传输的 \`generate\` 函数传输当前增量文本: "这是", "一条", "流式传输"
+    GENERATION_ENDED: 'js_generation_ended', // \`generate\` 函数完成生成
 };
 // 酒馆事件. **不建议自己发送酒馆事件, 因为你并不清楚它需要发送什么数据**
 const tavern_events = {

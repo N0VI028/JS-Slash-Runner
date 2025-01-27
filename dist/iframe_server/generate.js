@@ -2,12 +2,61 @@ import { getRegexedString, regex_placement, } from "../../../../../extensions/re
 import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from "../../../../../world-info.js";
 import { shouldWIAddPrompt, NOTE_MODULE_NAME, metadata_keys } from "../../../../../authors-note.js";
 import { prepareOpenAIMessages, setOpenAIMessageExamples, setOpenAIMessages, sendOpenAIRequest, oai_settings, ChatCompletion, Message, MessageCollection, promptManager } from "../../../../../openai.js";
-import { chat, extension_prompts, getCharacterCardFields, setExtensionPrompt, getExtensionPromptRoleByName, extension_prompt_roles, extension_prompt_types, baseChatReplace, name1, name2, activateSendButtons, showSwipeButtons, setGenerationProgress, eventSource, event_types, getBiasStrings, substituteParams, chat_metadata, this_chid, characters, deactivateSendButtons, MAX_INJECTION_DEPTH, cleanUpMessage, isOdd, countOccurrences, saveSettingsDebounced } from "../../../../../../script.js";
+import { chat, extension_prompts, getCharacterCardFields, setExtensionPrompt, getExtensionPromptRoleByName, extension_prompt_roles, extension_prompt_types, baseChatReplace, name1, name2, activateSendButtons, showSwipeButtons, setGenerationProgress, eventSource, getBiasStrings, substituteParams, chat_metadata, this_chid, characters, deactivateSendButtons, MAX_INJECTION_DEPTH, cleanUpMessage, isOdd, countOccurrences, saveSettingsDebounced } from "../../../../../../script.js";
 import { extension_settings } from "../../../../../extensions.js";
 import { Prompt, PromptCollection } from "../../../../../PromptManager.js";
 import { power_user, persona_description_positions, flushEphemeralStoppingStrings, } from "../../../../../power-user.js";
-import { getIframeName, registerIframeHandler } from "./index.js";
+import { getIframeName, getLogPrefix, registerIframeHandler } from "./index.js";
 import { Stopwatch } from "../../../../../utils.js";
+function fromOverrides(overrides) {
+    return {
+        world_info_before: overrides.world_info_before,
+        persona_description: overrides.persona_description,
+        char_description: overrides.char_description,
+        char_personality: overrides.char_personality,
+        scenario: overrides.scenario,
+        world_info_after: overrides.world_info_after,
+        dialogue_examples: overrides.dialogue_examples,
+        world_info_depth: overrides.chat_history?.with_depth_entries === false ? '' : undefined,
+        author_note: overrides.chat_history?.author_note,
+        chat_history: overrides.chat_history?.prompts,
+    };
+}
+function fromInjectionPrompt(inject) {
+    const position_map = {
+        before_prompt: 'BEFORE_PROMPT',
+        in_chat: 'IN_CHAT',
+        after_prompt: 'IN_PROMPT',
+        none: 'NONE',
+    };
+    return {
+        role: inject.role,
+        content: inject.content,
+        position: position_map[inject.position],
+        depth: inject.depth,
+        scan: inject.should_scan,
+    };
+}
+function fromGenerateConfig(config) {
+    return {
+        user_input: config.user_input,
+        use_preset: true,
+        stream: config.should_stream ?? false,
+        overrides: config.overrides !== undefined ? fromOverrides(config.overrides) : undefined,
+        inject: config.injects !== undefined ? config.injects.map(fromInjectionPrompt) : undefined,
+        max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
+    };
+}
+function fromGenerateRawConfig(config) {
+    return {
+        user_input: config.user_input,
+        use_preset: false,
+        stream: config.should_stream ?? false,
+        overrides: config.overrides ? fromOverrides(config.overrides) : undefined,
+        inject: config.injects ? config.injects.map(fromInjectionPrompt) : undefined,
+        order: config.ordered_prompts,
+    };
+}
 let this_max_context = oai_settings.openai_max_tokens;
 let abortController = new AbortController();
 let is_send_press = false;
@@ -64,11 +113,11 @@ class StreamingProcessor {
                 processedText = processedText.trimEnd() + separator + char;
             }
         }
-        // 发送增量文本
-        eventSource.emit("流式生成开始", processedText);
+        eventSource.emit("js_stream_token_received_fully", text);
+        eventSource.emit("js_stream_token_received_incrementally", processedText);
         if (isFinal) {
             const fullText = cleanUpMessage(text, false, false, false, this.stoppingStrings);
-            eventSource.emit("生成完成", fullText);
+            eventSource.emit("js_generation_ended", fullText);
         }
     }
     onErrorStreaming() {
@@ -139,14 +188,12 @@ async function iframeGenerate({ user_input = "", use_preset = true, overrides = 
             inject,
             order,
         }, processedUserInput);
-    console.log("generate_data", generate_data);
+    // console.log("generate_data", generate_data);
     // 4. 根据 stream 参数决定生成方式
-    await generateResponse(generate_data, stream);
+    return await generateResponse(generate_data, stream);
 }
 async function initializeGeneration() {
-    // 1. 触发酒馆的生成开始事件
-    await eventSource.emit(event_types.GENERATION_STARTED, type, { signal }, dryRun);
-    // 2. 初始化中断控制器
+    // 初始化中断控制器
     if (!(abortController && signal)) {
         abortController = new AbortController();
     }
@@ -733,7 +780,7 @@ async function populationInjectionPrompts(baseData, customInjects = []) {
         for (const inject of customInjects) {
             injectionPrompts.push({
                 identifier: `INJECTION-${inject.role}-${inject.depth}`,
-                role: getPromptRole(inject.role),
+                role: inject.role,
                 content: inject.content,
                 injection_depth: inject.depth || 0,
                 injected: true
@@ -781,6 +828,7 @@ function getPromptRole(role) {
 }
 //生成响应
 async function generateResponse(generate_data, useStream = false) {
+    let result = '';
     try {
         deactivateSendButtons();
         // @ts-ignore
@@ -793,17 +841,17 @@ async function generateResponse(generate_data, useStream = false) {
             }
             const streamingProcessor = new StreamingProcessor();
             streamingProcessor.generator = await sendOpenAIRequest("normal", generate_data.prompt, abortController.signal);
-            let getMessage = await streamingProcessor.generate();
-            console.log("getMessage", getMessage);
+            result = await streamingProcessor.generate();
+            // console.log("getMessage", getMessage);
             if (originalStreamSetting !== oai_settings.stream_openai) {
                 oai_settings.stream_openai = originalStreamSetting;
                 saveSettingsDebounced();
             }
         }
         else {
-            eventSource.emit("非流式生成开始");
+            eventSource.emit("js_generation_started");
             const response = await sendOpenAIRequest(type, generate_data.prompt, abortController.signal);
-            handleResponse(response);
+            result = await handleResponse(response);
         }
     }
     catch (error) {
@@ -814,11 +862,13 @@ async function generateResponse(generate_data, useStream = false) {
             unblockGeneration();
         }
     }
+    return result;
 }
 // 处理响应
 async function handleResponse(response) {
-    if (!response)
-        return;
+    if (!response) {
+        throw new Error(`未得到响应`);
+    }
     if (response.error) {
         if (response?.response) {
             // @ts-ignore
@@ -827,8 +877,8 @@ async function handleResponse(response) {
         throw new Error(response?.response);
     }
     const message = extractMessageFromData(response);
-    console.log("message", message);
-    eventSource.emit("生成完成", message);
+    eventSource.emit("js_generation_ended", message);
+    return message;
 }
 function unblockGeneration() {
     is_send_press = false;
@@ -873,16 +923,19 @@ function isPromptFiltered(promptId, config) {
     return override === "";
 }
 export function registerIframeGenerateHandler() {
-    registerIframeHandler('iframe_generate', async (event) => {
+    registerIframeHandler('[Generate][generate]', async (event) => {
         const iframe_name = getIframeName(event);
-        const option = event.data?.option || {};
-        console.info(`[Generate](${iframe_name}) 发送生成请求`);
-        try {
-            await iframeGenerate(option);
-        }
-        catch (error) {
-            throw error;
-        }
+        const config = event.data.config;
+        console.info(`${getLogPrefix(event)}(${iframe_name}) 发送生成请求: ${config}`);
+        const converted_config = fromGenerateConfig(config);
+        return await iframeGenerate(converted_config);
+    });
+    registerIframeHandler('[Generate][generateRaw]', async (event) => {
+        const iframe_name = getIframeName(event);
+        const config = event.data.config;
+        console.info(`${getLogPrefix(event)}(${iframe_name}) 发送生成请求: ${config}`);
+        const converted_config = fromGenerateRawConfig(config);
+        return await iframeGenerate(converted_config);
     });
 }
 //# sourceMappingURL=generate.js.map
