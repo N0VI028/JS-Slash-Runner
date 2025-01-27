@@ -6,7 +6,7 @@
   "js": "dist/index.js",
   "css": "style.css",
   "author": "KAKAA",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
   "auto_update": true
 }
