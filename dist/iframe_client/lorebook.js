@@ -26,6 +26,14 @@ async function getLorebookSettings() {
  * @example
  * // 修改上下文百分比为 100%, 启用递归扫描
  * await setLorebookSettings({context_percentage: 100, recursive: true});
+ *
+ * @example
+ * // setLorebookSettings 因为酒馆问题很慢, 建议先 getLorebookSetting, 进行比较, 再 setLorebookSettings
+ * const expected_settings = { 预期设置 };
+ * const settings = await getLorebookSettings();
+ * if (_.isEqual(_.merge({}, settings, expected_settings), settings)) {
+ *   setLorebookSettings(expected_settings);
+ * }
  */
 async function setLorebookSettings(settings) {
     return detail.make_iframe_promise({
