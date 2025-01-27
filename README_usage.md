@@ -824,11 +824,29 @@ alert(settings.selected_global_lorebooks);
 
 #### 修改世界书全局设置
 
+```typescript
+/**
+ * 修改世界书全局设置
+ *
+ * @returns 修改世界书全局设置
+ */
+async function setLorebookSettings(settings: Partial<LorebookSettings>): Promise<void>
+```
+
 示例:
 
 ```typescript
 // 修改上下文百分比为 100%, 启用递归扫描
 await setLorebookSettings({context_percentage: 100, recursive: true});
+```
+
+```typescript
+// setLorebookSettings 因为酒馆问题很慢, 建议先 getLorebookSetting, 进行比较, 再 setLorebookSettings
+const expected_settings = { /*预期设置*/ };
+const settings = await getLorebookSettings();
+if (_.isEqual(_.merge({}, settings, expected_settings), settings)) {
+  setLorebookSettings(expected_settings);
+}
 ```
 
 #### 获取角色卡绑定的世界书
