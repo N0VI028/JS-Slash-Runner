@@ -218,6 +218,10 @@ type IframeEventType = typeof iframe_events[keyof typeof iframe_events];
 const iframe_events = {
   MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
   MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
+  GENERATION_STARTED: 'js_generation_started',  // `generate` 函数开始生成
+  STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully',  // 启用流式传输的 `generate` 函数传输当前完整文本: "这是", "这是一条", "这是一条流式传输"
+  STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally',  // 启用流式传输的 `generate` 函数传输当前增量文本: "这是", "一条", "流式传输"
+  GENERATION_ENDED: 'js_generation_ended',  // `generate` 函数完成生成
 } as const;
 
 type TavernEventType = typeof tavern_events[keyof typeof tavern_events];
@@ -292,6 +296,11 @@ const tavern_events = {
 type ListenerType = {
   [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
   [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
+  [iframe_events.GENERATION_STARTED]: () => void;
+  [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string) => void;
+  [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string) => void;
+  [iframe_events.GENERATION_ENDED]: (text: string) => void;
+
   [tavern_events.APP_READY]: () => void;
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
   [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;

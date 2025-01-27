@@ -34,7 +34,6 @@ import {
   showSwipeButtons,
   setGenerationProgress,
   eventSource,
-  event_types,
   getBiasStrings,
   substituteParams,
   chat_metadata,
@@ -54,14 +53,130 @@ import {
   persona_description_positions,
   flushEphemeralStoppingStrings,
 } from "../../../../../power-user.js";
-import { getIframeName, IframeMessage, registerIframeHandler } from "./index.js";
+import { getIframeName, getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 import { Stopwatch } from "../../../../../utils.js";
 
 
-// iframe生成消息类型
-interface IframeGenerateMessage extends IframeMessage {
-  request: 'iframe_generate';
-  option: GenerateParams;
+interface IframeGenerate extends IframeMessage {
+  request: '[Generate][generate]';
+  config: GenerateConfig;
+}
+
+interface IframeGenerateRaw extends IframeMessage {
+  request: '[Generate][generateRaw]';
+  config: GenerateRawConfig;
+}
+
+function fromOverrides(overrides: Overrides): detail.OverrideConfig {
+  return {
+    world_info_before: overrides.world_info_before,
+    persona_description: overrides.persona_description,
+    char_description: overrides.char_description,
+    char_personality: overrides.char_personality,
+    scenario: overrides.scenario,
+    world_info_after: overrides.world_info_after,
+    dialogue_examples: overrides.dialogue_examples,
+
+    world_info_depth: overrides.chat_history?.with_depth_entries === false ? '' : undefined,
+    author_note: overrides.chat_history?.author_note,
+    chat_history: overrides.chat_history?.prompts,
+  };
+}
+
+function fromInjectionPrompt(inject: InjectionPrompt): detail.InjectionPrompt {
+  const position_map = {
+    before_prompt: 'BEFORE_PROMPT',
+    in_chat: 'IN_CHAT',
+    after_prompt: 'IN_PROMPT',
+    none: 'NONE',
+  } as const;
+  return {
+    role: inject.role,
+    content: inject.content,
+    position: position_map[inject.position],
+    depth: inject.depth,
+    scan: inject.should_scan,
+  };
+}
+
+function fromGenerateConfig(config: GenerateConfig): detail.GenerateParams {
+  return {
+    user_input: config.user_input,
+    use_preset: true,
+    stream: config.should_stream ?? false,
+    overrides: config.overrides !== undefined ? fromOverrides(config.overrides) : undefined,
+    inject: config.injects !== undefined ? config.injects.map(fromInjectionPrompt) : undefined,
+    max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
+  };
+}
+
+function fromGenerateRawConfig(config: GenerateRawConfig): detail.GenerateParams {
+  return {
+    user_input: config.user_input,
+    use_preset: false,
+    stream: config.should_stream ?? false,
+    overrides: config.overrides ? fromOverrides(config.overrides) : undefined,
+    inject: config.injects ? config.injects.map(fromInjectionPrompt) : undefined,
+    order: config.ordered_prompts,
+  }
+}
+
+namespace detail {
+  export interface RolePrompt {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }
+
+  export interface InjectionPrompt {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+    position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT' | 'NONE';
+    depth?: number;
+    scan?: boolean;
+  }
+
+  export interface CustomPrompt {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }
+
+  // 覆盖配置类型
+  export interface OverrideConfig {
+    world_info_before?: string;    // 世界书（角色定义之前的部分）
+    persona_description?: string;  // 用户描述
+    char_description?: string;     // 角色描述
+    char_personality?: string;     // 角色高级定义-性格
+    scenario?: string;             // 场景
+    world_info_after?: string;     // 世界书（角色定义之后的部分）
+    dialogue_examples?: string;    // 角色高级定义-对话示例
+
+    world_info_depth?: string;     // 世界书深度
+    author_note?: string;          // 作者注释
+    chat_history?: RolePrompt[];   // 聊天历史
+  }
+
+  // 内置提示词条目类型
+  export type BuiltinPromptEntry =
+    | 'world_info_before'    // 世界书(角色定义前)
+    | 'persona_description'  // 用户描述
+    | 'char_description'     // 角色描述
+    | 'char_personality'     // 角色性格
+    | 'scenario'             // 场景
+    | 'world_info_after'     // 世界书(角色定义后)
+    | 'dialogue_examples'    // 对话示例
+    | 'chat_history'         // 聊天历史
+    | 'user_input';          // 用户输入
+
+  // 生成参数类型
+  export interface GenerateParams {
+    user_input?: string;
+    use_preset?: boolean;
+    stream?: boolean;
+    overrides?: OverrideConfig;
+    max_chat_history?: number;
+    inject?: InjectionPrompt[];
+    order?: Array<BuiltinPromptEntry | CustomPrompt>;
+  }
 }
 
 let this_max_context = oai_settings.openai_max_tokens;
@@ -83,7 +198,7 @@ const roleTypes: Record<'system' | 'user' | 'assistant', typeof extension_prompt
   user: extension_prompt_roles.USER,
   assistant: extension_prompt_roles.ASSISTANT,
 };
-const default_order: BuiltinPromptEntry[] = [
+const default_order: detail.BuiltinPromptEntry[] = [
   "world_info_before",
   "persona_description",
   "char_description",
@@ -129,12 +244,12 @@ class StreamingProcessor {
       }
     }
 
-    // 发送增量文本
-    eventSource.emit("流式生成开始", processedText);
+    eventSource.emit("js_stream_token_received_fully", text);
+    eventSource.emit("js_stream_token_received_incrementally", processedText);
 
     if (isFinal) {
       const fullText = cleanUpMessage(text, false, false, false, this.stoppingStrings);
-      eventSource.emit("生成完成", fullText);
+      eventSource.emit("js_generation_ended", fullText);
     }
   }
 
@@ -199,7 +314,7 @@ async function iframeGenerate({
   inject = [],
   order = undefined,
   stream = false,
-}: GenerateParams = {}) {
+}: detail.GenerateParams = {}): Promise<string> {
   const processedUserInput =
     processUserInput(substituteParams(user_input), oai_settings) || "";
   // 1. 初始化
@@ -227,21 +342,13 @@ async function iframeGenerate({
       inject,
       order,
     }, processedUserInput);
-  console.log("generate_data", generate_data);
+  // console.log("generate_data", generate_data);
   // 4. 根据 stream 参数决定生成方式
-  await generateResponse(generate_data, stream);
+  return await generateResponse(generate_data, stream);
 }
 
 async function initializeGeneration() {
-  // 1. 触发酒馆的生成开始事件
-  await eventSource.emit(
-    event_types.GENERATION_STARTED,
-    type,
-    { signal },
-    dryRun
-  );
-
-  // 2. 初始化中断控制器
+  // 初始化中断控制器
   if (!(abortController && signal)) {
     abortController = new AbortController();
   }
@@ -251,10 +358,10 @@ async function initializeGeneration() {
   };
 }
 
-async function prepareAndOverrideData(config: Omit<GenerateParams, 'user_input' | 'use_preset'>, processedUserInput: string) {
-  const getOverrideContent = (identifier: string): string | RolePrompt[] | undefined => {
+async function prepareAndOverrideData(config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>, processedUserInput: string) {
+  const getOverrideContent = (identifier: string): string | detail.RolePrompt[] | undefined => {
     if (!config.overrides) return undefined;
-    return config.overrides[identifier as keyof OverrideConfig];
+    return config.overrides[identifier as keyof detail.OverrideConfig];
   };
 
   // 1. 处理角色卡高级定义角色备注 - 仅在chat_history未被过滤时执行
@@ -391,7 +498,7 @@ function handleCharDepthPrompt() {
   );
 }
 //处理作者注释
-function setAuthorNotePrompt(config: GenerateParams) {
+function setAuthorNotePrompt(config: detail.GenerateParams) {
   const authorNoteOverride = config?.overrides?.author_note;
   // @ts-ignore
   let prompt = authorNoteOverride ?? $('#extension_floating_prompt').val();
@@ -461,7 +568,7 @@ function setPersonaDescriptionExtensionPrompt() {
     );
   }
 }
-async function handleInjectedPrompts(promptConfig: Omit<GenerateParams, 'user_input' | 'use_preset'>) {
+async function handleInjectedPrompts(promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>) {
   if (!promptConfig || !Array.isArray(promptConfig.inject)) return;
 
   const injects = promptConfig.inject;
@@ -521,9 +628,9 @@ async function processChatHistory(chat: any[]) {
 
 // 处理世界书
 async function processWorldInfo(
-  oaiMessages: RolePrompt[],
+  oaiMessages: detail.RolePrompt[],
   shouldExcludePrompt: (id: string) => boolean,
-  getOverrideContent: (identifier: string) => string | RolePrompt[] | undefined
+  getOverrideContent: (identifier: string) => string | detail.RolePrompt[] | undefined
 ) {
   const chatForWI = oaiMessages
     .filter((x) => x.role !== "system")
@@ -634,7 +741,7 @@ function processUserInput(user_input: string, oai_settings: any) {
 async function handlePresetPath(
   baseData: any,
   processedUserInput: string,
-  config: Omit<GenerateParams, 'user_input' | 'use_preset'>
+  config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>
 ) {
   // prepareOpenAIMessages会从设置里读取场景因此临时覆盖
   let originalScenario = null;
@@ -683,7 +790,7 @@ async function handlePresetPath(
     }
   }
 }
-async function convertSystemPromptsToCollection(baseData: any, promptConfig: Omit<GenerateParams, 'user_input' | 'use_preset'>) {
+async function convertSystemPromptsToCollection(baseData: any, promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>) {
   const promptCollection = new PromptCollection();
   const examplesCollection = new MessageCollection("dialogue_examples");
   // 处理自定义注入
@@ -817,7 +924,7 @@ async function convertSystemPromptsToCollection(baseData: any, promptConfig: Omi
 //不使用预设
 async function handleCustomPath(
   baseData: any,
-  config: Omit<GenerateParams, 'user_input' | 'use_preset'>,
+  config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
   processedUserInput: string
 ) {
   const chatCompletion = new ChatCompletion();
@@ -895,7 +1002,7 @@ async function handleCustomPath(
 
 async function processChatHistoryAndInject(
   baseData: any,
-  promptConfig: Omit<GenerateParams, 'user_input' | 'use_preset'>,
+  promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
   chatCompletion: ChatCompletion,
   processedUserInput: string
 ) {
@@ -1025,7 +1132,7 @@ async function processChatHistoryAndInject(
 }
 async function populationInjectionPrompts(
   baseData: any,
-  customInjects: InjectionPrompt[] = []
+  customInjects: detail.InjectionPrompt[] = []
 ) {
   let totalInsertedMessages = 0;
   const injectionPrompts = [];
@@ -1060,7 +1167,7 @@ async function populationInjectionPrompts(
     for (const inject of customInjects) {
       injectionPrompts.push({
         identifier: `INJECTION-${inject.role}-${inject.depth}`,
-        role: getPromptRole(inject.role),
+        role: inject.role,
         content: inject.content,
         injection_depth: inject.depth || 0,
         injected: true
@@ -1103,7 +1210,7 @@ async function populationInjectionPrompts(
   return baseData.chatContext.oaiMessages;
 }
 
-function getPromptRole(role: string) {
+function getPromptRole(role: number) {
   switch (role) {
     case extension_prompt_roles.SYSTEM:
       return "system";
@@ -1120,7 +1227,8 @@ function getPromptRole(role: string) {
 async function generateResponse(
   generate_data: any,
   useStream = false
-): Promise<any> {
+): Promise<string> {
+  let result = '';
   try {
     deactivateSendButtons();
     // @ts-ignore
@@ -1138,20 +1246,20 @@ async function generateResponse(
         generate_data.prompt,
         abortController.signal
       );
-      let getMessage = await streamingProcessor.generate();
-      console.log("getMessage", getMessage);
+      result = await streamingProcessor.generate() as string;
+      // console.log("getMessage", getMessage);
       if (originalStreamSetting !== oai_settings.stream_openai) {
         oai_settings.stream_openai = originalStreamSetting;
         saveSettingsDebounced();
       }
     } else {
-      eventSource.emit("非流式生成开始");
+      eventSource.emit("js_generation_started");
       const response = await sendOpenAIRequest(
         type,
         generate_data.prompt,
         abortController.signal
       );
-      handleResponse(response);
+      result = await handleResponse(response);
     }
   } catch (error) {
     throw error;
@@ -1160,12 +1268,15 @@ async function generateResponse(
       unblockGeneration();
     }
   }
+  return result;
 }
 
 
 // 处理响应
 async function handleResponse(response: any) {
-  if (!response) return;
+  if (!response) {
+    throw new Error(`未得到响应`);
+  }
   if (response.error) {
     if (response?.response) {
       // @ts-ignore
@@ -1173,9 +1284,9 @@ async function handleResponse(response: any) {
     }
     throw new Error(response?.response);
   }
-  const message = extractMessageFromData(response);
-  console.log("message", message);
-  eventSource.emit("生成完成", message);
+  const message: string = extractMessageFromData(response);
+  eventSource.emit("js_generation_ended", message);
+  return message;
 }
 
 function unblockGeneration() {
@@ -1219,29 +1330,39 @@ function removeTemporaryUserMessage() {
   setExtensionPrompt('TEMP_USER_MESSAGE', '', extension_prompt_types.IN_PROMPT, 0, true, 1);
 }
 
-function isPromptFiltered(promptId: string, config: { overrides?: OverrideConfig }): boolean {
+function isPromptFiltered(promptId: string, config: { overrides?: detail.OverrideConfig }): boolean {
   if (!config.overrides) {
     return false;
   }
 
-  const override = config.overrides[promptId as keyof OverrideConfig];
+  const override = config.overrides[promptId as keyof detail.OverrideConfig];
   return override === "";
 }
 
 export function registerIframeGenerateHandler() {
   registerIframeHandler(
-    'iframe_generate',
-    async (event: MessageEvent<IframeGenerateMessage>) => {
+    '[Generate][generate]',
+    async (event: MessageEvent<IframeGenerate>): Promise<string> => {
       const iframe_name = getIframeName(event);
-      const option = event.data?.option || {};
+      const config = event.data.config;
 
-      console.info(`[Generate](${iframe_name}) 发送生成请求`);
+      console.info(`${getLogPrefix(event)}(${iframe_name}) 发送生成请求: ${config}`);
 
-      try {
-        await iframeGenerate(option);
-      } catch (error) {
-        throw error;
-      }
+      const converted_config = fromGenerateConfig(config);
+      return await iframeGenerate(converted_config);
+    }
+  );
+
+  registerIframeHandler(
+    '[Generate][generateRaw]',
+    async (event: MessageEvent<IframeGenerateRaw>): Promise<string> => {
+      const iframe_name = getIframeName(event);
+      const config = event.data.config;
+
+      console.info(`${getLogPrefix(event)}(${iframe_name}) 发送生成请求: ${config}`);
+
+      const converted_config = fromGenerateRawConfig(config);
+      return await iframeGenerate(converted_config);
     }
   );
 }

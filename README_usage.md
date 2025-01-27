@@ -522,199 +522,6 @@ async function deleteVariable(variable_path: string, option: VariableOption = {}
   return result;
 }
 ```
-### 请求生成
-
-前端助手提供了一个函数用于更加灵活地请求AI生成回复，你可以通过它来自定义生成的提示词配置。
-
-#### `generateRequest(event)`
-
-```typescript
-/**
- * 请求AI生成回复
- * 
- * @param event 生成参数配置
- * @param event.user_input 用户输入的文本
- * @param event.use_preset 是否使用预设，默认为true
- * @param event.stream 是否使用流式生成，默认为false
- * @param event.overrides 要覆盖的提示词配置
- * @param event.max_chat_history 聊天记录的最高插入条数
- * @param event.inject 要注入的提示词
- * @param event.order 提示词顺序配置(仅在usePreset为false时生效)
- * @returns Promise<void>
- */
-async function generateRequest(event: GenerateParams): Promise<void>
-```
-
-##### 参数类型
-
-```typescript
-interface GenerateParams {
-  user_input?: string;      // 用户输入的文本
-  use_preset?: boolean;     // 是否使用预设，默认为true
-  stream?: boolean;         // 是否使用流式生成，默认为false
-  overrides?: OverrideConfig;  // 要覆盖的提示词
-  max_chat_history?: number;   // 聊天记录的最高插入数
-  inject?: InjectionPrompt[];  // 要注入的提示词
-  order?: (BuiltinPromptEntry | CustomPrompt)[];  // 提示词顺序配置
-}
-
-// 可覆盖的提示词配置
-interface OverrideConfig {
-  world_info_before?: string;      // 世界书（角色定义之前的部分）
-  persona_description?: string;    // 用户描述  
-  char_description?: string;       // 角色描述
-  char_personality?: string;       // 角色高级定义-性格
-  scenario?: string;              // 场景
-  world_info_after?: string;      // 世界书（角色定义之后的部分）
-  world_info_depth?: string;      // 世界书深度
-  dialogue_examples?: string;      // 角色高级定义-对话示例
-  chat_history?: RolePrompt[];    // 聊天历史
-  author_note?: string;           // 作者注释
-}
-
-// 自定义注入的提示词配置
-interface InjectionPrompt {
-  role: 'system' | 'user' | 'assistant';  // 消息角色
-  content: string;                        // 提示词内容
-  position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT';  // 注入位置
-  depth?: number;                         // 注入深度
-  scan?: boolean;                         // 是否允许世界书扫描
-}
-
-// 自定义提示词
-interface CustomPrompt {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-// 不使用预设且不自定义提示词顺序时, 提示词的默认顺序配置
-type BuiltinPromptEntry =
-  | 'world_info_before'      // 世界书(角色定义前)
-  | 'persona_description'    // 用户描述
-  | 'char_description'       // 角色描述 
-  | 'char_personality'       // 角色性格
-  | 'scenario'              // 场景
-  | 'world_info_after'      // 世界书(角色定义后)
-  | 'dialogue_examples'      // 对话示例
-  | 'chat_history'          // 聊天历史
-  | 'user_input';           // 用户输入
-```
-
-##### 示例
-
-```typescript
-// 基本使用
-const response = await generateRequest({
-  user_input: "你好",
-});
-
-// 使用流式生成
-const response = await generateRequest({
-  user_input: "你好",
-  stream: true
-});
-
-// 覆盖提示词
-const response = await generateRequest({
-  user_input: "你好",
-  overrides: {
-    scenario: "在一个安静的图书馆里",
-    char_personality: "温柔"
-  }
-});
-
-// 不插入某部分提示词
-const response = await generateRequest({
-  user_input: "你好",
-  overrides: {
-    chat_history: [],
-    world_info_depth: "",
-  }
-});
-
-// 注入提示词
-const response = await generateRequest({
-  user_input: "你好",
-  inject: [{
-    role: 'system',
-    content: '你是一个友善的助手',
-    position: 'BEFORE_PROMPT'
-  }]
-});
-
-// 自定义提示词顺序(需要usePreset为false)
-const response = await generateRequest({
-  user_input: "你好",
-  use_preset: false,
-  order: [
-    'char_description',
-    { role: 'system', content: '系统提示' },
-    'chat_history',
-    'user_input'
-  ]
-});
-```
-
-##### 使用说明
-
-1. `use_preset`参数决定了生成时是否使用酒馆预设的提示词顺序:
-   - 当`use_preset: true`时(默认):
-     - 将使用酒馆预设的提示词顺序
-     - `order`参数无效
-     - 其他配置(`overrides`、`max_chat_history`、`inject`)正常生效
-   
-   - 当`use_preset: false`时:
-     - 需要通过`order`自定义提示词顺序
-     - `inject`的`position`参数无效，只会注入到`IN_CHAT`位置
-     - 自定义提示词顺序时，只可选择从`BuiltinPromptEntry`中定义的酒馆默认提示词以字符串形式在`order`中指定位置，其他内容需要使用`CustomPrompt`的格式在`order`中插入。一旦order中有值，则没有在order中出现的默认提示词将不会被插入。
-
-2. `stream`参数决定是否使用流式生成:
-   - 当`stream: true`时:
-     - 会临时开启流式生成，需要通过`eventOn`监听`"流式生成开始"`事件来获取流式生成结果
-   - 当`stream: false`时(默认):
-     - 使用普通生成方式，一次性获取生成结果，需要通过`eventOn`监听`"生成完成"`事件来获取最终结果
-
-3. `use_preset`参数决定了生成时是否使用酒馆预设的提示词顺序:
-   - 使用预设（`use_preset: true`）（默认）：
-     - 将使用酒馆预设的提示词顺序，因此`order` 参数无效
-     - 其他配置（`stream`、`overrides`、`max_chat_history`、`inject`）正常生效
-
-   - 不使用预设（`use_preset: false`）：
-     - 需要通过 `order` 自定义提示词顺序
-     - `inject`的 `position` 参数无效，只会注入到 `IN_CHAT` 也就是聊天记录中，如需要注入到其他地方，可以直接使用`CustomPrompt`的格式在`order`中任意位置插入
-     - 是否进行连续相同系统消息的合并取决于用户使用的当前预设是否勾选了**压缩系统消息**
-
-4.不想插入某部分提示词时，可以使用`overrides`参数，将该部分设置为空字符串
-
-5.对于`order`中聊天记录`chatHistory`和用户输入`userInput`的处理有以下规则：
-   - 当聊天记录被过滤时：
-     - 如果用户输入未在 `order` 中指明：将自动添加到所有提示词的最后面
-     - 如果用户输入在 `order` 中指明：以用户输入在 `order` 中的位置为准
-   - 当聊天记录未被过滤时：
-     - 如果用户输入未在 `order` 中指明：将自动插入到最新一条聊天记录后
-   - 如果用户输入在 `order` 中指明：用户输入和聊天记录会分别插入到 `order` 中指示的位置
-
-6. 默认提示词顺序（如不指定 `order` 或为空），将会默认使用以下顺序排列提示词：
-   ```typescript
-   [
-     "world_info_before",     // 世界书（角色定义之前的部分）
-     "persona_description",   // 用户描述
-     "char_description",      // 角色描述
-     "char_personality",      // 角色高级定义-性格
-     "scenario",             // 场景
-     "world_info_after",     // 世界书（角色定义之后的部分）
-     "dialogue_examples",     // 角色高级定义-对话示例
-     "chat_history",         // 聊天历史
-     "user_input",           // 用户输入
-   ]
-   ```
-
-7. `inject`的注入位置说明:
-   - `IN_PROMPT`: 在主提示词中注入
-   - `IN_CHAT`: 在聊天历史中注入
-   - `BEFORE_PROMPT`: 在主提示词之前注入
-   
-   注意: 当`use_preset: false`时，所有注入都会被视为`IN_CHAT`
 
 ### 楼层消息操作
 
@@ -1338,6 +1145,10 @@ eventOn(tavern_events.MESSAGE_UPDATED, detectMessageEdited);
 const iframe_events = {
   MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
   MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
+  GENERATION_STARTED: 'js_generation_started',  // `generate` 函数开始生成
+  STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully',  // 启用流式传输的 `generate` 函数传输当前完整文本: "这是", "这是一条", "这是一条流式传输"
+  STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally',  // 启用流式传输的 `generate` 函数传输当前增量文本: "这是", "一条", "流式传输"
+  GENERATION_ENDED: 'js_generation_ended',  // `generate` 函数完成生成
 };
 ```
 
@@ -1423,6 +1234,11 @@ const tavern_events = {
 type ListenerType = {
   [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
   [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
+  [iframe_events.GENERATION_STARTED]: () => void;
+  [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string) => void;
+  [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string) => void;
+  [iframe_events.GENERATION_ENDED]: (text: string) => void;
+
   [tavern_events.APP_READY]: () => void;
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
   [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
@@ -1684,6 +1500,257 @@ eventOn("随便什么名字", (data1, data2) => { console.info(data1, data2); })
 ```
 
 当我们按下该快速回复的按钮后, 正在监听 "事件名称" 消息频道的 js 代码将会获得 `data` 并开始执行.
+
+### 请求生成
+
+前端助手提供了函数用于更加灵活地请求 AI 生成回复, 你可以通过它来自定义生成时要采用的提示词配置.
+
+#### 使用当前预设进行生成
+
+```typescript
+/**
+ * 使用酒馆当前启用的预设, 让 ai 生成一段文本.
+ *
+ * 该函数在执行过程中将会发送以下事件:
+ * - `iframe_events.GENERATION_STARTED`: 生成开始
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+ * - `iframe_events.GENERATION_ENDED`: 生成结束, 监听它可以得到生成的最终文本 (当然也能通过函数返回值获得)
+ *
+ * @param config 提示词和生成方式设置
+ *   - `user_input?:string`: 用户输入
+ *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
+ *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
+ *   - `injects?:InjectionPrompt[]`: 要额外注入的提示词
+ *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
+ * @returns 生成的最终文本
+ */
+async function generate(config: GenerateConfig): Promise<string>
+```
+
+具体参数: (参数详情见下文)
+
+```typescript
+interface GenerateConfig {
+  /** 用户输入 */
+  user_input?: string;
+
+  /**
+   * 是否启用流式传输; 默认为 `false`.
+   *
+   * 若启用流式传输, 每次得到流式传输结果时, 函数将会发送事件:
+   * - `ifraem_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+   * - `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+   *
+   * @example
+   * eventOn(iframe_events.STREAM_TOKEN_RECEIVED_FULLY, text => console.info(text));
+   */
+  should_stream?: boolean;
+
+  /**
+   * 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词.
+   *   如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述.
+   */
+  overrides?: Overrides;
+
+  /** 要额外注入的提示词 */
+  injects?: InjectionPrompt[];
+
+  /** 最多使用多少条聊天历史; 默认为 'all' */
+  max_chat_history?: 'all' | number;
+};
+```
+
+示例:
+
+```typescript
+// 流式生成
+const result = await generate({ user_input: '你好', should_stream: true });
+```
+
+```typescript
+// 注入、覆盖提示词
+const result = await generate({
+  user_input: '你好',
+  injects: [{ role: 'system', content: '思维链...', position: 'in_chat', depth: 0, should_scan: true, }]
+  overrides: {
+    char_personality: '温柔',
+    world_info_before: '',
+    chat_history: {
+      prompts: [],
+    }
+  }
+});
+```
+
+#### 自定义预设进行生成
+
+```typescript
+/**
+ * 不使用酒馆当前启用的预设, 让 ai 生成一段文本.
+ *
+ * 该函数在执行过程中将会发送以下事件:
+ * - `iframe_events.GENERATION_STARTED`: 生成开始
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+ * - `iframe_events.GENERATION_ENDED`: 生成结束, 监听它可以得到生成的最终文本 (当然也能通过函数返回值获得)
+ *
+ * @param config 提示词和生成方式设置
+ *   - `user_input?:string`: 用户输入
+ *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
+ *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
+ *   - `injects?:InjectionPrompt[]`: 要额外注入的提示词
+ *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设
+ * @returns 生成的最终文本
+ */
+async function generateRaw(config: GenerateRawConfig): Promise<string>
+```
+
+具体参数: (参数详情见下文)
+
+```typescript
+interface GenerateRawConfig {
+  /**
+   * 用户输入.
+   *
+   * 如果设置, 则无论 ordered_prompts 中是否有 'user_input' 都会加入该用户输入提示词; 默认加入在末尾.
+   */
+  user_input?: string;
+
+  /**
+   * 是否启用流式传输; 默认为 `false`.
+   *
+   * 若启用流式传输, 每次得到流式传输结果时, 函数将会发送事件:
+   * - `ifraem_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+   * - `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+   *
+   * @example
+   * eventOn(iframe_events.STREAM_TOKEN_RECEIVED_FULLY, text => console.info(text));
+   */
+  should_stream?: boolean;
+
+  /**
+   * 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词.
+   *   如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖提示词
+   */
+  overrides?: Overrides;
+
+  /* 要注入的提示词 */
+  injects?: InjectionRawPrompt[];
+
+  /**
+   * 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设. 该数组允许存放两种类型:
+   * - `BuiltinPrompt`: 内置提示词. 由于不使用预设, 如果需要 "角色描述" 等提示词, 你需要自己指定要用哪些并给出顺序
+   *                      如果不想自己指定, 可通过 `builtin_prompt_default_order` 得到酒馆默认预设所使用的顺序 (但对于这种情况, 也许你更应该用 `generate`).
+   * - `RolePrompt`: 要额外给定的提示词.
+   */
+  ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
+};
+```
+
+示例:
+
+```typescript
+// 自定义内置提示词顺序, 未在 ordered_prompts 中给出的将不会被使用
+const result = await generateRaw({
+  user_input: '你好',
+  ordered_prompts: [
+    'char_description',
+    { role: 'system', content: '系统提示' },
+    'chat_history',
+    'user_input',
+  ]
+})
+```
+
+#### 参数详情
+
+<details>
+<summary> 参数详情 </summary>
+
+```typescript
+interface RolePrompt {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+};
+
+interface InjectionPrompt {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+
+  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
+  position: 'before_prompt' | 'in_chat' | 'after_prompt' | 'none';
+
+  depth: number;
+
+  /** 是否要加入世界书扫描中 */
+  should_scan: boolean;
+};
+
+interface InjectionRawPrompt {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+
+  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
+  position: 'in_chat' | 'none';
+
+  depth: number;
+
+  /** 是否要加入世界书扫描中 */
+  should_scan: boolean;
+};
+
+interface Overrides {
+  world_info_before?: string;    // 世界书(角色定义前)
+  persona_description?: string;  // 用户描述
+  char_description?: string;     // 角色描述
+  char_personality?: string;     // 角色性格
+  scenario?: string;             // 场景
+  world_info_after?: string;     // 世界书(角色定义后)
+  dialogue_examples?: string;    // 对话示例
+
+  /**
+   * 聊天历史
+   * - `with_depth_entries`: 是否启用世界书中按深度插入的条目; 默认为 `true`
+   * - `author_note`: 若设置, 覆盖 "作者注释" 为给定的字符串
+   * - `prompts`: 若设置, 覆盖 "聊天历史" 为给定的提示词
+   */
+  chat_history?: {
+    with_depth_entries?: boolean,
+    author_note?: string;
+    prompts?: RolePrompt[];
+  };
+};
+
+/**
+ * 预设为内置提示词设置的默认顺序
+ */
+const builtin_prompt_default_order: BuiltinPrompt[] = [
+  'world_info_before',    // 世界书(角色定义前)
+  'persona_description',  // 用户描述
+  'char_description',     // 角色描述
+  'char_personality',     // 角色性格
+  'scenario',             // 场景
+  'world_info_after',     // 世界书(角色定义后)
+  'dialogue_examples',    // 对话示例
+  'chat_history',         // 聊天历史 (含世界书中按深度插入的条目、作者注释)
+  'user_input',           // 用户输入
+]
+
+type BuiltinPrompt =
+  | 'world_info_before'    // 世界书(角色定义前)
+  | 'persona_description'  // 用户描述
+  | 'char_description'     // 角色描述
+  | 'char_personality'     // 角色性格
+  | 'scenario'             // 场景
+  | 'world_info_after'     // 世界书(角色定义后)
+  | 'dialogue_examples'    // 对话示例
+  | 'chat_history'         // 聊天历史 (含世界书中按深度插入的条目、作者注释)
+  | 'user_input'           // 用户输入
+  ;
+```
+
+</details>
 
 ### 其他辅助功能
 
