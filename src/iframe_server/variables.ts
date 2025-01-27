@@ -12,20 +12,20 @@ interface IframeGetVariables extends IframeMessage {
 interface IframeReplaceVariables extends IframeMessage {
   request: '[Variables][replaceVariables]';
   option: Required<VariableOption>;
-  variables: JsonObject;
+  variables: Record<string, any>;
 }
 
 // for compatibility
 interface IframeSetVariables extends IframeMessage {
   request: '[Variables][setVariables]';
   message_id: number;
-  variables: JsonObject;
+  variables: Record<string, any>;
 }
 
-function getVariablesByType(type: 'chat' | 'global'): JsonObject {
+function getVariablesByType(type: 'chat' | 'global'): Record<string, any> {
   switch (type) {
     case 'chat':
-      const metadata = chat_metadata as { variables: JsonObject | undefined }
+      const metadata = chat_metadata as { variables: Record<string, any> | undefined }
       if (!metadata.variables) {
         metadata.variables = {};
       }
@@ -40,7 +40,7 @@ let latest_set_variables_message_id = null;
 export function registerIframeVariableHandler() {
   registerIframeHandler(
     '[Variables][getVariables]',
-    async (event: MessageEvent<IframeGetVariables>): Promise<JsonObject> => {
+    async (event: MessageEvent<IframeGetVariables>): Promise<Record<string, any>> => {
       const option = event.data.option;
 
       const result = getVariablesByType(option.type);

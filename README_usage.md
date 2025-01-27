@@ -373,7 +373,7 @@ const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
  *
  * @returns 变量表
  */
-async function getVariables(option: VariableOption = {}): Promise<JsonObject>
+async function getVariables(option: VariableOption = {}): Promise<Record<string, any>>
 ```
 
 示例:
@@ -406,7 +406,7 @@ if (_.has(variables, "神乐光.好感度")) {
  * @param option 可选选项
  *   - `type?:'chat'|'global'`: 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  */
-async function replaceVariables(variables: JsonObject, option: VariableOption = {}): Promise<void>
+async function replaceVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void>
 ```
 
 示例:
@@ -436,7 +436,7 @@ await replaceVariables(variables);
  *
  * @returns 更新后的变量表
  */
-async function updateVariablesWith(updater: (variables: JsonObject) => JsonObject, option: VariableOption = {}): Promise<JsonObject>
+async function updateVariablesWith(updater: (variables: Record<string, any>) => Record<string, any>, option: VariableOption = {}): Promise<Record<string, any>>
 ```
 
 示例:
@@ -470,7 +470,7 @@ await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感�
  * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-async function insertOrAssignVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
+async function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void> {
   await updateVariablesWith(old_variables => _.merge(old_variables, variables), option);
 }
 ```
@@ -492,7 +492,7 @@ async function insertOrAssignVariables(variables: JsonObject, option: VariableOp
  * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-async function insertVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
+async function insertVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void> {
   await updateVariablesWith(old_variables => _.defaultsDeep(old_variables, variables), option);
 }
 ```

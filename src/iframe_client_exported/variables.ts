@@ -1,10 +1,4 @@
 export const iframe_client_variables = `
-function isJsonObject(value) {
-    return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-function isJsonArray(value) {
-    return Array.isArray(value);
-}
 ;
 /**
  * 获取变量表

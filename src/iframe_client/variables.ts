@@ -1,13 +1,3 @@
-type JsonValue = number | string | boolean | JsonArray | JsonObject | null;
-interface JsonObject extends Record<string, JsonValue> { }
-interface JsonArray extends Array<JsonValue> { }
-function isJsonObject(value: JsonValue): value is JsonObject {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-function isJsonArray(value: JsonValue): value is JsonArray {
-  return Array.isArray(value);
-}
-
 interface VariableOption {
   type?: 'chat' | 'global';  // 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
 };
@@ -33,7 +23,7 @@ interface VariableOption {
  *   ...
  * }
  */
-async function getVariables(option: VariableOption = {}): Promise<JsonObject> {
+async function getVariables(option: VariableOption = {}): Promise<Record<string, any>> {
   option = {
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
@@ -65,7 +55,7 @@ async function getVariables(option: VariableOption = {}): Promise<JsonObject> {
  * _.unset(variables, "神乐光.好感度");
  * await replaceVariables(variables);
  */
-async function replaceVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
+async function replaceVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void> {
   option = {
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
@@ -93,7 +83,7 @@ async function replaceVariables(variables: JsonObject, option: VariableOption = 
  * // 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
  * await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
  */
-async function updateVariablesWith(updater: (variables: JsonObject) => JsonObject, option: VariableOption = {}): Promise<JsonObject> {
+async function updateVariablesWith(updater: (variables: Record<string, any>) => Record<string, any>, option: VariableOption = {}): Promise<Record<string, any>> {
   option = {
     type: option.type ?? 'chat',
   } as Required<VariableOption>;
@@ -119,7 +109,7 @@ async function updateVariablesWith(updater: (variables: JsonObject) => JsonObjec
  * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-async function insertOrAssignVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
+async function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void> {
   await updateVariablesWith(old_variables => _.merge(old_variables, variables), option);
 }
 
@@ -137,7 +127,7 @@ async function insertOrAssignVariables(variables: JsonObject, option: VariableOp
  * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-async function insertVariables(variables: JsonObject, option: VariableOption = {}): Promise<void> {
+async function insertVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void> {
   await updateVariablesWith(old_variables => _.defaultsDeep(old_variables, variables), option);
 }
 
@@ -189,24 +179,24 @@ async function deleteVariable(variable_path: string, option: VariableOption = {}
  *   insertOrSetVariables(variables);
  * }
  */
-async function setVariables(message_id: number, new_or_updated_variables: JsonObject): Promise<void>;
+async function setVariables(message_id: number, new_or_updated_variables: Record<string, any>): Promise<void>;
 
 /**
  * 如果当前楼层是最新楼层, 则用 `new_or_updated_variables` 更新聊天变量, **只能在消息楼层 iframe 中使用**.
  *
  * @deprecated 这个函数是在事件监听功能之前制作的, 现在请使用 `insertOrSetVariables` 然后用事件监听或条件判断来控制怎么更新
  */
-async function setVariables(new_or_updated_variables: JsonObject): Promise<void>;
+async function setVariables(new_or_updated_variables: Record<string, any>): Promise<void>;
 
-async function setVariables(message_id: number | JsonObject, new_or_updated_variables?: JsonObject): Promise<void> {
+async function setVariables(message_id: number | Record<string, any>, new_or_updated_variables?: Record<string, any>): Promise<void> {
   let actual_message_id: number;
-  let actual_variables: JsonObject;
+  let actual_variables: Record<string, any>;
   if (new_or_updated_variables) {
     actual_message_id = message_id as number;
-    actual_variables = new_or_updated_variables as JsonObject;
+    actual_variables = new_or_updated_variables as Record<string, any>;
   } else {
     actual_message_id = getCurrentMessageId();
-    actual_variables = message_id as JsonObject;
+    actual_variables = message_id as Record<string, any>;
   }
   if (typeof actual_message_id !== 'number' || typeof actual_variables !== 'object') {
     console.error("[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确");
