@@ -4,16 +4,16 @@ interface ChatMessage {
   role: 'system' | 'assistant' | 'user';
   is_hidden: boolean;
   message: string;
+  data: Record<string, any>;
 
-  // 如果 `getChatMessages` 使用 `include_swipe: false`, 则以下内容为 `undefined`
-  swipe_id?: number;
-  swipes?: string[];
+  swipe_id: number;
+  swipes: string[];
+  swipes_data: Record<string, any>[];
 }
 
 interface GetChatMessagesOption {
   role?: 'all' | 'system' | 'assistant' | 'user';  // 按 role 筛选消息; 默认为 `'all'`
   hide_state?: 'all' | 'hidden' | 'unhidden';      // 按是否被隐藏筛选消息; 默认为 `'all'`
-  include_swipe?: boolean;                         // 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
 }
 
 /**
@@ -23,7 +23,6 @@ interface GetChatMessagesOption {
  * @param option 可选选项
  *   - `role:'all'|'system'|'assistant'|'user'`: 按 role 筛选消息; 默认为 `'all'`
  *   - `hide_state:'all'|'hidden'|'unhidden'`: 按是否被隐藏筛选消息; 默认为 `'all'`
- *   - `include_swipe:boolean`: 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
  *
  * @returns 一个数组, 数组的元素是每楼的消息 `ChatMessage`. 该数组依据按 message_id 从低到高排序.
  *
@@ -37,7 +36,7 @@ interface GetChatMessagesOption {
  * const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
  */
 async function getChatMessages(range: string | number, option: GetChatMessagesOption = {}): Promise<ChatMessage[]> {
-  // @todo @deprecated 在未来移除它
+  /** @todo @deprecated 在未来移除它 */
   if (Object.hasOwn(option, 'hidden')) {
     console.warn("`hidden` 已经被弃用, 请使用 `hide_state`");
     if (Object.hasOwn(option, 'include_swipe')) {
@@ -46,19 +45,10 @@ async function getChatMessages(range: string | number, option: GetChatMessagesOp
       option.hide_state = option.hidden ? 'all' : 'unhidden';
     }
   }
-  if (Object.hasOwn(option, 'swipe')) {
-    console.warn("`swipe 已经被弃用, 请使用 `include_swipe`");
-    if (Object.hasOwn(option, 'include_swipe')) {
-      console.warn("不要同时使用 include_swipe 和 swipe, 请只使用 include_swipe")
-    } else {
-      option.include_swipe = option.swipe;
-    }
-  }
 
   option = {
     role: option.role ?? 'all',
     hide_state: option.hide_state ?? 'all',
-    include_swipe: option.include_swipe ?? false,
   } as Required<GetChatMessagesOption>;
   return detail.make_iframe_promise({
     request: "[ChatMessage][getChatMessages]",
@@ -67,8 +57,16 @@ async function getChatMessages(range: string | number, option: GetChatMessagesOp
   });
 }
 
+interface ChatMessageToSet {
+  message?: string;
+  data?: Record<string, any>;
+};
+
 interface SetChatMessageOption {
-  swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+  /**
+   * 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+   */
+  swipe_id?: 'current' | number;
 
   /**
    * 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
@@ -78,40 +76,54 @@ interface SetChatMessageOption {
    * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
    */
   refresh?: 'none' | 'display_current' | 'display_and_render_current' | 'all';
-
-  // TODO: emit_event?: boolean;  // 是否根据替换时消息发生的变化发送对应的酒馆事件, 如 MESSAGE_UPDATED, MESSAGE_SWIPED 等; 默认为 `false`
 }
 
 /**
- * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前会被发送给 ai 的消息 (正被使用且没被隐藏的消息页), 则 "仅格式提示词" 正则将会使用它还不是原来的消息.
+ * 设置某消息楼层某聊天消息页的信息. 如果设置了当前会被发送给 ai 的消息文本 (正被使用且没被隐藏的消息页文本), 则 "仅格式提示词" 正则将会使用它而不是原来的消息.
  *
- * @param message 要用于替换的消息
+ * @param field_values 要设置的信息
+ *   - message?: 消息页要设置的消息文本
+ *   - data?: 消息页要绑定的数据
  * @param message_id 消息楼层id
- * @param option 可选选项
- *   - `swipe_id:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
- *   - `refresh:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
+ * @param option 可选选项:
+ *   - `swipe_id?:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+ *   - `refresh?:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
  *
  * @example
- * await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
- * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
- * await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});
+ * await setChatMessage({message: "设置楼层 5 当前消息页的文本"}, 5);
+ * await setChatMessage({message: "设置楼层 5 第 3 页的文本, 更新为显示它并渲染其中的 iframe"}, 5, {swipe_id: 3});
+ * await setChatMessage({message: "设置楼层 5 第 3 页的文本, 但不更新显示它"}, 5, {swipe_id: 3, refresh: 'none'});
+ *
+ * @example
+ * // 为楼层 5 当前消息页绑定数据
+ * await setChatMessage({data: {神乐光好感度: 5}}, 5);
  */
-async function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): Promise<void> {
-  option = {
+async function setChatMessage(field_values: ChatMessageToSet, message_id: number, option: SetChatMessageOption): Promise<void>;
+/**
+ * @deprecated 已弃用. 请使用 `setChatMessage({message: text}, ...)` 而非 `setChatMessage(text, ...)`;
+ */
+async function setChatMessage(message: string, message_id: number, option: SetChatMessageOption): Promise<void>;
+async function setChatMessage(field_values: string | ChatMessageToSet, message_id: number, option: SetChatMessageOption = {}): Promise<void> {
+  const required_option: Required<SetChatMessageOption> = {
     swipe_id: option.swipe_id ?? 'current',
     refresh: option.refresh ?? 'display_and_render_current',
-  } as Required<SetChatMessageOption>;
+  };
   return detail.make_iframe_promise({
     request: "[ChatMessage][setChatMessage]",
-    message: message,
+    field_values: typeof field_values === 'string' ? { message: field_values } : field_values,
     message_id: message_id,
-    option: option,
+    option: required_option,
   });
 }
 
 //------------------------------------------------------------------------------------------------------------------------
 // 已被弃用的接口, 请尽量按照指示更新它们
 interface ChatMessage {
+  /**
+   * @deprecated 已弃用. 现在 `getChatMessages` 始终会返回楼层的每个消息页
+   */
+  include_swipe?: boolean;
+
   /**
    * @deprecated 请使用 `role`. 它相当于 `role === 'user'`.
    */

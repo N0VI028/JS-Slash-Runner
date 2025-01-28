@@ -113,7 +113,10 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
  * const entries = await getLorebookEntries(lorebook);
  * await setLorebookEntries(lorebook, entries.map(entry => ({ uid: entry.uid, prevent_recursion: !entry.prevent_recursion })));
  */
-async function setLorebookEntries(lorebook: string, entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]): Promise<void> {
+async function setLorebookEntries(
+  lorebook: string,
+  entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]
+): Promise<void> {
   return detail.make_iframe_promise({
     request: "[LorebookEntry][setLorebookEntries]",
     lorebook: lorebook,

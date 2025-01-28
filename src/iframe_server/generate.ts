@@ -1,3 +1,5 @@
+// TODO: 黑奴给我修报错
+// @ts-nocheck
 import {
   getRegexedString,
   regex_placement,

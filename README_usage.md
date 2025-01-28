@@ -535,13 +535,14 @@ async function deleteVariable(variable_path: string, option: VariableOption = {}
 interface ChatMessage {
   message_id: number;
   name: string;
-  role: 'system' | 'assistant' | 'user'
+  role: 'system' | 'assistant' | 'user';
   is_hidden: boolean;
   message: string;
+  data: Record<string, any>;
 
-  // 如果 `getChatMessages` 使用 `include_swipe: false`, 则以下内容为 `undefined`
-  swipe_id?: number;
-  swipes?: string[];
+  swipe_id: number;
+  swipes: string[];
+  swipes_data: Record<string, any>[];
 }
 ```
 
@@ -551,17 +552,15 @@ interface ChatMessage {
 interface GetChatMessagesOption {
   role?: 'all' | 'system' | 'assistant' | 'user';  // 按 role 筛选消息; 默认为 `'all'`
   hide_state?: 'all' | 'hidden' | 'unhidden';      // 按是否被隐藏筛选消息; 默认为 `'all'`
-  include_swipe?: boolean;                         // 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
 }
 
 /**
  * 获取聊天消息
  *
  * @param range 要获取的消息楼层号或楼层范围, 与 `/messages` 相同
- * @param option 对获取消息进行可选设置
+ * @param option 可选选项
  *   - `role:'all'|'system'|'assistant'|'user'`: 按 role 筛选消息; 默认为 `'all'`
  *   - `hide_state:'all'|'hidden'|'unhidden'`: 按是否被隐藏筛选消息; 默认为 `'all'`
- *   - `include_swipe:boolean`: 是否包含消息楼层其他没被使用的消息页; 默认为 `false`
  *
  * @returns 一个数组, 数组的元素是每楼的消息 `ChatMessage`. 该数组依据按 message_id 从低到高排序.
  */
@@ -587,8 +586,16 @@ const messages = await getChatMessages("0-{{lastMessageId}}", {swipe: true});
 酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本前端助手提供这样的功能:
 
 ```typescript
+interface ChatMessageToSet {
+  message?: string;
+  data?: Record<string, any>;
+};
+
 interface SetChatMessageOption {
-  swipe_id?: 'current' | number;  // 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+  /**
+   * 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+   */
+  swipe_id?: 'current' | number;
 
   /**
    * 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
@@ -598,25 +605,33 @@ interface SetChatMessageOption {
    * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 进而重新加载全局脚本和楼层消息
    */
   refresh?: 'none' | 'display_current' | 'display_and_render_current' | 'all';
-
-  // TODO: emit_event?: boolean;  // 是否根据替换时消息发生的变化发送对应的酒馆事件, 如 MESSAGE_UPDATED, MESSAGE_SWIPED 等; 默认为 `false`
 }
 
 /**
- * 替换某消息楼层的某聊天消息页. 如果替换的消息是当前会被发送给 ai 的消息 (正被使用且没被隐藏的消息页), 则 "仅格式提示词" 正则将会使用它还不是原来的消息.
+ * 设置某消息楼层某聊天消息页的信息. 如果设置了当前会被发送给 ai 的消息文本 (正被使用且没被隐藏的消息页文本), 则 "仅格式提示词" 正则将会使用它而不是原来的消息.
  *
- * @param message 要用于替换的消息
+ * @param field_values 要设置的信息
+ *   - message?: 消息页要设置的消息文本
+ *   - data?: 消息页要绑定的数据
  * @param message_id 消息楼层id
- * @param option 对获取消息进行可选设置
- *   - `swipe_id:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
- *   - `refresh:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
+ * @param option 可选选项:
+ *   - `swipe_id?:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+ *   - `refresh?:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
  */
-async function setChatMessage(message: string, message_id: number, option: SetChatMessageOption = {}): Promise<void>
+async function setChatMessage(field_values: ChatMessageToSet, message_id: number, option: SetChatMessageOption): Promise<void>
 ```
 
 示例:
 
 ```typescript
+await setChatMessage({message: "设置楼层 5 当前消息页的文本"}, 5);
+await setChatMessage({message: "设置楼层 5 第 3 页的文本, 更新为显示它并渲染其中的 iframe"}, 5, {swipe_id: 3});
+await setChatMessage({message: "设置楼层 5 第 3 页的文本, 但不更新显示它"}, 5, {swipe_id: 3, refresh: 'none'});
+```
+
+```typescript
+// 为楼层 5 当前消息页绑定数据
+await setChatMessage({data: {神乐光好感度: 5}}, 5);
 await setChatMessage("这是要设置在楼层 5 的消息, 它会替换该楼当前使用的消息", 5);
 await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 更新为显示它并渲染其中的 iframe", 5, {swipe_id: 3});
 await setChatMessage("这是要设置在楼层 5 第 3 页的消息, 但不更新显示它", 5, {swipe_id: 3, refresh: 'none'});

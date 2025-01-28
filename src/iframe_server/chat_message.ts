@@ -11,7 +11,7 @@ interface IframeGetChatMessages extends IframeMessage {
 
 interface IframeSetChatMessage extends IframeMessage {
   request: '[ChatMessage][setChatMessage]';
-  message: string;
+  field_values: ChatMessageToSet;
   message_id: number;
   option: Required<SetChatMessageOption>;
 }
@@ -67,15 +67,22 @@ export function registerIframeChatMessageHandler() {
           return null;
         }
 
+        const data = chat_message?.data ?? {};
+        const swipe_id = chat_message?.swipe_id ?? 0;
+        const swipes = chat_message?.swipes ?? [chat_message.mes];
+        const swipes_data = chat_message?.swipe_info?.map((info: any) => info?.data) ?? [data];
+
         return {
           message_id: message_id,
           name: chat_message.name,
           role: role as ('system' | 'assistant' | 'user'),
           is_hidden: chat_message.is_system,
           message: chat_message.mes,
+          data: data,
 
-          swipe_id: option.include_swipe ? (chat_message.swipe_id ?? 0) : undefined,
-          swipes: option.include_swipe ? (chat_message.swipes ?? [chat_message.mes]) : undefined,
+          swipe_id: swipe_id,
+          swipes: swipes,
+          swipes_data: swipes_data,
 
           is_user: chat_message.is_user,
           is_system_or_hidden: chat_message.is_system,
@@ -97,7 +104,7 @@ export function registerIframeChatMessageHandler() {
   registerIframeHandler(
     '[ChatMessage][setChatMessage]',
     async (event: MessageEvent<IframeSetChatMessage>): Promise<void> => {
-      const message = event.data.message;
+      const field_values = event.data.field_values;
       const message_id = event.data.message_id;
       const option = event.data.option;
       if (typeof option.swipe_id !== 'number' && option.swipe_id !== 'current') {
@@ -118,7 +125,7 @@ export function registerIframeChatMessageHandler() {
           return false;
         }
 
-        // swipe_id 存在对应的消息页存在
+        // swipe_id 对应的消息页存在
         if (option.swipe_id == 0 || (chat_message.swipes && option.swipe_id < chat_message.swipes.length)) {
           return false;
         }
@@ -128,7 +135,7 @@ export function registerIframeChatMessageHandler() {
           chat_message.swipes = [chat_message.mes];
           chat_message.swipe_info = [{}];
         }
-        for (let i = chat_message.length; i <= option.swipe_id; ++i) {
+        for (let i = chat_message.swipes.length; i <= option.swipe_id; ++i) {
           chat_message.swipes.push('');
           chat_message.swipe_info.push({});
         }
@@ -138,16 +145,24 @@ export function registerIframeChatMessageHandler() {
       const swipe_id_previous_index: number = chat_message.swipe_id ?? 0;
       const swipe_id_to_set_index: number = option.swipe_id == 'current' ? swipe_id_previous_index : option.swipe_id;
       const swipe_id_to_use_index: number = option.refresh != 'none' ? swipe_id_to_set_index : swipe_id_previous_index;
+      const message: string = field_values.message ?? chat_message.swipes[swipe_id_to_set_index] ?? chat_message.mes;
 
       const update_chat_message = () => {
-        const message_demacroed = substituteParamsExtended(event.data.message);
+        const message_demacroed = substituteParamsExtended(message);
 
         if (chat_message.swipes) {
           chat_message.swipes[swipe_id_to_set_index] = message_demacroed;
+          if (field_values.data) {
+            const swipe_info = chat_message.swipe_info[swipe_id_to_set_index];
+            Object.assign(swipe_info, { data: field_values.data });
+          }
           chat_message.swipe_id = swipe_id_to_use_index;
         }
 
-        if (swipe_id_to_use_index == swipe_id_to_set_index) {
+        if (swipe_id_to_use_index === swipe_id_to_set_index) {
+          if (field_values.data) {
+            chat_message.data = field_values.data;
+          }
           chat_message.mes = message_demacroed;
         }
       };
@@ -162,7 +177,7 @@ export function registerIframeChatMessageHandler() {
           // FIXME: 只有一条消息时, swipes-counter 不会正常显示; 此外还要考虑 swipes-counter 的 "Swipe # for All Messages" 选项
           mes_html
             .find('.swipes-counter')
-            .text(`${swipe_id_to_use_index + 1} \u200b /\u200b${chat_message.swipes.length} `);
+            .text(`${swipe_id_to_use_index + 1}\u200b/\u200b${chat_message.swipes.length}`);
         }
         if (option.refresh != 'none') {
           mes_html.find('.mes_text')
