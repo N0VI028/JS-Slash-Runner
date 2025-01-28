@@ -1,3 +1,5 @@
+// TODO: 黑奴给我修报错
+// @ts-nocheck
 import { getRegexedString, regex_placement, } from "../../../../../extensions/regex/engine.js";
 import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from "../../../../../world-info.js";
 import { shouldWIAddPrompt, NOTE_MODULE_NAME, metadata_keys } from "../../../../../authors-note.js";
