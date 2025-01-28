@@ -1,0 +1,519 @@
+/*!
+* @preserve
+* MonoLisa 2.012
+* This font is subject to a EULA. A user-licence can be acquired at:
+*   https://www.monolisa.dev/license
+* © 2024 FaceType Foundry. All Rights Reserved.
+*/
+
+@font-face {
+  src: url(monolisa/0-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0020-007F;
+}
+
+@font-face {
+  src: url(monolisa/1-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0020-007F;
+}
+
+@font-face {
+  src: url(monolisa/2-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0080-00FF;
+}
+
+@font-face {
+  src: url(monolisa/3-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0080-00FF;
+}
+
+@font-face {
+  src: url(monolisa/4-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0100-017F;
+}
+
+@font-face {
+  src: url(monolisa/5-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0100-017F;
+}
+
+@font-face {
+  src: url(monolisa/6-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+1E00-1EFF;
+}
+
+@font-face {
+  src: url(monolisa/7-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+1E00-1EFF;
+}
+
+@font-face {
+  src: url(monolisa/8-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0180-024F;
+}
+
+@font-face {
+  src: url(monolisa/9-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0180-024F;
+}
+
+@font-face {
+  src: url(monolisa/10-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2C60-2C7F;
+}
+
+@font-face {
+  src: url(monolisa/11-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2C60-2C7F;
+}
+
+@font-face {
+  src: url(monolisa/12-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+A720-A7FF;
+}
+
+@font-face {
+  src: url(monolisa/13-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+A720-A7FF;
+}
+
+@font-face {
+  src: url(monolisa/14-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0250-02AF;
+}
+
+@font-face {
+  src: url(monolisa/15-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0250-02AF;
+}
+
+@font-face {
+  src: url(monolisa/16-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0400-04FF;
+}
+
+@font-face {
+  src: url(monolisa/17-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0400-04FF;
+}
+
+@font-face {
+  src: url(monolisa/18-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0500-052F;
+}
+
+@font-face {
+  src: url(monolisa/19-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0500-052F;
+}
+
+@font-face {
+  src: url(monolisa/20-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0370-03FF;
+}
+
+@font-face {
+  src: url(monolisa/21-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0370-03FF;
+}
+
+@font-face {
+  src: url(monolisa/22-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2000-206F;
+}
+
+@font-face {
+  src: url(monolisa/23-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2000-206F;
+}
+
+@font-face {
+  src: url(monolisa/24-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2070-209F;
+}
+
+@font-face {
+  src: url(monolisa/25-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2070-209F;
+}
+
+@font-face {
+  src: url(monolisa/26-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+3000-303F;
+}
+
+@font-face {
+  src: url(monolisa/27-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+3000-303F;
+}
+
+@font-face {
+  src: url(monolisa/28-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0530-058F;
+}
+
+@font-face {
+  src: url(monolisa/29-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0530-058F;
+}
+
+@font-face {
+  src: url(monolisa/30-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0980-09FF;
+}
+
+@font-face {
+  src: url(monolisa/31-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0980-09FF;
+}
+
+@font-face {
+  src: url(monolisa/32-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+1780-17FF;
+}
+
+@font-face {
+  src: url(monolisa/33-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+1780-17FF;
+}
+
+@font-face {
+  src: url(monolisa/34-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0E00-0E7F;
+}
+
+@font-face {
+  src: url(monolisa/35-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0E00-0E7F;
+}
+
+@font-face {
+  src: url(monolisa/36-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2600-26FF;
+}
+
+@font-face {
+  src: url(monolisa/37-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2600-26FF;
+}
+
+@font-face {
+  src: url(monolisa/38-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2700-27BF;
+}
+
+@font-face {
+  src: url(monolisa/39-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2700-27BF;
+}
+
+@font-face {
+  src: url(monolisa/40-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2300-23FF;
+}
+
+@font-face {
+  src: url(monolisa/41-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2300-23FF;
+}
+
+@font-face {
+  src: url(monolisa/42-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2100-214F;
+}
+
+@font-face {
+  src: url(monolisa/43-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2100-214F;
+}
+
+@font-face {
+  src: url(monolisa/44-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2190-21FF;
+}
+
+@font-face {
+  src: url(monolisa/45-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2190-21FF;
+}
+
+@font-face {
+  src: url(monolisa/46-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2B00-2BFF;
+}
+
+@font-face {
+  src: url(monolisa/47-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2B00-2BFF;
+}
+
+@font-face {
+  src: url(monolisa/48-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+20A0-20CF;
+}
+
+@font-face {
+  src: url(monolisa/49-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+20A0-20CF;
+}
+
+@font-face {
+  src: url(monolisa/50-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2200-22FF;
+}
+
+@font-face {
+  src: url(monolisa/51-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2200-22FF;
+}
+
+@font-face {
+  src: url(monolisa/52-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2580-259F;
+}
+
+@font-face {
+  src: url(monolisa/53-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2580-259F;
+}
+
+@font-face {
+  src: url(monolisa/54-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+25A0-25FF;
+}
+
+@font-face {
+  src: url(monolisa/55-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+25A0-25FF;
+}
+
+@font-face {
+  src: url(monolisa/56-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+2500-257F;
+}
+
+@font-face {
+  src: url(monolisa/57-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+2500-257F;
+}
+
+@font-face {
+  src: url(monolisa/58-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+0300-036F;
+}
+
+@font-face {
+  src: url(monolisa/59-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+0300-036F;
+}
+
+@font-face {
+  src: url(monolisa/60-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+02B0-02FF;
+}
+
+@font-face {
+  src: url(monolisa/61-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+02B0-02FF;
+}
+
+@font-face {
+  src: url(monolisa/62-normal.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: normal;
+  unicode-range: U+E000-F8FF;
+}
+
+@font-face {
+  src: url(monolisa/63-italic.woff2) format("woff2");
+  font-family: ml;
+  font-weight: 100 900;
+  font-style: italic;
+  unicode-range: U+E000-F8FF;
+}

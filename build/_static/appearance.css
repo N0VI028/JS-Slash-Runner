@@ -1,0 +1,41 @@
+span.menuselection {
+  background-color: var(--pst-color-info-bg);
+  border: 1px solid var(--pst-color-info);
+  border-radius: 4px;
+  color: var(--pst-color-info);
+  font-size: 80%;
+  font-weight: 700;
+  margin: auto 2px;
+  padding: 2.4px 6px;
+  position: relative;
+}
+span.menuselection:before {
+  content: "";
+  height: 100%;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+html {
+  --pst-font-size-h1: 1.75rem;
+  --pst-font-size-h2: 1.5rem;
+  --pst-font-size-h3: 1.3rem;
+  --pst-font-size-h4: 1.2rem;
+  --pst-font-size-h5: 1.1rem;
+  --pst-font-size-h6: 1.05rem;
+}
+
+.toctree-wrapper li[class^="toctree-l"] > a {
+  font-size: 1em;
+}
+
+.bd-article-container h3,
+.bd-article-container h4,
+.bd-article-container h5,
+.bd-article-container h6 {
+  font-weight: 500;
+}
