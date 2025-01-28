@@ -1,7 +1,7 @@
 import { characters, getCurrentChatId, reloadCurrentChat, saveSettingsDebounced, this_chid } from "../../../../../../script.js";
 import { RegexScriptData } from "../../../../../char-data.js";
 import { extension_settings, writeExtensionField } from "../../../../../extensions.js";
-import { regex_placement, substitute_find_regex } from "../../../../regex/engine.js";
+import { regex_placement } from "../../../../regex/engine.js";
 import { partition } from "../util/helper.js";
 import { getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 
@@ -79,7 +79,7 @@ function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
       ...(tavern_regex.source.world_info ? [regex_placement.WORLD_INFO] : []),
     ],
 
-    substituteRegex: substitute_find_regex.NONE,  // TODO: handle this?
+    substituteRegex: false,  // TODO: handle this?
 
     // @ts-ignore
     minDepth: tavern_regex.min_depth,
