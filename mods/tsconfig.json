@@ -1,0 +1,37 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "amd",
+        "outFile": "./dist/bundle.js",
+        "outDir": "dist",
+        "moduleDetection": "auto",
+        "moduleResolution": "node10",
+        "allowUmdGlobalAccess": true,
+        "allowSyntheticDefaultImports": true,
+        "strictBindCallApply": true,
+        "allowJs": true,
+        "checkJs": false,
+        "sourceMap": true,
+        "isolatedModules": false,
+        "alwaysStrict": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "baseUrl": "./", // 或者是你的 tsconfig.json 所在目录的根路径
+        "paths": {
+            "slash-runner/*": ["../src/iframe_client/*"] // 注意加上 /* 匹配所有子模块
+        }
+    },
+    "include": [
+        "./src/**/*.ts",
+    ],
+    "exclude": [
+        "**/node_modules/**",
+        "**/build/**"
+    ]
+}

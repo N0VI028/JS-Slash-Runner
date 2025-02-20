@@ -19,9 +19,9 @@ export function registerIframeFrontendVersionHandler() {
         body: JSON.stringify({ extensionName: extension_name }),
       });
 
-      if (!response.ok) {
+
+        if (!response.ok) {
         const text = await response.text();
-        // @ts-expect-error
         toastr.error(text || response.statusText, t`更新前端助手失败`, { timeOut: 5000 });
         console.error(`${getLogPrefix(event)}更新前端助手失败: ${text}`);
         return false;
@@ -31,7 +31,6 @@ export function registerIframeFrontendVersionHandler() {
       if (data.isUpToDate) {
         console.info(`${getLogPrefix(event)}前端助手已是最新版本, 无需更新`);
       } else {
-        // @ts-expect-error
         toastr.success(t`成功更新前端助手为 ${data.shortCommitHash}`, t`请刷新页面`);
         console.info(`${getLogPrefix(event)}成功更新前端助手为  ${data.shortCommitHash}, 请刷新页面`);
       }
