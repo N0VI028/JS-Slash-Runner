@@ -20,7 +20,7 @@ export function registerIframeFrontendVersionHandler() {
       });
 
 
-        if (!response.ok) {
+      if (!response.ok) {
         const text = await response.text();
         toastr.error(text || response.statusText, t`更新前端助手失败`, { timeOut: 5000 });
         console.error(`${getLogPrefix(event)}更新前端助手失败: ${text}`);
