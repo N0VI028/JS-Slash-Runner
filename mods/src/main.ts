@@ -1,4 +1,4 @@
-import {eventOn, eventRemoveListener, tavern_events} from "slash-runner/event";
+
 
 function hello()
 {
