@@ -2,7 +2,6 @@
     "compilerOptions": {
         "target": "ESNext",
         "module": "amd",
-        "outFile": "./dist/bundle.js",
         "outDir": "dist",
         "moduleDetection": "auto",
         "moduleResolution": "node10",
@@ -29,6 +28,7 @@
     },
     "include": [
         "./src/**/*.ts",
+        "./../src/iframe_client/*.ts"
     ],
     "exclude": [
         "**/node_modules/**",
