@@ -6,11 +6,24 @@ module.exports = {
     entry: './src/main.ts',
     module: {
         rules: [
+            // 针对 iframe_client 目录下的 TS 文件，先经过 ts-loader 再由 null-loader 替换输出为空模块
+            {
+                test: /iframe_client\/.*\.ts$/,
+                use: [
+                    {
+                        loader: 'null-loader'
+                    },
+                    {
+                        loader: 'ts-loader'
+                    }
+                ]
+            },
+            // 其他 TS 文件正常编译
             {
                 test: /\.ts$/,
-                use: 'ts-loader',
-                exclude: /node_modules/,
-            },
+                exclude: /iframe_client/,
+                use: 'ts-loader'
+            }
         ],
     },
     resolve: {
@@ -44,5 +57,7 @@ module.exports = {
     ],
     mode: 'production',
     devtool: 'source-map', // 添加这一行，启用 source map
-
+    optimization: {
+        usedExports: false
+    }
 };
