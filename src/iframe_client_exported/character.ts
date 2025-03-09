@@ -1,23 +1,30 @@
 export const iframe_client_character = `
-async function findCharacter(name, allowAvatar = false) {
+async function getCharCardData(name, allowAvatar = false) {
     return detail.make_iframe_promise({
-        request: '[Character][findCharacter]',
+        request: '[Character][getCharCardData]',
         name: name,
         allowAvatar: allowAvatar,
     });
 }
-async function getCardData(name, allowAvatar = false) {
+async function getCharAvatarPath(name, allowAvatar = false) {
     return detail.make_iframe_promise({
-        request: '[Character][getCardData]',
+        request: '[Character][getCharAvatarPath]',
         name: name,
         allowAvatar: allowAvatar,
     });
 }
-async function getAvatarPath(name, allowAvatar = false) {
+async function getChatHistoryBrief(name, allowAvatar = false) {
     return detail.make_iframe_promise({
-        request: '[Character][getAvatarPath]',
+        request: '[Character][getChatHistoryBrief]',
         name: name,
         allowAvatar: allowAvatar,
+    });
+}
+async function getChatHistoryDetail(data, isGroupChat = false) {
+    return detail.make_iframe_promise({
+        request: '[Character][getChatHistoryDetail]',
+        data: data,
+        isGroupChat: isGroupChat,
     });
 }
 `

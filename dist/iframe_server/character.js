@@ -1,4 +1,4 @@
-import { characters, this_chid, getThumbnailUrl } from '../../../../../../script.js';
+import { characters, this_chid, getThumbnailUrl, getPastCharacterChats, getRequestHeaders, } from '../../../../../../script.js';
 import { getLogPrefix, registerIframeHandler } from './index.js';
 import { charsPath } from '../component/message_iframe.js';
 /**
@@ -48,6 +48,90 @@ export class Character {
         return matchingCharacters[0];
     }
     /**
+     * 根据名称查找角色卡数据在characters数组中的索引（类似this_chid）
+     * @param name 角色名称
+     * @returns 角色卡数据在characters数组中的索引，未找到返回-1
+     */
+    static findCharacterIndex(name) {
+        const matchTypes = [
+            (a, b) => a === b,
+            (a, b) => a.startsWith(b),
+            (a, b) => a.includes(b),
+        ];
+        const exactAvatarMatch = characters.findIndex(x => x.avatar === name);
+        if (exactAvatarMatch !== -1) {
+            return exactAvatarMatch;
+        }
+        for (const matchType of matchTypes) {
+            const index = characters.findIndex(x => matchType(x.name.toLowerCase(), name.toLowerCase()));
+            if (index !== -1) {
+                return index;
+            }
+        }
+        return -1;
+    }
+    /**
+     * 从服务器获取每个聊天文件的聊天内容，并将其编译成字典。
+     * 该函数遍历提供的聊天元数据列表，并请求每个聊天的实际聊天内容，
+     *
+     * @param {Array} data - 包含每个聊天的元数据的数组，例如文件名。
+     * @param {boolean} isGroupChat - 一个标志，指示聊天是否为群组聊天。
+     * @returns {Promise<Object>} chat_dict - 一个字典，其中每个键是文件名，值是
+     * 从服务器获取的相应聊天内容。
+     */
+    static async getChatsFromFiles(data, isGroupChat) {
+        let chat_dict = {};
+        let chat_list = Object.values(data)
+            .sort((a, b) => a['file_name'].localeCompare(b['file_name']))
+            .reverse();
+        let chat_promise = chat_list.map(({ file_name }) => {
+            return new Promise(async (res, _rej) => {
+                try {
+                    // 从文件名中提取角色名称（破折号前的部分）
+                    const ch_name = isGroupChat ? '' : file_name.split(' - ')[0];
+                    // 使用Character.find方法查找角色，获取头像
+                    let characterData = null;
+                    let avatar_url = '';
+                    if (!isGroupChat && ch_name) {
+                        characterData = Character.find({ name: ch_name });
+                        if (characterData) {
+                            avatar_url = characterData.avatar;
+                        }
+                    }
+                    const endpoint = isGroupChat ? '/api/chats/group/get' : '/api/chats/get';
+                    const requestBody = isGroupChat
+                        ? JSON.stringify({ id: file_name })
+                        : JSON.stringify({
+                            ch_name: ch_name,
+                            file_name: file_name.replace('.jsonl', ''),
+                            avatar_url: avatar_url,
+                        });
+                    const chatResponse = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: getRequestHeaders(),
+                        body: requestBody,
+                        cache: 'no-cache',
+                    });
+                    if (!chatResponse.ok) {
+                        return res();
+                    }
+                    const currentChat = await chatResponse.json();
+                    if (!isGroupChat) {
+                        // remove the first message, which is metadata, only for individual chats
+                        currentChat.shift();
+                    }
+                    chat_dict[file_name] = currentChat;
+                }
+                catch (error) {
+                    console.error(error);
+                }
+                return res();
+            });
+        });
+        await Promise.all(chat_promise);
+        return chat_dict;
+    }
+    /**
      * 获取角色管理内的数据
      * @returns 完整的角色管理内的数据对象
      */
@@ -82,42 +166,6 @@ export class Character {
     getWorldName() {
         return this.charData.data?.extensions?.world || '';
     }
-    /**
-     * 获取指定键的值，支持点号路径
-     * @param path 属性路径，如 "data.extensions.world"
-     * @param defaultValue 默认值
-     * @returns 属性值或默认值
-     */
-    getProperty(path, defaultValue) {
-        if (!path)
-            return defaultValue;
-        const parts = path.split('.');
-        let value = this.charData;
-        for (const part of parts) {
-            if (value === undefined || value === null) {
-                return defaultValue;
-            }
-            value = value[part];
-        }
-        return (value !== undefined ? value : defaultValue);
-    }
-    /**
-     * 提取多个属性
-     * @param paths 属性路径数组
-     * @returns 包含请求属性的对象
-     */
-    extractProperties(paths) {
-        const result = {};
-        for (const path of paths) {
-            const value = this.getProperty(path);
-            if (value !== undefined) {
-                // 取路径的最后部分作为键名
-                const key = path.split('.').pop() || path;
-                result[key] = value;
-            }
-        }
-        return result;
-    }
 }
 export function registerIframeCharacterHandler() {
     function withCharacter(callback, defaultValue = null, name, allowAvatar = true) {
@@ -137,18 +185,49 @@ export function registerIframeCharacterHandler() {
                 }
             }
             const result = withCharacter(character => handler(character, event), defaultValue, name, allowAvatar);
+            // 日志打印
             if (logMessage) {
-                console.info(`${getLogPrefix(event)}${logMessage(event, result, displayName)}`);
+                const logText = logMessage(event, null, displayName);
+                if (result instanceof Promise) {
+                    result
+                        .then(resolvedResult => {
+                        console.info(`${getLogPrefix(event)}${logText}`, resolvedResult);
+                    })
+                        .catch(error => {
+                        throw Error(`${getLogPrefix(event)}${logText} - 发生错误: ${error}`);
+                    });
+                }
+                else {
+                    console.info(`${getLogPrefix(event)}${logText}`, result);
+                }
             }
             return result;
         });
     }
-    createCharacterHandler('[Character][findCharacter]', character => character, null, (_event, _result, displayName) => `查找到角色 '${displayName || '未知'}' `);
-    createCharacterHandler('[Character][getCardData]', character => character.getCardData(), null, (_event, _result, displayName) => `获取角色卡在角色管理器中的数据, 角色: ${displayName || '未知'}, 数据: ${_result}`);
-    createCharacterHandler('[Character][getAvatarPath]', character => {
+    createCharacterHandler('[Character][getCharCardData]', character => character.getCardData(), null, (_event, _result, displayName) => `获取角色卡在角色管理器中的数据, 角色: ${displayName || '未知'}`);
+    createCharacterHandler('[Character][getCharAvatarPath]', character => {
         const thumbnailPath = getThumbnailUrl('avatar', character.getAvatarId());
         const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
         return charsPath + targetAvatarImg;
-    }, null, (_event, _result, displayName) => `获取角色头像路径, 角色: ${displayName || '未知'}, 路径: ${_result}`);
+    }, null, (_event, _result, displayName) => `获取角色头像路径, 角色: ${displayName || '未知'}`);
+    createCharacterHandler('[Character][getChatHistoryBrief]', async (character) => {
+        const index = Character.findCharacterIndex(character.getAvatarId());
+        const chats = await getPastCharacterChats(index);
+        return chats;
+    }, null, (_event, _result, displayName) => {
+        return `获取角色聊天历史摘要, 角色: ${displayName || '未知'}`;
+    });
+    registerIframeHandler('[Character][getChatHistoryDetail]', async (event) => {
+        const data = event.data.data;
+        const isGroupChat = event.data.isGroupChat || false;
+        try {
+            const result = await Character.getChatsFromFiles(data, isGroupChat);
+            console.info(`${getLogPrefix(event)}获取聊天文件详情`, result);
+            return result;
+        }
+        catch (error) {
+            throw Error(`${getLogPrefix(event)}获取聊天文件详情 - 发生错误: ${error}`);
+        }
+    });
 }
 //# sourceMappingURL=character.js.map

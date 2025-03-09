@@ -154,7 +154,7 @@ export function updateAudioSelect(type = 'bgm') {
         selectElement.val(selectedSetting);
     }
     else {
-        console.log(`[Audio]暂无可用的 ${type.toUpperCase()} 资源`);
+        console.log(`[Audio] 暂无可用的 ${type.toUpperCase()} 资源`);
     }
 }
 /**
@@ -708,7 +708,7 @@ eventSource.on(event_types.CHAT_CHANGED, async () => {
         $ambientPlayer.pause();
     }
     await refreshAudioResources();
-    console.log('[Audio]聊天已更改，音频资源刷新完成');
+    console.log('[Audio] 聊天已更改，音频资源刷新完成');
 });
 /** 初始化样式
  * @param type 音频类型 "bgm" 或 "ambient"
