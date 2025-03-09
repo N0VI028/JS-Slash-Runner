@@ -1,0 +1,44 @@
+{
+    "name": "ModExample",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build:ts": "tsc -p ./tsconfig.json",
+        "build:webpack": "webpack -c ./webpack.config.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://gitlab.com/novi028/JS-Slash-Runner"
+    },
+    "private": true,
+    "packageManager": "yarn@3.4.1",
+    "dependencies": {
+        "json5": "^2.2.3",
+        "jszip": "^3.10.1",
+        "lodash": "^4.17.21",
+        "moment": "^2.29.4",
+        "rxjs": "^7.8.1"
+    },
+    "devDependencies": {
+        "@types/jquery": "^3.5.19",
+        "@types/lodash": "^4.14.198",
+        "@types/node": "^20.6.0",
+        "@webpack-cli/generators": "^3.0.7",
+        "bootstrap": "^5.3.1",
+        "css-loader": "^6.8.1",
+        "fork-ts-checker-webpack-plugin": "^8.0.0",
+        "html-webpack-plugin": "^5.5.3",
+        "nodemon": "^3.0.1",
+        "sass": "^1.66.1",
+        "sass-loader": "^13.3.2",
+        "style-loader": "^3.3.3",
+        "ts-loader": "^9.4.4",
+        "ts-mixer": "^6.0.3",
+        "tsconfig-paths-webpack-plugin": "^4.1.0",
+        "typescript": "^5.1.6",
+        "webpack": "^5.88.2",
+        "webpack-cli": "^5.1.4",
+        "webpack-dev-server": "^4.15.1"
+    }
+}
