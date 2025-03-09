@@ -1,5 +1,6 @@
 import { iframe_client__impl } from "./_impl.js";
 import { iframe_client__multimap } from "./_multimap.js";
+import { iframe_client_character } from "./character.js";
 import { iframe_client_chat_message } from "./chat_message.js";
 import { iframe_client_displayed_message } from "./displayed_message.js";
 import { iframe_client_event } from "./event.js";
@@ -15,6 +16,7 @@ import { iframe_client_variables } from "./variables.js";
 export const iframe_client = [
     iframe_client__impl,
     iframe_client__multimap,
+    iframe_client_character,
     iframe_client_chat_message,
     iframe_client_displayed_message,
     iframe_client_event,

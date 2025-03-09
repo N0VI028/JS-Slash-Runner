@@ -9,6 +9,7 @@ import { registerIframeSlashHandler } from './slash.js';
 import { registerIframeTavernRegexHandler } from './tavern_regex.js';
 import { registerIframeUtilHandler } from './util.js';
 import { registerIframeVariableHandler } from './variables.js';
+import { registerIframeCharacterHandler } from './character.js';
 
 export interface IframeMessage {
   request: string;
@@ -77,3 +78,4 @@ registerIframeSlashHandler();
 registerIframeTavernRegexHandler();
 registerIframeUtilHandler();
 registerIframeVariableHandler();
+registerIframeCharacterHandler();

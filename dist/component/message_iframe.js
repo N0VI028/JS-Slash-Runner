@@ -24,9 +24,9 @@ export const defaultIframeSettings = {
     process_depth: 0,
 };
 // 获取头像原图
+export const charsPath = '/characters/';
 export const getUserAvatarPath = () => `./User Avatars/${user_avatar}`;
 export const getCharAvatarPath = () => {
-    const charsPath = '/characters/';
     const thumbnailPath = getThumbnailUrl('avatar', characters[this_chid].avatar);
     const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
     return charsPath + targetAvatarImg;

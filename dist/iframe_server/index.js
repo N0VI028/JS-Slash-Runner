@@ -9,6 +9,7 @@ import { registerIframeSlashHandler } from './slash.js';
 import { registerIframeTavernRegexHandler } from './tavern_regex.js';
 import { registerIframeUtilHandler } from './util.js';
 import { registerIframeVariableHandler } from './variables.js';
+import { registerIframeCharacterHandler } from './character.js';
 export function getIframeName(event) {
     const window = event.source;
     return window.frameElement?.id;
@@ -57,4 +58,5 @@ registerIframeSlashHandler();
 registerIframeTavernRegexHandler();
 registerIframeUtilHandler();
 registerIframeVariableHandler();
+registerIframeCharacterHandler();
 //# sourceMappingURL=index.js.map
