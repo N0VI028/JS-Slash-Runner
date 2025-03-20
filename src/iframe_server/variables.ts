@@ -1,13 +1,12 @@
 import {
   chat_metadata,
-  saveSettingsDebounced,
   event_types,
 } from "../../../../../../script.js";
 import {
-  extension_settings,
   getContext,
   saveMetadataDebounced,
 } from "../../../../../extensions.js";
+import { getVariables, replaceVariables } from "../function/variables.js";
 import { getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeGetVariables extends IframeMessage {
@@ -28,21 +27,6 @@ interface IframeSetVariables extends IframeMessage {
   variables: Record<string, any>;
 }
 
-function getVariablesByType(type: "chat" | "global"): Record<string, any> {
-  switch (type) {
-    case "chat":
-      const metadata = chat_metadata as {
-        variables: Record<string, any> | undefined;
-      };
-      if (!metadata.variables) {
-        metadata.variables = {};
-      }
-      return metadata.variables;
-    case "global":
-      return extension_settings.variables.global;
-  }
-}
-
 let latest_set_variables_message_id: number | null = null;
 
 export function registerIframeVariableHandler() {
@@ -51,41 +35,14 @@ export function registerIframeVariableHandler() {
     async (
       event: MessageEvent<IframeGetVariables>
     ): Promise<Record<string, any>> => {
-      const option = event.data.option;
-
-      const result = getVariablesByType(option.type);
-
-      console.info(
-        `${getLogPrefix(event)}获取${
-          option.type == "chat" ? `聊天` : `全局`
-        }变量表:\n${JSON.stringify(result, undefined, 2)}`
-      );
-      return result;
+      return getVariables(event.data.option);
     }
   );
 
   registerIframeHandler(
     "[Variables][replaceVariables]",
     async (event: MessageEvent<IframeReplaceVariables>): Promise<void> => {
-      const variables = event.data.variables;
-      const option = event.data.option;
-
-      switch (option.type) {
-        case "chat":
-          (chat_metadata as { variables: Object }).variables = variables;
-          saveMetadataDebounced();
-          break;
-        case "global":
-          extension_settings.variables.global = variables;
-          saveSettingsDebounced();
-          break;
-      }
-
-      console.info(
-        `${getLogPrefix(event)}将${
-          option.type == "chat" ? `聊天` : `全局`
-        }变量表替换为:\n${JSON.stringify(variables, undefined, 2)}`
-      );
+      replaceVariables(event.data.variables, event.data.option);
     }
   );
 
