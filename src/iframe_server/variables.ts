@@ -6,7 +6,7 @@ import {
   getContext,
   saveMetadataDebounced,
 } from "../../../../../extensions.js";
-import { getVariables, replaceVariables } from "../function/variables.js";
+// import { getVariables, replaceVariables } from "../function/variables.js";
 import { getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
 
 interface IframeGetVariables extends IframeMessage {

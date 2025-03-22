@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { eventSource, event_types, saveSettingsDebounced, updateMessageBlock, user_avatar, reloadCurrentChat, getThumbnailUrl, characters, this_chid, } from '../../../../../../script.js';
-import { extensionName, getSettingValue } from '../index.js';
+import { extensionName, getSettingValue, saveSettingValue, isExtensionEnabled } from '../index.js';
 import { extension_settings, getContext } from '../../../../../extensions.js';
 import { script_url } from '../script_url.js';
 import { third_party } from '../third_party.js';
@@ -21,12 +21,21 @@ export const partialRenderEvents = [
     event_types.MESSAGE_SWIPED,
 ];
 export const defaultIframeSettings = {
+    render_enabled: true,
     auto_enable_character_regex: true,
     auto_disable_incompatible_options: true,
     tampermonkey_compatibility: false,
     process_depth: 0,
     rendering_optimize: false,
 };
+export async function handleRenderToggle(userInput = true, enable = true) {
+    if (enable) {
+        renderMessagesInIframes(RENDER_MODES.FULL);
+    }
+    if (userInput) {
+        await saveSettingValue('render.render_enabled', enable);
+    }
+}
 // 获取头像原图
 export const charsPath = '/characters/';
 export const getUserAvatarPath = () => `./User Avatars/${user_avatar}`;
@@ -182,7 +191,7 @@ function updateIframeViewportHeight() {
  * @param specificMesId 指定消息ID
  */
 async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId = null) {
-    if (!getSettingValue('activate_setting')) {
+    if (!isExtensionEnabled) {
         return;
     }
     const context = getContext();

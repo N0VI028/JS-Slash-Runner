@@ -1,10 +1,9 @@
+"use strict";
 // import { chat_metadata, saveSettingsDebounced } from '../../../../../../script';
 // import { extension_settings, saveMetadataDebounced } from '../../../../../extensions';
-
 // interface VariableOption {
 //   type: 'chat' | 'global'; // 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
 // }
-
 // function getVariablesByType(type: 'chat' | 'global'): Record<string, any> {
 //   switch (type) {
 //     case 'chat':
@@ -19,7 +18,6 @@
 //       return extension_settings.variables.global;
 //   }
 // }
-
 // /**
 //  * 获取变量表
 //  *
@@ -43,11 +41,9 @@
 //  */
 // export function getVariables({ type = 'chat' }: VariableOption): Record<string, any> {
 //   const result = getVariablesByType(type);
-
 //   console.info(`$获取${type == 'chat' ? `聊天` : `全局`}变量表:\n${JSON.stringify(result, undefined, 2)}`);
 //   return result;
 // }
-
 // /**
 //  * 完全替换变量表为 `variables`
 //  *
@@ -80,6 +76,6 @@
 //       saveSettingsDebounced();
 //       break;
 //   }
-
 //   console.info(`将${type == 'chat' ? `聊天` : `全局`}变量表替换为:\n${JSON.stringify(variables, undefined, 2)}`);
 // }
+//# sourceMappingURL=variables.js.map

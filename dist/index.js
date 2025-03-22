@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { eventSource, event_types, saveSettingsDebounced, reloadCurrentChat, this_chid, } from '../../../../../script.js';
 import { extension_settings, renderExtensionTemplateAsync } from '../../../../extensions.js';
-import { executeSlashCommandsWithOptions } from '../../../../slash-commands.js';
 import { SlashCommandParser } from '../../../../slash-commands/SlashCommandParser.js';
 import { handleIframe } from './iframe_server/index.js';
 import { iframe_client } from './iframe_client_exported/index.js';
@@ -10,17 +9,21 @@ import { initializeMacroOnExtension, destroyMacroOnExtension, registerAllMacros,
 import { initializeCharacterLevelOnExtension, destroyCharacterLevelOnExtension, } from './component/character_level/index.js';
 import { clearTempVariables, shouldUpdateVariables, checkVariablesEvents } from './iframe_server/variables.js';
 import { script_url } from './script_url.js';
-import { third_party } from './third_party.js';
 import { defaultAudioSettings, initAudioComponents } from './component/audio.js';
 import { defaultIframeSettings, renderAllIframes, renderPartialIframes, initIframePanel, viewport_adjust_script, tampermonkey_script, partialRenderEvents, addCodeToggleButtonsToAllMessages, renderMessageAfterDelete, addRenderingOptimizeSettings, removeRenderingOptimizeSettings, } from './component/message_iframe.js';
-import { initAutoSettings } from './component/script_repository.js';
+import { initAutoSettings, defaultScriptSettings } from './component/script_repository.js';
 export const extensionName = 'JS-Slash-Runner';
+//TODO: 修改名称
 export const extensionFolderPath = `third-party/${extensionName}`;
+export let isExtensionEnabled;
 let isScriptLibraryOpen = false;
 const defaultSettings = {
-    activate_setting: true,
+    enabled_extension: true,
     render: {
         ...defaultIframeSettings,
+    },
+    script: {
+        ...defaultScriptSettings,
     },
     audio: {
         ...defaultAudioSettings,
@@ -45,10 +48,13 @@ const handleMessageDeleted = (mesId) => {
 const handleVariableUpdated = (mesId) => {
     shouldUpdateVariables(mesId);
 };
-async function onExtensionToggle(userAction = true) {
-    const isEnabled = Boolean($('#activate_setting').prop('checked'));
-    extension_settings[extensionName].activate_setting = isEnabled;
-    if (isEnabled) {
+async function handleExtensionToggle(userAction = true, enable = true) {
+    if (userAction) {
+        saveSettingValue('enabled_extension', enable);
+    }
+    if (enable) {
+        // 指示器样式
+        $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
         script_url.set('iframe_client', iframe_client);
         script_url.set('viewport_adjust_script', viewport_adjust_script);
         script_url.set('tampermonkey_script', tampermonkey_script);
@@ -73,6 +79,8 @@ async function onExtensionToggle(userAction = true) {
         }
     }
     else {
+        // 指示器样式
+        $('#extension-status-icon').css('color', 'red').next().text('扩展已禁用');
         script_url.delete('iframe_client');
         script_url.delete('viewport_adjust_script');
         script_url.delete('tampermonkey_script');
@@ -148,7 +156,7 @@ function formatSlashCommands() {
         .join('\n');
 }
 /**
- * 获取设置变量的值
+ * 获取扩展设置变量的值
  * @returns 设置变量的值
  */
 export function getSettingValue(key) {
@@ -162,18 +170,90 @@ export function getSettingValue(key) {
     }
     return value;
 }
-function addQuickButton() {
+/**
+ * 保存扩展设置变量的值
+ * @param key 设置变量的键
+ * @param value 设置变量的值
+ */
+export async function saveSettingValue(key, value) {
+    const keys = key.split('.');
+    let current = extension_settings[extensionName];
+    for (const k of keys) {
+        current = current[k];
+    }
+    current = value;
+    await saveSettingsDebounced();
+}
+/**
+ * 设置页面切换
+ *  @param event 事件对象
+ * */
+function handleSettingPageChange(event) {
+    const target = $(event.currentTarget);
+    let id = target.attr('id');
+    id = id.replace('-settings-title', '');
+    function resetAllTitleClasses() {
+        $('#main-settings-title').removeClass('title-item-active');
+        $('#render-settings-title').removeClass('title-item-active');
+        $('#script-settings-title').removeClass('title-item-active');
+        $('#audio-settings-title').removeClass('title-item-active');
+    }
+    function hideAllContentPanels() {
+        $('#main-settings-content').hide();
+        $('#render-settings-content').hide();
+        $('#script-settings-content').hide();
+        $('#audio-settings-content').hide();
+    }
+    resetAllTitleClasses();
+    hideAllContentPanels();
+    switch (id) {
+        case 'main':
+            $('#main-settings-title').addClass('title-item-active');
+            $('#main-settings-content').show();
+            break;
+        case 'render':
+            $('#render-settings-title').addClass('title-item-active');
+            $('#render-settings-content').show();
+            break;
+        case 'script':
+            $('#script-settings-title').addClass('title-item-active');
+            $('#script-settings-content').show();
+            break;
+        case 'audio':
+            $('#audio-settings-title').addClass('title-item-active');
+            $('#audio-settings-content').show();
+            break;
+    }
+}
+/**
+ * 添加前端渲染快速按钮
+ */
+function addRenderQuickButton() {
     const buttonHtml = $(`
-  <div id="js_slash_runner_container" class="list-group-item flex-container flexGap5 interactable">
+  <div id="tavern_helper_container" class="list-group-item flex-container flexGap5 interactable">
       <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
-      <span id="js_slash_runner_text">${getSettingValue('activate_setting') ? '关闭前端渲染' : '开启前端渲染'}</span>
+      <span id="tavern_helper_text">${getSettingValue('render.render_enabled') ? '关闭前端渲染' : '开启前端渲染'}</span>
   </div>`);
     buttonHtml.css('display', 'flex');
     $('#extensionsMenu').append(buttonHtml);
-    $('#js_slash_runner_container').on('click', function () {
-        const currentChecked = $('#activate_setting').prop('checked');
-        $('#activate_setting').prop('checked', !currentChecked);
-        onExtensionToggle(true);
+    $('#tavern_helper_container').on('click', function () {
+        const currentChecked = $('#render-enable-toggle').prop('checked');
+        $('#render-enable-toggle').prop('checked', !currentChecked);
+        handleRenderToggle(true, !currentChecked);
+    });
+}
+/**
+ * 初始化扩展主设置界面
+ */
+function initExtensionMainPanel() {
+    const isEnabled = getSettingValue('enabled_extension');
+    if (isEnabled) {
+        handleExtensionToggle(false, true);
+    }
+    $('#extension-enable-toggle')
+        .prop('checked', isEnabled)
+        .on('change', function () {
+        handleExtensionToggle(true, $(this).prop('checked'));
     });
 }
 /**
@@ -183,51 +263,59 @@ jQuery(async () => {
     const getContainer = () => $(document.getElementById('extensions_settings'));
     const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'settings');
     getContainer().append(windowHtml);
-    // extension_settings[extensionName] = extension_settings[extensionName] || {};
-    // if (!extension_settings[extensionName] ||
-    //     !extension_settings[extensionName].render ||
-    //     !extension_settings[extensionName].audio) {
-    //     Object.assign(extension_settings[extensionName], defaultSettings);
-    //     saveSettingsDebounced();
-    // }
-    // $('#activate_setting').prop('checked', getSettingValue('activate_setting'));
-    // $('#activate_setting').on('click', () => onExtensionToggle(true));
-    // if (getSettingValue('activate_setting')) {
-    //     onExtensionToggle(false);
-    // }
-    // addQuickButton();
+    if (!extension_settings[extensionName]) {
+        extension_settings[extensionName] = defaultSettings;
+        saveSettingsDebounced();
+    }
+    // 默认显示主设置界面
+    $('#main-settings-title').addClass('title-item-active');
+    $('#main-settings-content').show();
+    $('#render-settings-content').hide();
+    $('#script-settings-content').hide();
+    $('#audio-settings-content').hide();
+    // 监听设置选项卡切换
+    $('#main-settings-title').on('click', (event) => handleSettingPageChange(event));
+    $('#render-settings-title').on('click', (event) => handleSettingPageChange(event));
+    $('#script-settings-title').on('click', (event) => handleSettingPageChange(event));
+    $('#audio-settings-title').on('click', (event) => handleSettingPageChange(event));
     // $('#scriptLibraryButton')
-    //     .off('click')
-    //     .on('click', function () {
+    //   .off('click')
+    //   .on('click', function () {
     //     isScriptLibraryOpen = !isScriptLibraryOpen;
     //     $('#scriptLibraryPopup').slideToggle(200, 'swing');
-    // });
+    //   });
     // $(document).on('mousedown touchstart', function (e) {
-    //     const clickTarget = $(e.target);
-    //     if (isScriptLibraryOpen &&
-    //         clickTarget.closest('#scriptLibraryButton').length === 0 &&
-    //         clickTarget.closest('#scriptLibraryPopup').length === 0) {
-    //         $('#scriptLibraryPopup').slideUp(200, 'swing');
-    //         isScriptLibraryOpen = false;
-    //     }
+    //   const clickTarget = $(e.target);
+    //   if (
+    //     isScriptLibraryOpen &&
+    //     clickTarget.closest('#scriptLibraryButton').length === 0 &&
+    //     clickTarget.closest('#scriptLibraryPopup').length === 0
+    //   ) {
+    //     $('#scriptLibraryPopup').slideUp(200, 'swing');
+    //     isScriptLibraryOpen = false;
+    //   }
     // });
     // $('#copy_third_party_installation').on('pointerup', function () {
-    //     navigator.clipboard.writeText('npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs');
-    //     executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
+    //   navigator.clipboard.writeText(
+    //     'npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs',
+    //   );
+    //   executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
     // });
     // $('#copy_third_party_tag').on('pointerup', function () {
-    //     navigator.clipboard.writeText(third_party);
-    //     executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
+    //   navigator.clipboard.writeText(third_party);
+    //   executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
     // });
     // $('#download_slash_commands').on('click', function () {
-    //     const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
-    //     $(this).attr('href', url);
-    //     $(this).attr('download', 'slash_command.txt');
-    //     setTimeout(() => URL.revokeObjectURL(url), 0);
+    //   const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
+    //   $(this).attr('href', url);
+    //   $(this).attr('download', 'slash_command.txt');
+    //   setTimeout(() => URL.revokeObjectURL(url), 0);
     // });
-    // initAutoSettings();
-    // initAudioComponents();
-    // initSlashEventEmit();
-    // initIframePanel();
+    initExtensionMainPanel();
+    initIframePanel();
+    initAutoSettings();
+    initAudioComponents();
+    initSlashEventEmit();
+    addRenderQuickButton();
 });
 //# sourceMappingURL=index.js.map

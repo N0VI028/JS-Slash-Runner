@@ -1,1 +1,1 @@
-{"version": 3, "file": "frontend_version.js", "sourceRoot": "", "sources": ["../../src/iframe_client_exported/frontend_version.ts"], "names": [], "mappings": "AAAA,MAAM,CAAC,MAAM,8BAA8B,GAAG;;;;;;;;;;;;;;;;;;;CAmB7C,CAAA"}
+{"version": 3, "file": "frontend_version.js", "sourceRoot": "", "sources": ["..\\..\\src\\iframe_client_exported\\frontend_version.ts"], "names": [], "mappings": "AAAA,MAAM,CAAC,MAAM,8BAA8B,GAAG;;;;;;;;;;;;;;;;;;;CAmB7C,CAAA"}

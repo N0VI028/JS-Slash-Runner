@@ -1,12 +1,12 @@
 {
-  "display_name": "JS-Slash-Runner",
+  "display_name": "Tavern Helper",
   "loading_order": 100,
   "requires": [],
   "optional": [],
   "js": "dist/index.js",
   "css": "style.css",
   "author": "KAKAA",
-  "version": "2.5.3",
+  "version": "3.0.0",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
   "auto_update": true
 }

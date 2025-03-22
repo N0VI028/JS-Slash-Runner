@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   eventSource,
   event_types,
@@ -10,6 +11,13 @@ import { selected_group } from '../../../../../group-chats.js';
 import { extension_settings } from '../../../../../extensions.js';
 import { power_user } from '../../../../../power-user.js';
 import { extensionName } from '../index.js';
+
+
+export const defaultScriptSettings = {
+  script_enabled: true,
+  global_script_enabled: true,
+  script_repository_enabled: true,
+};
 
 /**
  * 自动为当前角色启用正则表达式规则

@@ -45,17 +45,22 @@ import {
   addRenderingOptimizeSettings,
   removeRenderingOptimizeSettings,
 } from './component/message_iframe.js';
-import { initAutoSettings } from './component/script_repository.js';
+import { initAutoSettings, defaultScriptSettings } from './component/script_repository.js';
 
 export const extensionName = 'JS-Slash-Runner';
+//TODO: 修改名称
 export const extensionFolderPath = `third-party/${extensionName}`;
+export let isExtensionEnabled;
 
 let isScriptLibraryOpen = false;
 
 const defaultSettings = {
-  activate_setting: true,
+  enabled_extension: true,
   render: {
     ...defaultIframeSettings,
+  },
+  script: {
+    ...defaultScriptSettings,
   },
   audio: {
     ...defaultAudioSettings,
@@ -85,10 +90,14 @@ const handleVariableUpdated = (mesId: string) => {
   shouldUpdateVariables(mesId);
 };
 
-async function onExtensionToggle(userAction: boolean = true) {
-  const isEnabled = Boolean($('#activate_setting').prop('checked'));
-  extension_settings[extensionName].activate_setting = isEnabled;
-  if (isEnabled) {
+async function handleExtensionToggle(userAction: boolean = true, enable: boolean = true) {
+  if (userAction) {
+    saveSettingValue('enabled_extension', enable);
+  }
+  if (enable) {
+    // 指示器样式
+    $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
+
     script_url.set('iframe_client', iframe_client);
     script_url.set('viewport_adjust_script', viewport_adjust_script);
     script_url.set('tampermonkey_script', tampermonkey_script);
@@ -119,6 +128,9 @@ async function onExtensionToggle(userAction: boolean = true) {
       await reloadCurrentChat();
     }
   } else {
+    // 指示器样式
+    $('#extension-status-icon').css('color', 'red').next().text('扩展已禁用');
+
     script_url.delete('iframe_client');
     script_url.delete('viewport_adjust_script');
     script_url.delete('tampermonkey_script');
@@ -221,7 +233,7 @@ function formatSlashCommands(): string {
 }
 
 /**
- * 获取设置变量的值
+ * 获取扩展设置变量的值
  * @returns 设置变量的值
  */
 export function getSettingValue(key: string) {
@@ -238,20 +250,99 @@ export function getSettingValue(key: string) {
   return value;
 }
 
-function addQuickButton() {
+/**
+ * 保存扩展设置变量的值
+ * @param key 设置变量的键
+ * @param value 设置变量的值
+ */
+export async function saveSettingValue(key: string, value: any) {
+  const keys = key.split('.');
+  let current = extension_settings[extensionName];
+  for (const k of keys) {
+    current = current[k];
+  }
+  current = value;
+  await saveSettingsDebounced();
+}
+
+/**
+ * 设置页面切换
+ *  @param event 事件对象
+ * */
+function handleSettingPageChange(event: JQuery.ClickEvent) {
+  const target = $(event.currentTarget);
+  let id = target.attr('id');
+  id = id.replace('-settings-title', '');
+
+  function resetAllTitleClasses() {
+    $('#main-settings-title').removeClass('title-item-active');
+    $('#render-settings-title').removeClass('title-item-active');
+    $('#script-settings-title').removeClass('title-item-active');
+    $('#audio-settings-title').removeClass('title-item-active');
+  }
+
+  function hideAllContentPanels() {
+    $('#main-settings-content').hide();
+    $('#render-settings-content').hide();
+    $('#script-settings-content').hide();
+    $('#audio-settings-content').hide();
+  }
+
+  resetAllTitleClasses();
+  hideAllContentPanels();
+
+  switch (id) {
+    case 'main':
+      $('#main-settings-title').addClass('title-item-active');
+      $('#main-settings-content').show();
+      break;
+    case 'render':
+      $('#render-settings-title').addClass('title-item-active');
+      $('#render-settings-content').show();
+      break;
+    case 'script':
+      $('#script-settings-title').addClass('title-item-active');
+      $('#script-settings-content').show();
+      break;
+    case 'audio':
+      $('#audio-settings-title').addClass('title-item-active');
+      $('#audio-settings-content').show();
+      break;
+  }
+}
+
+/**
+ * 添加前端渲染快速按钮
+ */
+function addRenderQuickButton() {
   const buttonHtml = $(`
-  <div id="js_slash_runner_container" class="list-group-item flex-container flexGap5 interactable">
+  <div id="tavern_helper_container" class="list-group-item flex-container flexGap5 interactable">
       <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
-      <span id="js_slash_runner_text">${getSettingValue('activate_setting') ? '关闭前端渲染' : '开启前端渲染'}</span>
+      <span id="tavern_helper_text">${getSettingValue('render.render_enabled') ? '关闭前端渲染' : '开启前端渲染'}</span>
   </div>`);
   buttonHtml.css('display', 'flex');
   $('#extensionsMenu').append(buttonHtml);
-  $('#js_slash_runner_container').on('click', function () {
-    const currentChecked = $('#activate_setting').prop('checked');
-    $('#activate_setting').prop('checked', !currentChecked);
-    onExtensionToggle(true);
+  $('#tavern_helper_container').on('click', function () {
+    const currentChecked = $('#render-enable-toggle').prop('checked');
+    $('#render-enable-toggle').prop('checked', !currentChecked);
+    handleRenderToggle(true, !currentChecked);
   });
 }
+/**
+ * 初始化扩展主设置界面
+ */
+function initExtensionMainPanel() {
+  const isEnabled = getSettingValue('enabled_extension');
+  if (isEnabled) {
+    handleExtensionToggle(false, true);
+  }
+  $('#extension-enable-toggle')
+    .prop('checked', isEnabled)
+    .on('change', function () {
+      handleExtensionToggle(true, $(this).prop('checked'));
+    });
+}
+
 /**
  * 初始化扩展面板
  */
@@ -260,39 +351,23 @@ jQuery(async () => {
   const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'settings');
   getContainer().append(windowHtml);
 
-  // extension_settings[extensionName] = extension_settings[extensionName] || {};
+  if (!extension_settings[extensionName]) {
+    extension_settings[extensionName] = defaultSettings;
+    saveSettingsDebounced();
+  }
 
-  // if (
-  //   !extension_settings[extensionName] ||
-  //   !extension_settings[extensionName].render ||
-  //   !extension_settings[extensionName].audio
-  // ) {
-  //   Object.assign(extension_settings[extensionName], defaultSettings);
-  //   saveSettingsDebounced();
-  // }
+  // 默认显示主设置界面
+  $('#main-settings-title').addClass('title-item-active');
+  $('#main-settings-content').show();
+  $('#render-settings-content').hide();
+  $('#script-settings-content').hide();
+  $('#audio-settings-content').hide();
 
-  // $('#activate_setting').prop('checked', getSettingValue('activate_setting'));
-  // $('#activate_setting').on('click', () => onExtensionToggle(true));
-  // if (getSettingValue('activate_setting')) {
-  //   onExtensionToggle(false);
-  // }
-
-  // // 添加开关控件事件处理
-  // $('#extension-toggle').prop('checked', getSettingValue('activate_setting'));
-  // $('#extension-toggle').on('change', function () {
-  //   const isChecked = $(this).prop('checked');
-  //   $('#activate_setting').prop('checked', isChecked);
-  //   onExtensionToggle(true);
-  //   $('#extension-status').text(isChecked ? '已启用' : '已禁用');
-  //   $('#extension-status-icon').css('color', isChecked ? 'var(--SmartThemeQuoteColor)' : '#ccc');
-  // });
-
-  // // 初始化开关状态
-  // const isEnabled = getSettingValue('activate_setting');
-  // $('#extension-status').text(isEnabled ? '已启用' : '已禁用');
-  // $('#extension-status-icon').css('color', isEnabled ? 'var(--SmartThemeQuoteColor)' : '#ccc');
-
-  // addQuickButton();
+  // 监听设置选项卡切换
+  $('#main-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
+  $('#render-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
+  $('#script-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
+  $('#audio-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
 
   // $('#scriptLibraryButton')
   //   .off('click')
@@ -330,8 +405,11 @@ jQuery(async () => {
   //   $(this).attr('download', 'slash_command.txt');
   //   setTimeout(() => URL.revokeObjectURL(url), 0);
   // });
-  // initAutoSettings();
-  // initAudioComponents();
-  // initSlashEventEmit();
-  // initIframePanel();
+  initExtensionMainPanel();
+  initIframePanel();
+  initAutoSettings();
+  initAudioComponents();
+  initSlashEventEmit();
+
+  addRenderQuickButton();
 });

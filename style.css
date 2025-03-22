@@ -4,6 +4,11 @@
   opacity: 0.7;
 }
 
+.extension-status i {
+  opacity: 1;
+  filter: brightness(1.5);
+}
+
 #extension-info {
   display: flex;
   justify-content: space-between;
@@ -34,14 +39,20 @@
 }
 
 .extension-title {
-  height: 35px;
+  height: calc(var(--mainFontSize) * 2.5);
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 50px;
 }
 
 .title-item {
-  background-color: var(--SmartThemeQuoteColor);
   border-radius: 50px;
+  color: var(--grey50);
+}
+
+.title-item-active {
+  background-color: var(--SmartThemeQuoteColor);
+  color: var(--SmartThemeBodyColor);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .extension-content {
