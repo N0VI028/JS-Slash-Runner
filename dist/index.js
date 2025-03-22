@@ -183,51 +183,51 @@ jQuery(async () => {
     const getContainer = () => $(document.getElementById('extensions_settings'));
     const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'settings');
     getContainer().append(windowHtml);
-    extension_settings[extensionName] = extension_settings[extensionName] || {};
-    if (!extension_settings[extensionName] ||
-        !extension_settings[extensionName].render ||
-        !extension_settings[extensionName].audio) {
-        Object.assign(extension_settings[extensionName], defaultSettings);
-        saveSettingsDebounced();
-    }
-    $('#activate_setting').prop('checked', getSettingValue('activate_setting'));
-    $('#activate_setting').on('click', () => onExtensionToggle(true));
-    if (getSettingValue('activate_setting')) {
-        onExtensionToggle(false);
-    }
-    addQuickButton();
-    $('#scriptLibraryButton')
-        .off('click')
-        .on('click', function () {
-        isScriptLibraryOpen = !isScriptLibraryOpen;
-        $('#scriptLibraryPopup').slideToggle(200, 'swing');
-    });
-    $(document).on('mousedown touchstart', function (e) {
-        const clickTarget = $(e.target);
-        if (isScriptLibraryOpen &&
-            clickTarget.closest('#scriptLibraryButton').length === 0 &&
-            clickTarget.closest('#scriptLibraryPopup').length === 0) {
-            $('#scriptLibraryPopup').slideUp(200, 'swing');
-            isScriptLibraryOpen = false;
-        }
-    });
-    $('#copy_third_party_installation').on('pointerup', function () {
-        navigator.clipboard.writeText('npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs');
-        executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
-    });
-    $('#copy_third_party_tag').on('pointerup', function () {
-        navigator.clipboard.writeText(third_party);
-        executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
-    });
-    $('#download_slash_commands').on('click', function () {
-        const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
-        $(this).attr('href', url);
-        $(this).attr('download', 'slash_command.txt');
-        setTimeout(() => URL.revokeObjectURL(url), 0);
-    });
-    initAutoSettings();
-    initAudioComponents();
-    initSlashEventEmit();
-    initIframePanel();
+    // extension_settings[extensionName] = extension_settings[extensionName] || {};
+    // if (!extension_settings[extensionName] ||
+    //     !extension_settings[extensionName].render ||
+    //     !extension_settings[extensionName].audio) {
+    //     Object.assign(extension_settings[extensionName], defaultSettings);
+    //     saveSettingsDebounced();
+    // }
+    // $('#activate_setting').prop('checked', getSettingValue('activate_setting'));
+    // $('#activate_setting').on('click', () => onExtensionToggle(true));
+    // if (getSettingValue('activate_setting')) {
+    //     onExtensionToggle(false);
+    // }
+    // addQuickButton();
+    // $('#scriptLibraryButton')
+    //     .off('click')
+    //     .on('click', function () {
+    //     isScriptLibraryOpen = !isScriptLibraryOpen;
+    //     $('#scriptLibraryPopup').slideToggle(200, 'swing');
+    // });
+    // $(document).on('mousedown touchstart', function (e) {
+    //     const clickTarget = $(e.target);
+    //     if (isScriptLibraryOpen &&
+    //         clickTarget.closest('#scriptLibraryButton').length === 0 &&
+    //         clickTarget.closest('#scriptLibraryPopup').length === 0) {
+    //         $('#scriptLibraryPopup').slideUp(200, 'swing');
+    //         isScriptLibraryOpen = false;
+    //     }
+    // });
+    // $('#copy_third_party_installation').on('pointerup', function () {
+    //     navigator.clipboard.writeText('npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs');
+    //     executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
+    // });
+    // $('#copy_third_party_tag').on('pointerup', function () {
+    //     navigator.clipboard.writeText(third_party);
+    //     executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
+    // });
+    // $('#download_slash_commands').on('click', function () {
+    //     const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
+    //     $(this).attr('href', url);
+    //     $(this).attr('download', 'slash_command.txt');
+    //     setTimeout(() => URL.revokeObjectURL(url), 0);
+    // });
+    // initAutoSettings();
+    // initAudioComponents();
+    // initSlashEventEmit();
+    // initIframePanel();
 });
 //# sourceMappingURL=index.js.map

@@ -260,63 +260,78 @@ jQuery(async () => {
   const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'settings');
   getContainer().append(windowHtml);
 
-  extension_settings[extensionName] = extension_settings[extensionName] || {};
+  // extension_settings[extensionName] = extension_settings[extensionName] || {};
 
-  if (
-    !extension_settings[extensionName] ||
-    !extension_settings[extensionName].render ||
-    !extension_settings[extensionName].audio
-  ) {
-    Object.assign(extension_settings[extensionName], defaultSettings);
-    saveSettingsDebounced();
-  }
+  // if (
+  //   !extension_settings[extensionName] ||
+  //   !extension_settings[extensionName].render ||
+  //   !extension_settings[extensionName].audio
+  // ) {
+  //   Object.assign(extension_settings[extensionName], defaultSettings);
+  //   saveSettingsDebounced();
+  // }
 
-  $('#activate_setting').prop('checked', getSettingValue('activate_setting'));
-  $('#activate_setting').on('click', () => onExtensionToggle(true));
-  if (getSettingValue('activate_setting')) {
-    onExtensionToggle(false);
-  }
+  // $('#activate_setting').prop('checked', getSettingValue('activate_setting'));
+  // $('#activate_setting').on('click', () => onExtensionToggle(true));
+  // if (getSettingValue('activate_setting')) {
+  //   onExtensionToggle(false);
+  // }
 
-  addQuickButton();
+  // // 添加开关控件事件处理
+  // $('#extension-toggle').prop('checked', getSettingValue('activate_setting'));
+  // $('#extension-toggle').on('change', function () {
+  //   const isChecked = $(this).prop('checked');
+  //   $('#activate_setting').prop('checked', isChecked);
+  //   onExtensionToggle(true);
+  //   $('#extension-status').text(isChecked ? '已启用' : '已禁用');
+  //   $('#extension-status-icon').css('color', isChecked ? 'var(--SmartThemeQuoteColor)' : '#ccc');
+  // });
 
-  $('#scriptLibraryButton')
-    .off('click')
-    .on('click', function () {
-      isScriptLibraryOpen = !isScriptLibraryOpen;
-      $('#scriptLibraryPopup').slideToggle(200, 'swing');
-    });
+  // // 初始化开关状态
+  // const isEnabled = getSettingValue('activate_setting');
+  // $('#extension-status').text(isEnabled ? '已启用' : '已禁用');
+  // $('#extension-status-icon').css('color', isEnabled ? 'var(--SmartThemeQuoteColor)' : '#ccc');
 
-  $(document).on('mousedown touchstart', function (e) {
-    const clickTarget = $(e.target);
+  // addQuickButton();
 
-    if (
-      isScriptLibraryOpen &&
-      clickTarget.closest('#scriptLibraryButton').length === 0 &&
-      clickTarget.closest('#scriptLibraryPopup').length === 0
-    ) {
-      $('#scriptLibraryPopup').slideUp(200, 'swing');
-      isScriptLibraryOpen = false;
-    }
-  });
-  $('#copy_third_party_installation').on('pointerup', function () {
-    navigator.clipboard.writeText(
-      'npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs',
-    );
-    executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
-  });
-  $('#copy_third_party_tag').on('pointerup', function () {
-    navigator.clipboard.writeText(third_party);
-    executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
-  });
+  // $('#scriptLibraryButton')
+  //   .off('click')
+  //   .on('click', function () {
+  //     isScriptLibraryOpen = !isScriptLibraryOpen;
+  //     $('#scriptLibraryPopup').slideToggle(200, 'swing');
+  //   });
 
-  $('#download_slash_commands').on('click', function () {
-    const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
-    $(this).attr('href', url);
-    $(this).attr('download', 'slash_command.txt');
-    setTimeout(() => URL.revokeObjectURL(url), 0);
-  });
-  initAutoSettings();
-  initAudioComponents();
-  initSlashEventEmit();
-  initIframePanel();
+  // $(document).on('mousedown touchstart', function (e) {
+  //   const clickTarget = $(e.target);
+
+  //   if (
+  //     isScriptLibraryOpen &&
+  //     clickTarget.closest('#scriptLibraryButton').length === 0 &&
+  //     clickTarget.closest('#scriptLibraryPopup').length === 0
+  //   ) {
+  //     $('#scriptLibraryPopup').slideUp(200, 'swing');
+  //     isScriptLibraryOpen = false;
+  //   }
+  // });
+  // $('#copy_third_party_installation').on('pointerup', function () {
+  //   navigator.clipboard.writeText(
+  //     'npm install --save-dev @types/file-saver @types/jquery @types/jqueryui @types/lodash @types/yamljs',
+  //   );
+  //   executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
+  // });
+  // $('#copy_third_party_tag').on('pointerup', function () {
+  //   navigator.clipboard.writeText(third_party);
+  //   executeSlashCommandsWithOptions('/echo severity=success 已复制到剪贴板!');
+  // });
+
+  // $('#download_slash_commands').on('click', function () {
+  //   const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
+  //   $(this).attr('href', url);
+  //   $(this).attr('download', 'slash_command.txt');
+  //   setTimeout(() => URL.revokeObjectURL(url), 0);
+  // });
+  // initAutoSettings();
+  // initAudioComponents();
+  // initSlashEventEmit();
+  // initIframePanel();
 });
