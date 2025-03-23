@@ -1,11 +1,12 @@
 // @ts-nocheck
 import { eventSource, event_types, saveSettingsDebounced, chat_metadata } from '../../../../../../script.js';
 import { extension_settings, saveMetadataDebounced, renderExtensionTemplateAsync } from '../../../../../extensions.js';
-import { extensionName, extensionFolderPath } from '../index.js';
+import { extensionName, extensionFolderPath, getSettingValue, saveSettingValue, isExtensionEnabled } from '../index.js';
 import { getSortableDelay } from '../../../../../utils.js';
 import { POPUP_TYPE, callGenericPopup } from '../../../../../popup.js';
 import { isMobile } from '../../../../../RossAscends-mods.js';
 import { initAudioSlashCommands } from '../slash_command/audio.js';
+let isAudioEnabled;
 export let list_BGMS = [];
 export let list_ambients = [];
 let bgmEnded = true;
@@ -13,7 +14,7 @@ let ambientEnded = true;
 let cooldownBGM = 0;
 // 定义默认音频设置
 export const defaultAudioSettings = {
-    audio_setting: true,
+    audio_enabled: true,
     bgm_enabled: true,
     ambient_enabled: true,
     bgm_mode: 'repeat',
@@ -552,11 +553,16 @@ async function openUrlManagerPopup(typeKey) {
 /**
  * 点击音频总开关时的处理函数
  */
-async function onEnabledClick() {
-    const isEnabled = $('#audio_enabled').prop('checked');
-    extension_settings[extensionName].audio.audio_setting = isEnabled;
-    saveSettingsDebounced();
-    if (isEnabled) {
+async function onEnabledClick(userInput = true, enable = true) {
+    if (userInput) {
+        isAudioEnabled = enable;
+        saveSettingValue('audio_enabled', isAudioEnabled);
+    }
+    if (enable) {
+        $('#audio-player-content').css('opacity', '1');
+        if (!isExtensionEnabled) {
+            return;
+        }
         toggleAudioControls('bgm', 'enable');
         toggleAudioControls('ambient', 'enable');
         const bgmUrl = await getAudioUrl('bgm');
@@ -581,6 +587,7 @@ async function onEnabledClick() {
         }
     }
     else {
+        $('#audio-player-content').css('opacity', '0.5');
         $('#audio_bgm')[0].pause();
         $('#audio_ambient')[0].pause();
         toggleAudioControls('bgm', 'disable');
@@ -760,11 +767,13 @@ function initAudioStyles(type) {
  * 初始化所有音频相关组件和事件监听器
  */
 export function initAudioComponents() {
-    const audio_enabled = extension_settings[extensionName].audio.audio_setting;
-    $('#audio_enabled').prop('checked', audio_enabled).on('click', onEnabledClick);
-    if (audio_enabled) {
-        onEnabledClick();
+    isAudioEnabled = getSettingValue('audio_enabled');
+    if (isAudioEnabled) {
+        onEnabledClick(true, true);
     }
+    $('#audio-enable-toggle')
+        .prop('checked', isAudioEnabled)
+        .on('click', (event) => onEnabledClick(true, event.target.checked));
     // 初始化音乐和音效样式
     initAudioStyles('bgm');
     initAudioStyles('ambient');

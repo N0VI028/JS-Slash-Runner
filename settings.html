@@ -152,36 +152,7 @@
                 </label>
               </div>
             </div>
-            <div id="global-script-list" class="flex-container flexFlowColumn">
-              <div class="global-script-item">
-                <div class="script-info menu_button interactable">
-                  <i class="fa-solid fa-info-circle"></i>
-                </div>
-                <div class="global-script-item-name flexGrow overflow_hidden marginLeft5">脚本名称</div>
-                <div class="global-script-item-control flex-container flexnowrap">
-                  <label for="global-script-item-disable" class="checkbox flex-container">
-                    <input type="checkbox" class="disable-script" />
-                    <span class="script-toggle-off fa-solid fa-toggle-off"></span>
-                    <span class="script-toggle-on fa-solid fa-toggle-on"></span>
-                  </label>
-                  <div class="edit-script menu_button interactable">
-                    <i class="fa-solid fa-pencil"></i>
-                  </div>
-                  <div class="move-to-global menu_button interactable">
-                    <i class="fa-solid fa-arrow-up"></i>
-                  </div>
-                  <div class="move-to-scoped menu_button interactable">
-                    <i class="fa-solid fa-arrow-down"></i>
-                  </div>
-                  <div class="export-script menu_button interactable">
-                    <i class="fa-solid fa-file-export"></i>
-                  </div>
-                  <div class="delete-script menu_button interactable">
-                    <i class="fa-solid fa-trash"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div id="global-script-list" class="flex-container flexFlowColumn"></div>
             <div class="divider"></div>
             <div class="extension-content-item">
               <div class="flex flexFlowColumn">
@@ -195,36 +166,7 @@
                 </label>
               </div>
             </div>
-            <div id="scoped-script-list" class="flex-container flexFlowColumn">
-              <div class="scoped-script-item">
-                <div class="script-info menu_button interactable">
-                  <i class="fa-solid fa-info-circle"></i>
-                </div>
-                <div class="scoped-script-item-name flexGrow overflow_hidden marginLeft5">脚本名称</div>
-                <div class="scoped-script-item-control flex-container flexnowrap">
-                  <label for="scoped-script-item-disable" class="checkbox flex-container">
-                    <input type="checkbox" class="disable-script" />
-                    <span class="script-toggle-off fa-solid fa-toggle-off"></span>
-                    <span class="script-toggle-on fa-solid fa-toggle-on"></span>
-                  </label>
-                  <div class="edit-script menu_button interactable">
-                    <i class="fa-solid fa-pencil"></i>
-                  </div>
-                  <div class="move-to-global menu_button interactable">
-                    <i class="fa-solid fa-arrow-up"></i>
-                  </div>
-                  <div class="move-to-scoped menu_button interactable">
-                    <i class="fa-solid fa-arrow-down"></i>
-                  </div>
-                  <div class="export-script menu_button interactable">
-                    <i class="fa-solid fa-file-export"></i>
-                  </div>
-                  <div class="delete-script menu_button interactable">
-                    <i class="fa-solid fa-trash"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div id="scoped-script-list" class="flex-container flexFlowColumn"></div>
           </div>
         </div>
         <div id="audio-settings-content" class="extension-content flex flexFlowColumn gap10px">
@@ -243,7 +185,7 @@
           <div class="divider"></div>
           <div id="audio-player-content" class="flex-container flexFlowColumn">
             <div>
-              <div class="flex row-reverse align-center justify-end gap-12">
+              <div class="flex row-reverse alignItemsCenter justifyContentFlexStart gap-12">
                 <label for="audio_refresh_assets">刷新播放列表</label>
                 <div id="audio_refresh_assets" class="menu_button btn-refresh">
                   <i class="fa-solid fa-refresh fa-lg"></i>
@@ -251,7 +193,7 @@
               </div>
             </div>
             <div>
-              <div class="title_restorable space-between align-center">
+              <div class="title_restorable space-between alignItemsCenter">
                 <label for="audio_bgm_volume_slider">音乐</label>
                 <label class="checkbox flex-container" for="enable_bgm">
                   <input type="checkbox" id="enable_bgm" name="enable_bgm" />
@@ -301,7 +243,7 @@
               <audio id="audio_bgm" controls src=""></audio>
             </div>
             <div>
-              <div class="title_restorable space-between align-center">
+              <div class="title_restorable space-between alignItemsCenter">
                 <label for="audio_ambient_volume_slider">音效</label>
                 <label class="checkbox flex-container" for="enable_ambient">
                   <input type="checkbox" id="enable_ambient" name="enable_ambient" />

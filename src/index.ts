@@ -92,7 +92,8 @@ const handleVariableUpdated = (mesId: string) => {
 
 async function handleExtensionToggle(userAction: boolean = true, enable: boolean = true) {
   if (userAction) {
-    saveSettingValue('enabled_extension', enable);
+    await saveSettingValue('enabled_extension', enable);
+    isExtensionEnabled = enable;
   }
   if (enable) {
     // 指示器样式
@@ -312,34 +313,18 @@ function handleSettingPageChange(event: JQuery.ClickEvent) {
 }
 
 /**
- * 添加前端渲染快速按钮
- */
-function addRenderQuickButton() {
-  const buttonHtml = $(`
-  <div id="tavern_helper_container" class="list-group-item flex-container flexGap5 interactable">
-      <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
-      <span id="tavern_helper_text">${getSettingValue('render.render_enabled') ? '关闭前端渲染' : '开启前端渲染'}</span>
-  </div>`);
-  buttonHtml.css('display', 'flex');
-  $('#extensionsMenu').append(buttonHtml);
-  $('#tavern_helper_container').on('click', function () {
-    const currentChecked = $('#render-enable-toggle').prop('checked');
-    $('#render-enable-toggle').prop('checked', !currentChecked);
-    handleRenderToggle(true, !currentChecked);
-  });
-}
-/**
  * 初始化扩展主设置界面
  */
 function initExtensionMainPanel() {
   const isEnabled = getSettingValue('enabled_extension');
+  isExtensionEnabled = isEnabled;
   if (isEnabled) {
     handleExtensionToggle(false, true);
   }
   $('#extension-enable-toggle')
     .prop('checked', isEnabled)
-    .on('change', function () {
-      handleExtensionToggle(true, $(this).prop('checked'));
+    .on('change', function (event: JQuery.ChangeEvent) {
+      handleExtensionToggle(true, $(event.currentTarget).prop('checked'));
     });
 }
 
@@ -410,6 +395,4 @@ jQuery(async () => {
   initAutoSettings();
   initAudioComponents();
   initSlashEventEmit();
-
-  addRenderQuickButton();
 });

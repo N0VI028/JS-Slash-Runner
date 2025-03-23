@@ -106,8 +106,7 @@
   background-color: var(--SmartThemeBorderColor);
 }
 
-.global-script-item,
-.scoped-script-item {
+.script-item {
   display: flex;
   justify-content: space-between;
   flex-wrap: nowrap;
@@ -119,7 +118,7 @@
   margin-bottom: 1px;
 }
 
-.global-script-item:has(.disable-script:checked) .global-script-item-name {
+.script-item:has(.disable-script:checked) .script-item-name {
   text-decoration: line-through;
   filter: grayscale(0.5);
 }
@@ -168,42 +167,7 @@
   white-space: nowrap;
 }
 
-#audio-player-content .flex {
-  display: flex;
-}
-
-#audio-player-content .flex.column {
-  flex-direction: column;
-}
-
-#audio-player-content .flex.column-reverse {
-  flex-direction: column-reverse;
-}
-
-#audio-player-content .flex.row {
-  flex-direction: row;
-}
-
-#audio-player-content .flex.row-reverse {
-  flex-direction: row-reverse;
-}
-
-#audio-player-content .flex.align-center {
-  align-items: center;
-}
-
-#audio-player-content .flex.justify-center {
-  justify-content: center;
-}
-
-#audio-player-content .flex.justify-start {
-  justify-content: flex-start;
-}
-
-#audio-player-content .flex.justify-end {
-  justify-content: flex-end;
-}
-
+/* 播放器 */
 #audio-player-content .flex.gap-12 {
   gap: 12px;
 }
@@ -365,7 +329,7 @@
   margin-bottom: 1px;
 }
 
-/* 开关控件样式 */
+/* 自定义开关控件样式 */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -413,4 +377,52 @@
 
 .toggle-input:focus + .toggle-label {
   box-shadow: 0 0 1px var(--SmartThemeQuoteColor);
+}
+
+/* 脚本编辑器 */
+.script-editor-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+#script-name-input {
+  width: 100%;
+  border-radius: 5px;
+}
+
+#script-content-textarea,
+#script-info-textarea {
+  white-space: pre-wrap;
+  tab-size: 4;
+  padding: 0.75em;
+  line-height: 1.2;
+  font-family: var(--monoFontFamily);
+  color: var(--text-color-main);
+  grid-column: 1;
+  grid-row: 1;
+  caret-color: var(--ac-style-color-text);
+  overflow: auto;
+}
+
+.disable-script {
+  display: none !important;
+}
+
+.disable-script:checked ~ .script-toggle-on {
+  display: inline-block;
+}
+
+.disable-script:checked ~ .script-toggle-off {
+  display: none;
+}
+
+.disable-script:not(:checked) ~ .script-toggle-on {
+  display: none;
+}
+
+.disable-script:not(:checked) ~ .script-toggle-off {
+  display: inline-block;
 }

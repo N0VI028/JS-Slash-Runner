@@ -8,16 +8,136 @@ import {
   characters,
 } from '../../../../../../script.js';
 import { selected_group } from '../../../../../group-chats.js';
-import { extension_settings } from '../../../../../extensions.js';
+import { extension_settings, renderExtensionTemplateAsync } from '../../../../../extensions.js';
 import { power_user } from '../../../../../power-user.js';
-import { extensionName } from '../index.js';
-
+import { extensionName, extensionFolderPath } from '../index.js';
+import { POPUP_TYPE, callGenericPopup } from '../../../../../popup.js';
+import { download, getFileText, getSortableDelay, uuidv4 } from '../../../../../utils.js';
 
 export const defaultScriptSettings = {
   script_enabled: true,
   global_script_enabled: true,
-  script_repository_enabled: true,
+  scope_script_enabled: 'global',
 };
+
+interface Script {
+  id: string;
+  name: string;
+  type: 'global' | 'scope';
+  content: string;
+  info: string;
+  enabled: boolean;
+}
+
+/**
+ * 初始化脚本库
+ */
+async function initScriptLibrary() {
+  const scriptTest = [
+    {
+      id: uuidv4(),
+      name: 'test',
+      type: 'global',
+      content: 'test',
+      info: 'test',
+    },
+    {
+      id: uuidv4(),
+      name: 'test2',
+      type: 'scope',
+      content: 'test2',
+      info: 'test2',
+    },
+  ];
+  const globalTemplate = $(await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'script_item_template'), {
+    moveTo: 'move-to-scoped',
+    faIcon: 'fa-arrow-down',
+  });
+
+  scriptTest.forEach(async script => {
+    const scriptHtml = globalTemplate.clone();
+    scriptHtml.find('.script-item').attr('id', script.id);
+    scriptHtml.find('.script-item-name').text(script.name);
+    scriptHtml.find('.script-storage-location').addClass(script.type === 'global' ? 'move-to-scoped' : 'move-to-global');
+    scriptHtml.find('.script-storage-location i').addClass(script.type === 'global' ? 'fa-arrow-down' : 'fa-arrow-up');
+    scriptHtml.find('.edit-script').on('click', (event: JQuery.ClickEvent) => {
+      onScriptEditorOpenClick(script.type, script.id);
+    });
+    scriptHtml.find('.delete-script').on('click', (event: JQuery.ClickEvent) => {
+      deleteScript(script.id);
+    });
+    $('#global-script-list').prepend(scriptHtml);
+  });
+}
+
+/**
+ * 打开脚本编辑器
+ */
+async function onScriptEditorOpenClick(type: 'global' | 'scope' = 'global', scriptId: string | null = null) {
+  const $editorHtml = $(await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'script_editor'));
+  const popupResult = await callGenericPopup($editorHtml, POPUP_TYPE.CONFIRM, '', {
+    okButton: '确认',
+    cancelButton: '取消',
+  });
+  if (popupResult) {
+    const scriptName = $editorHtml.find('#script-name-input').val();
+    const scriptContent = $editorHtml.find('#script-content-textarea').val();
+    const scriptInfo = $editorHtml.find('#script-info-textarea').val();
+    if (scriptId === null) {
+      const script: Script = {
+        id: uuidv4(),
+        name: scriptName,
+        type,
+        content: scriptContent,
+        info: scriptInfo,
+        enabled: false,
+      };
+      saveScript(script, true);
+    }
+  }
+}
+
+/**
+ * 保存脚本
+ */
+async function saveScript(script: Script, isNew: boolean = false) {
+  if (!script.name) {
+    toastr.error('保存失败，脚本名称为空');
+    return;
+  }
+  if (isNew) {
+    const $scriptItem = $(
+      await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'script_item_template', {
+        scriptName: script.name,
+        scriptId: script.id,
+        moveTo: script.type === 'global' ? 'move-to-scoped' : 'move-to-global',
+        faIcon: script.type === 'global' ? 'fa-arrow-down' : 'fa-arrow-up',
+      }),
+    );
+    if (script.type === 'global') {
+      $('#global-script-list').prepend($scriptItem);
+    } else {
+      $('#scoped-script-list').prepend($scriptItem);
+    }
+  }
+}
+
+/**
+ * 删除脚本
+ */
+
+function deleteScript(id: string) {
+  const $scriptItem = $(`#${id}`);
+  $scriptItem.remove();
+}
+
+/** 加载脚本库
+ *
+ */
+export async function loadScriptLibrary() {
+  $('#global-script-list').empty();
+  $('#scoped-script-list').empty();
+}
 
 /**
  * 自动为当前角色启用正则表达式规则
@@ -113,20 +233,23 @@ export async function onAutoDisableIncompatibleOptions() {
 }
 
 export async function initAutoSettings() {
-  // 处理自动启用角色正则表达式设置
-  const auto_enable_character_regex = extension_settings[extensionName].auto_enable_character_regex;
-  $('#auto_enable_character_regex')
-    .prop('checked', auto_enable_character_regex)
-    .on('click', onAutoEnableCharacterRegexClick);
-  if (auto_enable_character_regex) {
-    onAutoEnableCharacterRegexClick();
-  }
-  // 处理自动禁用不兼容选项设置
-  const auto_disable_incompatible_options = extension_settings[extensionName].auto_disable_incompatible_options;
-  $('#auto_disable_incompatible_options')
-    .prop('checked', auto_disable_incompatible_options)
-    .on('click', onAutoDisableIncompatibleOptions);
-  if (auto_disable_incompatible_options) {
-    onAutoDisableIncompatibleOptions();
-  }
+  $('#open-global-script-editor').on('click', () => onScriptEditorOpenClick('global', null));
+  $('#open-scope-script-editor').on('click', () => onScriptEditorOpenClick('scope', null));
+  initScriptLibrary();
+  // // 处理自动启用角色正则表达式设置
+  // const auto_enable_character_regex = extension_settings[extensionName].auto_enable_character_regex;
+  // $('#auto_enable_character_regex')
+  //   .prop('checked', auto_enable_character_regex)
+  //   .on('click', onAutoEnableCharacterRegexClick);
+  // if (auto_enable_character_regex) {
+  //   onAutoEnableCharacterRegexClick();
+  // }
+  // // 处理自动禁用不兼容选项设置
+  // const auto_disable_incompatible_options = extension_settings[extensionName].auto_disable_incompatible_options;
+  // $('#auto_disable_incompatible_options')
+  //   .prop('checked', auto_disable_incompatible_options)
+  //   .on('click', onAutoDisableIncompatibleOptions);
+  // if (auto_disable_incompatible_options) {
+  //   onAutoDisableIncompatibleOptions();
+  // }
 }

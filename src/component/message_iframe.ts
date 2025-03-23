@@ -21,7 +21,9 @@ import { third_party } from '../third_party.js';
 import { libraries_text } from './character_level/library.js';
 
 let tampermonkeyMessageListener: ((event: MessageEvent) => void) | null = null;
-let renderingOptimizeEnabled = false;
+let isRenderEnabled: boolean;
+let isRenderingOptimizeEnabled: boolean;
+let renderDepth: number;
 
 const iframeResizeObservers = new Map();
 
@@ -45,8 +47,8 @@ export const defaultIframeSettings = {
   auto_enable_character_regex: true,
   auto_disable_incompatible_options: true,
   tampermonkey_compatibility: false,
-  process_depth: 0,
-  rendering_optimize: false,
+  render_depth: 3,
+  render_optimize: false,
 };
 
 export async function handleRenderToggle(userInput: boolean = true, enable: boolean = true) {
@@ -71,7 +73,7 @@ export const getCharAvatarPath = () => {
  * 清理后，重新渲染所有iframe
  */
 export async function clearAndRenderAllIframes() {
-  await clearAllIframe();
+  await clearAllIframes();
   await reloadCurrentChat();
   await renderAllIframes();
 }
@@ -234,13 +236,13 @@ function updateIframeViewportHeight() {
  * @param specificMesId 指定消息ID
  */
 async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: string | null = null) {
-  if (!isExtensionEnabled) {
+  if (!isExtensionEnabled || !isRenderEnabled) {
     return;
   }
 
   const context = getContext();
   const totalMessages = context.chat.length;
-  const processDepth = parseInt($('#process_depth').val() as string, 10) || 0;
+  const processDepth = renderDepth || 0;
   const depthLimit = processDepth > 0 ? processDepth : totalMessages;
   const depthLimitedMessageIds = [...Array(totalMessages).keys()].slice(-depthLimit);
 
@@ -271,7 +273,10 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
         }),
       );
       updateMessageBlock(messageId, message);
-      addCodeToggleButtons(messageId);
+    }
+    if (isRenderingOptimizeEnabled) {
+      const $mesText = $(`.mes[mesid="${messageId}"] .mes_block .mes_text`);
+      addToggleButtonsToMessage($mesText);
     }
   }
 
@@ -293,7 +298,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     $codeElements.each(function () {
       let extractedText = extractTextFromCode(this);
       if (!extractedText.includes('<body') || !extractedText.includes('</body>')) {
-        if (renderingOptimizeEnabled) {
+        if (isRenderingOptimizeEnabled) {
           addCodeToggleButtons(messageId);
         }
         return;
@@ -398,7 +403,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
 
         eventSource.emitAndWait('message_iframe_render_ended', this.id);
 
-        if (renderingOptimizeEnabled) {
+        if (isRenderingOptimizeEnabled) {
           removeCodeToggleButtonsByMesId(messageId);
         }
 
@@ -556,7 +561,7 @@ function destroyIframe(iframe) {
  * 清理所有iframe
  * @returns {Promise<void>}
  */
-export async function clearAllIframe(): Promise<void> {
+export async function clearAllIframes(): Promise<void> {
   const $iframes = $('iframe[id^="message-iframe"]');
   $iframes.each(function () {
     destroyIframe(this);
@@ -772,20 +777,19 @@ async function onTampermonkeyCompatibilityChange() {
 /**
  * 处理深度输入改变时
  */
-async function onDepthInput() {
-  const processDepth = parseInt($('#process_depth').val() as string, 10);
+async function onDepthInput(value: string) {
+  const processDepth = parseInt(value, 10);
+  renderDepth = processDepth;
 
   if (processDepth < 0) {
     toastr.warning('处理深度不能为负数');
-    $('#process_depth').val(extension_settings[extensionName].render.process_depth);
+    $('#render-depth').val(getSettingValue('render.render_depth'));
     return;
   }
 
-  extension_settings[extensionName].render.process_depth = processDepth;
+  await saveSettingValue('render.render_depth', processDepth);
 
   await clearAndRenderAllIframes();
-
-  saveSettingsDebounced();
 }
 
 export const handlePartialRender = (mesId: string) => {
@@ -927,7 +931,7 @@ function addToggleButtonsToMessage($mesText) {
  * 给所有消息添加折叠控件
  */
 export function addCodeToggleButtonsToAllMessages() {
-  if (!extension_settings[extensionName].render.rendering_optimize) {
+  if (!extension_settings[extensionName].render.render_optimize) {
     return;
   }
 
@@ -997,20 +1001,19 @@ export function removeRenderingOptimizeSettings() {
 /**
  * 处理重型前端卡渲染优化
  * @param userInput 是否由用户手动触发
+ * @param enable 是否启用重型前端卡渲染优化
  */
-async function renderingOptimizationChange(userInput: boolean = true) {
-  const isEnabled = Boolean($('#rendering_optimize').prop('checked'));
+async function handleRenderingOptimizationToggle(userInput: boolean = true, enable: boolean = true) {
   if (userInput) {
-    extension_settings[extensionName].render.rendering_optimize = isEnabled;
-    renderingOptimizeEnabled = isEnabled;
-    saveSettingsDebounced();
+    await saveSettingValue('render.render_optimize', enable);
+    isRenderingOptimizeEnabled = enable;
   }
 
-  if (!getSettingValue('activate_setting')) {
+  if (!isRenderEnabled) {
     return;
   }
 
-  if (isEnabled) {
+  if (enable) {
     addRenderingOptimizeSettings();
     if (userInput) {
       await clearAndRenderAllIframes();
@@ -1022,20 +1025,65 @@ async function renderingOptimizationChange(userInput: boolean = true) {
     }
   }
 }
+/**
+ * 处理渲染器启用设置改变
+ * @param userInput 是否由用户手动触发
+ * @param enable 是否启用渲染器
+ */
+async function handleRenderEnableToggle(userInput?: boolean, enable?: boolean) {
+  if (userInput) {
+    await saveSettingValue('render.render_enabled', enable);
+    isRenderEnabled = enable;
+    $('#tavern_helper_text').text(isRenderEnabled ? '关闭前端渲染' : '开启前端渲染');
+  }
+  if (enable) {
+    renderAllIframes();
+  } else {
+    clearAllIframes();
+    reloadCurrentChat();
+  }
+}
+
+/**
+ * 添加前端渲染快速按钮
+ */
+function addRenderQuickButton() {
+  const buttonHtml = $(`
+  <div id="tavern-helper-container" class="list-group-item flex-container flexGap5 interactable">
+      <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
+      <span id="tavern-helper-text">${isRenderEnabled ? '关闭前端渲染' : '开启前端渲染'}</span>
+  </div>`);
+  buttonHtml.css('display', 'flex');
+  $('#extensionsMenu').append(buttonHtml);
+  $('#tavern-helper-container').on('click', function () {
+    handleRenderEnableToggle(true, !isRenderEnabled);
+    $('#tavern-helper-text').text(isRenderEnabled ? '关闭前端渲染' : '开启前端渲染');
+    $('#render-enable-toggle').prop('checked', isRenderEnabled);
+  });
+}
 
 /**
  * 初始化iframe控制面板
  */
 export const initIframePanel = () => {
-  // 处理重型前端卡渲染优化
-  const renderingOptimizeEnabled = getSettingValue('render.rendering_optimize');
-  $('#rendering_optimize')
-    .prop('checked', renderingOptimizeEnabled)
-    .on('click', () => renderingOptimizationChange(true));
-
-  if (renderingOptimizeEnabled) {
-    renderingOptimizationChange(false);
+  isRenderEnabled = getSettingValue('render.render_enabled');
+  if (isRenderEnabled) {
+    handleRenderEnableToggle(false, true);
   }
+  $('#render-enable-toggle')
+    .prop('checked', isRenderEnabled)
+    .on('click', (event: JQuery.ClickEvent) => handleRenderEnableToggle(true, event.target.checked));
+
+  addRenderQuickButton();
+
+  // 处理重型前端卡渲染优化
+  isRenderingOptimizeEnabled = getSettingValue('render.render_optimize');
+  if (isRenderingOptimizeEnabled) {
+    handleRenderingOptimizationToggle(false, true);
+  }
+  $('#render-optimize-toggle')
+    .prop('checked', isRenderingOptimizeEnabled)
+    .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(true, event.target.checked));
 
   // 处理油猴兼容性设置
   const tampermonkeyEnabled = extension_settings[extensionName].render.tampermonkey_compatibility;
@@ -1046,9 +1094,11 @@ export const initIframePanel = () => {
   }
 
   // 处理处理深度设置
-  $('#process_depth')
-    .val(extension_settings[extensionName].render.process_depth || defaultIframeSettings.process_depth)
-    .on('input', onDepthInput);
+  $('#render-depth')
+    .val(getSettingValue('render.render_depth') || defaultIframeSettings.render_depth)
+    .on('input', function (event) {
+      onDepthInput(event.target.value);
+    });
 
   $(window).on('resize', function () {
     if ($('iframe[data-needs-vh="true"]').length) {
