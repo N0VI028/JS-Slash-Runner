@@ -24,13 +24,7 @@ interface VariableOption {
  * }
  */
 async function getVariables(option: VariableOption = {}): Promise<Record<string, any>> {
-  option = {
-    type: option.type ?? 'chat',
-  } as Required<VariableOption>;
-  return detail.make_iframe_promise({
-    request: "[Variables][getVariables]",
-    option: option,
-  });
+  return getVariables(option);
 }
 
 /**
@@ -55,14 +49,7 @@ async function getVariables(option: VariableOption = {}): Promise<Record<string,
  * await replaceVariables(variables);
  */
 async function replaceVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void> {
-  option = {
-    type: option.type ?? 'chat',
-  } as Required<VariableOption>;
-  return detail.make_iframe_promise({
-    request: "[Variables][replaceVariables]",
-    option: option,
-    variables: variables,
-  });
+  replaceVariables(variables, option);
 }
 
 type VariablesUpdater =

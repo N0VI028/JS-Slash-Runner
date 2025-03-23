@@ -1,6 +1,6 @@
-// import { getVariables } from './variables.js';
+import { getVariables, replaceVariables } from './variables.js';
 
-// (globalThis as unknown as { TavernHelper: Record<string, any> }).TavernHelper = {
-//   getVariables,
-//   replaceVariables,
-// };
+(globalThis as unknown as { TavernHelper: Record<string, any> }).TavernHelper = {
+  getVariables,
+  replaceVariables,
+};

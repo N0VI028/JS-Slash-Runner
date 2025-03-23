@@ -6,19 +6,7 @@ import {
   getContext,
   saveMetadataDebounced,
 } from "../../../../../extensions.js";
-// import { getVariables, replaceVariables } from "../function/variables.js";
 import { getLogPrefix, IframeMessage, registerIframeHandler } from "./index.js";
-
-interface IframeGetVariables extends IframeMessage {
-  request: "[Variables][getVariables]";
-  option: Required<VariableOption>;
-}
-
-interface IframeReplaceVariables extends IframeMessage {
-  request: "[Variables][replaceVariables]";
-  option: Required<VariableOption>;
-  variables: Record<string, any>;
-}
 
 // for compatibility
 interface IframeSetVariables extends IframeMessage {
@@ -30,22 +18,6 @@ interface IframeSetVariables extends IframeMessage {
 let latest_set_variables_message_id: number | null = null;
 
 export function registerIframeVariableHandler() {
-  registerIframeHandler(
-    "[Variables][getVariables]",
-    async (
-      event: MessageEvent<IframeGetVariables>
-    ): Promise<Record<string, any>> => {
-      return getVariables(event.data.option);
-    }
-  );
-
-  registerIframeHandler(
-    "[Variables][replaceVariables]",
-    async (event: MessageEvent<IframeReplaceVariables>): Promise<void> => {
-      replaceVariables(event.data.variables, event.data.option);
-    }
-  );
-
   registerIframeHandler(
     "[Variables][setVariables]",
     async (event: MessageEvent<IframeSetVariables>): Promise<void> => {
