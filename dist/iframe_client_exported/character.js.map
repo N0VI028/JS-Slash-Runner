@@ -1,1 +1,1 @@
-{"version": 3, "file": "character.js", "sourceRoot": "", "sources": ["..\\..\\src\\iframe_client_exported\\character.ts"], "names": [], "mappings": "AAAA,MAAM,CAAC,MAAM,uBAAuB,GAAG;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CA6BtC,CAAA"}
+{"version": 3, "file": "character.js", "sourceRoot": "", "sources": ["../../src/iframe_client_exported/character.ts"], "names": [], "mappings": "AAAA,MAAM,CAAC,MAAM,uBAAuB,GAAG;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CA6BtC,CAAA"}

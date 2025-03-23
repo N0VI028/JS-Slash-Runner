@@ -1,7 +1,6 @@
-"use strict";
-// import { getVariables } from './variables.js';
-// (globalThis as unknown as { TavernHelper: Record<string, any> }).TavernHelper = {
-//   getVariables,
-//   replaceVariables,
-// };
+import { getVariables, replaceVariables } from './variables.js';
+globalThis.TavernHelper = {
+    getVariables,
+    replaceVariables,
+};
 //# sourceMappingURL=index.js.map

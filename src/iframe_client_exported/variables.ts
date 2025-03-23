@@ -22,13 +22,7 @@ export const iframe_client_variables = `
  * }
  */
 async function getVariables(option = {}) {
-    option = {
-        type: option.type ?? 'chat',
-    };
-    return detail.make_iframe_promise({
-        request: "[Variables][getVariables]",
-        option: option,
-    });
+    return getVariables(option);
 }
 /**
  * 完全替换变量表为 \`variables\`
@@ -52,14 +46,7 @@ async function getVariables(option = {}) {
  * await replaceVariables(variables);
  */
 async function replaceVariables(variables, option = {}) {
-    option = {
-        type: option.type ?? 'chat',
-    };
-    return detail.make_iframe_promise({
-        request: "[Variables][replaceVariables]",
-        option: option,
-        variables: variables,
-    });
+    replaceVariables(variables, option);
 }
 /**
  * 用 \`updater\` 函数更新变量表

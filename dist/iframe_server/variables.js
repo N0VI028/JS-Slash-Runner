@@ -1,15 +1,8 @@
 import { chat_metadata, event_types, } from "../../../../../../script.js";
 import { getContext, saveMetadataDebounced, } from "../../../../../extensions.js";
-// import { getVariables, replaceVariables } from "../function/variables.js";
 import { getLogPrefix, registerIframeHandler } from "./index.js";
 let latest_set_variables_message_id = null;
 export function registerIframeVariableHandler() {
-    registerIframeHandler("[Variables][getVariables]", async (event) => {
-        return getVariables(event.data.option);
-    });
-    registerIframeHandler("[Variables][replaceVariables]", async (event) => {
-        replaceVariables(event.data.variables, event.data.option);
-    });
     registerIframeHandler("[Variables][setVariables]", async (event) => {
         const variables = event.data.variables;
         const message_id = event.data.message_id;
