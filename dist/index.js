@@ -12,6 +12,7 @@ import { script_url } from './script_url.js';
 import { defaultAudioSettings, initAudioComponents } from './component/audio.js';
 import { defaultIframeSettings, renderAllIframes, renderPartialIframes, initIframePanel, viewport_adjust_script, tampermonkey_script, partialRenderEvents, addCodeToggleButtonsToAllMessages, renderMessageAfterDelete, addRenderingOptimizeSettings, removeRenderingOptimizeSettings, } from './component/message_iframe.js';
 import { initAutoSettings, defaultScriptSettings } from './component/script_repository.js';
+import { setValueByPath } from '../../../../utils.js';
 export const extensionName = 'JS-Slash-Runner';
 //TODO: 修改名称
 export const extensionFolderPath = `third-party/${extensionName}`;
@@ -177,12 +178,7 @@ export function getSettingValue(key) {
  * @param value 设置变量的值
  */
 export async function saveSettingValue(key, value) {
-    const keys = key.split('.');
-    let current = extension_settings[extensionName];
-    for (const k of keys) {
-        current = current[k];
-    }
-    current = value;
+    setValueByPath(extension_settings[extensionName], key, value);
     await saveSettingsDebounced();
 }
 /**

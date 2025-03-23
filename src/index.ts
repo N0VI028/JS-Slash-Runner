@@ -46,6 +46,7 @@ import {
   removeRenderingOptimizeSettings,
 } from './component/message_iframe.js';
 import { initAutoSettings, defaultScriptSettings } from './component/script_repository.js';
+import { setValueByPath } from '../../../../utils.js';
 
 export const extensionName = 'JS-Slash-Runner';
 //TODO: 修改名称
@@ -257,12 +258,7 @@ export function getSettingValue(key: string) {
  * @param value 设置变量的值
  */
 export async function saveSettingValue(key: string, value: any) {
-  const keys = key.split('.');
-  let current = extension_settings[extensionName];
-  for (const k of keys) {
-    current = current[k];
-  }
-  current = value;
+  setValueByPath(extension_settings[extensionName], key, value);
   await saveSettingsDebounced();
 }
 

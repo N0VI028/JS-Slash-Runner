@@ -1,3 +1,11 @@
+
+#TavernHelper input {
+  width: 100%;
+  border-radius: 5px;
+  background-color: var(--black30a);
+  border: 1px solid var(--SmartThemeBorderColor);
+}
+
 .extension-status,
 .extension-status i {
   font-size: calc(var(--mainFontSize) * 0.8) !important;
@@ -50,7 +58,7 @@
 }
 
 .title-item-active {
-  background-color: var(--SmartThemeQuoteColor);
+  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 80%, transparent);
   color: var(--SmartThemeBodyColor);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -98,7 +106,7 @@
 }
 
 .input-number-wrapper input {
-  width: 50px;
+  width: 50px !important;
 }
 
 .divider {
@@ -386,11 +394,6 @@
   align-items: flex-start;
   margin-bottom: 10px;
   width: 100%;
-}
-
-#script-name-input {
-  width: 100%;
-  border-radius: 5px;
 }
 
 #script-content-textarea,
