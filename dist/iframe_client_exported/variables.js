@@ -22,7 +22,7 @@ export const iframe_client_variables = `
  * }
  */
 async function getVariables(option = {}) {
-    return getVariables(option);
+    return TavernHelper.getVariables(option);
 }
 /**
  * 完全替换变量表为 \`variables\`
@@ -46,7 +46,7 @@ async function getVariables(option = {}) {
  * await replaceVariables(variables);
  */
 async function replaceVariables(variables, option = {}) {
-    replaceVariables(variables, option);
+    TavernHelper.replaceVariables(variables, option);
 }
 /**
  * 用 \`updater\` 函数更新变量表
