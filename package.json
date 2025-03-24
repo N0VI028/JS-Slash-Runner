@@ -6,7 +6,8 @@
     "build:dev": "webpack --mode development",
     "build": "webpack --mode production",
     "watch:dev": "webpack --mode development --watch",
-    "watch": "webpack --mode production --watch"
+    "watch": "webpack --mode production --watch",
+    "lint": "eslint"
   },
   "browserslist": {
     "production": [
@@ -21,10 +22,17 @@
     ]
   },
   "devDependencies": {
+    "@eslint/js": "^9.23.0",
     "@types/jquery": "^3.5.32",
     "@types/lodash": "^4.17.16",
     "@types/toastr": "^2.1.43",
+    "@typescript-eslint/parser": "^8.27.0",
     "css-loader": "^7.1.2",
+    "eslint": "^9.23.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-import-resolver-typescript": "^4.2.2",
+    "eslint-plugin-import-x": "^4.9.1",
+    "eslint-webpack-plugin": "^5.0.0",
     "highlight.js": "^11.11.1",
     "html-loader": "^5.1.0",
     "mini-css-extract-plugin": "^2.9.2",

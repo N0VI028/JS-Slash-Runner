@@ -1,3 +1,4 @@
+import eslintWebpackPlugin from 'eslint-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -34,6 +35,7 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         type: 'module',
       },
     },
+    // plugins: [new eslintWebpackPlugin({ extensions: ['ts', 'js', 'tsx', '.jsx'] })],
     resolve: {
       extensions: ['.ts', '.js', '.tsx', '.jsx'],
       plugins: [
