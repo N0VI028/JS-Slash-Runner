@@ -24,7 +24,7 @@ interface VariableOption {
  * }
  */
 async function getVariables(option: VariableOption = {}): Promise<Record<string, any>> {
-  return getVariables(option);
+  return TavernHelper.getVariables(option);
 }
 
 /**
@@ -49,7 +49,7 @@ async function getVariables(option: VariableOption = {}): Promise<Record<string,
  * await replaceVariables(variables);
  */
 async function replaceVariables(variables: Record<string, any>, option: VariableOption = {}): Promise<void> {
-  replaceVariables(variables, option);
+  TavernHelper.replaceVariables(variables, option);
 }
 
 type VariablesUpdater =
