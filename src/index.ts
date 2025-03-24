@@ -22,7 +22,7 @@ import {
   tampermonkey_script,
   viewport_adjust_script,
 } from '@/component/message_iframe';
-import { defaultScriptSettings, initAutoSettings } from '@/component/script_repository';
+import { defaultScriptSettings, initScriptRepository } from '@/component/script_repository';
 import { iframe_client } from '@/iframe_client/index';
 import { handleIframe } from '@/iframe_server/index';
 import { checkVariablesEvents, clearTempVariables, shouldUpdateVariables } from '@/iframe_server/variables';
@@ -39,8 +39,6 @@ export const extensionName = 'JS-Slash-Runner';
 //TODO: 修改名称
 export const extensionFolderPath = `third-party/${extensionName}`;
 export let isExtensionEnabled: boolean;
-
-let isScriptLibraryOpen = false;
 
 const defaultSettings = {
   enabled_extension: true,
@@ -63,19 +61,22 @@ const handleChatChanged = () => {
 };
 
 const handlePartialRender = (mesId: string) => {
-  renderPartialIframes(mesId);
+  const mesIdNumber = parseInt(mesId, 10);
+  renderPartialIframes(mesIdNumber);
 };
 
 const handleMessageDeleted = (mesId: string) => {
+  const mesIdNumber = parseInt(mesId, 10);
   clearTempVariables();
-  renderMessageAfterDelete(mesId);
+  renderMessageAfterDelete(mesIdNumber);
   if (getSettingValue('render.rendering_optimize')) {
     addCodeToggleButtonsToAllMessages();
   }
 };
 
 const handleVariableUpdated = (mesId: string) => {
-  shouldUpdateVariables(mesId);
+  const mesIdNumber = parseInt(mesId, 10);
+  shouldUpdateVariables(mesIdNumber);
 };
 
 async function handleExtensionToggle(userAction: boolean = true, enable: boolean = true) {
@@ -227,6 +228,7 @@ function formatSlashCommands(): string {
  */
 export function getSettingValue(key: string) {
   const keys = key.split('.');
+  //@ts-ignore
   let value = extension_settings[extensionName];
 
   for (const k of keys) {
@@ -245,6 +247,7 @@ export function getSettingValue(key: string) {
  * @param value 设置变量的值
  */
 export async function saveSettingValue(key: string, value: any) {
+  //@ts-ignore
   setValueByPath(extension_settings[extensionName], key, value);
   await saveSettingsDebounced();
 }
@@ -256,6 +259,9 @@ export async function saveSettingValue(key: string, value: any) {
 function handleSettingPageChange(event: JQuery.ClickEvent) {
   const target = $(event.currentTarget);
   let id = target.attr('id');
+  if (id === undefined) {
+    return;
+  }
   id = id.replace('-settings-title', '');
 
   function resetAllTitleClasses() {
@@ -315,11 +321,12 @@ function initExtensionMainPanel() {
  * 初始化扩展面板
  */
 jQuery(async () => {
-  const getContainer = () => $(document.getElementById('extensions_settings'));
+  const getContainer = () => $('#extensions_settings');
   const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'settings');
   getContainer().append(windowHtml);
-
+  //@ts-ignore
   if (!extension_settings[extensionName]) {
+    //@ts-ignore
     extension_settings[extensionName] = defaultSettings;
     saveSettingsDebounced();
   }
@@ -375,7 +382,7 @@ jQuery(async () => {
   // });
   initExtensionMainPanel();
   initIframePanel();
-  initAutoSettings();
+  initScriptRepository();
   initAudioComponents();
   initSlashEventEmit();
 });

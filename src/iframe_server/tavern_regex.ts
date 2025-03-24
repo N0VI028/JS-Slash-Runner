@@ -1,9 +1,10 @@
-import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/_impl';
+import { partition } from '@/util/helper';
+
 import { characters, reloadCurrentChat, saveChatConditional, saveSettings, this_chid } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
-import { regex_placement } from '../../../../regex/engine';
-import { partition } from '../util/helper';
+import { regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
 
 interface IframeIsCharacterTavernRegexEnabled extends IframeMessage {
   request: '[TavernRegex][isCharacterTavernRegexesEnabled]';

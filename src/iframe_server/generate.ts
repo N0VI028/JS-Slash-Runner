@@ -1,4 +1,4 @@
-import { IframeMessage, getIframeName, getLogPrefix, registerIframeHandler } from '@/iframe_server/index';
+import { IframeMessage, getIframeName, getLogPrefix, registerIframeHandler } from '@/iframe_server/_impl';
 
 import {
   MAX_INJECTION_DEPTH,

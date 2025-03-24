@@ -1,5 +1,5 @@
 import { libraries_text } from '@/component/character_level/library';
-import { extensionName, getSettingValue, isExtensionEnabled, saveSettingValue } from '@/index';
+import { getSettingValue, isExtensionEnabled, saveSettingValue } from '@/index';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 
@@ -9,12 +9,11 @@ import {
   event_types,
   getThumbnailUrl,
   reloadCurrentChat,
-  saveSettingsDebounced,
   this_chid,
   updateMessageBlock,
   user_avatar,
 } from '@sillytavern/script';
-import { extension_settings, getContext } from '@sillytavern/scripts/extensions';
+import { getContext } from '@sillytavern/scripts/extensions';
 
 let tampermonkeyMessageListener: ((event: MessageEvent) => void) | null = null;
 let isRenderEnabled: boolean;
@@ -30,6 +29,11 @@ const RENDER_MODES = {
   FULL: 'FULL',
   PARTIAL: 'PARTIAL',
 };
+
+interface IFrameElement extends HTMLIFrameElement {
+  cleanup: () => void;
+  [prop: string]: any;
+}
 
 export const partialRenderEvents = [
   event_types.CHARACTER_MESSAGE_RENDERED,
@@ -60,6 +64,7 @@ export async function handleRenderToggle(userInput: boolean = true, enable: bool
 export const charsPath = '/characters/';
 export const getUserAvatarPath = () => `./User Avatars/${user_avatar}`;
 export const getCharAvatarPath = () => {
+  //@ts-ignore
   const thumbnailPath = getThumbnailUrl('avatar', characters[this_chid].avatar);
   const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
   return charsPath + targetAvatarImg;
@@ -86,24 +91,23 @@ export async function renderAllIframes() {
  * 渲染部分iframe
  * @param mesId 消息ID
  */
-export const renderPartialIframes = (mesId: string) => {
+export async function renderPartialIframes(mesId: number) {
   const processDepth = parseInt($('#process_depth').val() as string, 10);
   const context = getContext();
   const totalMessages = context.chat.length;
 
   if (processDepth > 0) {
     const depthOffset = totalMessages - processDepth;
-    const messageIndex = parseInt(mesId, 10);
 
-    if (messageIndex < depthOffset) {
+    if (mesId < depthOffset) {
       return;
     }
   }
 
-  renderMessagesInIframes(RENDER_MODES.PARTIAL, mesId);
+  await renderMessagesInIframes(RENDER_MODES.PARTIAL, mesId);
 
   console.log('[Render] 渲染' + mesId + '号消息的iframe');
-};
+}
 
 /**
  * 使用了min-height:vh时，自动调整iframe高度
@@ -231,7 +235,7 @@ function updateIframeViewportHeight() {
  * @param mode 渲染模式
  * @param specificMesId 指定消息ID
  */
-async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: string | null = null) {
+async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: number | null = null) {
   if (!isExtensionEnabled || !isRenderEnabled) {
     return;
   }
@@ -250,10 +254,8 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
   if (mode === RENDER_MODES.FULL) {
     messagesToRenderIds = depthLimitedMessageIds;
   } else if (mode === RENDER_MODES.PARTIAL && specificMesId !== null) {
-    const specificIdNum = parseInt(specificMesId, 10);
-
-    if (depthLimitedMessageIds.includes(specificIdNum)) {
-      messagesToRenderIds = [specificIdNum];
+    if (depthLimitedMessageIds.includes(specificMesId)) {
+      messagesToRenderIds = [specificMesId];
     } else {
       return;
     }
@@ -265,7 +267,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     if ($iframes.length > 0) {
       await Promise.all(
         $iframes.toArray().map(async iframe => {
-          destroyIframe(iframe as HTMLIFrameElement);
+          destroyIframe(iframe as IFrameElement);
         }),
       );
       updateMessageBlock(messageId, message);
@@ -363,7 +365,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
           ${extractedText}
           ${hasMinVh ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
           ${
-            extension_settings[extensionName].render.tampermonkey_compatibility
+            getSettingValue('render.tampermonkey_compatibility')
               ? `<script src="${script_url.get('tampermonkey_script')}"></script>`
               : ``
           }
@@ -373,7 +375,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       $iframe.attr('srcdoc', srcdocContent);
 
       $iframe.on('load', function () {
-        observeIframeContent(this as HTMLIFrameElement);
+        observeIframeContent(this as IFrameElement);
 
         const $wrapper = $(this).parent();
         if ($wrapper.length) {
@@ -420,7 +422,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
  * 观察iframe内容用于自动调整高度
  * @param iframe iframe元素
  */
-function observeIframeContent(iframe) {
+function observeIframeContent(iframe: IFrameElement) {
   const $iframe = $(iframe);
   if (!$iframe.length || !$iframe[0].contentWindow || !$iframe[0].contentWindow.document.body) {
     return;
@@ -461,7 +463,7 @@ function observeIframeContent(iframe) {
  * 销毁iframe
  * @param iframe iframe元素
  */
-function destroyIframe(iframe) {
+function destroyIframe(iframe: IFrameElement) {
   const $iframe = $(iframe);
 
   if (!$iframe.length) {
@@ -506,8 +508,8 @@ function destroyIframe(iframe) {
   if ($iframe[0].contentWindow) {
     try {
       if (iframeId && typeof eventSource.removeListener === 'function') {
-        eventSource.removeListener('message_iframe_render_ended', iframeId);
-        eventSource.removeListener('message_iframe_render_started', iframeId);
+        eventSource.removeListener('message_iframe_render_ended', iframeId as any);
+        eventSource.removeListener('message_iframe_render_started', iframeId as any);
       }
 
       $iframe.attr('src', 'about:blank');
@@ -560,23 +562,18 @@ function destroyIframe(iframe) {
 export async function clearAllIframes(): Promise<void> {
   const $iframes = $('iframe[id^="message-iframe"]');
   $iframes.each(function () {
-    destroyIframe(this);
+    destroyIframe(this as IFrameElement);
   });
 
   // 清理相关的事件监听器
   try {
-    if (typeof eventSource.removeAllListeners === 'function') {
-      eventSource.removeListener('message_iframe_render_started');
-      eventSource.removeListener('message_iframe_render_ended');
+    if (typeof eventSource.removeListener === 'function') {
+      eventSource.removeListener('message_iframe_render_started', null as any);
+      eventSource.removeListener('message_iframe_render_ended', null as any);
     }
   } catch (e) {
     console.debug('清理事件监听器时出错:', e);
   }
-
-  // 清理全局缓存
-  try {
-    $.cache = {};
-  } catch (e) {}
 
   // 尝试主动触发垃圾回收
   try {
@@ -584,7 +581,7 @@ export async function clearAllIframes(): Promise<void> {
     for (let i = 0; i < 10; i++) {
       arr.push(new Array(1000000).fill(1));
     }
-    arr = null;
+    arr = null as any;
 
     if (window.gc) {
       window.gc();
@@ -604,7 +601,6 @@ function handleTampermonkeyMessages(event: MessageEvent): void {
     $('.qr--button.menu_button').each(function () {
       if ($(this).find('.qr--button-label').text().trim() === buttonName) {
         $(this).trigger('click');
-        return false;
       }
     });
   } else if (event.data.type === 'textInput') {
@@ -654,7 +650,7 @@ function createGlobalAudioManager() {
  * 调整iframe高度
  * @param iframe iframe元素
  */
-function adjustIframeHeight(iframe) {
+function adjustIframeHeight(iframe: IFrameElement) {
   const $iframe = $(iframe);
   if (!$iframe.length || !$iframe[0].contentWindow || !$iframe[0].contentWindow.document.body) {
     return;
@@ -708,11 +704,11 @@ function extractTextFromCode(codeElement: HTMLElement) {
  * 删除消息后重新渲染
  * @param mesId 消息ID
  */
-export async function renderMessageAfterDelete(mesId: string) {
+export async function renderMessageAfterDelete(mesId: number) {
   const context = getContext();
   const processDepth = parseInt($('#process_depth').val() as string, 10);
   const totalMessages = context.chat.length;
-  const maxRemainId = parseInt(mesId, 10) - 1;
+  const maxRemainId = mesId - 1;
   // 考虑到高楼层的情况，深度为0时，只渲染最后一个消息
   if (processDepth === 0) {
     const message = context.chat[maxRemainId];
@@ -723,9 +719,9 @@ export async function renderMessageAfterDelete(mesId: string) {
     if (!hasCodeBlock && $iframe.length === 0) {
       return;
     }
-    destroyIframe($iframe);
-    updateMessageBlock(maxRemainId.toString(), message);
-    await renderPartialIframes(maxRemainId);
+    destroyIframe($iframe.get(0) as IFrameElement);
+    updateMessageBlock(maxRemainId, message);
+    renderPartialIframes(maxRemainId);
   } else {
     const startRenderIndex = totalMessages - processDepth;
     for (let i = startRenderIndex; i <= maxRemainId; i++) {
@@ -736,9 +732,9 @@ export async function renderMessageAfterDelete(mesId: string) {
       if (!hasCodeBlock && $iframe.length === 0) {
         continue;
       }
-      destroyIframe($iframe);
-      updateMessageBlock(i.toString(), message);
-      await renderPartialIframes(i.toString());
+      destroyIframe($iframe.get(0) as IFrameElement);
+      updateMessageBlock(i, message);
+      renderPartialIframes(i);
     }
   }
 }
@@ -748,8 +744,7 @@ export async function renderMessageAfterDelete(mesId: string) {
  */
 async function onTampermonkeyCompatibilityChange() {
   const isEnabled = Boolean($('#tampermonkey_compatibility').prop('checked'));
-  extension_settings[extensionName].render.tampermonkey_compatibility = isEnabled;
-  saveSettingsDebounced();
+  await saveSettingValue('render.tampermonkey_compatibility', isEnabled);
 
   if (!getSettingValue('activate_setting')) {
     return;
@@ -788,7 +783,7 @@ async function onDepthInput(value: string) {
   await clearAndRenderAllIframes();
 }
 
-export const handlePartialRender = (mesId: string) => {
+export const handlePartialRender = (mesId: number) => {
   console.log('[Render] PARTIAL render event triggered for message ID:', mesId);
   const processDepth = parseInt($('#process_depth').val() as string, 10);
   const context = getContext();
@@ -796,9 +791,8 @@ export const handlePartialRender = (mesId: string) => {
 
   if (processDepth > 0) {
     const depthOffset = totalMessages - processDepth;
-    const messageIndex = parseInt(mesId, 10);
 
-    if (messageIndex < depthOffset) {
+    if (mesId < depthOffset) {
       return;
     }
   }
@@ -896,7 +890,7 @@ function removeCodeBlockHideStyles() {
  * 为消息添加折叠控件
  * @param $mesText 消息文本元素
  */
-function addToggleButtonsToMessage($mesText) {
+function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
   if ($mesText.find('.code-toggle-button').length > 0 || $mesText.find('pre').length === 0) {
     return;
   }
@@ -927,10 +921,6 @@ function addToggleButtonsToMessage($mesText) {
  * 给所有消息添加折叠控件
  */
 export function addCodeToggleButtonsToAllMessages() {
-  if (!extension_settings[extensionName].render.render_optimize) {
-    return;
-  }
-
   const $chat = $('#chat');
   if (!$chat.length) {
     return;
@@ -946,7 +936,7 @@ export function addCodeToggleButtonsToAllMessages() {
  * 根据mesId为消息添加折叠控件
  * @param mesId 消息ID
  */
-function addCodeToggleButtons(mesId: string) {
+function addCodeToggleButtons(mesId: number) {
   const $chat = $('#chat');
   if (!$chat.length) {
     return;
@@ -959,7 +949,7 @@ function addCodeToggleButtons(mesId: string) {
  * 根据mesId移除折叠控件
  * @param mesId 消息ID
  */
-function removeCodeToggleButtonsByMesId(mesId: string) {
+function removeCodeToggleButtonsByMesId(mesId: number) {
   $(`div[mesid="${mesId}"] .code-toggle-button`).each(function () {
     $(this).off('click').remove();
   });
@@ -981,8 +971,7 @@ function removeAllCodeToggleButtons() {
  */
 export function addRenderingOptimizeSettings() {
   injectCodeBlockHideStyles();
-  hljs.highlightElement = function (element) {};
-  addCodeToggleButtonsToAllMessages();
+  hljs.highlightElement = function () {};
 }
 
 /**
@@ -1023,20 +1012,27 @@ async function handleRenderingOptimizationToggle(userInput: boolean = true, enab
 }
 /**
  * 处理渲染器启用设置改变
- * @param userInput 是否由用户手动触发
  * @param enable 是否启用渲染器
+ * @param userInput 是否由用户手动触发
  */
-async function handleRenderEnableToggle(userInput?: boolean, enable?: boolean) {
+async function handleRenderEnableToggle(enable: boolean, userInput: boolean = true) {
   if (userInput) {
     await saveSettingValue('render.render_enabled', enable);
     isRenderEnabled = enable;
-    $('#tavern_helper_text').text(isRenderEnabled ? '关闭前端渲染' : '开启前端渲染');
   }
   if (enable) {
-    renderAllIframes();
+    $('#render-settings-content .extension-content-item').not(':first').css('opacity', 1);
+    if (isRenderingOptimizeEnabled) {
+      addRenderingOptimizeSettings();
+    }
+    await renderAllIframes();
   } else {
-    clearAllIframes();
-    reloadCurrentChat();
+    $('#render-settings-content .extension-content-item').not(':first').css('opacity', 0.5);
+    if (isRenderingOptimizeEnabled) {
+      removeRenderingOptimizeSettings();
+    }
+    await clearAllIframes();
+    await reloadCurrentChat();
   }
 }
 
@@ -1051,9 +1047,9 @@ function addRenderQuickButton() {
   </div>`);
   buttonHtml.css('display', 'flex');
   $('#extensionsMenu').append(buttonHtml);
-  $('#tavern-helper-container').on('click', function () {
-    handleRenderEnableToggle(true, !isRenderEnabled);
-    $('#tavern-helper-text').text(isRenderEnabled ? '关闭前端渲染' : '开启前端渲染');
+  $('#tavern-helper-container').on('click', async function () {
+    $('#tavern-helper-text').text(!isRenderEnabled ? '关闭前端渲染' : '开启前端渲染');
+    await handleRenderEnableToggle(!isRenderEnabled, true);
     $('#render-enable-toggle').prop('checked', isRenderEnabled);
   });
 }
@@ -1062,13 +1058,19 @@ function addRenderQuickButton() {
  * 初始化iframe控制面板
  */
 export const initIframePanel = () => {
+  // 处理处理深度设置
+  renderDepth = getSettingValue('render.render_depth');
+  $('#render-depth')
+    .val(renderDepth || defaultIframeSettings.render_depth)
+    .on('input', function (event) {
+      onDepthInput((event.target as HTMLInputElement).value);
+    });
+
   isRenderEnabled = getSettingValue('render.render_enabled');
-  if (isRenderEnabled) {
-    handleRenderEnableToggle(false, true);
-  }
+  handleRenderEnableToggle(isRenderEnabled, false);
   $('#render-enable-toggle')
     .prop('checked', isRenderEnabled)
-    .on('click', (event: JQuery.ClickEvent) => handleRenderEnableToggle(true, event.target.checked));
+    .on('click', (event: JQuery.ClickEvent) => handleRenderEnableToggle(event.target.checked, true));
 
   addRenderQuickButton();
 
@@ -1082,19 +1084,12 @@ export const initIframePanel = () => {
     .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(true, event.target.checked));
 
   // 处理油猴兼容性设置
-  const tampermonkeyEnabled = extension_settings[extensionName].render.tampermonkey_compatibility;
+  const tampermonkeyEnabled = getSettingValue('render.tampermonkey_compatibility');
   $('#tampermonkey_compatibility').prop('checked', tampermonkeyEnabled).on('click', onTampermonkeyCompatibilityChange);
 
   if (tampermonkeyEnabled) {
     onTampermonkeyCompatibilityChange();
   }
-
-  // 处理处理深度设置
-  $('#render-depth')
-    .val(getSettingValue('render.render_depth') || defaultIframeSettings.render_depth)
-    .on('input', function (event) {
-      onDepthInput(event.target.value);
-    });
 
   $(window).on('resize', function () {
     if ($('iframe[data-needs-vh="true"]').length) {

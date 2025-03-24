@@ -1,4 +1,4 @@
-import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/_impl';
 import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
 
 interface IframeAudioMode extends IframeMessage {

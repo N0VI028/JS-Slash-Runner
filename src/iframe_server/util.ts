@@ -1,4 +1,4 @@
-import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/_impl';
 
 import { substituteParamsExtended } from '@sillytavern/script';
 

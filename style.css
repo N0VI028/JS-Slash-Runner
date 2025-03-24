@@ -1,9 +1,15 @@
 
-#TavernHelper input {
+#render-depth,
+.script-editor-container input {
   width: 100%;
+  padding: 0.75em;
   border-radius: 5px;
   background-color: var(--black30a);
   border: 1px solid var(--SmartThemeBorderColor);
+}
+
+#render-depth {
+  padding: 0;
 }
 
 .extension-status,
