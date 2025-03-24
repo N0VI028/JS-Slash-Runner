@@ -1,7 +1,7 @@
-import { script_url } from '../../script_url.js';
-import { libraries_text } from './library.js';
-import { third_party } from '../../third_party.js';
-import { loadScripts, Script } from '../../util/load_script.js';
+import { libraries_text } from '@/component/character_level/library';
+import { script_url } from '@/script_url';
+import third_party from '@/third_party.html';
+import { loadScripts, Script } from '@/util/load_script';
 
 let script_map: Map<string, HTMLIFrameElement> = new Map();
 

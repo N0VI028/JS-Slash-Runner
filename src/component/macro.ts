@@ -1,7 +1,8 @@
-import { chat, chat_metadata, event_types, eventSource } from '../../../../../../script.js';
-import { extension_settings } from '../../../../../extensions.js';
-import { MacroFunction, MacrosParser } from '../../../../../macros.js';
-import { getUserAvatarPath, getCharAvatarPath } from './message_iframe.js';
+import { getCharAvatarPath, getUserAvatarPath } from '@/component/message_iframe';
+
+import { chat, chat_metadata, event_types, eventSource } from '@sillytavern/script';
+import { extension_settings } from '@sillytavern/scripts/extensions';
+import { MacroFunction, MacrosParser } from '@sillytavern/scripts/macros';
 
 const predefinedMacros = new Map<string, string | MacroFunction>([
   ['userAvatarPath', getUserAvatarPath],
@@ -85,4 +86,3 @@ export function initializeMacroOnExtension() {
 export function destroyMacroOnExtension() {
   eventSource.removeListener(event_types.CHAT_COMPLETION_PROMPT_READY, demacro);
 }
-

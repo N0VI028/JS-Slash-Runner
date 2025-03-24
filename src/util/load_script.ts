@@ -1,5 +1,6 @@
-import { RegexScriptData } from '../../../../../char-data.js';
-import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from '../iframe_server/tavern_regex.js';
+import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from '@/iframe_server/tavern_regex';
+
+import { RegexScriptData } from '@sillytavern/scripts/char-data';
 
 export interface Script {
   name: string;

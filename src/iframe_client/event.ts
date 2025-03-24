@@ -404,6 +404,7 @@ type ListenerType = {
 };
 
 //------------------------------------------------------------------------------------------------------------------------
+// @ts-expect-error
 namespace detail {
   export let listener_event_wrapper_map: Map<Function, Map<EventType, Function>> = new Map();
 
@@ -437,8 +438,8 @@ namespace detail {
     }
     const default_event_wrapper_map = new Map([[event_type, default_wrapper]]);
 
-    const event_wrapper = get_or_set(listener_event_wrapper_map, listener, () => default_event_wrapper_map);
-    const wrapper = get_or_set(event_wrapper, event_type, () => default_wrapper);
+    const event_wrapper = detail.get_or_set(listener_event_wrapper_map, listener, () => default_event_wrapper_map);
+    const wrapper = detail.get_or_set(event_wrapper, event_type, () => default_wrapper);
     return wrapper as ListenerType[T];
   }
 

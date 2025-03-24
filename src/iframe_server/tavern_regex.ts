@@ -1,15 +1,9 @@
-import {
-  characters,
-  reloadCurrentChat,
-  saveChatConditional,
-  saveSettings,
-  this_chid,
-} from '../../../../../../script.js';
-import { RegexScriptData } from '../../../../../char-data.js';
-import { extension_settings, writeExtensionField } from '../../../../../extensions.js';
-import { regex_placement } from '../../../../regex/engine.js';
-import { partition } from '../util/helper.js';
-import { getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+import { characters, reloadCurrentChat, saveChatConditional, saveSettings, this_chid } from '@sillytavern/script';
+import { RegexScriptData } from '@sillytavern/scripts/char-data';
+import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
+import { regex_placement } from '../../../../regex/engine';
+import { partition } from '../util/helper';
 
 interface IframeIsCharacterTavernRegexEnabled extends IframeMessage {
   request: '[TavernRegex][isCharacterTavernRegexesEnabled]';

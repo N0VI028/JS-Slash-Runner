@@ -1,4 +1,4 @@
-import { extract } from './util/helper.js';
+import { extract } from '@/util/helper';
 
 function createObjectURLFromScript(code: string): string {
   return URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));

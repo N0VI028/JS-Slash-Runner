@@ -1,4 +1,6 @@
-import { debounce } from '../../../../../utils.js';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+
+import { debounce } from '@sillytavern/scripts/utils';
 import {
   createWorldInfoEntry,
   deleteWIOriginalDataValue,
@@ -7,8 +9,7 @@ import {
   saveWorldInfo,
   setWIOriginalDataValue,
   world_names,
-} from '../../../../../world-info.js';
-import { getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
+} from '@sillytavern/scripts/world-info';
 
 interface IframeGetLorebookEntries extends IframeMessage {
   request: '[LorebookEntry][getLorebookEntries]';

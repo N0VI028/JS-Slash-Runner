@@ -1,9 +1,9 @@
 // for compatibility with old sillytavern versions
-import { characters, this_chid } from '../../../../../script.js';
+import { characters, this_chid } from '@sillytavern/script';
 // @ts-ignore
-import { selected_group } from '../../../../group-chats.js';
-import { getTagsList } from '../../../../tags.js';
-import { equalsIgnoreCaseAndAccents } from '../../../../utils.js';
+import { selected_group } from '@sillytavern/scripts/group-chats';
+import { getTagsList } from '@sillytavern/scripts/tags';
+import { equalsIgnoreCaseAndAccents } from '@sillytavern/scripts/utils';
 
 // for 1.12.6
 /**

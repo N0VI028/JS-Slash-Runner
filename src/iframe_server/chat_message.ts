@@ -1,3 +1,6 @@
+import { handlePartialRender } from '@/component/message_iframe';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+
 import {
   chat,
   messageFormatting,
@@ -5,10 +8,8 @@ import {
   saveChatConditional,
   substituteParamsExtended,
   system_message_types,
-} from '../../../../../../script.js';
-import { stringToRange } from '../../../../../utils.js';
-import { handlePartialRender } from '../component/message_iframe.js';
-import { getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
+} from '@sillytavern/script';
+import { stringToRange } from '@sillytavern/scripts/utils';
 
 interface IframeGetChatMessages extends IframeMessage {
   request: '[ChatMessage][getChatMessages]';

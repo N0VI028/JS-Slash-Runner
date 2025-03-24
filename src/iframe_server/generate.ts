@@ -1,53 +1,57 @@
-// @ts-nocheck
-import { getRegexedString, regex_placement } from '../../../../../extensions/regex/engine.js';
-import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from '../../../../../world-info.js';
-import { shouldWIAddPrompt, NOTE_MODULE_NAME, metadata_keys } from '../../../../../authors-note.js';
+import { IframeMessage, getIframeName, getLogPrefix, registerIframeHandler } from '@/iframe_server/index';
+
 import {
-  setupChatCompletionPromptManager,
-  prepareOpenAIMessages,
-  setOpenAIMessageExamples,
-  setOpenAIMessages,
-  sendOpenAIRequest,
-  oai_settings,
+  MAX_INJECTION_DEPTH,
+  activateSendButtons,
+  baseChatReplace,
+  characters,
+  chat,
+  chat_metadata,
+  cleanUpMessage,
+  countOccurrences,
+  deactivateSendButtons,
+  eventSource,
+  extension_prompt_roles,
+  extension_prompt_types,
+  getBiasStrings,
+  getCharacterCardFields,
+  getExtensionPromptRoleByName,
+  getMaxContextSize,
+  isOdd,
+  name1,
+  name2,
+  saveChatConditional,
+  saveSettingsDebounced,
+  setExtensionPrompt,
+  setGenerationProgress,
+  showSwipeButtons,
+  stopGeneration,
+  substituteParams,
+  this_chid,
+} from '@sillytavern/script';
+import { NOTE_MODULE_NAME, metadata_keys, shouldWIAddPrompt } from '@sillytavern/scripts/authors-note';
+import { extension_settings, getContext } from '@sillytavern/scripts/extensions';
+import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
+import {
   ChatCompletion,
   Message,
   MessageCollection,
   isImageInliningSupported,
-} from '../../../../../openai.js';
+  oai_settings,
+  prepareOpenAIMessages,
+  sendOpenAIRequest,
+  setOpenAIMessageExamples,
+  setOpenAIMessages,
+  setupChatCompletionPromptManager,
+} from '@sillytavern/scripts/openai';
 import {
-  chat,
-  saveChatConditional,
-  getCharacterCardFields,
-  setExtensionPrompt,
-  getExtensionPromptRoleByName,
-  extension_prompt_roles,
-  extension_prompt_types,
-  baseChatReplace,
-  name1,
-  name2,
-  activateSendButtons,
-  showSwipeButtons,
-  setGenerationProgress,
-  eventSource,
-  getBiasStrings,
-  substituteParams,
-  chat_metadata,
-  this_chid,
-  characters,
-  deactivateSendButtons,
-  MAX_INJECTION_DEPTH,
-  cleanUpMessage,
-  isOdd,
-  countOccurrences,
-  saveSettingsDebounced,
-  stopGeneration,
-  getMaxContextSize,
-} from '../../../../../../script.js';
-import { extension_settings, getContext } from '../../../../../extensions.js';
-import { Prompt, PromptCollection } from '../../../../../PromptManager.js';
-import { power_user, persona_description_positions, flushEphemeralStoppingStrings } from '../../../../../power-user.js';
-import { getIframeName, getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
-import { Stopwatch, getBase64Async, saveBase64AsFile } from '../../../../../utils.js';
+  flushEphemeralStoppingStrings,
+  persona_description_positions,
+  power_user,
+} from '@sillytavern/scripts/power-user';
+import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
+import { Stopwatch, getBase64Async } from '@sillytavern/scripts/utils';
+import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from '@sillytavern/scripts/world-info';
 
 // 在文件顶部添加 abortController 声明
 let abortController = new AbortController();

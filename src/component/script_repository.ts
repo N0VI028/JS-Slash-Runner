@@ -1,18 +1,18 @@
-// @ts-nocheck
+import { extensionFolderPath, extensionName, getSettingValue, saveSettingValue } from '@/index';
+
 import {
+  characters,
   eventSource,
   event_types,
-  saveSettingsDebounced,
   reloadCurrentChat,
+  saveSettingsDebounced,
   this_chid,
-  characters,
-} from '../../../../../../script.js';
-import { selected_group } from '../../../../../group-chats.js';
-import { extension_settings, renderExtensionTemplateAsync, writeExtensionField } from '../../../../../extensions.js';
-import { power_user } from '../../../../../power-user.js';
-import { extensionName, extensionFolderPath, saveSettingValue, getSettingValue } from '../index.js';
-import { POPUP_TYPE, callGenericPopup } from '../../../../../popup.js';
-import { download, getFileText, getSortableDelay, uuidv4, setValueByPath } from '../../../../../utils.js';
+} from '@sillytavern/script';
+import { extension_settings, renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
+import { selected_group } from '@sillytavern/scripts/group-chats';
+import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
+import { power_user } from '@sillytavern/scripts/power-user';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
 export const defaultScriptSettings = {
   script_enabled: true,
@@ -21,7 +21,7 @@ export const defaultScriptSettings = {
   scriptsRepository: [],
 };
 
-let scriptEnabled = Boolean;
+let scriptEnabled: boolean;
 
 interface Script {
   id: string;
@@ -219,7 +219,7 @@ export async function loadScriptLibrary() {
 
         await deleteScript(script.id);
       });
-      
+
       $('#scoped-script-list').prepend(scriptHtml);
     });
   }

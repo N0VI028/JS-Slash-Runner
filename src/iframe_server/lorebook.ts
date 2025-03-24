@@ -1,3 +1,6 @@
+import { findChar } from '@/compatibility';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+
 import {
   characters,
   getOneCharacter,
@@ -6,10 +9,10 @@ import {
   saveSettings,
   saveSettingsDebounced,
   this_chid,
-} from '../../../../../../script.js';
+} from '@sillytavern/script';
 // @ts-ignore
-import { selected_group } from '../../../../../group-chats.js';
-import { ensureImageFormatSupported, getCharaFilename } from '../../../../../utils.js';
+import { selected_group } from '@sillytavern/scripts/group-chats';
+import { ensureImageFormatSupported, getCharaFilename } from '@sillytavern/scripts/utils';
 import {
   createNewWorldInfo,
   deleteWorldInfo,
@@ -18,10 +21,7 @@ import {
   setWorldInfoButtonClass,
   world_info,
   world_names,
-} from '../../../../../world-info.js';
-
-import { findChar } from '../compatibility.js';
-import { getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
+} from '@sillytavern/scripts/world-info';
 
 interface IframeGetLorebookSettings extends IframeMessage {
   request: '[Lorebook][getLorebookSettings]';

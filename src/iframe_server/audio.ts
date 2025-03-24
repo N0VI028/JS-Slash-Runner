@@ -1,5 +1,5 @@
-import { audioMode, audioEnable, audioPlay, audioImport, audioSelect } from '../slash_command/audio.js';
-import { getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
 
 interface IframeAudioMode extends IframeMessage {
   request: '[Audio][audioMode]';

@@ -1,24 +1,20 @@
-// @ts-nocheck
+import { libraries_text } from '@/component/character_level/library';
+import { extensionName, getSettingValue, isExtensionEnabled, saveSettingValue } from '@/index';
+import { script_url } from '@/script_url';
+import third_party from '@/third_party.html';
+
 import {
+  characters,
   eventSource,
   event_types,
+  getThumbnailUrl,
+  reloadCurrentChat,
   saveSettingsDebounced,
+  this_chid,
   updateMessageBlock,
   user_avatar,
-  messageFormatting,
-  reloadCurrentChat,
-  getThumbnailUrl,
-  characters,
-  this_chid,
-  addCopyToCodeBlocks,
-} from '../../../../../../script.js';
-
-import { extensionName, getSettingValue, saveSettingValue, isExtensionEnabled } from '../index.js';
-
-import { extension_settings, getContext } from '../../../../../extensions.js';
-import { script_url } from '../script_url.js';
-import { third_party } from '../third_party.js';
-import { libraries_text } from './character_level/library.js';
+} from '@sillytavern/script';
+import { extension_settings, getContext } from '@sillytavern/scripts/extensions';
 
 let tampermonkeyMessageListener: ((event: MessageEvent) => void) | null = null;
 let isRenderEnabled: boolean;

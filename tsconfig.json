@@ -3,8 +3,25 @@
     "target": "ESNext",
     "module": "ESNext",
     "outDir": "dist",
+    "baseUrl": "src",
+    "types": [
+      "highlight.js",
+      "jquery",
+      "lodash",
+      "toastr",
+    ],
+    "paths": {
+      "@sillytavern/*": [
+        "../../../../../*"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    },
     "moduleDetection": "auto",
-    "moduleResolution": "node10",
+    "moduleResolution": "Bundler",
+    "isolatedModules": true,
+    "importHelpers": true,
     "allowUmdGlobalAccess": true,
     "allowSyntheticDefaultImports": true,
     "strictBindCallApply": true,
@@ -21,10 +38,10 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.js"
+    "../../../../**/*.js" // for intelligence
   ],
   "exclude": [
     "**/node_modules/**",
-    "**/build/**"
+    "**/dist/**",
   ]
 }

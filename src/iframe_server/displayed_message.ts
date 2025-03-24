@@ -1,7 +1,7 @@
-import { getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
 
-import { chat, messageFormatting } from '../../../../../../script.js';
-import { getLastMessageId } from '../../../../../macros.js';
+import { chat, messageFormatting } from '@sillytavern/script';
+import { getLastMessageId } from '@sillytavern/scripts/macros';
 
 interface IframeFormatAsDisplayedMessage extends IframeMessage {
   request: '[DisplayedMessage][formatAsDisplayedMessage]';

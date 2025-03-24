@@ -1,4 +1,4 @@
-import { loadScripts } from '../../util/load_script.js';
+import { loadScripts } from '@/util/load_script';
 
 export let libraries_text: string = '';
 

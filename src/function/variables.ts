@@ -1,5 +1,5 @@
-import { chat_metadata, saveSettingsDebounced } from '../../../../../../script.js';
-import { extension_settings, saveMetadataDebounced } from '../../../../../extensions.js';
+import { chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
+import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 
 interface VariableOption {
   type: 'chat' | 'global'; // 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`

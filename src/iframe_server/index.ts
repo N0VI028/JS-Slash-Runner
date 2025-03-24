@@ -1,16 +1,17 @@
-import { t } from '../../../../../i18n.js';
-import { registerIframeChatMessageHandler } from './chat_message.js';
-import { registerIframeDisplayedMessageHandler } from './displayed_message.js';
-import { registerIframeFrontendVersionHandler } from './frontend_version.js';
-import { registerIframeGenerateHandler } from './generate.js';
-import { registerIframeLorebookHandler } from './lorebook.js';
-import { registerIframeLorebookEntryHandler } from './lorebook_entry.js';
-import { registerIframeSlashHandler } from './slash.js';
-import { registerIframeTavernRegexHandler } from './tavern_regex.js';
-import { registerIframeUtilHandler } from './util.js';
-import { registerIframeVariableHandler } from './variables.js';
-import { registerIframeCharacterHandler } from './character.js';
-import { registerIframeAudioHandler } from './audio.js';
+import { registerIframeAudioHandler } from '@/iframe_server/audio';
+import { registerIframeCharacterHandler } from '@/iframe_server/character';
+import { registerIframeChatMessageHandler } from '@/iframe_server/chat_message';
+import { registerIframeDisplayedMessageHandler } from '@/iframe_server/displayed_message';
+import { registerIframeFrontendVersionHandler } from '@/iframe_server/frontend_version';
+import { registerIframeGenerateHandler } from '@/iframe_server/generate';
+import { registerIframeLorebookHandler } from '@/iframe_server/lorebook';
+import { registerIframeLorebookEntryHandler } from '@/iframe_server/lorebook_entry';
+import { registerIframeSlashHandler } from '@/iframe_server/slash';
+import { registerIframeTavernRegexHandler } from '@/iframe_server/tavern_regex';
+import { registerIframeUtilHandler } from '@/iframe_server/util';
+import { registerIframeVariableHandler } from '@/iframe_server/variables';
+
+import { t } from '@sillytavern/scripts/i18n';
 
 export interface IframeMessage {
   request: string;

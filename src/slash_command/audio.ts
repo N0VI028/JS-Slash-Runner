@@ -1,26 +1,25 @@
-// @ts-nocheck
-import { saveSettingsDebounced, chat_metadata } from '../../../../../../script.js';
-import { SlashCommand } from '../../../../../slash-commands/SlashCommand.js';
+import { extensionName } from '@/index';
+
+import { chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
+import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
+import { SlashCommand } from '@sillytavern/scripts/slash-commands/SlashCommand';
 import {
   ARGUMENT_TYPE,
   SlashCommandArgument,
   SlashCommandNamedArgument,
-} from '../../../../../slash-commands/SlashCommandArgument.js';
-import { SlashCommandParser } from '../../../../../slash-commands/SlashCommandParser.js';
-import { SlashCommandEnumValue, enumTypes } from '../../../../../slash-commands/SlashCommandEnumValue.js';
-import { enumIcons, commonEnumProviders } from '../../../../../slash-commands/SlashCommandCommonEnumsProvider.js';
-import { extension_settings, saveMetadataDebounced } from '../../../../../extensions.js';
-
-import { extensionName } from '../index.js';
+} from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
+import { commonEnumProviders, enumIcons } from '@sillytavern/scripts/slash-commands/SlashCommandCommonEnumsProvider';
+import { SlashCommandEnumValue, enumTypes } from '@sillytavern/scripts/slash-commands/SlashCommandEnumValue';
+import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 
 import {
   list_BGMS,
   list_ambients,
   onAudioEnabledClick,
   playAudio,
-  updateAudioSelect,
   updateAudio,
-} from '../component/audio.js';
+  updateAudioSelect,
+} from '../component/audio';
 
 interface AudioElement extends HTMLElement {
   pause(): void;

@@ -1,12 +1,7 @@
-import {
-  characters,
-  this_chid,
-  getThumbnailUrl,
-  getPastCharacterChats,
-  getRequestHeaders,
-} from '../../../../../../script.js';
-import { getLogPrefix, IframeMessage, registerIframeHandler } from './index.js';
-import { charsPath } from '../component/message_iframe.js';
+import { charsPath } from '@/component/message_iframe';
+import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/index';
+
+import { characters, getPastCharacterChats, getRequestHeaders, getThumbnailUrl, this_chid } from '@sillytavern/script';
 
 type v1CharData = (typeof characters)[number];
 

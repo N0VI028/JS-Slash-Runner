@@ -1,7 +1,7 @@
-import { eventSource } from '../../../../../../script.js';
-import { SlashCommand } from '../../../../../slash-commands/SlashCommand.js';
-import { ARGUMENT_TYPE, SlashCommandNamedArgument } from '../../../../../slash-commands/SlashCommandArgument.js';
-import { SlashCommandParser } from '../../../../../slash-commands/SlashCommandParser.js';
+import { eventSource } from '@sillytavern/script';
+import { SlashCommand } from '@sillytavern/scripts/slash-commands/SlashCommand';
+import { ARGUMENT_TYPE, SlashCommandNamedArgument } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
+import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 
 export async function slashEventEmit(named_args: any): Promise<any> {
   const event: string = named_args.event;

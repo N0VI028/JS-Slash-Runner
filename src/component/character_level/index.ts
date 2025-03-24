@@ -1,6 +1,10 @@
-import { event_types, eventSource } from '../../../../../../../script.js';
-import { initialize as initializeLibrary, destroy as destroyLibrary } from './library.js';
-import { initialize as initializeScriptIframe, destroy as destroyScriptIframe } from './script_iframe.js';
+import { destroy as destroyLibrary, initialize as initializeLibrary } from '@/component/character_level/library';
+import {
+  destroy as destroyScriptIframe,
+  initialize as initializeScriptIframe,
+} from '@/component/character_level/script_iframe';
+
+import { event_types, eventSource } from '@sillytavern/script';
 
 const load_events = [event_types.CHAT_CHANGED] as const;
 

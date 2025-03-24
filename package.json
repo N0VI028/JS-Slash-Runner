@@ -1,0 +1,42 @@
+{
+  "name": "JS-Slash-Runner",
+  "version": "3.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build:dev": "webpack --mode development",
+    "build": "webpack --mode production",
+    "watch:dev": "webpack --mode development --watch",
+    "watch": "webpack --mode production --watch"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.32",
+    "@types/lodash": "^4.17.16",
+    "@types/toastr": "^2.1.43",
+    "css-loader": "^7.1.2",
+    "highlight.js": "^11.11.1",
+    "html-loader": "^5.1.0",
+    "mini-css-extract-plugin": "^2.9.2",
+    "postcss-loader": "^8.1.1",
+    "sass-loader": "^16.0.5",
+    "terser-webpack-plugin": "^5.3.12",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths-webpack-plugin": "^4.2.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.2",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
+  }
+}
