@@ -31,7 +31,8 @@ const baseTemplate = $(
   }),
 );
 
-let isScriptEnabled: boolean;
+let isGlobalScriptEnabled: boolean;
+let isScopedScriptEnabled: boolean;
 
 class Script {
   id: string;
@@ -39,6 +40,7 @@ class Script {
   content: string;
   info: string;
   enabled: boolean;
+  [key: string]: any;
 
   constructor(data?: Partial<Script>) {
     this.id = data?.id || uuidv4();
@@ -107,11 +109,14 @@ class ScriptRepository {
     this.characterScripts = characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
   }
 
-  // 添加脚本
-  async addScript(script: Script, scope: ScriptScope): Promise<boolean> {
+  /**
+   * 添加单个脚本到脚本库首位
+   * @param script 脚本
+   * @param scope 是否为局部脚本
+   */
+  async addScript(script: Script, scope: ScriptScope) {
     if (!script.hasName()) {
       toastr.error('保存失败，脚本名称为空');
-      return false;
     }
 
     if (scope === ScriptScope.GLOBAL) {
@@ -120,14 +125,12 @@ class ScriptRepository {
     } else {
       if (!this_chid) {
         toastr.error('保存失败，当前角色为空');
-        return false;
       }
       this.characterScripts.unshift(script);
       await this.saveCharacterScripts(this.characterScripts);
     }
 
     await this.renderScript(script, scope);
-    return true;
   }
 
   // 加载脚本库
@@ -142,20 +145,82 @@ class ScriptRepository {
       const globalScripts = globalScriptArray.map((scriptData: Script) => new Script(scriptData));
       globalScripts.forEach(async (script: Script) => {
         const scriptHtml = await cloneTemplate(script, ScriptScope.GLOBAL);
-        $('#global-script-list').prepend(scriptHtml);
+        $('#global-script-list').append(scriptHtml);
       });
     }
     if (scopedScriptArray.length > 0) {
       const scopedScripts = scopedScriptArray.map((scriptData: Script) => new Script(scriptData));
       scopedScripts.forEach(async (script: Script) => {
         const scriptHtml = await cloneTemplate(script, ScriptScope.CHARACTER);
-        $('#scoped-script-list').prepend(scriptHtml);
+        $('#scoped-script-list').append(scriptHtml);
         const list = $(`#scoped-script-list`);
         scriptRepo.makeDraggable(list, ScriptScope.CHARACTER);
       });
     }
     scriptRepo.makeDraggable($(`#global-script-list`), ScriptScope.GLOBAL);
     scriptRepo.makeDraggable($(`#scoped-script-list`), ScriptScope.CHARACTER);
+  }
+
+  /**
+   * 运行指定类型的脚本
+   * @param scope 是否为局部脚本
+   */
+  async runScriptsByType(scope: ScriptScope) {
+    const scripts = scope === ScriptScope.GLOBAL ? this.globalScripts : this.characterScripts;
+    const enabledScripts = scripts.map((script, index) => ({ script, index })).filter(({ script }) => script.enabled);
+
+    for (const { script } of enabledScripts) {
+      // 不要保存设置
+      await scriptRepo.runScript(script, scope, false);
+    }
+  }
+
+  /**
+   * 取消运行指定类型的脚本
+   * @param scope 是否为局部脚本
+   */
+  async cancelRunScriptsByType(scope: ScriptScope) {
+    const scripts = scope === ScriptScope.GLOBAL ? this.globalScripts : this.characterScripts;
+    const disabledScripts = scripts.map((script, index) => ({ script, index })).filter(({ script }) => !script.enabled);
+
+    for (const { script } of disabledScripts) {
+      // 不要保存设置
+      await scriptRepo.cancelRunScript(script, scope, false);
+    }
+  }
+
+  /**
+   * 运行单个脚本
+   * @param script 脚本
+   */
+  async runScript(script: Script, type: ScriptScope, userInput: boolean = true) {
+    const index = script.id.startsWith('global')
+      ? this.globalScripts.findIndex(s => s.id === script.id)
+      : this.characterScripts.findIndex(s => s.id === script.id);
+    if (index !== -1) {
+      if (userInput) {
+        script.enabled = true;
+        await scriptRepo.saveScript(script, type);
+      }
+    }
+    //TODO: 运行脚本逻辑
+  }
+
+  /**
+   * 取消运行单个脚本
+   * @param script 脚本
+   */
+  async cancelRunScript(script: Script, type: ScriptScope, userInput: boolean = true) {
+    const index = script.id.startsWith('global')
+      ? this.globalScripts.findIndex(s => s.id === script.id)
+      : this.characterScripts.findIndex(s => s.id === script.id);
+    if (index !== -1) {
+      if (userInput) {
+        script.enabled = false;
+        await scriptRepo.saveScript(script, type);
+      }
+    }
+    //TODO: 取消运行脚本逻辑
   }
 
   // 渲染单个脚本到界面
@@ -233,6 +298,30 @@ class ScriptRepository {
     }
   }
 
+  /**
+   * 保存单个脚本
+   * @param script 脚本
+   * @param index 脚本在列表中的索引
+   * @param key 要存储的键
+   */
+  async saveScript(script: Script, type: ScriptScope) {
+    const array =
+      type === ScriptScope.GLOBAL
+        ? getSettingValue('script.scriptsRepository') || []
+        : characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
+    const index = array.findIndex((s: Script) => s.id === script.id);
+    if (index === -1) {
+      array.push(script);
+    } else {
+      array[index] = script;
+    }
+    if (type === ScriptScope.GLOBAL) {
+      await saveSettingValue('script.scriptsRepository', array);
+    } else {
+      await this.saveCharacterScripts(array);
+    }
+  }
+
   // 保存到扩展数据
   async saveGlobalScripts(array: Script[]) {
     await saveSettingValue('script.scriptsRepository', array);
@@ -246,7 +335,11 @@ class ScriptRepository {
       toastr.error('保存失败，当前角色为空');
     }
   }
-
+  /**
+   * 使脚本库可拖拽调整顺序
+   * @param list 脚本库列表
+   * @param scope 是否为局部脚本
+   */
   makeDraggable(list: JQuery<HTMLElement>, scope: ScriptScope) {
     list.sortable({
       delay: getSortableDelay(),
@@ -286,34 +379,6 @@ class ScriptRepository {
 const scriptRepo = ScriptRepository.getInstance();
 
 /**
- * 保存脚本
- */
-async function saveScript(script: Script, isNew: boolean = false, type: 'global' | 'scope' = 'global') {
-  if (!script.name) {
-    toastr.error('保存失败，脚本名称为空');
-    return;
-  }
-  if (isNew) {
-    if (type === 'global') {
-      const scriptHtml = await cloneTemplate(script, ScriptScope.GLOBAL);
-      $('#global-script-list').prepend(scriptHtml);
-
-      const scriptArray = getSettingValue('script.scriptsRepository') || [];
-      scriptArray.unshift(script);
-      await scriptRepo.saveGlobalScripts(scriptArray);
-    } else if (this_chid) {
-      const scriptHtml = await cloneTemplate(script, ScriptScope.CHARACTER);
-      $('#scoped-script-list').prepend(scriptHtml);
-
-      const scriptArray = characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
-      scriptArray.unshift(script);
-      await scriptRepo.saveCharacterScripts(scriptArray);
-    } else {
-      toastr.error('保存失败，当前角色为空');
-    }
-  }
-}
-/**
  * 克隆模板
  * @param script 脚本
  * @param type 类型,global 全局,scope 局部
@@ -326,6 +391,33 @@ export async function cloneTemplate(script: Script, type: ScriptScope.GLOBAL | S
   scriptHtml.find('.script-item-name').text(script.name);
   scriptHtml.find('.script-storage-location').addClass(type === 'global' ? 'move-to-scoped' : 'move-to-global');
   scriptHtml.find('.script-storage-location i').addClass(type === 'global' ? 'fa-arrow-down' : 'fa-arrow-up');
+
+  const toggleId = `toggle-script-${script.id}`;
+  scriptHtml.find('.toggle-script').attr('id', toggleId);
+  scriptHtml.find('label').attr('for', toggleId);
+
+  scriptHtml.find('.toggle-script').prop('checked', script.enabled);
+  scriptHtml.find('.script-toggle-on').toggle(script.enabled);
+  scriptHtml.find('.script-toggle-off').toggle(!script.enabled);
+
+  scriptHtml.find('.toggle-script').on('change', async function () {
+    const isChecked = !!$(this).prop('checked');
+
+    scriptHtml.find('.script-toggle-on').toggle(isChecked);
+    scriptHtml.find('.script-toggle-off').toggle(!isChecked);
+    script.enabled = isChecked;
+    await scriptRepo.saveScript(script, type);
+  });
+
+  scriptHtml.find('.script-toggle-on').on('click', async function () {
+    $(this).hide();
+    scriptHtml.find('.script-toggle-off').show();
+  });
+
+  scriptHtml.find('.script-toggle-off').on('click', async function () {
+    $(this).hide();
+    scriptHtml.find('.script-toggle-on').show();
+  });
 
   scriptHtml.find('.edit-script').on('click', () => scriptRepo.openScriptEditor(type, script.id));
   scriptHtml.find('.delete-script').on('click', async () => {
@@ -340,6 +432,37 @@ export async function cloneTemplate(script: Script, type: ScriptScope.GLOBAL | S
     scriptHtml.remove();
   });
   return scriptHtml;
+}
+
+/**
+ * 处理脚本启用开关的点击事件
+ * @param type 类型,global 全局,scope 局部
+ * @param enable 是否启用
+ * @param userInput 是否由用户输入
+ */
+async function handleScriptToggle(type: ScriptScope, enable: boolean, userInput: boolean = true) {
+  if (type === ScriptScope.GLOBAL) {
+    if (userInput) {
+      await saveSettingValue('script.global_script_enabled', enable);
+    }
+    isGlobalScriptEnabled = enable;
+    if (enable) {
+      scriptRepo.runScriptsByType(ScriptScope.GLOBAL);
+    } else {
+      scriptRepo.cancelRunScriptsByType(ScriptScope.GLOBAL);
+    }
+  } else {
+    if (userInput) {
+      await saveSettingValue('script.scope_script_enabled', enable);
+    }
+    isScopedScriptEnabled = enable;
+    if (enable) {
+      scriptRepo.runScriptsByType(ScriptScope.CHARACTER);
+    } else {
+      scriptRepo.cancelRunScriptsByType(ScriptScope.CHARACTER);
+    }
+  }
+  console.log(type, userInput, enable);
 }
 
 /**
@@ -437,9 +560,24 @@ export async function onAutoDisableIncompatibleOptions() {
 }
 
 export async function initScriptRepository() {
-  $('#open-global-script-editor').on('click', () => scriptRepo.openScriptEditor('global', null));
-  $('#open-scoped-script-editor').on('click', () => scriptRepo.openScriptEditor('scope', null));
+  isGlobalScriptEnabled = getSettingValue('script.global_script_enabled');
+  isScopedScriptEnabled = getSettingValue('script.scope_script_enabled');
+
+  handleScriptToggle(ScriptScope.GLOBAL, isGlobalScriptEnabled, false);
+  handleScriptToggle(ScriptScope.CHARACTER, isScopedScriptEnabled, false);
+
+  $('#global-script-enable-toggle')
+    .prop('checked', isGlobalScriptEnabled)
+    .on('click', (event: JQuery.ClickEvent) => handleScriptToggle(ScriptScope.GLOBAL, event.target.checked, true));
+  $('#scoped-script-enable-toggle')
+    .prop('checked', isScopedScriptEnabled)
+    .on('click', (event: JQuery.ClickEvent) => handleScriptToggle(ScriptScope.CHARACTER, event.target.checked, true));
+
+  $('#open-global-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptScope.GLOBAL, undefined));
+  $('#open-scoped-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptScope.CHARACTER, undefined));
+
   scriptRepo.loadScriptLibrary();
+
   // // 处理自动启用角色正则表达式设置
   // const auto_enable_character_regex = extension_settings[extensionName].auto_enable_character_regex;
   // $('#auto_enable_character_regex')

@@ -1,4 +1,3 @@
-
 #render-depth,
 .script-editor-container input {
   width: 100%;
@@ -132,7 +131,7 @@
   margin-bottom: 1px;
 }
 
-.script-item:has(.disable-script:checked) .script-item-name {
+.script-item:has(.toggle-script:not(:checked)) .script-item-name {
   text-decoration: line-through;
   filter: grayscale(0.5);
 }
@@ -416,24 +415,22 @@
   overflow: auto;
 }
 
-.disable-script {
+.toggle-script {
   display: none !important;
 }
 
-.disable-script:checked ~ .script-toggle-on {
-  display: inline-block;
-}
-
-.disable-script:checked ~ .script-toggle-off {
+.toggle-script:checked + .script-toggle-off {
   display: none;
 }
 
-.disable-script:not(:checked) ~ .script-toggle-on {
-  display: none;
-}
-
-.disable-script:not(:checked) ~ .script-toggle-off {
+.toggle-script:checked + .script-toggle-off + .script-toggle-on {
   display: inline-block;
 }
 
+.toggle-script:not(:checked) + .script-toggle-off {
+  display: inline-block;
+}
 
+.toggle-script:not(:checked) + .script-toggle-off + .script-toggle-on {
+  display: none;
+}

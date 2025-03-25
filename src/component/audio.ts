@@ -272,7 +272,6 @@ export function getNextFileByMode(mode: string, playlist: string[], currentFile:
 export function toggleAudioControls(type: 'bgm' | 'ambient', status = 'enable') {
   const isMainEnabled = $('#audio_enabled').prop('checked');
 
-  // 只有当总开关打开且当前操作是启用控件时，才真正启用控件
   const shouldEnable = isMainEnabled && status === 'enable';
 
   const controlIds = [
