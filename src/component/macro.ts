@@ -1,4 +1,4 @@
-import { getCharAvatarPath, getUserAvatarPath } from '@/component/message_iframe';
+import { getCharAvatarPath, getUserAvatarPath } from '@/util/extension_variables';
 
 import { chat, chat_metadata, event_types, eventSource } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';

@@ -1,18 +1,9 @@
 import { libraries_text } from '@/component/character_level/library';
-import { getSettingValue, isExtensionEnabled, saveSettingValue } from '@/index';
+import { getSettingValue, saveSettingValue, getUserAvatarPath, getCharAvatarPath } from '@/util/extension_variables';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 
-import {
-  characters,
-  eventSource,
-  event_types,
-  getThumbnailUrl,
-  reloadCurrentChat,
-  this_chid,
-  updateMessageBlock,
-  user_avatar,
-} from '@sillytavern/script';
+import { eventSource, event_types, reloadCurrentChat, updateMessageBlock } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 
 let tampermonkeyMessageListener: ((event: MessageEvent) => void) | null = null;
@@ -21,6 +12,7 @@ let isRenderingOptimizeEnabled: boolean;
 let renderDepth: number;
 
 const iframeResizeObservers = new Map();
+const isExtensionEnabled = getSettingValue('enabled_extension');
 
 // 保存原始高亮方法
 const originalHighlightElement = hljs.highlightElement;
@@ -59,16 +51,6 @@ export async function handleRenderToggle(userInput: boolean = true, enable: bool
     await saveSettingValue('render.render_enabled', enable);
   }
 }
-
-// 获取头像原图
-export const charsPath = '/characters/';
-export const getUserAvatarPath = () => `./User Avatars/${user_avatar}`;
-export const getCharAvatarPath = () => {
-  //@ts-ignore
-  const thumbnailPath = getThumbnailUrl('avatar', characters[this_chid].avatar);
-  const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
-  return charsPath + targetAvatarImg;
-};
 
 /**
  * 清理后，重新渲染所有iframe
@@ -247,7 +229,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
   const depthLimitedMessageIds = [...Array(totalMessages).keys()].slice(-depthLimit);
 
   let messagesToRenderIds: number[] = [];
-  let messagesToCancelIds: number[] = [...Array(totalMessages).keys()].filter(
+  const messagesToCancelIds: number[] = [...Array(totalMessages).keys()].filter(
     id => !depthLimitedMessageIds.includes(id),
   );
 
@@ -305,7 +287,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
       extractedText = hasMinVh ? processVhUnits(extractedText) : extractedText;
 
-      const $wrapper = $('<div>').css({
+      let $wrapper = $('<div>').css({
         position: 'relative',
         width: '100%',
       });
@@ -377,7 +359,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       $iframe.on('load', function () {
         observeIframeContent(this as IFrameElement);
 
-        const $wrapper = $(this).parent();
+        $wrapper = $(this).parent();
         if ($wrapper.length) {
           const $loadingOverlay = $wrapper.find('.iframe-loading-overlay');
           if ($loadingOverlay.length) {
@@ -544,11 +526,13 @@ function destroyIframe(iframe: IFrameElement) {
   }
 
   // 清空iframe的属性
-  for (let prop in iframe) {
-    if (iframe.hasOwnProperty(prop)) {
+  for (const prop in iframe) {
+    if (Object.prototype.hasOwnProperty.call(iframe, prop)) {
       try {
         iframe[prop] = null;
-      } catch (e) {}
+      } catch (e) {
+        console.debug('清空iframe的属性时出错:', e);
+      }
     }
   }
 
@@ -756,12 +740,11 @@ async function onTampermonkeyCompatibilityChange() {
       window.addEventListener('message', tampermonkeyMessageListener);
       createGlobalAudioManager();
     }
-  } else {
-    if (tampermonkeyMessageListener) {
-      window.removeEventListener('message', tampermonkeyMessageListener);
-      tampermonkeyMessageListener = null;
-    }
+  } else if (tampermonkeyMessageListener) {
+    window.removeEventListener('message', tampermonkeyMessageListener);
+    tampermonkeyMessageListener = null;
   }
+
   await clearAndRenderAllIframes();
 }
 
@@ -846,8 +829,8 @@ export function injectLoadingStyles() {
  * 注入代码块隐藏样式
  */
 export function injectCodeBlockHideStyles() {
-  var styleId = 'hidden-code-block-styles';
-  var style = document.getElementById(styleId);
+  const styleId = 'hidden-code-block-styles';
+  let style = document.getElementById(styleId);
   if (!style) {
     style = document.createElement('style');
     style.setAttribute('type', 'text/css');
@@ -879,8 +862,8 @@ export function injectCodeBlockHideStyles() {
  * 移除代码块隐藏样式
  */
 function removeCodeBlockHideStyles() {
-  var styleId = 'hidden-code-block-styles';
-  var style = document.getElementById(styleId);
+  const styleId = 'hidden-code-block-styles';
+  let style = document.getElementById(styleId);
   if (style) {
     style.remove();
   }
@@ -971,7 +954,9 @@ function removeAllCodeToggleButtons() {
  */
 export function addRenderingOptimizeSettings() {
   injectCodeBlockHideStyles();
-  hljs.highlightElement = function () {};
+  hljs.highlightElement = function () {
+    return;
+  };
 }
 
 /**

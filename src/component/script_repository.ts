@@ -1,4 +1,4 @@
-import { getSettingValue, saveSettingValue } from '@/index';
+import { extensionFolderPath, extensionName, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 
 import {
   characters,
@@ -9,10 +9,11 @@ import {
   this_chid,
 } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
+//@ts-ignore
 import { selected_group } from '@sillytavern/scripts/group-chats';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { power_user } from '@sillytavern/scripts/power-user';
-import { uuidv4 } from '@sillytavern/scripts/utils';
+import { getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
 
 export const defaultScriptSettings = {
   script_enabled: true,
@@ -20,9 +21,6 @@ export const defaultScriptSettings = {
   scope_script_enabled: true,
   scriptsRepository: [],
 };
-
-// FIXME: 修改为动态获取
-const extensionFolderPath = `third-party/JS-Slash-Runner`;
 
 const baseTemplate = $(
   await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'script_item_template', {
@@ -35,55 +33,257 @@ const baseTemplate = $(
 
 let isScriptEnabled: boolean;
 
-interface Script {
+class Script {
   id: string;
   name: string;
   content: string;
   info: string;
   enabled: boolean;
+
+  constructor(data?: Partial<Script>) {
+    this.id = data?.id || uuidv4();
+    this.name = data?.name || '';
+    this.content = data?.content || '';
+    this.info = data?.info || '';
+    this.enabled = data?.enabled || false;
+  }
+
+  // 验证方法
+  hasName(): boolean {
+    return Boolean(this.name);
+  }
+  // 删除脚本
+  async deleteScript(id: string, scope: ScriptScope): Promise<void> {
+    try {
+      const array =
+        scope === ScriptScope.GLOBAL
+          ? getSettingValue('script.scriptsRepository') || []
+          : characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
+
+      const existingScriptIndex = array.findIndex((script: Script) => script.id === id);
+      if (existingScriptIndex !== -1) {
+        array.splice(existingScriptIndex, 1);
+
+        if (scope === ScriptScope.GLOBAL) {
+          await scriptRepo.saveGlobalScripts(array);
+        } else {
+          await scriptRepo.saveCharacterScripts(array);
+        }
+        await scriptRepo.loadScriptLibrary();
+      } else {
+        throw new Error('[ScriptRepository] 脚本不存在');
+      }
+    } catch (error) {
+      console.error('[ScriptRepository] 删除脚本时发生错误:', error);
+      throw error;
+    }
+  }
 }
 
-/**
- * 打开脚本编辑器
- */
-async function onScriptEditorOpenClick(type: 'global' | 'scope' = 'global', scriptId: string | null = null) {
-  const $editorHtml = $(await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'script_editor'));
-  if (scriptId) {
-    let script: Script | undefined;
-    if (type === 'global') {
-      script = getSettingValue('script.scriptsRepository').find((s: Script) => s.id === scriptId);
+enum ScriptScope {
+  GLOBAL = 'global',
+  CHARACTER = 'scope',
+}
+
+class ScriptRepository {
+  private static instance: ScriptRepository;
+  private globalScripts: Script[] = [];
+  private characterScripts: Script[] = [];
+
+  private constructor() {
+    this.loadScripts();
+  }
+
+  public static getInstance(): ScriptRepository {
+    if (!ScriptRepository.instance) {
+      ScriptRepository.instance = new ScriptRepository();
+    }
+    return ScriptRepository.instance;
+  }
+
+  // 加载脚本
+  async loadScripts() {
+    this.globalScripts = getSettingValue('script.scriptsRepository') || [];
+    this.characterScripts = characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
+  }
+
+  // 添加脚本
+  async addScript(script: Script, scope: ScriptScope): Promise<boolean> {
+    if (!script.hasName()) {
+      toastr.error('保存失败，脚本名称为空');
+      return false;
+    }
+
+    if (scope === ScriptScope.GLOBAL) {
+      this.globalScripts.unshift(script);
+      await this.saveGlobalScripts(this.globalScripts);
     } else {
-      script = characters[this_chid]?.data?.extensions?.TavernHelper_scripts.find(
-        (s: Script) => s.id === scriptId,
-      );
+      if (!this_chid) {
+        toastr.error('保存失败，当前角色为空');
+        return false;
+      }
+      this.characterScripts.unshift(script);
+      await this.saveCharacterScripts(this.characterScripts);
     }
 
-    if (script) {
-      $editorHtml.find('#script-name-input').val(script.name);
-      $editorHtml.find('#script-content-textarea').val(script.content);
-      $editorHtml.find('#script-info-textarea').val(script.info);
+    await this.renderScript(script, scope);
+    return true;
+  }
+
+  // 加载脚本库
+  async loadScriptLibrary() {
+    $('#global-script-list').empty();
+    $('#scoped-script-list').empty();
+
+    const globalScriptArray = getSettingValue('script.scriptsRepository') ?? [];
+    const scopedScriptArray = characters[this_chid]?.data?.extensions?.TavernHelper_scripts ?? [];
+
+    if (globalScriptArray.length > 0) {
+      const globalScripts = globalScriptArray.map((scriptData: Script) => new Script(scriptData));
+      globalScripts.forEach(async (script: Script) => {
+        const scriptHtml = await cloneTemplate(script, ScriptScope.GLOBAL);
+        $('#global-script-list').prepend(scriptHtml);
+      });
+    }
+    if (scopedScriptArray.length > 0) {
+      const scopedScripts = scopedScriptArray.map((scriptData: Script) => new Script(scriptData));
+      scopedScripts.forEach(async (script: Script) => {
+        const scriptHtml = await cloneTemplate(script, ScriptScope.CHARACTER);
+        $('#scoped-script-list').prepend(scriptHtml);
+        const list = $(`#scoped-script-list`);
+        scriptRepo.makeDraggable(list, ScriptScope.CHARACTER);
+      });
+    }
+    scriptRepo.makeDraggable($(`#global-script-list`), ScriptScope.GLOBAL);
+    scriptRepo.makeDraggable($(`#scoped-script-list`), ScriptScope.CHARACTER);
+  }
+
+  // 渲染单个脚本到界面
+  async renderScript(script: Script, scope: ScriptScope) {
+    const scriptHtml = await cloneTemplate(script, scope);
+    if (scope === ScriptScope.GLOBAL) {
+      $('#global-script-list').prepend(scriptHtml);
+    } else {
+      $('#scoped-script-list').prepend(scriptHtml);
     }
   }
-  const popupResult = await callGenericPopup($editorHtml, POPUP_TYPE.CONFIRM, '', {
-    okButton: '确认',
-    cancelButton: '取消',
-  });
-  if (popupResult) {
-    const scriptName = $editorHtml.find('#script-name-input').val() as string;
-    const scriptContent = $editorHtml.find('#script-content-textarea').val() as string;
-    const scriptInfo = $editorHtml.find('#script-info-textarea').val() as string;
-    if (scriptId === null) {
-      const script: Script = {
-        id: uuidv4(),
-        name: scriptName,
-        content: scriptContent,
-        info: scriptInfo,
-        enabled: false,
-      };
-      await saveScript(script, true, 'global');
+
+  // 打开脚本编辑器
+  async openScriptEditor(scope: ScriptScope, scriptId?: string) {
+    const $editorHtml = $(await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'script_editor'));
+    if (scriptId) {
+      let script: Script | undefined;
+      if (scope === ScriptScope.GLOBAL) {
+        script = getSettingValue('script.scriptsRepository').find((s: Script) => s.id === scriptId);
+      } else {
+        script = characters[this_chid]?.data?.extensions?.TavernHelper_scripts.find((s: Script) => s.id === scriptId);
+      }
+
+      if (script) {
+        $editorHtml.find('#script-name-input').val(script.name);
+        $editorHtml.find('#script-content-textarea').val(script.content);
+        $editorHtml.find('#script-info-textarea').val(script.info);
+      }
     }
+    const popupResult = await callGenericPopup($editorHtml, POPUP_TYPE.CONFIRM, '', {
+      okButton: '确认',
+      cancelButton: '取消',
+    });
+    if (popupResult) {
+      const scriptName = $editorHtml.find('#script-name-input').val() as string;
+      const scriptContent = $editorHtml.find('#script-content-textarea').val() as string;
+      const scriptInfo = $editorHtml.find('#script-info-textarea').val() as string;
+      if (scriptId === null) {
+        const script = new Script({
+          id: uuidv4(),
+          name: scriptName,
+          content: scriptContent,
+          info: scriptInfo,
+          enabled: false,
+        });
+        await scriptRepo.addScript(script, ScriptScope.GLOBAL);
+      }
+    }
+  }
+
+  // 删除脚本
+  async deleteScript(id: string, scope: ScriptScope): Promise<void> {
+    try {
+      const array =
+        scope === ScriptScope.GLOBAL
+          ? getSettingValue('script.scriptsRepository') || []
+          : characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
+
+      const existingScriptIndex = array.findIndex((script: Script) => script.id === id);
+      if (existingScriptIndex !== -1) {
+        array.splice(existingScriptIndex, 1);
+
+        if (scope === ScriptScope.GLOBAL) {
+          await this.saveGlobalScripts(array);
+        } else {
+          await this.saveCharacterScripts(array);
+        }
+        await scriptRepo.loadScriptLibrary();
+      } else {
+        throw new Error('[ScriptRepository] 脚本不存在');
+      }
+    } catch (error) {
+      console.error('[ScriptRepository] 删除脚本时发生错误:', error);
+      throw error;
+    }
+  }
+
+  // 保存到扩展数据
+  async saveGlobalScripts(array: Script[]) {
+    await saveSettingValue('script.scriptsRepository', array);
+  }
+
+  // 保存到角色卡数据
+  async saveCharacterScripts(array: Script[]) {
+    if (this_chid) {
+      await writeExtensionField(this_chid, 'TavernHelper_scripts', array);
+    } else {
+      toastr.error('保存失败，当前角色为空');
+    }
+  }
+
+  makeDraggable(list: JQuery<HTMLElement>, scope: ScriptScope) {
+    list.sortable({
+      delay: getSortableDelay(),
+      handle: '.drag-handle',
+      items: '.script-item',
+      stop: async () => {
+        const newOrder: string[] = [];
+
+        // 获取所有直系子元素并提取它们的ID
+        list.find('> .script-item').each(function () {
+          const id = $(this).attr('id');
+          if (id) {
+            newOrder.push(id);
+          }
+        });
+
+        const array =
+          scope === 'global'
+            ? getSettingValue('script.scriptsRepository') || []
+            : characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
+
+        const updatedScripts = newOrder
+          .map(id => {
+            return array.find((script: Script) => script.id === id);
+          })
+          .filter(Boolean);
+
+        if (scope === 'global') {
+          await this.saveGlobalScripts(updatedScripts);
+        } else {
+          await this.saveCharacterScripts(updatedScripts);
+        }
+      },
+    });
   }
 }
+const scriptRepo = ScriptRepository.getInstance();
 
 /**
  * 保存脚本
@@ -95,106 +295,30 @@ async function saveScript(script: Script, isNew: boolean = false, type: 'global'
   }
   if (isNew) {
     if (type === 'global') {
-      const scriptHtml = await cloneTemplate(script, 'global');
+      const scriptHtml = await cloneTemplate(script, ScriptScope.GLOBAL);
       $('#global-script-list').prepend(scriptHtml);
 
-      const scriptArray = getSettingValue('script.scriptsRepository');
+      const scriptArray = getSettingValue('script.scriptsRepository') || [];
       scriptArray.unshift(script);
-      await saveScriptToExtensionData(scriptArray);
-    } else {
-      if (this_chid) {
-        const scriptHtml = await cloneTemplate(script, 'scope');
-        $('#scoped-script-list').prepend(scriptHtml);
-
-        const scriptArray = characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
-        scriptArray.unshift(script);
-        await saveScriptToCharacterCard(scriptArray);
-      } else {
-        toastr.error('保存失败，当前角色为空');
-      }
-    }
-  }
-}
-
-/**
- * 保存脚本到扩展数据
- *  @param script 脚本内容
- * */
-async function saveScriptToExtensionData(scriptArray: Script[]) {
-  await saveSettingValue('script.scriptsRepository', scriptArray);
-}
-
-/**
- * 保存脚本到角色卡
- *  @param script 脚本内容
- * */
-async function saveScriptToCharacterCard(scriptArray: Script[]) {
-  if (this_chid) {
-    await writeExtensionField(this_chid, 'TavernHelper_scripts', scriptArray);
-  } else {
-    toastr.error('保存失败，当前角色为空');
-  }
-}
-
-/**
- * 删除脚本
- *  @param id 脚本id
- */
-
-async function deleteScript(id: string) {
-  const $scriptItem = $(`#${id}`);
-  const isScoped = $scriptItem.find('.script-storage-location').hasClass('move-to-scoped') ? false : true;
-  const array =
-    (isScoped
-      ? characters[this_chid]?.data?.extensions?.TavernHelper_scripts
-      : getSettingValue('script.scriptsRepository')) ?? [];
-
-  const existingScriptIndex = array.findIndex((script: Script) => script.id === id);
-  if (!existingScriptIndex || existingScriptIndex !== -1) {
-    array.splice(existingScriptIndex, 1);
-
-    if (isScoped) {
-      await saveScriptToCharacterCard(array);
-    } else {
-      await saveScriptToExtensionData(array);
-    }
-
-    await loadScriptLibrary();
-  }
-
-  $scriptItem.remove();
-}
-
-/** 加载脚本库
- *
- */
-export async function loadScriptLibrary() {
-  $('#global-script-list').empty();
-  $('#scoped-script-list').empty();
-
-  const globalScriptArray = getSettingValue('script.scriptsRepository') ?? [];
-  const scopedScriptArray = characters[this_chid]?.data?.extensions?.TavernHelper_scripts ?? [];
-
-  if (globalScriptArray.length > 0) {
-    globalScriptArray.forEach(async (script: Script) => {
-      const scriptHtml = await cloneTemplate(script, 'global');
-      $('#global-script-list').prepend(scriptHtml);
-    });
-  }
-  if (scopedScriptArray.length > 0) {
-    scopedScriptArray.forEach(async (script: Script) => {
-      const scriptHtml = await cloneTemplate(script, 'scope');
+      await scriptRepo.saveGlobalScripts(scriptArray);
+    } else if (this_chid) {
+      const scriptHtml = await cloneTemplate(script, ScriptScope.CHARACTER);
       $('#scoped-script-list').prepend(scriptHtml);
-    });
+
+      const scriptArray = characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
+      scriptArray.unshift(script);
+      await scriptRepo.saveCharacterScripts(scriptArray);
+    } else {
+      toastr.error('保存失败，当前角色为空');
+    }
   }
 }
-
 /**
  * 克隆模板
  * @param script 脚本
  * @param type 类型,global 全局,scope 局部
  */
-export async function cloneTemplate(script: Script, type: 'global' | 'scope') {
+export async function cloneTemplate(script: Script, type: ScriptScope.GLOBAL | ScriptScope.CHARACTER) {
   const scriptHtml = baseTemplate.clone();
 
   scriptHtml.attr('id', script.id);
@@ -203,7 +327,7 @@ export async function cloneTemplate(script: Script, type: 'global' | 'scope') {
   scriptHtml.find('.script-storage-location').addClass(type === 'global' ? 'move-to-scoped' : 'move-to-global');
   scriptHtml.find('.script-storage-location i').addClass(type === 'global' ? 'fa-arrow-down' : 'fa-arrow-up');
 
-  scriptHtml.find('.edit-script').on('click', () => onScriptEditorOpenClick(type, script.id));
+  scriptHtml.find('.edit-script').on('click', () => scriptRepo.openScriptEditor(type, script.id));
   scriptHtml.find('.delete-script').on('click', async () => {
     const confirm = await callGenericPopup('确定要删除这个脚本吗？', POPUP_TYPE.CONFIRM);
 
@@ -211,7 +335,9 @@ export async function cloneTemplate(script: Script, type: 'global' | 'scope') {
       return;
     }
 
-    await deleteScript(script.id);
+    await scriptRepo.deleteScript(script.id, type);
+
+    scriptHtml.remove();
   });
   return scriptHtml;
 }
@@ -219,6 +345,7 @@ export async function cloneTemplate(script: Script, type: 'global' | 'scope') {
 /**
  * 自动为当前角色启用正则表达式规则
  */
+
 export async function autoEnableCharacterRegex() {
   if (this_chid === undefined) {
     return;
@@ -310,9 +437,9 @@ export async function onAutoDisableIncompatibleOptions() {
 }
 
 export async function initScriptRepository() {
-  $('#open-global-script-editor').on('click', () => onScriptEditorOpenClick('global', null));
-  $('#open-scoped-script-editor').on('click', () => onScriptEditorOpenClick('scope', null));
-  loadScriptLibrary();
+  $('#open-global-script-editor').on('click', () => scriptRepo.openScriptEditor('global', null));
+  $('#open-scoped-script-editor').on('click', () => scriptRepo.openScriptEditor('scope', null));
+  scriptRepo.loadScriptLibrary();
   // // 处理自动启用角色正则表达式设置
   // const auto_enable_character_regex = extension_settings[extensionName].auto_enable_character_regex;
   // $('#auto_enable_character_regex')

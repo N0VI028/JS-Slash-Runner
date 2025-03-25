@@ -1,4 +1,4 @@
-import eslintWebpackPlugin from 'eslint-webpack-plugin';
+//import eslintWebpackPlugin from 'eslint-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import fs from 'node:fs';
 import path from 'node:path';

@@ -1,4 +1,4 @@
-import { extensionName } from '@/index';
+import { extensionName } from '@/util/extension_variables';
 
 import { chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';

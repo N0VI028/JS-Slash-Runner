@@ -1,44 +1,15 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
-import {
-  destroyCharacterLevelOnExtension,
-  initializeCharacterLevelOnExtension,
-} from '@/component/character_level/index';
-import {
-  destroyMacroOnExtension,
-  initializeMacroOnExtension,
-  registerAllMacros,
-  unregisterAllMacros,
-} from '@/component/macro';
-import {
-  addCodeToggleButtonsToAllMessages,
-  addRenderingOptimizeSettings,
-  defaultIframeSettings,
-  initIframePanel,
-  partialRenderEvents,
-  removeRenderingOptimizeSettings,
-  renderAllIframes,
-  renderMessageAfterDelete,
-  renderPartialIframes,
-  tampermonkey_script,
-  viewport_adjust_script,
-} from '@/component/message_iframe';
+import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { defaultScriptSettings, initScriptRepository } from '@/component/script_repository';
-import { iframe_client } from '@/iframe_client/index';
-import { handleIframe } from '@/iframe_server/index';
-import { checkVariablesEvents, clearTempVariables, shouldUpdateVariables } from '@/iframe_server/variables';
-import { script_url } from '@/script_url';
+import { extensionName, extensionFolderPath } from '@/util/extension_variables';
+import { initExtensionMainPanel } from '@/component/main';
 import { initSlashEventEmit } from '@/slash_command/event';
+import { initAudioSlashCommands } from '@/slash_command/audio';
 
-import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, this_chid } from '@sillytavern/script';
+import { saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 import { SlashCommandNamedArgument } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
-import { setValueByPath } from '@sillytavern/scripts/utils';
-
-export const extensionName = 'JS-Slash-Runner';
-//TODO: 修改名称
-export const extensionFolderPath = `third-party/${extensionName}`;
-export let isExtensionEnabled: boolean;
 
 const defaultSettings = {
   enabled_extension: true,
@@ -53,204 +24,75 @@ const defaultSettings = {
   },
 };
 
-const handleChatChanged = () => {
-  renderAllIframes();
-  if (getSettingValue('render.rendering_optimize')) {
-    addCodeToggleButtonsToAllMessages();
-  }
-};
+// function formatSlashCommands(): string {
+//   const cmdList = Object.keys(SlashCommandParser.commands)
+//     .filter(key => SlashCommandParser.commands[key].name === key) // exclude aliases
+//     .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+//     .map(key => SlashCommandParser.commands[key]);
+//   const transform_arg = (arg: SlashCommandNamedArgument) => {
+//     const transformers = {
+//       name: (value: SlashCommandNamedArgument['name']) => ({ name: value }),
+//       // description: (value: SlashCommandNamedArgument['description']) => ({ description: value }),
+//       isRequired: (value: SlashCommandNamedArgument['isRequired']) => ({
+//         is_required: value,
+//       }),
+//       defaultValue: (value: SlashCommandNamedArgument['defaultValue']) =>
+//         value !== null ? { default_value: value } : {},
+//       acceptsMultiple: (value: SlashCommandNamedArgument['acceptsMultiple']) => ({ accepts_multiple: value }),
+//       enumList: (value: SlashCommandNamedArgument['enumList']) =>
+//         value.length > 0 ? { enum_list: value.map(e => e.value) } : {},
+//       typeList: (value: SlashCommandNamedArgument['typeList']) => (value.length > 0 ? { type_list: value } : {}),
+//     };
 
-const handlePartialRender = (mesId: string) => {
-  const mesIdNumber = parseInt(mesId, 10);
-  renderPartialIframes(mesIdNumber);
-};
+//     return Object.entries(arg)
+//       .filter(([_, value]) => value !== undefined)
+//       .reduce(
+//         (result, [key, value]) => ({
+//           ...result,
+//           // @ts-ignore
+//           ...transformers[key]?.(value),
+//         }),
+//         {},
+//       );
+//   };
+//   const transform_help_string = (help_string: string) => {
+//     const content = $('<span>').html(help_string);
+//     return content
+//       .text()
+//       .split('\n')
+//       .map(line => line.trim())
+//       .filter(line => line !== '')
+//       .join(' ');
+//   };
 
-const handleMessageDeleted = (mesId: string) => {
-  const mesIdNumber = parseInt(mesId, 10);
-  clearTempVariables();
-  renderMessageAfterDelete(mesIdNumber);
-  if (getSettingValue('render.rendering_optimize')) {
-    addCodeToggleButtonsToAllMessages();
-  }
-};
-
-const handleVariableUpdated = (mesId: string) => {
-  const mesIdNumber = parseInt(mesId, 10);
-  shouldUpdateVariables(mesIdNumber);
-};
-
-async function handleExtensionToggle(userAction: boolean = true, enable: boolean = true) {
-  if (userAction) {
-    await saveSettingValue('enabled_extension', enable);
-    isExtensionEnabled = enable;
-  }
-  if (enable) {
-    // 指示器样式
-    $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
-
-    script_url.set('iframe_client', iframe_client);
-    script_url.set('viewport_adjust_script', viewport_adjust_script);
-    script_url.set('tampermonkey_script', tampermonkey_script);
-
-    registerAllMacros();
-    initializeMacroOnExtension();
-    initializeCharacterLevelOnExtension();
-
-    // 重新注入前端卡优化的样式和设置
-    if (userAction && getSettingValue('render.rendering_optimize')) {
-      addRenderingOptimizeSettings();
-    }
-
-    window.addEventListener('message', handleIframe);
-
-    eventSource.on(event_types.CHAT_CHANGED, handleChatChanged);
-
-    partialRenderEvents.forEach(eventType => {
-      eventSource.on(eventType, handlePartialRender);
-    });
-
-    checkVariablesEvents.forEach(eventType => {
-      eventSource.on(eventType, handleVariableUpdated);
-    });
-    eventSource.on(event_types.MESSAGE_DELETED, handleMessageDeleted);
-
-    if (userAction && this_chid !== undefined) {
-      await reloadCurrentChat();
-    }
-  } else {
-    // 指示器样式
-    $('#extension-status-icon').css('color', 'red').next().text('扩展已禁用');
-
-    script_url.delete('iframe_client');
-    script_url.delete('viewport_adjust_script');
-    script_url.delete('tampermonkey_script');
-
-    unregisterAllMacros();
-    destroyMacroOnExtension();
-    destroyCharacterLevelOnExtension();
-
-    if (getSettingValue('render.rendering_optimize')) {
-      removeRenderingOptimizeSettings();
-    }
-
-    window.removeEventListener('message', handleIframe);
-
-    eventSource.removeListener(event_types.CHAT_CHANGED, handleChatChanged);
-
-    partialRenderEvents.forEach(eventType => {
-      eventSource.removeListener(eventType, handlePartialRender);
-    });
-    checkVariablesEvents.forEach(eventType => {
-      eventSource.removeListener(eventType, handleVariableUpdated);
-    });
-    eventSource.removeListener(event_types.MESSAGE_DELETED, handleMessageDeleted);
-    if (userAction && this_chid !== undefined) {
-      await reloadCurrentChat();
-    }
-  }
-  $('#js_slash_runner_text').text(getSettingValue('activate_setting') ? '关闭前端渲染' : '开启前端渲染');
-  saveSettingsDebounced();
-}
-
-function formatSlashCommands(): string {
-  const cmdList = Object.keys(SlashCommandParser.commands)
-    .filter(key => SlashCommandParser.commands[key].name === key) // exclude aliases
-    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-    .map(key => SlashCommandParser.commands[key]);
-  const transform_arg = (arg: SlashCommandNamedArgument) => {
-    const transformers = {
-      name: (value: SlashCommandNamedArgument['name']) => ({ name: value }),
-      // description: (value: SlashCommandNamedArgument['description']) => ({ description: value }),
-      isRequired: (value: SlashCommandNamedArgument['isRequired']) => ({
-        is_required: value,
-      }),
-      defaultValue: (value: SlashCommandNamedArgument['defaultValue']) =>
-        value !== null ? { default_value: value } : {},
-      acceptsMultiple: (value: SlashCommandNamedArgument['acceptsMultiple']) => ({ accepts_multiple: value }),
-      enumList: (value: SlashCommandNamedArgument['enumList']) =>
-        value.length > 0 ? { enum_list: value.map(e => e.value) } : {},
-      typeList: (value: SlashCommandNamedArgument['typeList']) => (value.length > 0 ? { type_list: value } : {}),
-    };
-
-    return Object.entries(arg)
-      .filter(([_, value]) => value !== undefined)
-      .reduce(
-        (result, [key, value]) => ({
-          ...result,
-          // @ts-ignore
-          ...transformers[key]?.(value),
-        }),
-        {},
-      );
-  };
-  const transform_help_string = (help_string: string) => {
-    const content = $('<span>').html(help_string);
-    return content
-      .text()
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line !== '')
-      .join(' ');
-  };
-
-  return cmdList
-    .map(cmd => ({
-      name: cmd.name,
-      named_args: cmd.namedArgumentList.map(transform_arg) ?? [],
-      unnamed_args: cmd.unnamedArgumentList.map(transform_arg) ?? [],
-      return_type: cmd.returns ?? 'void',
-      help_string: transform_help_string(cmd.helpString) ?? 'NO DETAILS',
-    }))
-    .map(
-      cmd =>
-        `/${cmd.name}${cmd.named_args.length > 0 ? ` ` : ``}${cmd.named_args
-          .map(
-            arg =>
-              `[${arg.accepts_multiple ? `...` : ``}${arg.name}=${
-                arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')
-              }]${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`,
-          )
-          .join(' ')}${cmd.unnamed_args.length > 0 ? ` ` : ``}${cmd.unnamed_args
-          .map(
-            arg =>
-              `(${arg.accepts_multiple ? `...` : ``}${
-                arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')
-              })${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`,
-          )
-          .join(' ')} // ${cmd.help_string}`,
-    )
-    .join('\n');
-}
-
-/**
- * 获取扩展设置变量的值
- * @returns 设置变量的值
- */
-export function getSettingValue(key: string) {
-  const keys = key.split('.');
-  //@ts-ignore
-  let value = extension_settings[extensionName];
-
-  for (const k of keys) {
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-    value = value[k];
-  }
-
-  return value;
-}
-
-/**
- * 保存扩展设置变量的值
- * @param key 设置变量的键
- * @param value 设置变量的值
- */
-export async function saveSettingValue(key: string, value: any) {
-  //@ts-ignore
-  setValueByPath(extension_settings[extensionName], key, value);
-  await saveSettingsDebounced();
-}
+//   return cmdList
+//     .map(cmd => ({
+//       name: cmd.name,
+//       named_args: cmd.namedArgumentList.map(transform_arg) ?? [],
+//       unnamed_args: cmd.unnamedArgumentList.map(transform_arg) ?? [],
+//       return_type: cmd.returns ?? 'void',
+//       help_string: transform_help_string(cmd.helpString) ?? 'NO DETAILS',
+//     }))
+//     .map(
+//       cmd =>
+//         `/${cmd.name}${cmd.named_args.length > 0 ? ` ` : ``}${cmd.named_args
+//           .map(
+//             arg =>
+//               `[${arg.accepts_multiple ? `...` : ``}${arg.name}=${
+//                 arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')
+//               }]${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`,
+//           )
+//           .join(' ')}${cmd.unnamed_args.length > 0 ? ` ` : ``}${cmd.unnamed_args
+//           .map(
+//             arg =>
+//               `(${arg.accepts_multiple ? `...` : ``}${
+//                 arg.enum_list ? arg.enum_list.join('|') : arg.type_list.join('|')
+//               })${arg.is_required ? `` : `?`}${arg.default_value ? `=${arg.default_value}` : ``}`,
+//           )
+//           .join(' ')} // ${cmd.help_string}`,
+//     )
+//     .join('\n');
+// }
 
 /**
  * 设置页面切换
@@ -299,22 +141,6 @@ function handleSettingPageChange(event: JQuery.ClickEvent) {
       $('#audio-settings-content').show();
       break;
   }
-}
-
-/**
- * 初始化扩展主设置界面
- */
-function initExtensionMainPanel() {
-  const isEnabled = getSettingValue('enabled_extension');
-  isExtensionEnabled = isEnabled;
-  if (isEnabled) {
-    handleExtensionToggle(false, true);
-  }
-  $('#extension-enable-toggle')
-    .prop('checked', isEnabled)
-    .on('change', function (event: JQuery.ChangeEvent) {
-      handleExtensionToggle(true, $(event.currentTarget).prop('checked'));
-    });
 }
 
 /**
@@ -384,5 +210,6 @@ jQuery(async () => {
   initIframePanel();
   initScriptRepository();
   initAudioComponents();
+  initAudioSlashCommands();
   initSlashEventEmit();
 });
