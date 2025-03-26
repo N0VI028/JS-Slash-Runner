@@ -19,6 +19,7 @@ import {
   tampermonkey_script,
   viewport_adjust_script,
 } from '@/component/message_iframe';
+import { scriptRepo, checkEmbeddedScripts, purgeEmbeddedScripts } from '@/component/script_repository/index';
 import { iframe_client } from '@/iframe_client/index';
 import { handleIframe } from '@/iframe_server/index';
 import { checkVariablesEvents, clearTempVariables, shouldUpdateVariables } from '@/iframe_server/variables';
@@ -29,11 +30,17 @@ import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, thi
 
 let isExtensionEnabled: boolean;
 
-const handleChatChanged = () => {
-  renderAllIframes();
+const handleChatChanged = async () => {
+  await checkEmbeddedScripts();
+  await scriptRepo.loadScriptLibrary();
+  await renderAllIframes();
   if (getSettingValue('render.rendering_optimize')) {
     addCodeToggleButtonsToAllMessages();
   }
+};
+
+const handleCharacterDeleted = (character: Object) => {
+  purgeEmbeddedScripts({ character });
 };
 
 const handlePartialRender = (mesId: string) => {
@@ -96,6 +103,7 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     window.addEventListener('message', handleIframe);
 
     eventSource.on(event_types.CHAT_CHANGED, handleChatChanged);
+    eventSource.on(event_types.CHARACTER_DELETED, handleCharacterDeleted);
 
     partialRenderEvents.forEach(eventType => {
       eventSource.on(eventType, handlePartialRender);
@@ -128,6 +136,7 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     window.removeEventListener('message', handleIframe);
 
     eventSource.removeListener(event_types.CHAT_CHANGED, handleChatChanged);
+    eventSource.removeListener(event_types.CHARACTER_DELETED, handleCharacterDeleted);
 
     partialRenderEvents.forEach(eventType => {
       eventSource.removeListener(eventType, handlePartialRender);

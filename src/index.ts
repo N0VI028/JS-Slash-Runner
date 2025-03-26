@@ -1,15 +1,13 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
+import { initExtensionMainPanel } from '@/component/main';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { defaultScriptSettings, initScriptRepository } from '@/component/script_repository';
-import { extensionName, extensionFolderPath } from '@/util/extension_variables';
-import { initExtensionMainPanel } from '@/component/main';
-import { initSlashEventEmit } from '@/slash_command/event';
 import { initAudioSlashCommands } from '@/slash_command/audio';
+import { initSlashEventEmit } from '@/slash_command/event';
+import { extensionFolderPath, extensionName } from '@/util/extension_variables';
 
 import { saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
-import { SlashCommandNamedArgument } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
-import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 
 const defaultSettings = {
   enabled_extension: true,
