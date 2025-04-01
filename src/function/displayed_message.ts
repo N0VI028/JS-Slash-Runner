@@ -1,6 +1,19 @@
 import { chat, messageFormatting } from '@sillytavern/script';
 import { getLastMessageId } from '@sillytavern/scripts/macros';
 
+
+/**
+ * 将字符串处理为酒馆用于显示的 html 格式. 将会,
+ * 1. 替换字符串中的酒馆宏
+ * 2. 对字符串应用对应的酒馆正则
+ * 3. 将字符串调整为 html 格式
+ *
+ * @param text 要处理的字符串
+ * @param option 可选选项
+ *   - `message_id?:number`: 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为最新楼层
+ *
+ * @returns 处理结果
+ */
 export function formatAsDisplayedMessage(text: string, option: FormatAsDisplayedMessageOption = {}): string {
   option.message_id = option.message_id ?? 'last';
   if (typeof option.message_id !== 'number' && !['last', 'last_user', 'last_char'].includes(option.message_id)) {

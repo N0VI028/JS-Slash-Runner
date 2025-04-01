@@ -1,5 +1,4 @@
 import { handlePartialRender } from '@/component/message_iframe';
-import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/_impl';
 
 import {
   chat,
@@ -16,7 +15,16 @@ interface GetChatMessagesOption {
   hide_state?: 'all' | 'hidden' | 'unhidden'; // 按是否被隐藏筛选消息; 默认为 `'all'`
 }
 
-
+/**
+ * 获取聊天消息
+ *
+ * @param range 要获取的消息楼层号或楼层范围, 与 `/messages` 相同
+ * @param option 可选选项
+ *   - `role:'all'|'system'|'assistant'|'user'`: 按 role 筛选消息; 默认为 `'all'`
+ *   - `hide_state:'all'|'hidden'|'unhidden'`: 按是否被隐藏筛选消息; 默认为 `'all'`
+ *
+ * @returns 一个数组, 数组的元素是每楼的消息 `ChatMessage`. 该数组依据按 message_id 从低到高排序.
+ */
 export async function getChatMessages(
   range: string | number,
   option: GetChatMessagesOption = {},
@@ -108,6 +116,17 @@ export async function getChatMessages(
   return chat_messages;
 }
 
+/**
+ * 设置某消息楼层某聊天消息页的信息. 如果设置了当前会被发送给 ai 的消息文本 (正被使用且没被隐藏的消息页文本), 则 "仅格式提示词" 正则将会使用它而不是原来的消息.
+ *
+ * @param field_values 要设置的信息
+ *   - message?: 消息页要设置的消息文本
+ *   - data?: 消息页要绑定的数据
+ * @param message_id 消息楼层id
+ * @param option 可选选项:
+ *   - `swipe_id?:'current'|number`: 要替换的消息页 (`'current'` 来替换当前使用的消息页, 或从 0 开始的序号来替换对应消息页), 如果消息中还没有该消息页, 则会创建该页; 默认为 `'current'`
+ *   - `refresh?:'none'|'display_current'|'display_and_render_current'|'all'`: 是否更新页面的显示和 iframe 渲染, 只会更新已经被加载显示在网页的楼层, 更新显示时会触发被更新楼层的 "仅格式显示" 正则; 默认为 `'display_and_render_current'`
+ */
 export async function setChatMessage(
   field_values: ChatMessageToSet,
   message_id: number,
@@ -184,6 +203,7 @@ export async function setChatMessage(
       };
 
       const update_partial_html = (should_update_swipe: boolean) => {
+        // @ts-ignore
         const mes_html = $(`div.mes[mesid = "${message_id}"]`);
         if (!mes_html) {
           return;
