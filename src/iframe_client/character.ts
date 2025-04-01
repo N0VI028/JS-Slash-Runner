@@ -1,33 +1,17 @@
 async function getCharData(name: string, allowAvatar: boolean = false): Promise<any> {
-  return detail.make_iframe_promise({
-    request: '[Character][getCharData]',
-    name: name,
-    allowAvatar: allowAvatar,
-  });
+  return TavernHelper.getCharData(name, allowAvatar);
 }
 
 async function getCharAvatarPath(name: string, allowAvatar: boolean = false): Promise<any> {
-  return detail.make_iframe_promise({
-    request: '[Character][getCharAvatarPath]',
-    name: name,
-    allowAvatar: allowAvatar,
-  });
+  return TavernHelper.getCharAvatarPath(name, allowAvatar);
 }
 
 async function getChatHistoryBrief(name: string, allowAvatar: boolean = false): Promise<any[]> {
-  return detail.make_iframe_promise({
-    request: '[Character][getChatHistoryBrief]',
-    name: name,
-    allowAvatar: allowAvatar,
-  });
+  return TavernHelper.getChatHistoryBrief(name, allowAvatar);
 }
 
 async function getChatHistoryDetail(data: any[], isGroupChat: boolean = false): Promise<object> {
-  return detail.make_iframe_promise({
-    request: '[Character][getChatHistoryDetail]',
-    data: data,
-    isGroupChat: isGroupChat,
-  });
+  return TavernHelper.getChatHistoryDetail(data, isGroupChat);
 }
 
 

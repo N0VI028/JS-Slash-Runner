@@ -27,42 +27,21 @@ interface AudioSelectParams {
 }
 
 async function audioMode(params: AudioModeParams) {
-  return detail.make_iframe_promise({
-    request: '[Audio][audioMode]',
-    type: params.type,
-    mode: params.mode,
-  });
+  return TavernHelper.audioMode(params);
 }
 
 async function audioEnable(params: AudioEnableParams) {
-  return detail.make_iframe_promise({
-    request: '[Audio][audioEnable]',
-    type: params.type,
-    state: params.state,
-  });
+  return TavernHelper.audioEnable(params);
 }
 
 async function audioPlay(params: AudioPlayParams) {
-  return detail.make_iframe_promise({
-    request: '[Audio][audioPlay]',
-    type: params.type,
-    play: params.play,
-  });
+  return TavernHelper.audioPlay(params);
 }
 
 async function audioImport(params: AudioImportParams, url: string) {
-  return detail.make_iframe_promise({
-    request: '[Audio][audioImport]',
-    type: params.type,
-    url: url,
-    play: params.play,
-  });
+  return TavernHelper.audioImport(params, url);
 }
 
 async function audioSelect(params: AudioSelectParams, url: string) {
-  return detail.make_iframe_promise({
-    request: '[Audio][audioSelect]',
-    type: params.type,
-    url: url,
-  });
+  return TavernHelper.audioSelect(params, url);
 }

@@ -8,13 +8,13 @@ interface VariableOption {
 function getVariablesByType(type: 'chat' | 'global'): Record<string, any> {
   switch (type) {
     case 'chat':
-      const metadata = chat_metadata as {
+      { const metadata = chat_metadata as {
         variables: Record<string, any> | undefined;
       };
       if (!metadata.variables) {
         metadata.variables = {};
       }
-      return metadata.variables;
+      return metadata.variables; }
     case 'global':
       return extension_settings.variables.global;
   }

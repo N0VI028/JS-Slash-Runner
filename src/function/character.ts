@@ -1,33 +1,7 @@
-import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_server/_impl';
 import { charsPath } from '@/util/extension_variables';
-
 import { characters, getPastCharacterChats, getRequestHeaders, getThumbnailUrl, this_chid } from '@sillytavern/script';
 
 type v1CharData = (typeof characters)[number];
-
-interface IframeGetCharData extends IframeMessage {
-  request: '[Character][getCharData]';
-  name?: string;
-  allowAvatar?: boolean;
-}
-
-interface IframeGetAvatarPath extends IframeMessage {
-  request: '[Character][getCharAvatarPath]';
-  name?: string;
-  allowAvatar?: boolean;
-}
-
-interface IframeGetChatHistoryBrief extends IframeMessage {
-  request: '[Character][getChatHistoryBrief]';
-  name?: string;
-  allowAvatar?: boolean;
-}
-
-interface IframeGetChatHistoryDetail extends IframeMessage {
-  request: '[Character][getChatHistoryDetail]';
-  data: any[];
-  isGroupChat?: boolean;
-}
 
 /**
  * 角色卡管理类
@@ -51,6 +25,7 @@ export class Character {
    */
   static find({ name, allowAvatar = true }: { name?: string; allowAvatar?: boolean } = {}): any {
     if (name === undefined) {
+      // @ts-ignore
       const currentChar = characters[this_chid];
       if (currentChar) {
         name = currentChar.avatar;
@@ -62,7 +37,7 @@ export class Character {
     const matches = (char: { avatar: string; name: string }) =>
       !name || char.name === name || (allowAvatar && char.avatar === name);
 
-    let filteredCharacters = characters;
+    const filteredCharacters = characters;
 
     // 如果有确定的角色头像id提供，则返回该角色
     if (allowAvatar && name) {
@@ -123,12 +98,13 @@ export class Character {
    * 从服务器获取的相应聊天内容。
    */
   static async getChatsFromFiles(data: any[], isGroupChat: boolean) {
-    let chat_dict: Record<string, any> = {};
-    let chat_list = Object.values(data)
+    const chat_dict: Record<string, any> = {};
+    const chat_list = Object.values(data)
       .sort((a, b) => a['file_name'].localeCompare(b['file_name']))
       .reverse();
 
-    let chat_promise = chat_list.map(({ file_name }) => {
+    const chat_promise = chat_list.map(({ file_name }) => {
+      // eslint-disable-next-line no-async-promise-executor
       return new Promise<void>(async (res, _rej) => {
         try {
           // 从文件名中提取角色名称（破折号前的部分）
@@ -254,101 +230,94 @@ export class Character {
   }
 }
 
-export function registerIframeCharacterHandler() {
-  function withCharacter<T>(
-    callback: (character: Character) => T,
-    defaultValue: T | null = null,
-    name?: string,
-    allowAvatar: boolean = true,
-  ): T | null {
+/**
+ * 获取角色卡数据
+ * @param name 角色名称或头像ID
+ * @param allowAvatar 是否允许通过头像ID查找
+ * @returns 角色卡数据
+ */
+export function getCharData(name?: string, allowAvatar: boolean = true): v1CharData | null {
+  try {
     const characterData = Character.find({ name, allowAvatar });
-    const character = characterData ? new Character(characterData) : null;
-    return character ? callback(character) : defaultValue;
+    if (!characterData) return null;
+
+    const character = new Character(characterData);
+    console.info(`获取角色卡数据成功, 角色: ${name || '未知'}`);
+    return character.getCardData();
+  } catch (error) {
+    console.error(`获取角色卡数据失败, 角色: ${name || '未知'}`, error);
+    return null;
   }
-  // 通用包装函数，用于处理角色相关的iframe消息
-  function createCharacterHandler<T, E extends IframeMessage & { name?: string; allowAvatar?: boolean }>(
-    eventType: string,
-    handler: (character: Character, event: MessageEvent<E>) => T,
-    defaultValue: T | null = null,
-    logMessage?: (event: MessageEvent<E>, result: T | null, displayName?: string) => string,
-  ) {
-    registerIframeHandler(eventType, async (event: MessageEvent<E>): Promise<T | null> => {
-      const { name, allowAvatar = true } = event.data;
+}
 
-      let displayName = name;
-      if (displayName === undefined) {
-        const currentChar = characters[this_chid];
-        if (currentChar) {
-          displayName = currentChar.name;
-        }
-      }
+/**
+ * 获取角色头像路径
+ * @param name 角色名称或头像ID
+ * @param allowAvatar 是否允许通过头像ID查找
+ * @returns 角色头像路径
+ */
+export function getCharAvatarPath(name?: string, allowAvatar: boolean = true): string | null {
+  try {
+    const characterData = Character.find({ name, allowAvatar });
+    if (!characterData) return null;
 
-      const result = withCharacter(character => handler(character, event), defaultValue, name, allowAvatar);
+    const character = new Character(characterData);
+    const avatarId = character.getAvatarId();
 
-      // 日志打印
-      if (logMessage) {
-        const logText = logMessage(event, null, displayName);
-        if (result instanceof Promise) {
-          result
-            .then(resolvedResult => {
-              console.info(`${getLogPrefix(event)}${logText}`, resolvedResult);
-            })
-            .catch(error => {
-              throw Error(`${getLogPrefix(event)}${logText} - 发生错误: ${error}`);
-            });
-        } else {
-          console.info(`${getLogPrefix(event)}${logText}`, result);
-        }
-      }
+    // 使用getThumbnailUrl获取缩略图URL，然后提取实际文件名
+    const thumbnailPath = getThumbnailUrl('avatar', avatarId);
+    const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
 
-      return result;
-    });
+    // 假设charsPath在其他地方定义
+    console.info(`获取角色头像路径成功, 角色: ${name || '未知'}`);
+    return charsPath + targetAvatarImg;
+  } catch (error) {
+    console.error(`获取角色头像路径失败, 角色: ${name || '未知'}`, error);
+    return null;
   }
+}
 
-  createCharacterHandler<v1CharData, IframeGetCharData>(
-    '[Character][getCharData]',
-    character => character.getCardData(),
-    null,
-    (_event, _result, displayName) => `获取角色卡数据, 角色: ${displayName || '未知'}`,
-  );
+/**
+ * 获取角色聊天历史摘要
+ * @param name 角色名称或头像ID
+ * @param allowAvatar 是否允许通过头像ID查找
+ * @returns 聊天历史摘要数组
+ */
+export async function getChatHistoryBrief(name?: string, allowAvatar: boolean = true): Promise<any[] | null> {
+  try {
+    const characterData = Character.find({ name, allowAvatar });
+    if (!characterData) return null;
 
-  createCharacterHandler<string, IframeGetAvatarPath>(
-    '[Character][getCharAvatarPath]',
-    character => {
-      const thumbnailPath = getThumbnailUrl('avatar', character.getAvatarId());
-      const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
-      return charsPath + targetAvatarImg;
-    },
-    null,
-    (_event, _result, displayName) => `获取角色头像路径, 角色: ${displayName || '未知'}`,
-  );
+    const character = new Character(characterData);
+    const index = Character.findCharacterIndex(character.getAvatarId());
 
-  createCharacterHandler<Promise<any[]>, IframeGetChatHistoryBrief>(
-    '[Character][getChatHistoryBrief]',
-    async character => {
-      const index = Character.findCharacterIndex(character.getAvatarId());
-      const chats = await getPastCharacterChats(index);
-      return chats;
-    },
-    null,
-    (_event, _result, displayName) => {
-      return `获取角色聊天历史摘要, 角色: ${displayName || '未知'}`;
-    },
-  );
+    if (index === -1) return null;
 
-  registerIframeHandler(
-    '[Character][getChatHistoryDetail]',
-    async (event: MessageEvent<IframeGetChatHistoryDetail>) => {
-      const data = event.data.data;
-      const isGroupChat = event.data.isGroupChat || false;
+    const chats = await getPastCharacterChats(index);
+    console.info(`获取角色聊天历史摘要成功, 角色: ${name || '未知'}`);
+    return chats;
+  } catch (error) {
+    console.error(`获取角色聊天历史摘要失败, 角色: ${name || '未知'}`, error);
+    return null;
+  }
+}
 
-      try {
-        const result = await Character.getChatsFromFiles(data, isGroupChat);
-        console.info(`${getLogPrefix(event)}获取聊天文件详情`, result);
-        return result;
-      } catch (error) {
-        throw Error(`${getLogPrefix(event)}获取聊天文件详情 - 发生错误: ${error}`);
-      }
-    },
-  );
+/**
+ * 获取聊天历史详情
+ * @param data 聊天数据数组
+ * @param isGroupChat 是否为群组聊天
+ * @returns 聊天历史详情
+ */
+export async function getChatHistoryDetail(
+  data: any[],
+  isGroupChat: boolean = false,
+): Promise<Record<string, any> | null> {
+  try {
+    const result = await Character.getChatsFromFiles(data, isGroupChat);
+    console.info(`获取聊天文件详情成功`);
+    return result;
+  } catch (error) {
+    console.error(`获取聊天文件详情失败`, error);
+    return null;
+  }
 }
