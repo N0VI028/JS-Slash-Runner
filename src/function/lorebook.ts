@@ -219,7 +219,7 @@ export function getCharLorebooks(option: GetCharLorebooksOption): CharLorebooks 
     throw Error(`不要在群组中调用这个功能`);
   }
   //@ts-ignore
-  const filename = option.name ?? getCharaFilename(this_chid) ?? null;
+  const filename = option.name ?? characters[this_chid]?.avatar ?? null;
   // @ts-ignore
   const character = findChar({ name: filename });
   if (!character) {
@@ -245,7 +245,7 @@ export function getCharLorebooks(option: GetCharLorebooksOption): CharLorebooks 
 // TODO: 加入文档中
 /**
  * 设置当前角色卡绑定的世界书
- * 
+ *
  * @param lorebooks 要设置的世界书信息
  *    - `primary: string | null;`: 主要世界书名称，设为null或空字符串表示移除
  *    - `additional: string[];`: 附加世界书名称数组，设为空数组表示移除所有附加世界书
