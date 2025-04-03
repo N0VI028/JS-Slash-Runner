@@ -234,24 +234,22 @@ class ScriptRepository {
                 return original$(selector, context);
               }
             })(jQuery);
-            SillyTavern = window.parent.SillyTavern;
-            $(() => {
-              console.log(window.parent.TavernHelper);
-              for (const key in window.parent.TavernHelper) {
-                window[key] = window.parent.TavernHelper[key];
-              }
-            })
+            SillyTavern = window.parent.SillyTavern.getContext();
+            TavernHelper = window.parent.TavernHelper;
+            for (const key in TavernHelper) {
+              window[key] = TavernHelper[key];
+            }
           </script>
         </head>
         <body>
           <script type="module">
-            (async function() {
+            $(async () => {
               try {
                 ${script.content}
               } catch (error) {
                 console.error('脚本执行错误:', error);
               }
-            })();
+            });
           </script>
         </body>
         </html>
