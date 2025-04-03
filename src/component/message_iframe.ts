@@ -1,7 +1,7 @@
 import { libraries_text } from '@/component/character_level/library';
-import { getSettingValue, saveSettingValue, getUserAvatarPath, getCharAvatarPath } from '@/util/extension_variables';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
+import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue } from '@/util/extension_variables';
 
 import { eventSource, event_types, reloadCurrentChat, updateMessageBlock } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
@@ -249,7 +249,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     if ($iframes.length > 0) {
       await Promise.all(
         $iframes.toArray().map(async iframe => {
-          destroyIframe(iframe as IFrameElement);
+          await destroyIframe(iframe as IFrameElement);
         }),
       );
       updateMessageBlock(messageId, message);
@@ -445,98 +445,104 @@ function observeIframeContent(iframe: IFrameElement) {
  * 销毁iframe
  * @param iframe iframe元素
  */
-export function destroyIframe(iframe: IFrameElement) {
-  const $iframe = $(iframe);
+export function destroyIframe(iframe: IFrameElement): Promise<void> {
+  return new Promise(resolve => {
+    const $iframe = $(iframe);
 
-  if (!$iframe.length) {
-    return;
-  }
-
-  const iframeId = $iframe.attr('id');
-
-  $iframe.off();
-
-  try {
-    if ($iframe[0].contentWindow) {
-      const iframeDoc = $iframe[0].contentWindow.document;
-      if (iframeDoc) {
-        $(iframeDoc).find('*').off();
-        $(iframeDoc).off();
-      }
+    if (!$iframe.length) {
+      resolve();
+      return;
     }
-  } catch (e) {
-    console.debug('清理iframe内部事件时出错:', e);
-  }
 
-  try {
-    const $mediaElements = $iframe.contents().find('audio, video');
-    $mediaElements.each(function () {
-      if (this instanceof HTMLMediaElement) {
-        this.pause();
-        this.src = '';
-        this.load();
-        $(this).off();
-      }
-    });
-  } catch (e) {
-    console.debug('清理媒体元素时出错:', e);
-  }
+    const iframeId = $iframe.attr('id');
 
-  if ($iframe[0].contentWindow && 'stop' in $iframe[0].contentWindow) {
-    $iframe[0].contentWindow.stop();
-  }
+    $iframe.off();
 
-  // 清空iframe内容
-  if ($iframe[0].contentWindow) {
     try {
-      if (iframeId && typeof eventSource.removeListener === 'function') {
-        eventSource.removeListener('message_iframe_render_ended', iframeId as any);
-        eventSource.removeListener('message_iframe_render_started', iframeId as any);
+      if ($iframe[0].contentWindow) {
+        const iframeDoc = $iframe[0].contentWindow.document;
+        if (iframeDoc) {
+          $(iframeDoc).find('*').off();
+          $(iframeDoc).off();
+        }
       }
-
-      $iframe.attr('src', 'about:blank');
     } catch (e) {
-      console.debug('清空iframe内容时出错:', e);
+      console.debug('清理iframe内部事件时出错:', e);
     }
-  }
 
-  // 断开ResizeObserver连接
-  if (iframe.cleanup && typeof iframe.cleanup === 'function') {
-    iframe.cleanup();
-  } else if (iframeId && iframeResizeObservers.has(iframeId)) {
-    const observer = iframeResizeObservers.get(iframeId);
-    observer.disconnect();
-    iframeResizeObservers.delete(iframeId);
-  }
+    try {
+      const $mediaElements = $iframe.contents().find('audio, video');
+      $mediaElements.each(function () {
+        if (this instanceof HTMLMediaElement) {
+          this.pause();
+          this.src = '';
+          this.load();
+          $(this).off();
+        }
+      });
+    } catch (e) {
+      console.debug('清理媒体元素时出错:', e);
+    }
 
-  // 从DOM中移除并清除引用
-  const $clone = $iframe.clone(false);
-  if ($iframe.parent().length) {
-    $iframe.replaceWith($clone);
-  }
-  if ($clone.parent().length) {
-    $clone.remove();
-  }
+    if ($iframe[0].contentWindow && 'stop' in $iframe[0].contentWindow) {
+      $iframe[0].contentWindow.stop();
+    }
 
-  // 移除jQuery数据缓存
-  try {
-    $iframe.removeData();
-  } catch (e) {
-    console.debug('移除jQuery数据缓存时出错:', e);
-  }
-
-  // 清空iframe的属性
-  for (const prop in iframe) {
-    if (Object.prototype.hasOwnProperty.call(iframe, prop)) {
+    // 清空iframe内容
+    if ($iframe[0].contentWindow) {
       try {
-        iframe[prop] = null;
+        if (iframeId && typeof eventSource.removeListener === 'function') {
+          eventSource.removeListener('message_iframe_render_ended', iframeId as any);
+          eventSource.removeListener('message_iframe_render_started', iframeId as any);
+        }
+
+        $iframe.attr('src', 'about:blank');
       } catch (e) {
-        console.debug('清空iframe的属性时出错:', e);
+        console.debug('清空iframe内容时出错:', e);
       }
     }
-  }
 
-  return null;
+    // 断开ResizeObserver连接
+    if (iframe.cleanup && typeof iframe.cleanup === 'function') {
+      iframe.cleanup();
+    } else if (iframeId && iframeResizeObservers.has(iframeId)) {
+      const observer = iframeResizeObservers.get(iframeId);
+      observer.disconnect();
+      iframeResizeObservers.delete(iframeId);
+    }
+
+    // 从DOM中移除并清除引用
+    const $clone = $iframe.clone(false);
+    if ($iframe.parent().length) {
+      $iframe.replaceWith($clone);
+    }
+    if ($clone.parent().length) {
+      $clone.remove();
+    }
+
+    // 移除jQuery数据缓存
+    try {
+      $iframe.removeData();
+    } catch (e) {
+      console.debug('移除jQuery数据缓存时出错:', e);
+    }
+
+    // 清空iframe的属性
+    for (const prop in iframe) {
+      if (Object.prototype.hasOwnProperty.call(iframe, prop)) {
+        try {
+          iframe[prop] = null;
+        } catch (e) {
+          console.debug('清空iframe的属性时出错:', e);
+        }
+      }
+    }
+
+    // 确保所有清理操作都完成后再resolve
+    setTimeout(() => {
+      resolve();
+    }, 0);
+  });
 }
 
 /**
@@ -545,9 +551,11 @@ export function destroyIframe(iframe: IFrameElement) {
  */
 export async function clearAllIframes(): Promise<void> {
   const $iframes = $('iframe[id^="message-iframe"]');
-  $iframes.each(function () {
-    destroyIframe(this as IFrameElement);
-  });
+  await Promise.all(
+    $iframes.toArray().map(async iframe => {
+      await destroyIframe(iframe as IFrameElement);
+    }),
+  );
 
   // 清理相关的事件监听器
   try {
@@ -703,7 +711,7 @@ export async function renderMessageAfterDelete(mesId: number) {
     if (!hasCodeBlock && $iframe.length === 0) {
       return;
     }
-    destroyIframe($iframe.get(0) as IFrameElement);
+    await destroyIframe($iframe.get(0) as IFrameElement);
     updateMessageBlock(maxRemainId, message);
     renderPartialIframes(maxRemainId);
   } else {
@@ -716,7 +724,7 @@ export async function renderMessageAfterDelete(mesId: number) {
       if (!hasCodeBlock && $iframe.length === 0) {
         continue;
       }
-      destroyIframe($iframe.get(0) as IFrameElement);
+      await destroyIframe($iframe.get(0) as IFrameElement);
       updateMessageBlock(i, message);
       renderPartialIframes(i);
     }
@@ -863,7 +871,7 @@ export function injectCodeBlockHideStyles() {
  */
 function removeCodeBlockHideStyles() {
   const styleId = 'hidden-code-block-styles';
-  let style = document.getElementById(styleId);
+  const style = document.getElementById(styleId);
   if (style) {
     style.remove();
   }

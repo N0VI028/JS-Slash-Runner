@@ -293,7 +293,7 @@ class ScriptRepository {
       }
       const iframeElement = $(`#tavern-helper-script-${script.id}`)[0] as IFrameElement;
       if (iframeElement) {
-        destroyIframe(iframeElement);
+        await destroyIframe(iframeElement);
         console.info(`[Script]${typeName}脚本["${script.name}"] 已禁用`);
       }
     }
@@ -792,13 +792,12 @@ export async function checkEmbeddedScripts() {
  */
 export async function clearAllScriptsIframe() {
   const $iframes = $('iframe[id^="tavern-helper-script-"]');
-  $iframes.each(function () {
-    destroyIframe(this as IFrameElement);
-  });
+  for (const iframe of $iframes) {
+    await destroyIframe(iframe as IFrameElement);
+  }
 }
 
 export async function initScriptRepository() {
-  clearAllScriptsIframe();
 
   isGlobalScriptEnabled = getSettingValue('script.global_script_enabled');
   isScopedScriptEnabled = getSettingValue('script.scope_script_enabled');
