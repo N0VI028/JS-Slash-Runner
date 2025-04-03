@@ -1,4 +1,4 @@
-<div id="TavernHelper">
+<div id="tavern-helper-extension-container">
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
       <b>酒馆助手</b>
@@ -138,6 +138,10 @@
               <small>导入脚本</small>
             </div>
             <input multiple accept="*.json" hidden id="import-script-file" type="file" />
+            <div id="default-script" class="menu_button menu_button_icon interactable">
+              <i class="fa-solid fa-archive"></i>
+              <small>内置脚本库</small>
+            </div>
           </div>
           <div id="global-script-content" class="flex-container flexFlowColumn">
             <div class="extension-content-item">
@@ -184,14 +188,6 @@
           </div>
           <div class="divider"></div>
           <div id="audio-player-content" class="flex-container flexFlowColumn">
-            <div>
-              <div class="flex row-reverse alignItemsCenter justifyContentFlexStart gap-12">
-                <label for="audio_refresh_assets">刷新播放列表</label>
-                <div id="audio_refresh_assets" class="menu_button btn-refresh">
-                  <i class="fa-solid fa-refresh fa-lg"></i>
-                </div>
-              </div>
-            </div>
             <div>
               <div class="title_restorable space-between alignItemsCenter">
                 <label for="audio_bgm_volume_slider">音乐</label>
@@ -302,9 +298,18 @@
               </div>
               <audio id="audio_ambient" controls src=""></audio>
             </div>
-            <div>
-              <label for="audio_cooldown">淡入淡出时间(秒)</label>
-              <input id="audio_cooldown" class="text_pole wide30p" />
+            <div class="flex gap10px spaceBetween">
+              <div>
+                <label for="audio_cooldown">淡入淡出时间(秒)</label>
+                <input id="audio_cooldown" class="text_pole wide25p" />
+              </div>
+
+              <div class="flex row-reverse alignItemsCenter justifyContentFlexStart gap-12">
+                <label for="audio_refresh_assets">刷新播放列表</label>
+                <div id="audio_refresh_assets" class="menu_button btn-refresh">
+                  <i class="fa-solid fa-refresh fa-lg"></i>
+                </div>
+              </div>
             </div>
           </div>
         </div>

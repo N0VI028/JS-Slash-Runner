@@ -71,10 +71,7 @@ interface GenerateConfig {
  * });
  */
 async function generate(config: GenerateConfig): Promise<string> {
-  return await detail.make_iframe_promise({
-    request: '[Generate][generate]',
-    config: config,
-  });
+  return TavernHelper.generate(config);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -161,10 +158,7 @@ interface GenerateRawConfig {
  * })
  */
 async function generateRaw(config: GenerateRawConfig): Promise<string> {
-  return await detail.make_iframe_promise({
-    request: '[Generate][generateRaw]',
-    config: config,
-  });
+  return TavernHelper.generateRaw(config);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

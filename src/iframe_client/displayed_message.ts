@@ -22,11 +22,7 @@ async function formatAsDisplayedMessage(text: string, option: FormatAsDisplayedM
   option = {
     message_id: option.message_id ?? 'last',
   } as Required<FormatAsDisplayedMessageOption>;
-  return detail.make_iframe_promise({
-    request: '[DisplayedMessage][formatAsDisplayedMessage]',
-    text: text,
-    option: option,
-  });
+  return TavernHelper.formatAsDisplayedMessage(text, option);
 }
 
 /**

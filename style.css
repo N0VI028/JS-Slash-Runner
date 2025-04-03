@@ -73,6 +73,10 @@
   padding: 10px 10px;
 }
 
+#script-settings-content{
+  padding-top: 0;
+}
+
 .extension-content-item {
   display: flex;
   align-items: center;
@@ -98,6 +102,7 @@
   width: 55px;
   border: 1px solid var(--SmartThemeQuoteColor);
   border-radius: 5px;
+  padding: 3px 5px;
 }
 
 .TavernHelper-button a {
@@ -147,7 +152,7 @@
 }
 
 .fa-refresh {
-  font-size: 0.7em;
+  font-size: 0.7em!important;
 }
 
 .script-library-button {

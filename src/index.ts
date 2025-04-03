@@ -2,6 +2,7 @@ import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initExtensionMainPanel } from '@/component/main';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { defaultScriptSettings, initScriptRepository } from '@/component/script_repository';
+import { initTavernHelperObject } from '@/function';
 import { initAudioSlashCommands } from '@/slash_command/audio';
 import { initSlashEventEmit } from '@/slash_command/event';
 import { extensionFolderPath, extensionName } from '@/util/extension_variables';
@@ -154,6 +155,8 @@ jQuery(async () => {
     extension_settings[extensionName] = defaultSettings;
     saveSettingsDebounced();
   }
+
+  initTavernHelperObject();
 
   // 默认显示主设置界面
   $('#main-settings-title').addClass('title-item-active');

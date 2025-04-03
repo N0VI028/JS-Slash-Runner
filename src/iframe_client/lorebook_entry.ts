@@ -70,11 +70,7 @@ async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOp
   option = {
     filter: option.filter ?? 'none',
   } as Required<GetLorebookEntriesOption>;
-  return detail.make_iframe_promise({
-    request: "[LorebookEntry][getLorebookEntries]",
-    lorebook: lorebook,
-    option: option,
-  });
+  return TavernHelper.getLorebookEntries(lorebook, option);
 }
 
 /**
@@ -117,11 +113,7 @@ async function setLorebookEntries(
   lorebook: string,
   entries: (Pick<LorebookEntry, "uid"> & Partial<Omit<LorebookEntry, "uid">>)[]
 ): Promise<void> {
-  return detail.make_iframe_promise({
-    request: "[LorebookEntry][setLorebookEntries]",
-    lorebook: lorebook,
-    entries: entries,
-  });
+  return TavernHelper.setLorebookEntries(lorebook, entries);
 }
 
 /**
@@ -136,11 +128,7 @@ async function setLorebookEntries(
  * const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", content: "歌唱吧跳舞吧相互争夺吧"});
  */
 async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<LorebookEntry, "uid">>): Promise<number> {
-  return detail.make_iframe_promise({
-    request: "[LorebookEntry][createLorebookEntry]",
-    lorebook: lorebook,
-    field_values: field_values,
-  });
+  return TavernHelper.createLorebookEntry(lorebook, field_values);
 }
 
 /**
@@ -152,11 +140,7 @@ async function createLorebookEntry(lorebook: string, field_values: Partial<Omit<
  * @returns 是否成功删除, 可能因世界书不存在、对应条目不存在等原因失败
  */
 async function deleteLorebookEntry(lorebook: string, uid: number): Promise<boolean> {
-  return detail.make_iframe_promise({
-    request: "[LorebookEntry][deleteLorebookEntry]",
-    lorebook: lorebook,
-    lorebook_uid: uid,
-  });
+  return TavernHelper.deleteLorebookEntry(lorebook, uid);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

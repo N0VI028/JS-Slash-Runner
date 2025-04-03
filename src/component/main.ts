@@ -19,7 +19,7 @@ import {
   tampermonkey_script,
   viewport_adjust_script,
 } from '@/component/message_iframe';
-import { scriptRepo, checkEmbeddedScripts, purgeEmbeddedScripts } from '@/component/script_repository/index';
+import { scriptRepo, ScriptType,checkEmbeddedScripts, purgeEmbeddedScripts } from '@/component/script_repository/index';
 import { iframe_client } from '@/iframe_client/index';
 import { handleIframe } from '@/iframe_server/index';
 import { checkVariablesEvents, clearTempVariables, shouldUpdateVariables } from '@/iframe_server/variables';
@@ -32,7 +32,11 @@ let isExtensionEnabled: boolean;
 
 const handleChatChanged = async () => {
   await checkEmbeddedScripts();
+
   await scriptRepo.loadScriptLibrary();
+  await scriptRepo.runScriptsByType(ScriptType.GLOBAL);
+  await scriptRepo.runScriptsByType(ScriptType.CHARACTER);
+
   await renderAllIframes();
   if (getSettingValue('render.rendering_optimize')) {
     addCodeToggleButtonsToAllMessages();

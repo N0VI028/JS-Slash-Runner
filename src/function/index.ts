@@ -1,67 +1,80 @@
-import { getVariables, replaceVariables } from '@/function/variables';
-import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
-import { getCharData, getCharAvatarPath, getChatHistoryBrief, getChatHistoryDetail } from '@/function/character';
+import { getCharAvatarPath, getCharData, getChatHistoryBrief, getChatHistoryDetail } from '@/function/character';
 import { getChatMessages, setChatMessage } from '@/function/chat_message';
 import { formatAsDisplayedMessage } from '@/function/displayed_message';
-import { substitudeMacros } from '@/function/util';
 import { updateFrontendVersion } from '@/function/frontend_version';
 import { generate, generateRaw } from '@/function/generate';
-import { getLorebookEntries, setLorebookEntries, createLorebookEntry, deleteLorebookEntry } from '@/function/lorebook_entry';
-import { getLorebookSettings, setLorebookSettings, getCharLorebooks, setCurrentCharLorebooks, getLorebooks, deleteLorebook, createLorebook } from '@/function/lorebook';
-import { triggerSlash, triggerSlashWithResult } from '@/function/slash';
 import {
-  isCharacterTavernRegexesEnabled,
-  getTavernRegexes,
-  handleGetTavernRegexes,
-  handleReplaceTavernRegexes,
-} from '@/function/tavern_regex';
-
-(globalThis as unknown as { TavernHelper: Record<string, any> }).TavernHelper = {
-  // 变量
-  getVariables,
-  replaceVariables,
-  // 音频
-  audioEnable,
-  audioImport,
-  audioMode,
-  audioPlay,
-  audioSelect,
-  // 角色
-  getCharData,
-  getCharAvatarPath,
-  getChatHistoryBrief,
-  getChatHistoryDetail,
-  // 消息
-  getChatMessages,
-  setChatMessage,
-  // 显示消息
-  formatAsDisplayedMessage,
-  // 更新前端版本
-  updateFrontendVersion,
-  // 工具
-  substitudeMacros,
-  // 生成
-  generate,
-  generateRaw,
-  // 世界书
-  getLorebookEntries,
-  setLorebookEntries,
+  createLorebook,
+  deleteLorebook,
+  getCharLorebooks,
+  getLorebooks,
+  getLorebookSettings,
+  setCurrentCharLorebooks,
+  setLorebookSettings,
+} from '@/function/lorebook';
+import {
   createLorebookEntry,
   deleteLorebookEntry,
-  // 世界书设置
-  getLorebookSettings,
-  setLorebookSettings,
-  getCharLorebooks,
-  setCurrentCharLorebooks,
-  getLorebooks,
-  deleteLorebook,
-  createLorebook,
-  // 触发命令
-  triggerSlash,
-  triggerSlashWithResult,
-  // 酒馆正则
-  isCharacterTavernRegexesEnabled,
-  getTavernRegexes,
-  handleGetTavernRegexes,
-  handleReplaceTavernRegexes,
-};
+  getLorebookEntries,
+  setLorebookEntries,
+} from '@/function/lorebook_entry';
+import { triggerSlash, triggerSlashWithResult } from '@/function/slash';
+import { getTavernRegexes, isCharacterTavernRegexesEnabled, replaceTavernRegexes } from '@/function/tavern_regex';
+import { substitudeMacros } from '@/function/util';
+import { getVariables, replaceVariables } from '@/function/variables';
+import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
+
+/**
+ * 初始化TavernHelper全局对象
+ * 将各种功能函数暴露到全局作用域
+ */
+export function initTavernHelperObject() {
+  (window as any).TavernHelper = {
+    // 变量
+    getVariables,
+    replaceVariables,
+    // 音频
+    audioEnable,
+    audioImport,
+    audioMode,
+    audioPlay,
+    audioSelect,
+    // 角色
+    getCharData,
+    getCharAvatarPath,
+    getChatHistoryBrief,
+    getChatHistoryDetail,
+    // 消息
+    getChatMessages,
+    setChatMessage,
+    // 显示消息
+    formatAsDisplayedMessage,
+    // 更新前端版本
+    updateFrontendVersion,
+    // 工具
+    substitudeMacros,
+    // 生成
+    generate,
+    generateRaw,
+    // 世界书
+    getLorebookEntries,
+    setLorebookEntries,
+    createLorebookEntry,
+    deleteLorebookEntry,
+    // 世界书设置
+    getLorebookSettings,
+    setLorebookSettings,
+    getCharLorebooks,
+    setCurrentCharLorebooks,
+    getLorebooks,
+    deleteLorebook,
+    createLorebook,
+    // 触发命令
+    triggerSlash,
+    triggerSlashWithResult,
+    // 酒馆正则
+    isCharacterTavernRegexesEnabled,
+    getTavernRegexes,
+    replaceTavernRegexes,
+  };
+}

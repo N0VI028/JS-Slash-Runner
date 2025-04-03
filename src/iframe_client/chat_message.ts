@@ -49,11 +49,7 @@ async function getChatMessages(range: string | number, option: GetChatMessagesOp
     role: option.role ?? 'all',
     hide_state: option.hide_state ?? 'all',
   } as Required<GetChatMessagesOption>;
-  return detail.make_iframe_promise({
-    request: "[ChatMessage][getChatMessages]",
-    range: range.toString(),
-    option: option,
-  });
+  return TavernHelper.getChatMessages(range, option);
 }
 
 interface ChatMessageToSet {
@@ -107,12 +103,7 @@ async function setChatMessage(field_values: string | ChatMessageToSet, message_i
     swipe_id: option.swipe_id ?? 'current',
     refresh: option.refresh ?? 'display_and_render_current',
   };
-  return detail.make_iframe_promise({
-    request: "[ChatMessage][setChatMessage]",
-    field_values: typeof field_values === 'string' ? { message: field_values } : field_values,
-    message_id: message_id,
-    option: required_option,
-  });
+  return TavernHelper.setChatMessage(field_values, message_id, option);
 }
 
 //------------------------------------------------------------------------------------------------------------------------

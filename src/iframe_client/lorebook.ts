@@ -33,9 +33,7 @@ interface LorebookSettings {
  * alert(settings.selected_global_lorebooks);
  */
 async function getLorebookSettings(): Promise<LorebookSettings> {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][getLorebookSettings]",
-  });
+  return TavernHelper.getLorebookSettings();
 }
 
 /**
@@ -56,10 +54,7 @@ async function getLorebookSettings(): Promise<LorebookSettings> {
  * }
  */
 async function setLorebookSettings(settings: Partial<LorebookSettings>): Promise<void> {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][setLorebookSettings]",
-    settings: settings,
-  });
+  return TavernHelper.setLorebookSettings(settings);
 }
 
 interface GetCharLorebooksOption {
@@ -83,10 +78,7 @@ async function getCharLorebooks(option: GetCharLorebooksOption = {}): Promise<Ch
   option = {
     name: option.name,
   } as Required<GetCharLorebooksOption>;
-  return detail.make_iframe_promise({
-    request: "[Lorebook][getCharLorebooks]",
-    option: option
-  });
+  return TavernHelper.getCharLorebooks(option);
 }
 
 /**
@@ -104,10 +96,7 @@ async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
  * @param lorebooks 要新绑定的世界书, 不指明 primary 或 additional 字段则表示不变
  */
 async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void> {
-  return detail.make_iframe_promise({
-    request: '[Lorebook][setCurrentCharLorebooks]',
-    lorebooks: lorebooks,
-  });
+  return TavernHelper.setCurrentCharLorebooks(lorebooks);
 }
 
 /**
@@ -125,9 +114,7 @@ async function getOrCreateChatLorebook(): Promise<string> {
  * @returns 世界书名称列表
  */
 async function getLorebooks(): Promise<string[]> {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][getLorebooks]",
-  });
+  return TavernHelper.getLorebooks();
 }
 
 /**
@@ -138,10 +125,7 @@ async function getLorebooks(): Promise<string[]> {
  * @returns 是否成功创建, 如果已经存在同名世界书会失败
  */
 async function createLorebook(lorebook: string): Promise<boolean> {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][createLorebook]",
-    lorebook: lorebook,
-  });
+  return TavernHelper.createLorebook(lorebook);
 }
 
 /**
@@ -151,8 +135,5 @@ async function createLorebook(lorebook: string): Promise<boolean> {
  * @returns 是否成功删除, 可能因世界书不存在等原因而失败
  */
 async function deleteLorebook(lorebook: string): Promise<boolean> {
-  return detail.make_iframe_promise({
-    request: "[Lorebook][deleteLorebook]",
-    lorebook: lorebook,
-  });;
+  return TavernHelper.deleteLorebook(lorebook);
 }

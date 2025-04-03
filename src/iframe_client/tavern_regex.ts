@@ -6,9 +6,7 @@
  * @returns 局部正则是否被启用
  */
 async function isCharacterTavernRegexEnabled(): Promise<boolean> {
-  return detail.make_iframe_promise({
-    request: "[TavernRegex][isCharacterTavernRegexesEnabled]",
-  });
+  return TavernHelper.isCharacterTavernRegexEnabled();
 }
 
 interface TavernRegex {
@@ -64,10 +62,7 @@ async function getTavernRegexes(option: GetTavernRegexesOption = {}): Promise<Ta
     scope: option.scope ?? 'all',
     enable_state: option.enable_state ?? 'all',
   } as Required<GetTavernRegexesOption>;
-  return detail.make_iframe_promise({
-    request: "[TavernRegex][getTavernRegexes]",
-    option: option,
-  });
+  return TavernHelper.getTavernRegexes(option);
 }
 
 interface ReplaceTavernRegexesOption {
@@ -100,11 +95,7 @@ async function replaceTavernRegexes(regexes: TavernRegex[], option: ReplaceTaver
   option = {
     scope: option.scope ?? 'all',
   } as Required<ReplaceTavernRegexesOption>;
-  return detail.make_iframe_promise({
-    request: '[TavernRegex][replaceTavernRegexes]',
-    regexes: regexes,
-    option: option,
-  });
+  return TavernHelper.replaceTavernRegexes(regexes, option);
 }
 
 type TavernRegexUpdater =

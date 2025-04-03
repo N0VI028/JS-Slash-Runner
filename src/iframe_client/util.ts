@@ -42,10 +42,7 @@ function getCurrentMessageId(): number {
  */
 async function substitudeMacros(text: string): Promise<string> {
   // QUESTION: 像这样额外编写一个 request, 还是直接用 `await triggerSlashWithResult('/pass "{{char}} speaks in {{lastMessageId}}"')`?
-  return detail.make_iframe_promise({
-    request: '[Utils][substitudeMacros]',
-    text: text,
-  });
+  return TavernHelper.substitudeMacros(text);
 }
 
 /**
@@ -66,6 +63,7 @@ async function getLastMessageId(): Promise<number> {
  *
  * @returns 唯一的 uuidv4 标识符
  */
+// NOTE: 酒馆有一个UUID的函数
 function generateUuidv4(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;

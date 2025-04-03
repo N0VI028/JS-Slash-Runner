@@ -8,10 +8,7 @@
  * await triggerSlash('/echo hello!');
  */
 async function triggerSlash(command: string): Promise<void> {
-  return detail.make_iframe_promise({
-    request: '[Slash][triggerSlash]',
-    command: command,
-  });
+  return TavernHelper.triggerSlash(command);
 }
 
 /**
@@ -25,8 +22,5 @@ async function triggerSlash(command: string): Promise<void> {
  * const last_message_id = await triggerSlashWithResult('/pass {{lastMessageId}}');
  */
 async function triggerSlashWithResult(command: string): Promise<string | undefined> {
-  return detail.make_iframe_promise({
-    request: '[Slash][triggerSlashWithResult]',
-    command: command,
-  });
+  return TavernHelper.triggerSlashWithResult(command);
 }

@@ -485,7 +485,7 @@ function handleCharDepthPrompt() {
 function setAuthorNotePrompt(config: detail.GenerateParams) {
   const authorNoteOverride = config?.overrides?.author_note;
   // @ts-ignore
-  let prompt = authorNoteOverride ?? $('#extension_floating_prompt').val();
+  let prompt = authorNoteOverride ?? $('#extension_floating_prompt').val() as string;
 
   setExtensionPrompt(
     NOTE_MODULE_NAME,
