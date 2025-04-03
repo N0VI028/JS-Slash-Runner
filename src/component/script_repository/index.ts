@@ -238,7 +238,7 @@ class ScriptRepository {
             $(() => {
               console.log(window.parent.TavernHelper);
               for (const key in window.parent.TavernHelper) {
-                (window as any)[key] = window.parent.TavernHelper[key];
+                window[key] = window.parent.TavernHelper[key];
               }
             })
           </script>
