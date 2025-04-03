@@ -31,7 +31,7 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
     console.warn(`[Event][eventOn](${getIframeName()}) 函数已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
     return;
   }
-  sillyTavern.eventSource.on(event_type, detail.get_or_make_wrapper(listener, event_type, false));
+  SillyTavern.eventSource.on(event_type, detail.get_or_make_wrapper(listener, event_type, false));
   console.info(`[Event][eventOn](${getIframeName()}) 函数开始监听 '${event_type}' 事件并将随事件触发\n\n  ${detail.format_function_to_string(listener)}`);
 }
 
@@ -48,7 +48,7 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
  */
 function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
-  sillyTavern.eventSource.makeLast(event_type, detail.get_or_make_wrapper(listener, event_type, false));
+  SillyTavern.eventSource.makeLast(event_type, detail.get_or_make_wrapper(listener, event_type, false));
   if (is_listening) {
     console.info(`[Event][eventMakeLast](${getIframeName()}) 函数调整为监听到 '${event_type}' 事件时最后触发\n\n  ${detail.format_function_to_string(listener)}`);
   } else {
@@ -69,7 +69,7 @@ function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerTyp
  */
 function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
-  sillyTavern.eventSource.makeFirst(event_type, detail.get_or_make_wrapper(listener, event_type, false));
+  SillyTavern.eventSource.makeFirst(event_type, detail.get_or_make_wrapper(listener, event_type, false));
   if (is_listening) {
     console.info(`[Event][eventMakeFirst](${getIframeName()}) 函数调整为监听到 '${event_type}' 事件时最先触发\n\n  ${detail.format_function_to_string(listener)}`);
   } else {
@@ -93,7 +93,7 @@ function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]
     console.warn(`[Event][eventOnce](${getIframeName()}) 函数已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
     return;
   }
-  sillyTavern.eventSource.once(event_type, detail.get_or_make_wrapper(listener, event_type, true));
+  SillyTavern.eventSource.once(event_type, detail.get_or_make_wrapper(listener, event_type, true));
   console.info(`[Event][eventOnce](${getIframeName()}) 函数开始监听下一次 '${event_type}' 事件并仅在该次事件时触发\n\n  ${detail.format_function_to_string(listener)}`);
 }
 
@@ -172,7 +172,7 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
  * eventEmit("事件", "你好", 0);
  */
 async function eventEmit<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): Promise<void> {
-  await sillyTavern.eventSource.emit(event_type, ...data);
+  await SillyTavern.eventSource.emit(event_type, ...data);
   console.info(`[Event][eventEmit](${getIframeName()}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
 }
 
@@ -193,7 +193,7 @@ function eventRemoveListener<T extends EventType>(event_type: T, listener: Liste
     console.warn(`[Event][eventRemoveListener](${getIframeName()}) 函数没有监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
     return;
   }
-  sillyTavern.eventSource.removeListener(event_type, wrapper);
+  SillyTavern.eventSource.removeListener(event_type, wrapper);
   detail.remove_wrapper(listener, event_type);
   console.info(`[Event][eventRemoveListener](${getIframeName()}) 函数不再监听 '${event_type}' 事件\n\n  ${detail.format_function_to_string(listener)}`);
 }
@@ -208,7 +208,7 @@ function eventClearEvent(event_type: EventType): void {
   detail.listener_event_wrapper_map.forEach((event_wrapper_map, _) => {
     const wrapper = event_wrapper_map.get(event_type);
     if (wrapper) {
-      sillyTavern.eventSource.removeListener(event_type, wrapper);
+      SillyTavern.eventSource.removeListener(event_type, wrapper);
       event_wrapper_map.delete(event_type);
     }
   });
@@ -225,7 +225,7 @@ function eventClearListener(listener: Function): void {
   const event_callback_map = detail.extract(detail.listener_event_wrapper_map, listener);
   if (event_callback_map) {
     event_callback_map.forEach((callback, event_type) => {
-      sillyTavern.eventSource.removeListener(event_type, callback);
+      SillyTavern.eventSource.removeListener(event_type, callback);
     });
   }
 
@@ -238,7 +238,7 @@ function eventClearListener(listener: Function): void {
 function eventClearAll(): void {
   detail.listener_event_wrapper_map.forEach((event_wrapper_map, _) => {
     event_wrapper_map.forEach((wrapper, event_type) => {
-      sillyTavern.eventSource.removeListener(event_type, wrapper);
+      SillyTavern.eventSource.removeListener(event_type, wrapper);
     });
   });
   detail.listener_event_wrapper_map.clear();
