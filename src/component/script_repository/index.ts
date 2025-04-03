@@ -1,22 +1,19 @@
+import { libraries_text } from '@/component/character_level/library';
+import { destroyIframe } from '@/component/message_iframe';
+import third_party from '@/third_party.html';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
-import { createDefaultScripts } from './default_scripts/index';
-
 import { characters, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
+import { createDefaultScripts } from './default_scripts/index';
+
 //@ts-ignore
 import { selected_group } from '@sillytavern/scripts/group-chats';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { download, getFileText, getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
-declare global {
-  interface Window {
-    scriptId?: string;
-    scriptName?: string;
-    scriptType?: string;
-    SillyTavern?: {
-      getContext: () => any;
-    };
-    TavernHelper?: any;
-  }
+
+interface IFrameElement extends HTMLIFrameElement {
+  cleanup: () => void;
+  [prop: string]: any;
 }
 
 export const defaultScriptSettings = {
@@ -79,7 +76,6 @@ class ScriptRepository {
   private globalScripts: Script[] = [];
   private characterScripts: Script[] = [];
   private activeScripts: Map<string, { script: Script; element: HTMLScriptElement }> = new Map();
-  private eventHandler: ((event: CustomEvent) => void) | null = null;
 
   private constructor() {
     this.loadScripts();
@@ -192,80 +188,6 @@ class ScriptRepository {
   }
 
   /**
-   * 创建事件处理器来执行脚本
-   * @param scriptId 脚本ID
-   * @param scriptName 脚本名称
-   * @param scriptType 脚本类型
-   * @param scriptContent 脚本内容
-   */
-  private createEventHandler(scriptId: string, scriptName: string, scriptType: string, scriptContent: string): void {
-    const typeName = scriptType === ScriptType.GLOBAL ? '全局' : '局部';
-
-    if (this.eventHandler) {
-      document.removeEventListener('executeScript', this.eventHandler as EventListener);
-      this.eventHandler = null;
-    }
-
-    this.eventHandler = (_event: CustomEvent) => {
-      let SillyTavern: any;
-      let TavernHelper: any;
-
-      try {
-        window.scriptId = scriptId;
-        window.scriptName = scriptName;
-        window.scriptType = 'module';
-
-        if (window.SillyTavern) {
-          SillyTavern = window.SillyTavern.getContext();
-        }
-        if (window.TavernHelper) {
-          TavernHelper = window.TavernHelper;
-
-          if (!(window as any)._tavernHelperFunctionsInjected) {
-            for (const key in TavernHelper) {
-              if (typeof TavernHelper[key] === 'function') {
-                (window as any)[key] = TavernHelper[key];
-              }
-            }
-            (window as any)._tavernHelperFunctionsInjected = true;
-          }
-        }
-
-        const wrappedScript = `
-          (async function() {
-            try {
-              ${scriptContent}
-            } catch (error) {
-              console.error('Script execution error:', error);
-              throw error;
-            }
-          })();
-        `;
-
-        eval(wrappedScript);
-      } catch (error) {
-        console.error(`[Script]${typeName}脚本["${scriptName}"] 执行失败:`, error);
-        toastr.error(`${typeName}脚本["${scriptName}"] 执行失败`);
-      } finally {
-        delete window.scriptId;
-        delete window.scriptName;
-        delete window.scriptType;
-
-        SillyTavern = undefined;
-        TavernHelper = undefined;
-
-        if (this.eventHandler) {
-          document.removeEventListener('executeScript', this.eventHandler as EventListener);
-          this.eventHandler = null;
-        }
-      }
-    };
-
-    // 添加事件监听器
-    document.addEventListener('executeScript', this.eventHandler as EventListener);
-  }
-
-  /**
    * 运行单个脚本
    * @param script 脚本
    * @param type 脚本类型
@@ -299,19 +221,57 @@ class ScriptRepository {
         await this.cancelRunScript(script, type, false);
       }
 
-      this.createEventHandler(script.id, script.name, type, script.content);
+      const htmlContent = `
+        <html>
+        <head>
+          ${third_party}
+          ${libraries_text}
+          <script>
+            (function($) {
+              var original$ = $;
+              window.$ = function(selector, context){
+                context = context || window.parent.document;
+                return original$(selector, context);
+              }
+            })(jQuery);
+            SillyTavern = window.parent.SillyTavern;
+            $(() => {
+              console.log(window.parent.TavernHelper);
+              for (const key in window.parent.TavernHelper) {
+                (window as any)[key] = window.parent.TavernHelper[key];
+              }
+            })
+          </script>
+        </head>
+        <body>
+          <script type="module">
+            (async function() {
+              try {
+                ${script.content}
+              } catch (error) {
+                console.error('脚本执行错误:', error);
+              }
+            })();
+          </script>
+        </body>
+        </html>
+      `;
 
-      const event = new CustomEvent('executeScript', {
-        detail: {
-          scriptId: script.id,
-          scriptName: script.name,
-          scriptType: 'module',
-          scriptContent: script.content,
-        },
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+
+      const $iframe = $('<iframe>', {
+        style: 'display: none;',
+        id: `tavern-helper-script-${script.id}`,
+        src: url,
       });
-      document.dispatchEvent(event);
 
-      console.info(`[Script]启用${typeName}脚本["${script.name}"]`);
+      $iframe.on('load', () => {
+        console.info(`[Script]启用${typeName}脚本["${script.name}"]`);
+        URL.revokeObjectURL(url); // 释放URL
+      });
+
+      $('body').append($iframe);
     } catch (error) {
       console.error(`[Script]${typeName}脚本启用失败:["${script.name}"]`, error);
       toastr.error(`${typeName}脚本启用失败:["${script.name}"]`);
@@ -324,26 +284,21 @@ class ScriptRepository {
    */
   async cancelRunScript(script: Script, type: ScriptType, userInput: boolean = true) {
     const typeName = type === ScriptType.GLOBAL ? '全局' : '局部';
-    const index = script.id.startsWith('global')
-      ? this.globalScripts.findIndex(s => s.id === script.id)
-      : this.characterScripts.findIndex(s => s.id === script.id);
+    const index =
+      type === ScriptType.GLOBAL
+        ? this.globalScripts.findIndex(s => s.id === script.id)
+        : this.characterScripts.findIndex(s => s.id === script.id);
     if (index !== -1) {
       if (userInput) {
         script.enabled = false;
         await scriptRepo.saveScript(script, type);
       }
+      const iframeElement = $(`#tavern-helper-script-${script.id}`)[0] as IFrameElement;
+      if (iframeElement) {
+        destroyIframe(iframeElement);
+        console.info(`[Script]${typeName}脚本["${script.name}"] 已禁用`);
+      }
     }
-
-    if (this.eventHandler) {
-      document.removeEventListener('executeScript', this.eventHandler as EventListener);
-      this.eventHandler = null;
-    }
-
-    delete window.scriptId;
-    delete window.scriptName;
-    delete window.scriptType;
-
-    console.info(`[Script]${typeName}脚本["${script.name}"] 已禁用`);
   }
 
   /**
@@ -609,6 +564,8 @@ export async function cloneTemplate(script: Script, type: ScriptType.GLOBAL | Sc
       // 不需要再保存一次
       if (isChecked) {
         await scriptRepo.runScript(script, type, false);
+      } else {
+        await scriptRepo.cancelRunScript(script, type, false);
       }
     });
 
@@ -704,7 +661,7 @@ export async function cloneDefaultScriptTemplate(script: Script) {
  * 加载默认脚本库
  */
 async function loadDefaultScriptsRepository() {
-  const defaultScriptList = $('<div id="default-script-list"></div>');
+  const defaultScriptList = $('<div id="default-script-list" class="flex-container flexFlowColumn"></div>');
   const defaultScripts = await createDefaultScripts();
   for (const script of defaultScripts) {
     const template = await cloneDefaultScriptTemplate(script);
@@ -832,7 +789,19 @@ export async function checkEmbeddedScripts() {
   }
 }
 
+/**
+ * 清理所有脚本iframe
+ */
+export async function clearAllScriptsIframe() {
+  const $iframes = $('iframe[id^="tavern-helper-script-"]');
+  $iframes.each(function () {
+    destroyIframe(this as IFrameElement);
+  });
+}
+
 export async function initScriptRepository() {
+  clearAllScriptsIframe();
+
   isGlobalScriptEnabled = getSettingValue('script.global_script_enabled');
   isScopedScriptEnabled = getSettingValue('script.scope_script_enabled');
 

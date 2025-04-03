@@ -29,7 +29,7 @@ import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/s
  * 将各种功能函数暴露到全局作用域
  */
 export function initTavernHelperObject() {
-  (window as any).TavernHelper = {
+  (globalThis as unknown as { TavernHelper: Record<string, any> }).TavernHelper = {
     // 变量
     getVariables,
     replaceVariables,

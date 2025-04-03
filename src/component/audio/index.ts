@@ -16,6 +16,7 @@ let bgmEnded = true;
 let ambientEnded = true;
 
 const isExtensionEnabled = getSettingValue('enabled_extension');
+const templatePath = `${extensionFolderPath}/src/component/audio`;
 // 定义默认音频设置
 export const defaultAudioSettings = {
   audio_enabled: true,
@@ -461,7 +462,7 @@ export async function refreshAudioResources() {
  */
 
 async function openUrlManagerPopup(typeKey: 'bgmurl' | 'ambienturl') {
-  const urlManager = $(await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'urlManager'));
+  const urlManager = $(await renderExtensionTemplateAsync(`${templatePath}`, 'audio_url_manager'));
   urlManager.prepend(`
     <style>
       #saved_audio_url.empty::after {
@@ -473,7 +474,7 @@ async function openUrlManagerPopup(typeKey: 'bgmurl' | 'ambienturl') {
     </style>
   `);
   const savedAudioUrl = urlManager.find('#saved_audio_url').empty();
-  const urlTemplate = $(await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'urlTemplate'));
+  const urlTemplate = $(await renderExtensionTemplateAsync(`${templatePath}`, 'audio_url_template'));
 
   if (!chat_metadata.variables) {
     chat_metadata.variables = {};
@@ -497,7 +498,6 @@ async function openUrlManagerPopup(typeKey: 'bgmurl' | 'ambienturl') {
 
   const updatedUrls: Record<string, string> = {};
   let newUrlOrder = [...urlValue];
-  let importedUrls: string[] = [];
   function renderUrl(container: JQuery<HTMLElement>, url: string) {
     const urlHtml = urlTemplate.clone();
     let fileName;

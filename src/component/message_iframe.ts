@@ -445,7 +445,7 @@ function observeIframeContent(iframe: IFrameElement) {
  * 销毁iframe
  * @param iframe iframe元素
  */
-function destroyIframe(iframe: IFrameElement) {
+export function destroyIframe(iframe: IFrameElement) {
   const $iframe = $(iframe);
 
   if (!$iframe.length) {
