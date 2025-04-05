@@ -9,8 +9,12 @@ import { extensionFolderPath } from './extension_variables';
  * @returns 返回文件内容的 Promise<string>
  */
 async function fetchRawFileContentFromGitLab(filePath: string): Promise<string> {
+  const idOrPathForUrl =
+    typeof GITLAB_PROJECT_PATH === 'string' && GITLAB_PROJECT_PATH.includes('/')
+      ? encodeURIComponent(GITLAB_PROJECT_PATH)
+      : GITLAB_PROJECT_PATH;
   const encodedFilePath = encodeURIComponent(filePath);
-  const url = `https://${GITLAB_INSTANCE_URL}/api/v4/projects/${GITLAB_PROJECT_PATH}/repository/files/${encodedFilePath}/raw?ref=${GITLAB_BRANCH}`;
+  const url = `https://${GITLAB_INSTANCE_URL}/api/v4/projects/${idOrPathForUrl}/repository/files/${encodedFilePath}/raw?ref=${GITLAB_BRANCH}`;
 
   const headers: HeadersInit = {
     'Cache-Control': 'no-cache',
