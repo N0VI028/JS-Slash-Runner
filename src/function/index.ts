@@ -13,6 +13,7 @@ import {
   setLorebookSettings,
 } from '@/function/lorebook';
 import {
+  activateLorebookEntries,
   createLorebookEntry,
   deleteLorebookEntry,
   getLorebookEntries,
@@ -61,6 +62,7 @@ export function initTavernHelperObject() {
     setLorebookEntries,
     createLorebookEntry,
     deleteLorebookEntry,
+    activateLorebookEntries,
     // 世界书设置
     getLorebookSettings,
     setLorebookSettings,
