@@ -2,6 +2,16 @@ import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 
 import { updateFrontendVersion } from '../function/frontend_version';
 import { extensionFolderPath } from './extension_variables';
+import { renderMarkdown } from './render_markdown';
+
+const GITLAB_INSTANCE_URL = 'gitlab.com';
+const GITLAB_PROJECT_PATH = 'novi028/JS-Slash-Runner';
+const GITLAB_BRANCH = '3.0.0';
+const VERSION_FILE_PATH_GITLAB = 'manifest.json';
+const CHANGELOG_FILE_PATH_GITLAB = 'doc/CHANGELOG.md';
+export const VERSION_FILE_PATH = `/scripts/extensions/${extensionFolderPath}/manifest.json`;
+let CURRENT_VERSION: string;
+let LATEST_VERSION: string;
 
 /**
  * 从 GitLab 仓库获取指定文件的原始内容 (支持项目 ID 或项目路径)
@@ -122,36 +132,21 @@ export async function getFileContentByPath(filePath: string) {
   }
 }
 
-const GITLAB_INSTANCE_URL = 'gitlab.com';
-const GITLAB_PROJECT_PATH = 'novi028/JS-Slash-Runner';
-const GITLAB_BRANCH = 'main';
-const VERSION_FILE_PATH_GITLAB = 'manifest.json';
-const CHANGELOG_FILE_PATH_GITLAB = '/doc/CHANGELOG.md';
-export const VERSION_FILE_PATH = `/scripts/extensions/${extensionFolderPath}/manifest.json`;
-let CURRENT_VERSION: string;
-let LATEST_VERSION: string;
-
 export async function runCheckWithPath() {
   try {
-    CURRENT_VERSION = await getFileContentByPath(VERSION_FILE_PATH);
+    LATEST_VERSION = parseVersionFromFile(await fetchRawFileContentFromGitLab(VERSION_FILE_PATH_GITLAB));
+    CURRENT_VERSION = parseVersionFromFile(await getFileContentByPath(VERSION_FILE_PATH));
 
-    const content = await fetchRawFileContentFromGitLab(VERSION_FILE_PATH_GITLAB);
-
-    const latestVersion = parseVersionFromFile(content);
-    LATEST_VERSION = latestVersion;
-    console.info(`获取到的最新版本: ${latestVersion}`);
-    const currentVersion = parseVersionFromFile(CURRENT_VERSION);
-
-    const comparisonResult = compareSemVer(latestVersion, currentVersion);
+    const comparisonResult = compareSemVer(LATEST_VERSION, CURRENT_VERSION);
 
     if (comparisonResult > 0) {
-      console.info(`[JS-Slash-Runner] 需要更新！最新版本 ${latestVersion} > 当前版本 ${currentVersion}`);
+      console.info(`[TavernHelper] 需要更新！最新版本 ${LATEST_VERSION} > 当前版本 ${CURRENT_VERSION}`);
       return true;
     } else if (comparisonResult === 0) {
-      console.info(`[JS-Slash-Runner] 当前版本 ${currentVersion} 已是最新。`);
+      console.info(`[TavernHelper] 当前版本 ${CURRENT_VERSION} 已是最新。`);
       return false;
     } else {
-      console.warn(`[TavernHelper] 当前版本 ${currentVersion} 比远程版本 ${latestVersion} 还新？`);
+      console.warn(`[TavernHelper] 当前版本 ${CURRENT_VERSION} 比远程版本 ${LATEST_VERSION} 还新？`);
       return false;
     }
   } catch (error) {
@@ -183,13 +178,14 @@ function parseChangelogBetweenVersions(
   changelogContent: string,
   currentVersion: string,
   latestVersion: string,
-): string {
+): string | undefined {
   // 查找所有版本标题
   const versionRegex = /##\s*([0-9]+\.[0-9]+\.[0-9]+)/g;
   const matches = [...changelogContent.matchAll(versionRegex)];
 
   if (matches.length === 0) {
-    return '无法找到版本日志。';
+    toastr.error('无法找到版本日志。');
+    return;
   }
 
   // 比较当前版本和最新版本
@@ -199,7 +195,8 @@ function parseChangelogBetweenVersions(
     // 当前版本大于或等于最新版本，只返回最新版本的日志
     const latestVersionMatch = matches.find(match => match[1] === latestVersion);
     if (!latestVersionMatch) {
-      return `无法找到版本 ${latestVersion} 的日志。`;
+      toastr.error('获取更新日志失败');
+      return;
     }
 
     const startIndex = latestVersionMatch.index;
@@ -208,14 +205,24 @@ function parseChangelogBetweenVersions(
 
     return changelogContent.substring(startIndex, endIndex).trim();
   } else {
-    // 当前版本小于最新版本，返回当前版本之后的所有更新日志
     const currentVersionMatch = matches.find(match => match[1] === currentVersion);
     if (!currentVersionMatch) {
-      return `无法找到版本 ${currentVersion} 的日志。`;
+      toastr.error(`无法找到版本 ${currentVersion} 的日志。`);
+      return;
+    }
+
+    const latestVersionMatch = matches.find(match => match[1] === latestVersion);
+    if (!latestVersionMatch) {
+      toastr.error(`无法找到版本 ${latestVersion} 的日志。`);
+      return;
     }
 
     const startIndex = currentVersionMatch.index;
-    return changelogContent.substring(startIndex).trim();
+    const endIndex = latestVersionMatch.index;
+
+    changelogContent = changelogContent.substring(startIndex, endIndex).trim();
+
+    return renderMarkdown(changelogContent);
   }
 }
 
@@ -233,7 +240,10 @@ export async function handleUpdateButton() {
   }
 
   const logs = parseChangelogBetweenVersions(changelogContent, CURRENT_VERSION, LATEST_VERSION);
-  const result = await callGenericPopup(logs, POPUP_TYPE.CONFIRM, '', { okButton: 'Yes' });
+  if (!logs) {
+    return;
+  }
+  const result = await callGenericPopup(logs, POPUP_TYPE.CONFIRM, '', { okButton: '更新' });
   if (result) {
     await updateFrontendVersion();
   }

@@ -11,7 +11,7 @@ import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { download, getFileText, getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
 
 import { script_url } from '@/script_url';
-
+import { renderMarkdown } from '@/util/render_markdown';
 interface IFrameElement extends HTMLIFrameElement {
   cleanup: () => void;
   [prop: string]: any;
@@ -587,7 +587,8 @@ export async function cloneTemplate(script: Script, type: ScriptType.GLOBAL | Sc
 
   scriptHtml.find('.script-info').on('click', async function () {
     const info = script.getScript().info;
-    await callGenericPopup(info, POPUP_TYPE.DISPLAY);
+    const htmlText = renderMarkdown(info);
+    await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
   });
 
   scriptHtml.find('.edit-script').on('click', () => scriptRepo.openScriptEditor(type, script.id));

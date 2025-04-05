@@ -116,6 +116,10 @@
   margin-left: 5px;
 }
 
+#update-extension {
+  cursor: pointer;
+}
+
 .input-number-wrapper input {
   width: 50px !important;
 }
