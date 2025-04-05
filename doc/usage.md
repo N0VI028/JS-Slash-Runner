@@ -1212,6 +1212,21 @@ const uid = await createLorebookEntry("eramgt少女歌剧", {comment: "revue", c
 async function deleteLorebookEntry(lorebook: string, uid: number): Promise<boolean>
 ```
 
+#### 激活世界书条目
+
+```typescript
+/**
+ * 激活世界书中的某些条目, 即它们将发送给 ai
+ *
+ * @param lorebook 世界书名称
+ * @param entries 一个数组, 元素是要激活的各条目, 必须包含 `uid`
+ */
+async function activateLorebookEntries(
+  lorebook: string,
+  entries: { uid: Pick<LorebookEntry, 'uid'> }[],
+): Promise<void>
+```
+
 ### 监听和发送事件
 
 扩展允许你设置当发生某种事件时, 运行想要的函数. 例如, 你也许想在玩家擅自更改你的世界书时警告玩家.

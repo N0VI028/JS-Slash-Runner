@@ -1,3 +1,4 @@
+import { event_types, eventSource } from '@sillytavern/script';
 import { debounce } from '@sillytavern/scripts/utils';
 import {
   createWorldInfoEntry,
@@ -296,8 +297,22 @@ export async function deleteLorebookEntry(lorebook: string, lorebook_uid: number
     reloadEditorDebounced(lorebook);
   }
 
-  console.info(
-    `删除世界书 '${lorebook}' 中的 uid='${lorebook_uid}' 条目${deleted ? '成功' : '失败'}`,
-  );
+  console.info(`删除世界书 '${lorebook}' 中的 uid='${lorebook_uid}' 条目${deleted ? '成功' : '失败'}`);
   return deleted;
+}
+
+/**
+ * 激活世界书中的某些条目, 即它们将发送给 ai
+ *
+ * @param lorebook 世界书名称
+ * @param entries 一个数组, 元素是要激活的各条目, 必须包含 `uid`
+ */
+export async function activateLorebookEntries(
+  lorebook: string,
+  entries: { uid: Pick<LorebookEntry, 'uid'> }[],
+): Promise<void> {
+  return eventSource.emit(
+    event_types.WORLDINFO_FORCE_ACTIVATE,
+    entries.map(entry => ({ world: lorebook, uid: entry.uid })),
+  );
 }

@@ -143,6 +143,22 @@ async function deleteLorebookEntry(lorebook: string, uid: number): Promise<boole
   return TavernHelper.deleteLorebookEntry(lorebook, uid);
 }
 
+/**
+ * 激活世界书中的某些条目, 即它们将发送给 ai
+ *
+ * @param lorebook 世界书名称
+ * @param entries 一个数组, 元素是要激活的各条目, 必须包含 `uid`
+ */
+async function activateLorebookEntries(
+  lorebook: string,
+  entries: { uid: Pick<LorebookEntry, 'uid'> }[],
+): Promise<void> {
+  return eventEmit(
+    tavern_events.WORLDINFO_FORCE_ACTIVATE,
+    entries.map(entry => ({ world: lorebook, uid: entry.uid })),
+  );
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // 已被弃用的接口, 请尽量按照指示更新它们
 
