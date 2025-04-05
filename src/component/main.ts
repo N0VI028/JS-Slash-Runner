@@ -28,8 +28,6 @@ import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 
 import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, this_chid } from '@sillytavern/script';
 
-let isExtensionEnabled: boolean;
-
 const handleChatChanged = async () => {
   await checkEmbeddedScripts();
 
@@ -72,7 +70,6 @@ const handleVariableUpdated = (mesId: string) => {
  */
 export function initExtensionMainPanel() {
   const isEnabled = getSettingValue('enabled_extension');
-  isExtensionEnabled = isEnabled;
   if (isEnabled) {
     handleExtensionToggle(false, true);
   }
@@ -86,7 +83,6 @@ export function initExtensionMainPanel() {
 async function handleExtensionToggle(userAction: boolean = true, enable: boolean = true) {
   if (userAction) {
     await saveSettingValue('enabled_extension', enable);
-    isExtensionEnabled = enable;
   }
   if (enable) {
     // 指示器样式

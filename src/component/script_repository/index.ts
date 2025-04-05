@@ -5,11 +5,12 @@ import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/e
 import { characters, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { createDefaultScripts } from './default_scripts/index';
-
 //@ts-ignore
 import { selected_group } from '@sillytavern/scripts/group-chats';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { download, getFileText, getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
+
+import { script_url } from '@/script_url';
 
 interface IFrameElement extends HTMLIFrameElement {
   cleanup: () => void;
@@ -240,6 +241,7 @@ class ScriptRepository {
               window[key] = TavernHelper[key];
             }
           </script>
+          <script src="${script_url.get('iframe_client')}"></script>
         </head>
         <body>
           <script type="module">

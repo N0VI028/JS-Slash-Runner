@@ -73,7 +73,7 @@
   padding: 10px 10px;
 }
 
-#script-settings-content{
+#script-settings-content {
   padding-top: 0;
 }
 
@@ -103,10 +103,11 @@
   border: 1px solid var(--SmartThemeQuoteColor);
   border-radius: 5px;
   padding: 3px 5px;
+  font-size: calc(var(--mainFontSize) * 0.8);
+  color: var(--SmartThemeBodyColor);
 }
 
 .TavernHelper-button a {
-  font-size: calc(var(--mainFontSize) * 0.8);
   color: var(--SmartThemeBodyColor);
 }
 
@@ -152,7 +153,7 @@
 }
 
 .fa-refresh {
-  font-size: 0.7em!important;
+  font-size: 0.7em !important;
 }
 
 .script-library-button {

@@ -6,6 +6,14 @@ import { initTavernHelperObject } from '@/function';
 import { initAudioSlashCommands } from '@/slash_command/audio';
 import { initSlashEventEmit } from '@/slash_command/event';
 import { extensionFolderPath, extensionName } from '@/util/extension_variables';
+import {
+  runCheckWithPath,
+  addVersionUpdateElement,
+  getFileContentByPath,
+  parseVersionFromFile,
+  VERSION_FILE_PATH,
+  handleUpdateButton,
+} from '@/util/check_update';
 
 import { saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
@@ -143,6 +151,19 @@ function handleSettingPageChange(event: JQuery.ClickEvent) {
 }
 
 /**
+ * 版本控制
+ */
+async function handleVersionUpdate() {
+  const currentVersion = parseVersionFromFile(await getFileContentByPath(VERSION_FILE_PATH));
+  $('.version').text(`Ver ${currentVersion}`);
+  const isNeedUpdate = await runCheckWithPath();
+  if (isNeedUpdate) {
+    addVersionUpdateElement();
+  }
+  $('#update-extension').on('click', async () => await handleUpdateButton());
+}
+
+/**
  * 初始化扩展面板
  */
 jQuery(async () => {
@@ -170,6 +191,8 @@ jQuery(async () => {
   $('#render-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
   $('#script-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
   $('#audio-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
+
+  handleVersionUpdate();
 
   // $('#scriptLibraryButton')
   //   .off('click')
