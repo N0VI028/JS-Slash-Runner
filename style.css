@@ -1,14 +1,14 @@
 #render-depth,
-.script-editor-container input {
+.script-editor-container input:not([type='checkbox']) {
   width: 100%;
-  padding: 0.75em;
+  padding: 0.1em 0.75em;
   border-radius: 5px;
   background-color: var(--black30a);
   border: 1px solid var(--SmartThemeBorderColor);
 }
 
 #render-depth {
-  padding: 0;
+  padding: 0 2px;
 }
 
 .extension-status,
@@ -130,6 +130,7 @@
 }
 
 .script-item {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   flex-wrap: nowrap;
@@ -425,6 +426,10 @@
   overflow: auto;
 }
 
+#script-name-input {
+  padding: 0.75em;
+}
+
 .toggle-script {
   display: none !important;
 }
@@ -443,4 +448,25 @@
 
 .toggle-script:not(:checked) + .script-toggle-off + .script-toggle-on {
   display: none;
+}
+
+.button-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.TH-script-button {
+  color: var(--SmartThemeBodyColor);
+  border-radius: 10px;
+  padding: 3px 5px;
+  margin: 3px 0;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
 }

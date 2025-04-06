@@ -635,10 +635,10 @@ async function openUrlManagerPopup(typeKey: 'bgmurl' | 'ambienturl') {
 /**
  * 点击音频总开关时的处理函数
  */
-async function onEnabledClick(userInput: boolean = true, enable: boolean = true) {
+async function handleAudioToggle(enable: boolean = true, userInput: boolean = true) {
   if (userInput) {
     isAudioEnabled = enable;
-    saveSettingValue('audio_enabled', isAudioEnabled);
+    saveSettingValue('audio.audio_enabled', isAudioEnabled);
   }
 
   if (enable) {
@@ -873,12 +873,10 @@ function initAudioStyles(type: 'bgm' | 'ambient') {
  */
 export function initAudioComponents() {
   isAudioEnabled = getSettingValue('audio_enabled');
-  if (isAudioEnabled) {
-    onEnabledClick(true, true);
-  }
+  handleAudioToggle(isAudioEnabled, false);
   $('#audio-enable-toggle')
     .prop('checked', isAudioEnabled)
-    .on('click', (event: JQuery.ClickEvent) => onEnabledClick(true, event.target.checked));
+    .on('click', (event: JQuery.ClickEvent) => handleAudioToggle(event.target.checked, true));
 
   // 初始化音乐和音效样式
   initAudioStyles('bgm');

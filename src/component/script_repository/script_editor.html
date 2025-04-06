@@ -1,7 +1,5 @@
-<div id="script-editor" class="flex-container flexFlowColumn alignItemsCenter">
-  <h3 class="flex-container alignItemsCenter">
-    脚本编辑
-  </h3>
+<div id="script-editor" class="flex-container flexFlowColumn alignItemsCenter height100p overflowYAuto">
+  <h3 class="flex-container alignItemsCenter">脚本编辑</h3>
   <div id="script-name" class="script-editor-container">
     <h4>脚本名称</h4>
     <input type="text" id="script-name-input" />
@@ -17,5 +15,13 @@
       placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等"
       rows="5"
     ></textarea>
+  </div>
+  <div id="script-button-content" class="script-editor-container">
+    <div class="flex-container gap10">
+      <h4>按钮触发</h4>
+      <div class="menu_button interactable" id="add-button-trigger">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+    </div>
   </div>
 </div>

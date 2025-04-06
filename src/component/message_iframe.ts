@@ -36,8 +36,6 @@ export const partialRenderEvents = [
 
 export const defaultIframeSettings = {
   render_enabled: true,
-  auto_enable_character_regex: true,
-  auto_disable_incompatible_options: true,
   tampermonkey_compatibility: false,
   render_depth: 3,
   render_optimize: false,

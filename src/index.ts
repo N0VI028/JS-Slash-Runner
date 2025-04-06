@@ -5,15 +5,15 @@ import { defaultScriptSettings, initScriptRepository } from '@/component/script_
 import { initTavernHelperObject } from '@/function';
 import { initAudioSlashCommands } from '@/slash_command/audio';
 import { initSlashEventEmit } from '@/slash_command/event';
-import { extensionFolderPath, extensionName } from '@/util/extension_variables';
 import {
-  runCheckWithPath,
   addVersionUpdateElement,
   getFileContentByPath,
-  parseVersionFromFile,
-  VERSION_FILE_PATH,
   handleUpdateButton,
+  parseVersionFromFile,
+  runCheckWithPath,
+  VERSION_FILE_PATH,
 } from '@/util/check_update';
+import { extensionFolderPath, extensionName } from '@/util/extension_variables';
 
 import { saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';

@@ -1,8 +1,10 @@
 import { libraries_text } from '@/component/character_level/library';
 import { destroyIframe } from '@/component/message_iframe';
+import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
-import { characters, this_chid } from '@sillytavern/script';
+import { renderMarkdown } from '@/util/render_markdown';
+import { characters, eventSource, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { createDefaultScripts } from './default_scripts/index';
 //@ts-ignore
@@ -10,8 +12,6 @@ import { selected_group } from '@sillytavern/scripts/group-chats';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { download, getFileText, getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
 
-import { script_url } from '@/script_url';
-import { renderMarkdown } from '@/util/render_markdown';
 interface IFrameElement extends HTMLIFrameElement {
   cleanup: () => void;
   [prop: string]: any;
@@ -49,6 +49,7 @@ class Script {
   name: string;
   content: string;
   info: string;
+  buttons: { name: string; visible: boolean }[];
   enabled: boolean;
 
   constructor(data?: Partial<Script>) {
@@ -57,6 +58,7 @@ class Script {
     this.content = data?.content || '';
     this.info = data?.info || '';
     this.enabled = data?.enabled || false;
+    this.buttons = data?.buttons || [];
   }
 
   hasName(): boolean {
@@ -116,20 +118,21 @@ class ScriptRepository {
     if (!script.hasName()) {
       toastr.error('保存失败，脚本名称为空');
     }
-
     await scriptRepo.saveScript(script, type);
     await scriptRepo.renderScript(script, type);
   }
 
   /**
-   * 加载脚本库
+   * 加载脚本库到界面
    */
   async loadScriptLibrary() {
     $('#global-script-list').empty();
     $('#scoped-script-list').empty();
 
+    const $emptyTip = `<small>暂无可用脚本</small>`;
     const globalScriptArray = getSettingValue('script.scriptsRepository') ?? [];
     const scopedScriptArray = characters[this_chid]?.data?.extensions?.TavernHelper_scripts ?? [];
+    console.log(this_chid);
 
     if (globalScriptArray.length > 0) {
       const globalScripts = globalScriptArray.map((scriptData: Script) => new Script(scriptData));
@@ -137,6 +140,8 @@ class ScriptRepository {
         const scriptHtml = await cloneTemplate(script, ScriptType.GLOBAL);
         $('#global-script-list').append(scriptHtml);
       });
+    } else {
+      $('#global-script-list').append($emptyTip);
     }
     if (scopedScriptArray.length > 0) {
       const scopedScripts = scopedScriptArray.map((scriptData: Script) => new Script(scriptData));
@@ -144,6 +149,8 @@ class ScriptRepository {
         const scriptHtml = await cloneTemplate(script, ScriptType.CHARACTER);
         $('#scoped-script-list').append(scriptHtml);
       });
+    } else {
+      $('#scoped-script-list').append($emptyTip);
     }
     scriptRepo.makeDraggable($(`#global-script-list`), ScriptType.GLOBAL);
     scriptRepo.makeDraggable($(`#scoped-script-list`), ScriptType.CHARACTER);
@@ -268,10 +275,18 @@ class ScriptRepository {
 
       $iframe.on('load', () => {
         console.info(`[Script]启用${typeName}脚本["${script.name}"]`);
-        URL.revokeObjectURL(url); // 释放URL
+        URL.revokeObjectURL(url);
       });
 
       $('body').append($iframe);
+
+      if (script.buttons && script.buttons.length > 0) {
+        script.buttons.forEach(button => {
+          if (button.visible) {
+            scriptButtonUi.addButton(button, script.id);
+          }
+        });
+      }
     } catch (error) {
       console.error(`[Script]${typeName}脚本启用失败:["${script.name}"]`, error);
       toastr.error(`${typeName}脚本启用失败:["${script.name}"]`);
@@ -296,8 +311,9 @@ class ScriptRepository {
       const iframeElement = $(`#tavern-helper-script-${script.id}`)[0] as IFrameElement;
       if (iframeElement) {
         await destroyIframe(iframeElement);
-        console.info(`[Script]${typeName}脚本["${script.name}"] 已禁用`);
       }
+      scriptButtonUi.removeButton(script.name, script.id);
+      console.info(`[Script]${typeName}脚本["${script.name}"] 已禁用`);
     }
   }
 
@@ -308,10 +324,16 @@ class ScriptRepository {
    */
   async renderScript(script: Script, type: ScriptType) {
     const scriptHtml = await cloneTemplate(script, type);
+    const $emptyTip =
+      type === ScriptType.GLOBAL ? $(`#global-script-list`).find('small') : $(`#scoped-script-list`).find('small');
     if (type === ScriptType.GLOBAL) {
       $('#global-script-list').prepend(scriptHtml);
     } else {
       $('#scoped-script-list').prepend(scriptHtml);
+    }
+
+    if ($emptyTip.length > 0) {
+      $emptyTip.remove();
     }
   }
 
@@ -322,7 +344,14 @@ class ScriptRepository {
    */
   async openScriptEditor(type: ScriptType, scriptId?: string) {
     const $editorHtml = $(await renderExtensionTemplateAsync(`${templatePath}`, 'script_editor'));
-
+    const $buttonContent = `<div class="button-item">
+              <span class="drag-handle menu-handle">☰</span>
+              <input type="checkbox"/>
+              <input class="text_pole" type="text"/>
+              <div class="delete-button menu_button interactable">
+                <i class="fa-solid fa-trash"></i>
+              </div>
+            </div>`;
     let script: Script | undefined;
     if (scriptId) {
       if (type === ScriptType.GLOBAL) {
@@ -335,23 +364,66 @@ class ScriptRepository {
         $editorHtml.find('#script-name-input').val(script.name);
         $editorHtml.find('#script-content-textarea').val(script.content);
         $editorHtml.find('#script-info-textarea').val(script.info);
+        if (script.buttons && script.buttons.length > 0) {
+          script.buttons.forEach(button => {
+            $editorHtml.find('#script-button-content').append($buttonContent);
+            $editorHtml.find('#script-button-content').find('input').val(button.name);
+            $editorHtml.find('#script-button-content').find('input').prop('checked', button.visible);
+          });
+        }
       }
     }
+
+    $editorHtml.find('#add-button-trigger').on('click', () => {
+      $editorHtml.find('#script-button-content').append($buttonContent);
+    });
+
+    $editorHtml.find('#script-button-content').sortable({
+      handle: '.drag-handle',
+      items: '.button-item',
+    });
+
+    $editorHtml.on('click', '.delete-button', (e: JQuery.ClickEvent) => {
+      $(e.currentTarget).closest('.button-item').remove();
+    });
 
     const popupResult = await callGenericPopup($editorHtml, POPUP_TYPE.CONFIRM, '', {
       okButton: '确认',
       cancelButton: '取消',
+      wide: true,
+      large: true,
     });
 
     if (popupResult) {
       const scriptName = $editorHtml.find('#script-name-input').val() as string;
       const scriptContent = $editorHtml.find('#script-content-textarea').val() as string;
       const scriptInfo = $editorHtml.find('#script-info-textarea').val() as string;
+      const buttonArray = $editorHtml
+        .find('#script-button-content')
+        .find('.button-item')
+        .map((_index, element) => {
+          const buttonText = $(element).find('input.text_pole').val() as string;
+          const isVisible = $(element).find('input[type="checkbox"]').prop('checked');
+          return {
+            text: buttonText,
+            visible: isVisible,
+          };
+        })
+        .toArray()
+        .filter(button => button.text && button.text.trim() !== '');
 
       if (scriptId && script) {
+        const oldButtons = script.buttons;
+        if (oldButtons) {
+          oldButtons.forEach(button => {
+            scriptButtonUi.$scriptBar.find(`#${button.name}_${script.id}`).remove();
+          });
+        }
+
         script.name = scriptName;
         script.content = scriptContent;
         script.info = scriptInfo;
+        script.buttons = buttonArray.map(button => ({ name: button.text, visible: button.visible }));
         $(`#${script.id}`).find('.script-item-name').text(script.name);
         await scriptRepo.saveScript(script, type);
         if (script.enabled) {
@@ -364,6 +436,7 @@ class ScriptRepository {
           content: scriptContent,
           info: scriptInfo,
           enabled: false,
+          buttons: buttonArray.map(button => ({ name: button.text, visible: button.visible })),
         });
         await scriptRepo.addScript(newScript, type);
       }
@@ -392,6 +465,12 @@ class ScriptRepository {
         } else {
           $('#scoped-script-list').find(`#${id}`).remove();
           await scriptRepo.saveCharacterScripts(array);
+        }
+        if (array.length === 0) {
+          const $emptyTip = `<small>暂无可用脚本</small>`;
+          type === ScriptType.GLOBAL
+            ? $(`#global-script-list`).append($emptyTip)
+            : $(`#scoped-script-list`).append($emptyTip);
         }
       } else {
         throw new Error('[ScriptRepository] 脚本不存在');
@@ -533,8 +612,44 @@ class ScriptRepository {
 
 export const scriptRepo = ScriptRepository.getInstance();
 
+export class ScriptButtonUi {
+  $scriptBar!: JQuery<HTMLElement>;
+  constructor() {
+    this.init();
+  }
+
+  init() {
+    if (!$('#TH-script-bar').length) {
+      $('<div id="TH-script-bar" class="flex-container flexGap5 alignItemsCenter justifyCenter"></div>').prependTo(
+        '#send_form',
+      );
+    }
+    this.$scriptBar = $('#TH-script-bar');
+  }
+
+  addButton(button: { name: string }, id: string) {
+    const buttonId = `${button.name}_${id}`;
+    this.$scriptBar.append(
+      `<div class="TH-script-button menu_button interactable" id="${buttonId}">${button.name}</div>`,
+    );
+    this.$scriptBar.find(`#${buttonId}`).on('click', async () => {
+      await eventSource.emit(`${buttonId}`);
+    });
+  }
+
+  removeButton(name: string, id: string) {
+    this.$scriptBar.find(`#${name}_${id}`).remove();
+  }
+
+  clear() {
+    this.$scriptBar.empty();
+  }
+}
+
+export const scriptButtonUi = new ScriptButtonUi();
+
 /**
- * 克隆模板
+ * 克隆显示模板
  * @param script 脚本
  * @param type 类型,global 全局,scope 局部
  */
@@ -801,7 +916,6 @@ export async function clearAllScriptsIframe() {
 }
 
 export async function initScriptRepository() {
-
   isGlobalScriptEnabled = getSettingValue('script.global_script_enabled');
   isScopedScriptEnabled = getSettingValue('script.scope_script_enabled');
 
@@ -839,4 +953,5 @@ export async function initScriptRepository() {
   });
 
   $('#default-script').on('click', loadDefaultScriptsRepository);
+  scriptButtonUi.init();
 }

@@ -12,6 +12,7 @@ const CHANGELOG_FILE_PATH_GITLAB = 'doc/CHANGELOG.md';
 export const VERSION_FILE_PATH = `/scripts/extensions/${extensionFolderPath}/manifest.json`;
 let CURRENT_VERSION: string;
 let LATEST_VERSION: string;
+let CHANGELOG_CONTENT: string;
 
 /**
  * 从 GitLab 仓库获取指定文件的原始内容 (支持项目 ID 或项目路径)
@@ -230,6 +231,16 @@ function parseChangelogBetweenVersions(
  * 弹出changeLog的popup
  */
 export async function handleUpdateButton() {
+  if (!CHANGELOG_CONTENT) {
+    await getChangelog();
+  }
+  const result = await callGenericPopup(CHANGELOG_CONTENT, POPUP_TYPE.CONFIRM, '', { okButton: '更新', cancelButton: '取消' });
+  if (result) {
+    await updateFrontendVersion();
+  }
+}
+
+export async function getChangelog() {
   const changelogContent = await fetchRawFileContentFromGitLab(CHANGELOG_FILE_PATH_GITLAB);
   if (LATEST_VERSION === undefined) {
     LATEST_VERSION = parseVersionFromFile(await fetchRawFileContentFromGitLab(VERSION_FILE_PATH_GITLAB));
@@ -241,10 +252,9 @@ export async function handleUpdateButton() {
 
   const logs = parseChangelogBetweenVersions(changelogContent, CURRENT_VERSION, LATEST_VERSION);
   if (!logs) {
+    toastr.error('无法获取更新日志');
     return;
-  }
-  const result = await callGenericPopup(logs, POPUP_TYPE.CONFIRM, '', { okButton: '更新' });
-  if (result) {
-    await updateFrontendVersion();
+  } else {
+    CHANGELOG_CONTENT = logs;
   }
 }

@@ -5,7 +5,7 @@
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
-      <div class="extension-status flex spaceBetween alignItemsCenter paddingLeftRight5">
+      <div class="extension-status flex spaceBetween alignItemsCenter marginTopBot5 paddingLeftRight5">
         <div class="flex alignItemsCenter">
           <i id="extension-status-icon" class="fa-solid fa-power-off margin-r5"></i>
           <div id="extension-status" class="inline-block"></div>
@@ -165,7 +165,7 @@
                 </label>
               </div>
             </div>
-            <div id="global-script-list" class="flex-container flexFlowColumn"></div>
+            <div id="global-script-list" class="flex-container flexFlowColumn alignItemsCenter"></div>
             <div class="divider marginTop10 marginBot10"></div>
             <div class="extension-content-item">
               <div class="flex flexFlowColumn">
@@ -179,7 +179,7 @@
                 </label>
               </div>
             </div>
-            <div id="scoped-script-list" class="flex-container flexFlowColumn"></div>
+            <div id="scoped-script-list" class="flex-container flexFlowColumn alignItemsCenter"></div>
           </div>
         </div>
         <div id="audio-settings-content" class="extension-content flex flexFlowColumn gap10px">
@@ -307,13 +307,13 @@
               </div>
               <audio id="audio_ambient" controls src=""></audio>
             </div>
-            <div class="flex gap10px spaceBetween">
-              <div>
+            <div class="flex-container gap10px spaceBetween">
+              <div class="wide50p">
                 <label for="audio_cooldown">淡入淡出时间(秒)</label>
                 <input id="audio_cooldown" class="text_pole wide25p" />
               </div>
 
-              <div class="flex row-reverse alignItemsCenter justifyContentFlexStart gap-12">
+              <div class="flex row-reverse alignItemsCenter justifyContentFlexEnd gap-12">
                 <label for="audio_refresh_assets">刷新播放列表</label>
                 <div id="audio_refresh_assets" class="menu_button btn-refresh">
                   <i class="fa-solid fa-refresh fa-lg"></i>

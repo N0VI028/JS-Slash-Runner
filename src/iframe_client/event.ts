@@ -36,6 +36,28 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
 }
 
 /**
+ * 让 `listener` 监听 `event_type`, 按下脚本库中附加了按钮的脚本时自动运行 `listener`.
+ *
+ * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
+ *
+ * @param event_type 要监听的事件
+ * @param listener 要注册的函数
+ *
+ * @example
+ * function hello() { alert("hello"); }
+ * eventOnButton(对应的按钮名称, hello);
+ */
+function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
+  const script_id = getIframeName().replace(/^tavern-helper-script-/, '');
+  if (detail.try_get_wrapper(listener, event_type)) {
+    console.warn(`[Event][eventOnButton](id为${script_id}) 的脚本已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
+    return;
+  }
+  const event_type_with_script_id = `${event_type}_${script_id}`;
+  SillyTavern.eventSource.on(event_type_with_script_id, detail.get_or_make_wrapper(listener, event_type_with_script_id, false));
+}
+
+/**
  * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`.
  *
  * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
