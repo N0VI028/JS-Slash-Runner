@@ -231,7 +231,8 @@ export class ScriptRepository {
     }
 
     try {
-      if (this.activeScripts.has(script.id)) {
+      const existingIframe = $(`#tavern-helper-script-${script.id}`)[0] as IFrameElement;
+      if (existingIframe) {
         await this.cancelRunScript(script, type, false);
       }
 
