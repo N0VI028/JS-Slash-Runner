@@ -955,6 +955,10 @@ export class ScriptRepository {
 
   addButton(script: Script) {
     if (script.buttons && script.buttons.length > 0) {
+      script.buttons.forEach(_button => {
+        $(`#${script.name}_${script.id}`).remove();
+      });
+
       script.buttons.forEach(button => {
         if (button.visible) {
           $('#TH-script-buttons').append(
