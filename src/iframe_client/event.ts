@@ -57,6 +57,7 @@ function eventOnButton<T extends EventType>(event_type: T, listener: ListenerTyp
   SillyTavern.eventSource.on(event_type_with_script_id, detail.get_or_make_wrapper(listener, event_type_with_script_id, false));
 }
 
+
 /**
  * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`.
  *

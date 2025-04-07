@@ -4,13 +4,14 @@ import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { renderMarkdown } from '@/util/render_markdown';
-import { characters, this_chid } from '@sillytavern/script';
+import { characters, eventSource, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { createDefaultScripts } from './default_scripts/index';
 //@ts-ignore
 import { selected_group } from '@sillytavern/scripts/group-chats';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { download, getFileText, getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
+import { data } from 'jquery';
 
 interface IFrameElement extends HTMLIFrameElement {
   cleanup: () => void;
@@ -545,11 +546,16 @@ export class ScriptRepository {
    */
   async deleteScript(id: string, type: ScriptType): Promise<void> {
     try {
+      const script = this.getScriptById(id);
+      if (!script) {
+        throw new Error('[ScriptRepository] 脚本不存在');
+      }
       const array =
         type === ScriptType.GLOBAL
           ? getSettingValue('script.scriptsRepository') || []
           : characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
 
+      // eslint-disable-next-line no-shadow
       const existingScriptIndex = array.findIndex((script: Script) => script.id === id);
       if (existingScriptIndex !== -1) {
         array.splice(existingScriptIndex, 1);
@@ -567,9 +573,9 @@ export class ScriptRepository {
             ? $(`#global-script-list`).append($emptyTip)
             : $(`#scoped-script-list`).append($emptyTip);
         }
-      } else {
-        throw new Error('[ScriptRepository] 脚本不存在');
-      }
+
+        this.removeButton(script);
+      } 
     } catch (error) {
       console.error('[ScriptRepository] 删除脚本时发生错误:', error);
       throw error;
@@ -965,7 +971,9 @@ export class ScriptRepository {
           $('#TH-script-buttons').append(
             `<div class="qr--button menu_button interactable" id="${script.name}_${script.id}">${button.name}</div>`,
           );
-          console.log('addButton', script.name, script.id);
+          $(`#${script.name}_${script.id}`).on('click', () => {
+            eventSource.emit(`${button.name}_${script.id}`);
+          });
         }
       });
     } else {
