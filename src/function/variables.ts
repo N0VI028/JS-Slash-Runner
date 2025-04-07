@@ -37,7 +37,7 @@ function getVariablesByType(type: 'chat' | 'global'): Record<string, any> {
  * @example
  * // 获取所有全局变量
  * const variables = getVariables({type: 'global'});
- * // 前端助手内置了 lodash 库, 你能用它做很多事, 比如查询某个变量是否存在
+ * // 酒馆助手内置了 lodash 库, 你能用它做很多事, 比如查询某个变量是否存在
  * if (_.has(variables, "神乐光.好感度")) {
  *   ...
  * }
@@ -53,7 +53,7 @@ export function getVariables(option?: VariableOption): Record<string, any> {
 /**
  * 完全替换变量表为 `variables`
  *
- * 之所以提供这么直接的函数, 是因为前端助手内置了 lodash 库:
+ * 之所以提供这么直接的函数, 是因为酒馆助手内置了 lodash 库:
  *   `insertOrAssignVariables` 等函数其实就是先 `getVariables` 获取变量表, 用 lodash 库处理, 再 `replaceVariables` 替换变量表.
  *
  * @param variables 要用于替换的变量表

@@ -294,7 +294,7 @@ saveAs("https://gitgud.io/SmilingFace/tavern_resource/-/raw/main/角色卡/妹�
 
 ### 让 VSCode 的预览支持这些第三方库
 
-为了让 VSCode 的预览支持这些第三方库, 你需要复制前端助手 `内置库安装` 中的文本, 将它加入到 `<head>` 中:
+为了让 VSCode 的预览支持这些第三方库, 你需要复制酒馆助手 `内置库安装` 中的文本, 将它加入到 `<head>` 中:
 
 ![内置库插入](内置库插入.png)
 
@@ -319,28 +319,28 @@ const SillyTavern;
 alert(JSON.stringify(SillyTavern.chat[0]));
 ```
 
-而前端助手在酒馆接口之外, 提供了更多更直接的功能.
+而酒馆助手在酒馆接口之外, 提供了更多更直接的功能.
 
-### 前端助手版本操作
+### 酒馆助手版本操作
 
-#### 检查前端助手版本
+#### 检查酒馆助手版本
 
 ```typescript
 /**
- * 获取前端助手版本号
+ * 获取酒馆助手版本号
  */
 function getFrontendVersion(): string {
   return $(".js-settings", window.parent.document).find('.extension_info.flex-container.spaceBetween > small').text().replace('Ver ', '');
 }
 ```
 
-自然地, 旧版本前端助手并没有这个函数. 为了让该功能在旧版本下正常使用, 你可以直接使用该函数内部的实现:
+自然地, 旧版本酒馆助手并没有这个函数. 为了让该功能在旧版本下正常使用, 你可以直接使用该函数内部的实现:
 
 ```typescript
 const version = $(".js-settings", window.parent.document).find('.extension_info.flex-container.spaceBetween > small').text().replace('Ver ', '');
 ```
 
-#### 尝试主动更新前端助手
+#### 尝试主动更新酒馆助手
 
 ```typescript
 async function updateFrontendVersion(): Promise<boolean>
@@ -414,7 +414,7 @@ alert(variables);
 ```typescript
 // 获取所有全局变量
 const variables = await getVariables({type: 'global'});
-// 前端助手内置了 lodash 库, 你能用它做很多事, 比如查询某个变量是否存在
+// 酒馆助手内置了 lodash 库, 你能用它做很多事, 比如查询某个变量是否存在
 if (_.has(variables, "神乐光.好感度")) {
   /* ... */
 }
@@ -426,7 +426,7 @@ if (_.has(variables, "神乐光.好感度")) {
 /**
  * 完全替换变量表为 `variables`
  *
- * 之所以提供这么直接的函数, 是因为前端助手内置了 lodash 库:
+ * 之所以提供这么直接的函数, 是因为酒馆助手内置了 lodash 库:
  * `insertOrAssignVariables` 等函数其实就是先 `getVariables` 获取变量表, 用 lodash 库处理, 再 `replaceVariables` 替换变量表.
  *
  * @param variables 要用于替换的变量表
@@ -590,7 +590,7 @@ const 消息楼层变量 = {
 
 #### 获取楼层消息
 
-酒馆虽然提供了 `/messages` 命令, 但是它获取的是一整个字符串, 并且不能获取楼层当前没在使用的消息 (点击箭头切换的那个 swipe 消息, 在前端助手中我们称之为 "消息页"), 前端助手为此提供了一个函数获取更便于处理的消息.
+酒馆虽然提供了 `/messages` 命令, 但是它获取的是一整个字符串, 并且不能获取楼层当前没在使用的消息 (点击箭头切换的那个 swipe 消息, 在酒馆助手中我们称之为 "消息页"), 酒馆助手为此提供了一个函数获取更便于处理的消息.
 
 其获取到的结果是一个数组, 数组的元素类型为 `ChatMessage`, 有以下内容:
 
@@ -644,7 +644,7 @@ const messages = await getChatMessages("0-{{lastMessageId}}");
 
 #### 修改楼层消息
 
-酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本前端助手提供这样的功能:
+酒馆本身没有提供修改楼层消息的命令. 为了方便存档、减少 token 或制作某些 meta 要素, 本酒馆助手提供这样的功能:
 
 ```typescript
 interface ChatMessageToSet {
@@ -1063,7 +1063,7 @@ async function deleteLorebook(lorebook: string): Promise<boolean>
 
 ### 世界书条目操作
 
-相比于酒馆给的 slash command, 前端助手允许你更批量和更直接的获取世界书条目内容. 具体地, 你可以访问每个条目的以下信息:
+相比于酒馆给的 slash command, 酒馆助手允许你更批量和更直接的获取世界书条目内容. 具体地, 你可以访问每个条目的以下信息:
 
 ```typescript
 interface LorebookEntry {
@@ -1737,7 +1737,7 @@ eventOn("随便什么名字", (data1, data2) => { console.info(data1, data2); })
 
 ### 请求生成
 
-前端助手提供了函数用于更加灵活地请求 AI 生成回复, 你可以通过它来自定义生成时要采用的提示词配置.
+酒馆助手提供了函数用于更加灵活地请求 AI 生成回复, 你可以通过它来自定义生成时要采用的提示词配置.
 
 #### 使用当前预设进行生成
 
