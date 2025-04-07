@@ -958,7 +958,7 @@ export class ScriptRepository {
       script.buttons.forEach(button => {
         if (button.visible) {
           $('#TH-script-buttons').append(
-            `<div class="qr--button menu_button interactable" id="${script.name}_${script.id}">${script.name}</div>`,
+            `<div class="qr--button menu_button interactable" id="${script.name}_${script.id}">${button.name}</div>`,
           );
           console.log('addButton', script.name, script.id);
         }
