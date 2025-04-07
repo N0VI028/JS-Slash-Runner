@@ -236,10 +236,15 @@ export async function handleUpdateButton() {
   }
   const result = await callGenericPopup(CHANGELOG_CONTENT, POPUP_TYPE.CONFIRM, '', { okButton: '更新', cancelButton: '取消' });
   if (result) {
+    toastr.info('更新中……');
     await updateFrontendVersion();
   }
 }
 
+/**
+ * 获取变更日志
+ * @returns 两个版本之间的日志内容
+ */
 export async function getChangelog() {
   const changelogContent = await fetchRawFileContentFromGitLab(CHANGELOG_FILE_PATH_GITLAB);
   if (LATEST_VERSION === undefined) {

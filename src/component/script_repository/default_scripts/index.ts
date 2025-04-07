@@ -4,6 +4,7 @@
 export const DEFAULT_SCRIPT_IDS = {
   AUTO_FIX_OPTIONS: 'default_auto_fix_options',
   AUTO_OPEN_SCOPE_REGEX: 'default_auto_open_scope_regex',
+  AUTO_TOGGLE_BY_PRESET: 'default_auto_toggle_by_preset',
 };
 
 /**
@@ -18,6 +19,10 @@ export const DEFAULT_SCRIPT_CONFIGS = {
   [DEFAULT_SCRIPT_IDS.AUTO_OPEN_SCOPE_REGEX]: {
     name: '自动开启角色卡局部正则',
     scriptId: 'auto_open_scope_regex',
+  },
+  [DEFAULT_SCRIPT_IDS.AUTO_TOGGLE_BY_PRESET]: {
+    name: '随预设或API自动切换正则、世界书、提示词条目',
+    scriptId: 'auto_toggle_by_preset',
   },
 };
 
@@ -49,7 +54,7 @@ export async function loadScriptContent(scriptId: string): Promise<string> {
 export async function loadScriptInfo(scriptId: string): Promise<string> {
   try {
     const response = await fetch(
-      `/scripts/extensions/third-party/JS-Slash-Runner/src/component/script_repository/default_scripts/${scriptId}.html`,
+      `/scripts/extensions/third-party/JS-Slash-Runner/src/component/script_repository/default_scripts/${scriptId}.md`,
     );
     if (!response.ok) {
       throw new Error(`加载默认脚本信息失败: ${response.statusText}`);
@@ -101,6 +106,14 @@ export async function createAutoFixOptionsScript(): Promise<any> {
  */
 export async function createAutoOpenScopeRegexScript(): Promise<any> {
   return (await createDefaultScript(DEFAULT_SCRIPT_IDS.AUTO_OPEN_SCOPE_REGEX)) || {};
+}
+
+/**
+ * 创建自动开启角色卡局部正则脚本
+ * @returns 脚本对象
+ */
+export async function createAutoToggleByPresetScript(): Promise<any> {
+  return (await createDefaultScript(DEFAULT_SCRIPT_IDS.AUTO_TOGGLE_BY_PRESET)) || {};
 }
 
 /**

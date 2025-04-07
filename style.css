@@ -456,17 +456,3 @@
   justify-content: space-between;
   gap: 10px;
 }
-
-.TH-script-button {
-  color: var(--SmartThemeBodyColor);
-  border-radius: 10px;
-  padding: 3px 5px;
-  margin: 3px 0;
-  cursor: pointer;
-  transition: 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  position: relative;
-}

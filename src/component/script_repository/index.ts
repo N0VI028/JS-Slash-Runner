@@ -4,7 +4,7 @@ import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { renderMarkdown } from '@/util/render_markdown';
-import { characters, eventSource, this_chid } from '@sillytavern/script';
+import { characters, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { createDefaultScripts } from './default_scripts/index';
 //@ts-ignore
@@ -74,7 +74,7 @@ export enum ScriptType {
   CHARACTER = 'scope',
 }
 
-class ScriptRepository {
+export class ScriptRepository {
   private static instance: ScriptRepository;
   private globalScripts: Script[] = [];
   private characterScripts: Script[] = [];
@@ -91,6 +91,12 @@ class ScriptRepository {
     return ScriptRepository.instance;
   }
 
+  public static destroyInstance(): void {
+    if (ScriptRepository.instance) {
+      ScriptRepository.instance = undefined as unknown as ScriptRepository;
+    }
+  }
+
   /**
    * 脚本库原始数据
    */
@@ -98,6 +104,7 @@ class ScriptRepository {
     this.globalScripts = getSettingValue('script.scriptsRepository') || [];
     this.characterScripts = characters[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
   }
+
   /**
    * 获取脚本
    * @param id 脚本id
@@ -118,8 +125,8 @@ class ScriptRepository {
     if (!script.hasName()) {
       toastr.error('保存失败，脚本名称为空');
     }
-    await scriptRepo.saveScript(script, type);
-    await scriptRepo.renderScript(script, type);
+    await this.saveScript(script, type);
+    await this.renderScript(script, type);
   }
 
   /**
@@ -132,12 +139,11 @@ class ScriptRepository {
     const $emptyTip = `<small>暂无可用脚本</small>`;
     const globalScriptArray = getSettingValue('script.scriptsRepository') ?? [];
     const scopedScriptArray = characters[this_chid]?.data?.extensions?.TavernHelper_scripts ?? [];
-    console.log(this_chid);
 
     if (globalScriptArray.length > 0) {
       const globalScripts = globalScriptArray.map((scriptData: Script) => new Script(scriptData));
       globalScripts.forEach(async (script: Script) => {
-        const scriptHtml = await cloneTemplate(script, ScriptType.GLOBAL);
+        const scriptHtml = await this.cloneTemplate(script, ScriptType.GLOBAL);
         $('#global-script-list').append(scriptHtml);
       });
     } else {
@@ -146,14 +152,14 @@ class ScriptRepository {
     if (scopedScriptArray.length > 0) {
       const scopedScripts = scopedScriptArray.map((scriptData: Script) => new Script(scriptData));
       scopedScripts.forEach(async (script: Script) => {
-        const scriptHtml = await cloneTemplate(script, ScriptType.CHARACTER);
+        const scriptHtml = await this.cloneTemplate(script, ScriptType.CHARACTER);
         $('#scoped-script-list').append(scriptHtml);
       });
     } else {
       $('#scoped-script-list').append($emptyTip);
     }
-    scriptRepo.makeDraggable($(`#global-script-list`), ScriptType.GLOBAL);
-    scriptRepo.makeDraggable($(`#scoped-script-list`), ScriptType.CHARACTER);
+    this.makeDraggable($(`#global-script-list`), ScriptType.GLOBAL);
+    this.makeDraggable($(`#scoped-script-list`), ScriptType.CHARACTER);
   }
 
   /**
@@ -177,7 +183,7 @@ class ScriptRepository {
 
     for (const { script } of enabledScripts) {
       // 不要保存设置
-      await scriptRepo.runScript(script, type, false);
+      await this.runScript(script, type, false);
     }
   }
 
@@ -191,7 +197,7 @@ class ScriptRepository {
 
     for (const { script } of disabledScripts) {
       // 不要保存设置
-      await scriptRepo.cancelRunScript(script, type, false);
+      await this.cancelRunScript(script, type, false);
     }
   }
 
@@ -213,7 +219,7 @@ class ScriptRepository {
     if (index !== -1) {
       if (userInput) {
         script.enabled = true;
-        await scriptRepo.saveScript(script, type);
+        await this.saveScript(script, type);
       }
     }
 
@@ -279,14 +285,6 @@ class ScriptRepository {
       });
 
       $('body').append($iframe);
-
-      if (script.buttons && script.buttons.length > 0) {
-        script.buttons.forEach(button => {
-          if (button.visible) {
-            scriptButtonUi.addButton(button, script.id);
-          }
-        });
-      }
     } catch (error) {
       console.error(`[Script]${typeName}脚本启用失败:["${script.name}"]`, error);
       toastr.error(`${typeName}脚本启用失败:["${script.name}"]`);
@@ -306,13 +304,13 @@ class ScriptRepository {
     if (index !== -1) {
       if (userInput) {
         script.enabled = false;
-        await scriptRepo.saveScript(script, type);
+        await this.saveScript(script, type);
       }
       const iframeElement = $(`#tavern-helper-script-${script.id}`)[0] as IFrameElement;
       if (iframeElement) {
         await destroyIframe(iframeElement);
       }
-      scriptButtonUi.removeButton(script.name, script.id);
+      this.removeButton(script);
       console.info(`[Script]${typeName}脚本["${script.name}"] 已禁用`);
     }
   }
@@ -323,7 +321,7 @@ class ScriptRepository {
    * @param type 类型
    */
   async renderScript(script: Script, type: ScriptType) {
-    const scriptHtml = await cloneTemplate(script, type);
+    const scriptHtml = await this.cloneTemplate(script, type);
     const $emptyTip =
       type === ScriptType.GLOBAL ? $(`#global-script-list`).find('small') : $(`#scoped-script-list`).find('small');
     if (type === ScriptType.GLOBAL) {
@@ -344,14 +342,6 @@ class ScriptRepository {
    */
   async openScriptEditor(type: ScriptType, scriptId?: string) {
     const $editorHtml = $(await renderExtensionTemplateAsync(`${templatePath}`, 'script_editor'));
-    const $buttonContent = `<div class="button-item">
-              <span class="drag-handle menu-handle">☰</span>
-              <input type="checkbox"/>
-              <input class="text_pole" type="text"/>
-              <div class="delete-button menu_button interactable">
-                <i class="fa-solid fa-trash"></i>
-              </div>
-            </div>`;
     let script: Script | undefined;
     if (scriptId) {
       if (type === ScriptType.GLOBAL) {
@@ -365,17 +355,35 @@ class ScriptRepository {
         $editorHtml.find('#script-content-textarea').val(script.content);
         $editorHtml.find('#script-info-textarea').val(script.info);
         if (script.buttons && script.buttons.length > 0) {
-          script.buttons.forEach(button => {
-            $editorHtml.find('#script-button-content').append($buttonContent);
-            $editorHtml.find('#script-button-content').find('input').val(button.name);
-            $editorHtml.find('#script-button-content').find('input').prop('checked', button.visible);
+          script.buttons.forEach((button, index) => {
+            const buttonId = `button-${index}`;
+            const $buttonContent = $(`<div class="button-item" id="${buttonId}">
+              <span class="drag-handle menu-handle">☰</span>
+              <input type="checkbox" id="checkbox-${buttonId}" ${button.visible ? 'checked' : ''} />
+              <input class="text_pole" type="text" id="text-${buttonId}" value="${button.name}"/>
+              <div class="delete-button menu_button interactable">
+                <i class="fa-solid fa-trash"></i>
+              </div>
+            </div>`);
+            $editorHtml.find('.button-list').append($buttonContent);
+            $(`#text-${buttonId}`).val(button.name);
+            $(`#checkbox-${buttonId}`).prop('checked', button.visible);
           });
         }
       }
     }
 
     $editorHtml.find('#add-button-trigger').on('click', () => {
-      $editorHtml.find('#script-button-content').append($buttonContent);
+      const buttonId = `button-${$editorHtml.find('.button-list .button-item').length}`;
+      const $buttonContent = $(`<div class="button-item" id="${buttonId}">
+        <span class="drag-handle menu-handle">☰</span>
+        <input type="checkbox" id="checkbox-${buttonId}"/>
+        <input class="text_pole" type="text" id="text-${buttonId}"/>
+        <div class="delete-button menu_button interactable">
+          <i class="fa-solid fa-trash"></i>
+        </div>
+      </div>`);
+      $editorHtml.find('.button-list').append($buttonContent);
     });
 
     $editorHtml.find('#script-button-content').sortable({
@@ -399,24 +407,26 @@ class ScriptRepository {
       const scriptContent = $editorHtml.find('#script-content-textarea').val() as string;
       const scriptInfo = $editorHtml.find('#script-info-textarea').val() as string;
       const buttonArray = $editorHtml
-        .find('#script-button-content')
+        .find('.button-list')
         .find('.button-item')
         .map((_index, element) => {
-          const buttonText = $(element).find('input.text_pole').val() as string;
-          const isVisible = $(element).find('input[type="checkbox"]').prop('checked');
+          const buttonId = $(element).attr('id');
+          if (!buttonId) return null;
+          const buttonText = $(element).find(`#text-${buttonId}`).val() as string;
+          const isVisible = $(element).find(`#checkbox-${buttonId}`).prop('checked');
           return {
             text: buttonText,
             visible: isVisible,
           };
         })
         .toArray()
-        .filter(button => button.text && button.text.trim() !== '');
+        .filter(button => button && button.text && button.text.trim() !== '');
 
       if (scriptId && script) {
         const oldButtons = script.buttons;
         if (oldButtons) {
           oldButtons.forEach(button => {
-            scriptButtonUi.$scriptBar.find(`#${button.name}_${script.id}`).remove();
+            $(`#${button.name}_${script.id}`).remove();
           });
         }
 
@@ -425,9 +435,10 @@ class ScriptRepository {
         script.info = scriptInfo;
         script.buttons = buttonArray.map(button => ({ name: button.text, visible: button.visible }));
         $(`#${script.id}`).find('.script-item-name').text(script.name);
-        await scriptRepo.saveScript(script, type);
+        await this.saveScript(script, type);
         if (script.enabled) {
-          await scriptRepo.runScript(script, type, false);
+          await this.runScript(script, type, false);
+          this.addButton(script);
         }
       } else {
         const newScript = new Script({
@@ -438,7 +449,7 @@ class ScriptRepository {
           enabled: false,
           buttons: buttonArray.map(button => ({ name: button.text, visible: button.visible })),
         });
-        await scriptRepo.addScript(newScript, type);
+        await this.addScript(newScript, type);
       }
     }
   }
@@ -461,10 +472,10 @@ class ScriptRepository {
 
         if (type === ScriptType.GLOBAL) {
           $('#global-script-list').find(`#${id}`).remove();
-          await scriptRepo.saveGlobalScripts(array);
+          await this.saveGlobalScripts(array);
         } else {
           $('#scoped-script-list').find(`#${id}`).remove();
-          await scriptRepo.saveCharacterScripts(array);
+          await this.saveCharacterScripts(array);
         }
         if (array.length === 0) {
           const $emptyTip = `<small>暂无可用脚本</small>`;
@@ -500,7 +511,7 @@ class ScriptRepository {
     if (type === ScriptType.GLOBAL) {
       await saveSettingValue('script.scriptsRepository', array);
     } else {
-      await scriptRepo.saveCharacterScripts(array);
+      await this.saveCharacterScripts(array);
     }
   }
 
@@ -555,9 +566,9 @@ class ScriptRepository {
           .filter(Boolean);
 
         if (type === ScriptType.GLOBAL) {
-          await scriptRepo.saveGlobalScripts(updatedScripts);
+          await this.saveGlobalScripts(updatedScripts);
         } else {
-          await scriptRepo.saveCharacterScripts(updatedScripts);
+          await this.saveCharacterScripts(updatedScripts);
         }
       },
     });
@@ -577,10 +588,10 @@ class ScriptRepository {
         sourceArray.splice(sourceIndex, 1);
 
         if (type === ScriptType.GLOBAL) {
-          await scriptRepo.saveGlobalScripts(sourceArray);
+          await this.saveGlobalScripts(sourceArray);
           $('#global-script-list').find(`#${script.id}`).remove();
         } else {
-          await scriptRepo.saveCharacterScripts(sourceArray);
+          await this.saveCharacterScripts(sourceArray);
           $('#scoped-script-list').find(`#${script.id}`).remove();
         }
 
@@ -593,11 +604,11 @@ class ScriptRepository {
         targetArray.unshift(script);
 
         if (targetType === ScriptType.GLOBAL) {
-          await scriptRepo.saveGlobalScripts(targetArray);
-          await scriptRepo.renderScript(script, targetType);
+          await this.saveGlobalScripts(targetArray);
+          await this.renderScript(script, targetType);
         } else {
-          await scriptRepo.saveCharacterScripts(targetArray);
-          await scriptRepo.renderScript(script, targetType);
+          await this.saveCharacterScripts(targetArray);
+          await this.renderScript(script, targetType);
         }
       } else {
         throw new Error('[ScriptRepository] 脚本不存在');
@@ -608,244 +619,286 @@ class ScriptRepository {
       throw error;
     }
   }
-}
 
-export const scriptRepo = ScriptRepository.getInstance();
+  /**
+   * 克隆显示模板
+   * @param script 脚本
+   * @param type 类型,global 全局,scope 局部
+   */
+  async cloneTemplate(script: Script, type: ScriptType.GLOBAL | ScriptType.CHARACTER) {
+    const scriptHtml = baseTemplate.clone();
 
-export class ScriptButtonUi {
-  $scriptBar!: JQuery<HTMLElement>;
-  constructor() {
-    this.init();
-  }
+    scriptHtml.attr('id', script.id);
 
-  init() {
-    if (!$('#TH-script-bar').length) {
-      $('<div id="TH-script-bar" class="flex-container flexGap5 alignItemsCenter justifyCenter"></div>').prependTo(
-        '#send_form',
-      );
-    }
-    this.$scriptBar = $('#TH-script-bar');
-  }
+    scriptHtml.find('.script-item-name').text(script.name);
+    scriptHtml.find('.script-storage-location').addClass(type === 'global' ? 'move-to-scoped' : 'move-to-global');
+    scriptHtml.find('.script-storage-location i').addClass(type === 'global' ? 'fa-arrow-down' : 'fa-arrow-up');
 
-  addButton(button: { name: string }, id: string) {
-    const buttonId = `${button.name}_${id}`;
-    this.$scriptBar.append(
-      `<div class="TH-script-button menu_button interactable" id="${buttonId}">${button.name}</div>`,
-    );
-    this.$scriptBar.find(`#${buttonId}`).on('click', async () => {
-      await eventSource.emit(`${buttonId}`);
+    const toggleId = `toggle-script-${script.id}`;
+    scriptHtml.find('label').attr('for', toggleId);
+
+    scriptHtml
+      .find('.toggle-script')
+      .attr('id', toggleId)
+      .prop('checked', script.enabled)
+      .on('change', async e => {
+        const isChecked = !!$(e.target).prop('checked');
+
+        scriptHtml.find('.script-toggle-on').toggle(isChecked);
+        scriptHtml.find('.script-toggle-off').toggle(!isChecked);
+        script.enabled = isChecked;
+        await this.saveScript(script, type);
+        // 不需要再保存一次
+        if (isChecked) {
+          await this.runScript(script, type, false);
+          this.addButton(script);
+        } else {
+          await this.cancelRunScript(script, type, false);
+          this.removeButton(script);
+        }
+      });
+
+    scriptHtml
+      .find('.script-toggle-on')
+      .toggle(script.enabled)
+      .on('click', async function () {
+        $(this).hide();
+        scriptHtml.find('.script-toggle-off').show();
+      });
+
+    scriptHtml
+      .find('.script-toggle-off')
+      .toggle(!script.enabled)
+      .on('click', async function () {
+        $(this).hide();
+        scriptHtml.find('.script-toggle-on').show();
+      });
+
+    scriptHtml.find('.script-info').on('click', async function () {
+      const htmlText = renderMarkdown(script.info);
+      await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
     });
+
+    scriptHtml.find('.edit-script').on('click', () => this.openScriptEditor(type, script.id));
+    scriptHtml.find('.script-storage-location').on('click', () => this.moveScriptToOtherType(script, type));
+    scriptHtml.find('.export-script').on('click', async function () {
+      // eslint-disable-next-line no-control-regex
+      const fileName = `${script.name.replace(/[\s.<>:"/\\|?*\x00-\x1F\x7F]/g, '_').toLowerCase()}.json`;
+      const { id, enabled, ...scriptData } = script;
+      const fileData = JSON.stringify(scriptData, null, 4);
+      download(fileData, fileName, 'application/json');
+    });
+    scriptHtml.find('.delete-script').on('click', async () => {
+      const confirm = await callGenericPopup('确定要删除这个脚本吗？', POPUP_TYPE.CONFIRM);
+
+      if (!confirm) {
+        return;
+      }
+
+      await this.deleteScript(script.id, type);
+
+      scriptHtml.remove();
+    });
+    return scriptHtml;
   }
 
-  removeButton(name: string, id: string) {
-    this.$scriptBar.find(`#${name}_${id}`).remove();
-  }
+  /**
+   * 克隆默认脚本模板
+   * @param script 脚本
+   * @param type 类型,global 全局,scope 局部
+   */
+  async cloneDefaultScriptTemplate(script: Script) {
+    const scriptHtml = defaultScriptTemplate.clone();
 
-  clear() {
-    this.$scriptBar.empty();
-  }
-}
+    scriptHtml.attr('id', script.id);
 
-export const scriptButtonUi = new ScriptButtonUi();
+    scriptHtml.find('.script-item-name').text(script.name);
+    scriptHtml.find('.script-info').on('click', () => {
+      const htmlText = renderMarkdown(script.info);
+      callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
+    });
+    scriptHtml.find('.add-script').on('click', async () => {
+      let target = 'global';
+      const template = $(await renderExtensionTemplateAsync(`${templatePath}`, 'script_import_target'));
+      template.find('#script-import-target-global').on('input', () => (target = 'global'));
+      template.find('#script-import-target-scoped').on('input', () => (target = 'scoped'));
+      await callGenericPopup(template, POPUP_TYPE.TEXT);
 
-/**
- * 克隆显示模板
- * @param script 脚本
- * @param type 类型,global 全局,scope 局部
- */
-export async function cloneTemplate(script: Script, type: ScriptType.GLOBAL | ScriptType.CHARACTER) {
-  const scriptHtml = baseTemplate.clone();
+      const convertedScript = new Script({
+        id: script.id,
+        name: script.name,
+        content: script.content,
+        info: script.info,
+        enabled: script.enabled,
+      });
 
-  scriptHtml.attr('id', script.id);
-
-  scriptHtml.find('.script-item-name').text(script.name);
-  scriptHtml.find('.script-storage-location').addClass(type === 'global' ? 'move-to-scoped' : 'move-to-global');
-  scriptHtml.find('.script-storage-location i').addClass(type === 'global' ? 'fa-arrow-down' : 'fa-arrow-up');
-
-  const toggleId = `toggle-script-${script.id}`;
-  scriptHtml.find('label').attr('for', toggleId);
-
-  scriptHtml
-    .find('.toggle-script')
-    .attr('id', toggleId)
-    .prop('checked', script.enabled)
-    .on('change', async function () {
-      const isChecked = !!$(this).prop('checked');
-
-      scriptHtml.find('.script-toggle-on').toggle(isChecked);
-      scriptHtml.find('.script-toggle-off').toggle(!isChecked);
-      script.enabled = isChecked;
-      await scriptRepo.saveScript(script, type);
-      // 不需要再保存一次
-      if (isChecked) {
-        await scriptRepo.runScript(script, type, false);
+      const type = target === 'global' ? ScriptType.GLOBAL : ScriptType.CHARACTER;
+      // 检查是否已存在相同id的脚本
+      const existingScript = this.getScriptById(convertedScript.id);
+      if (existingScript) {
+        const confirm = await callGenericPopup(`脚本 ${existingScript.name} 已存在，是否要覆盖？`, POPUP_TYPE.CONFIRM);
+        if (!confirm) {
+          return;
+        } else {
+          await this.saveScript(convertedScript, type);
+        }
       } else {
-        await scriptRepo.cancelRunScript(script, type, false);
+        await this.addScript(convertedScript, type);
       }
     });
+    return scriptHtml;
+  }
 
-  scriptHtml
-    .find('.script-toggle-on')
-    .toggle(script.enabled)
-    .on('click', async function () {
-      $(this).hide();
-      scriptHtml.find('.script-toggle-off').show();
-    });
+  /**
+   * 加载默认脚本库
+   */
+  async loadDefaultScriptsRepository() {
+    const defaultScriptList = $('<div id="default-script-list" class="flex-container flexFlowColumn"></div>');
+    const defaultScripts = await createDefaultScripts();
+    for (const script of defaultScripts) {
+      const template = await this.cloneDefaultScriptTemplate(script);
+      defaultScriptList.append(template);
+    }
+    await callGenericPopup(defaultScriptList, POPUP_TYPE.TEXT);
+  }
 
-  scriptHtml
-    .find('.script-toggle-off')
-    .toggle(!script.enabled)
-    .on('click', async function () {
-      $(this).hide();
-      scriptHtml.find('.script-toggle-on').show();
-    });
+  /**
+   * 处理脚本启用开关的点击事件
+   * @param type 类型,global 全局,scope 局部
+   * @param enable 是否启用
+   * @param userInput 是否由用户输入
+   */
+  async handleScriptToggle(type: ScriptType, enable: boolean, userInput: boolean = true) {
+    if (type === ScriptType.GLOBAL) {
+      if (userInput) {
+        await saveSettingValue('script.global_script_enabled', enable);
+      }
+      isGlobalScriptEnabled = enable;
+      if (enable) {
+        this.runScriptsByType(ScriptType.GLOBAL);
+        this.addButtonsByType(ScriptType.GLOBAL);
+      } else {
+        this.cancelRunScriptsByType(ScriptType.GLOBAL);
+        this.removeButtonsByType(ScriptType.GLOBAL);
+      }
+    } else {
+      if (userInput) {
+        await saveSettingValue('script.scope_script_enabled', enable);
+      }
+      isScopedScriptEnabled = enable;
+      if (enable) {
+        this.runScriptsByType(ScriptType.CHARACTER);
+        this.addButtonsByType(ScriptType.CHARACTER);
+      } else {
+        this.cancelRunScriptsByType(ScriptType.CHARACTER);
+        this.removeButtonsByType(ScriptType.CHARACTER);
+      }
+    }
+  }
 
-  scriptHtml.find('.script-info').on('click', async function () {
-    const info = script.getScript().info;
-    const htmlText = renderMarkdown(info);
-    await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
-  });
-
-  scriptHtml.find('.edit-script').on('click', () => scriptRepo.openScriptEditor(type, script.id));
-  scriptHtml.find('.script-storage-location').on('click', () => scriptRepo.moveScriptToOtherType(script, type));
-  scriptHtml.find('.export-script').on('click', async function () {
-    // eslint-disable-next-line no-control-regex
-    const fileName = `${script.name.replace(/[\s.<>:"/\\|?*\x00-\x1F\x7F]/g, '_').toLowerCase()}.json`;
-    const { id, enabled, ...scriptData } = script;
-    const fileData = JSON.stringify(scriptData, null, 4);
-    download(fileData, fileName, 'application/json');
-  });
-  scriptHtml.find('.delete-script').on('click', async () => {
-    const confirm = await callGenericPopup('确定要删除这个脚本吗？', POPUP_TYPE.CONFIRM);
-
-    if (!confirm) {
+  /**
+   * 导入脚本文件
+   * @param {File} file 文件
+   * @param {boolean} type 脚本类型
+   */
+  async onScriptImportFileChange(file: File, type: ScriptType) {
+    if (!file) {
+      toastr.error('未提供文件。');
       return;
     }
 
-    await scriptRepo.deleteScript(script.id, type);
-
-    scriptHtml.remove();
-  });
-  return scriptHtml;
-}
-
-/**
- * 克隆默认脚本模板
- * @param script 脚本
- * @param type 类型,global 全局,scope 局部
- */
-export async function cloneDefaultScriptTemplate(script: Script) {
-  const scriptHtml = defaultScriptTemplate.clone();
-
-  scriptHtml.attr('id', script.id);
-
-  scriptHtml.find('.script-item-name').text(script.name);
-  scriptHtml.find('.script-info').on('click', () => callGenericPopup(script.info, POPUP_TYPE.DISPLAY));
-  scriptHtml.find('.add-script').on('click', async () => {
-    let target = 'global';
-    const template = $(await renderExtensionTemplateAsync(`${templatePath}`, 'script_import_target'));
-    template.find('#script-import-target-global').on('input', () => (target = 'global'));
-    template.find('#script-import-target-scoped').on('input', () => (target = 'scoped'));
-    await callGenericPopup(template, POPUP_TYPE.TEXT);
-
-    const convertedScript = new Script({
-      id: script.id,
-      name: script.name,
-      content: script.content,
-      info: script.info,
-      enabled: script.enabled,
-    });
-
-    const type = target === 'global' ? ScriptType.GLOBAL : ScriptType.CHARACTER;
-    // 检查是否已存在相同id的脚本
-    const existingScript = scriptRepo.getScriptById(convertedScript.id);
-    if (existingScript) {
-      const confirm = await callGenericPopup(`脚本 ${existingScript.name} 已存在，是否要覆盖？`, POPUP_TYPE.CONFIRM);
-      if (!confirm) {
-        return;
-      } else {
-        await scriptRepo.saveScript(convertedScript, type);
+    try {
+      const fileText = await getFileText(file);
+      const script = JSON.parse(fileText);
+      if (!script.name) {
+        throw new Error('未提供脚本名称。');
       }
-    } else {
-      await scriptRepo.addScript(convertedScript, type);
-    }
-  });
-  return scriptHtml;
-}
 
-/**
- * 加载默认脚本库
- */
-async function loadDefaultScriptsRepository() {
-  const defaultScriptList = $('<div id="default-script-list" class="flex-container flexFlowColumn"></div>');
-  const defaultScripts = await createDefaultScripts();
-  for (const script of defaultScripts) {
-    const template = await cloneDefaultScriptTemplate(script);
-    defaultScriptList.append(template);
-  }
-  await callGenericPopup(defaultScriptList, POPUP_TYPE.TEXT);
-}
+      const newScript = new Script(script);
+      // 分配一个新的id
+      newScript.id = uuidv4();
+      newScript.enabled = false;
 
-/**
- * 处理脚本启用开关的点击事件
- * @param type 类型,global 全局,scope 局部
- * @param enable 是否启用
- * @param userInput 是否由用户输入
- */
-async function handleScriptToggle(type: ScriptType, enable: boolean, userInput: boolean = true) {
-  if (type === ScriptType.GLOBAL) {
-    if (userInput) {
-      await saveSettingValue('script.global_script_enabled', enable);
-    }
-    isGlobalScriptEnabled = enable;
-    if (enable) {
-      scriptRepo.runScriptsByType(ScriptType.GLOBAL);
-    } else {
-      scriptRepo.cancelRunScriptsByType(ScriptType.GLOBAL);
-    }
-  } else {
-    if (userInput) {
-      await saveSettingValue('script.scope_script_enabled', enable);
-    }
-    isScopedScriptEnabled = enable;
-    if (enable) {
-      scriptRepo.runScriptsByType(ScriptType.CHARACTER);
-    } else {
-      scriptRepo.cancelRunScriptsByType(ScriptType.CHARACTER);
+      await this.saveScript(newScript, type);
+      await this.renderScript(newScript, type);
+      toastr.success(`脚本 "${newScript.name}" 导入成功。`);
+    } catch (error) {
+      console.error(error);
+      toastr.error('无效的JSON文件。');
+      return;
     }
   }
-}
 
-/**
- * 导入脚本文件
- * @param {File} file 文件
- * @param {boolean} type 脚本类型
- */
-async function onScriptImportFileChange(file: File, type: ScriptType) {
-  if (!file) {
-    toastr.error('未提供文件。');
-    return;
+  /**
+   * 检查角色中的嵌入式脚本
+   */
+  async checkEmbeddedScripts() {
+    const chid = this_chid;
+
+    if (chid !== undefined && !selected_group) {
+      const avatar = characters[chid]?.avatar;
+      const scripts = characters[chid]?.data?.extensions?.TavernHelper_scripts;
+
+      if (Array.isArray(scripts) && scripts.length > 0) {
+        const charactersWithScripts = getSettingValue('script.characters_with_scripts');
+        if (avatar && !charactersWithScripts.includes(avatar)) {
+          const characterScripts = characters[chid]?.data?.extensions?.TavernHelper_scripts;
+          if (Array.isArray(characterScripts) && characterScripts.length > 0) {
+            const scopedScripts = characterScripts.map((scriptData: Script) => new Script(scriptData));
+            scopedScripts.forEach(async (script: Script) => {
+              const scriptHtml = await this.cloneTemplate(script, ScriptType.CHARACTER);
+              $('#scoped-script-list').append(scriptHtml);
+            });
+
+            const template = await renderExtensionTemplateAsync(`${templatePath}`, 'script_allow_popup');
+            const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', { okButton: 'Yes' });
+
+            if (result) {
+              $('#scoped-script-list')
+                .find('.toggle-script')
+                .each(function () {
+                  $(this).prop('checked', !$(this).prop('checked')).trigger('change');
+                });
+            }
+            charactersWithScripts.push(avatar);
+            await saveSettingValue('script.characters_with_scripts', charactersWithScripts);
+          }
+        }
+      }
+    }
   }
 
-  try {
-    const fileText = await getFileText(file);
-    const script = JSON.parse(fileText);
-    if (!script.name) {
-      throw new Error('未提供脚本名称。');
+  addButton(script: Script) {
+    if (script.buttons && script.buttons.length > 0) {
+      script.buttons.forEach(button => {
+        if (button.visible) {
+          $('#TH-script-buttons').append(
+            `<div class="qr--button menu_button interactable" id="${script.name}_${script.id}">${script.name}</div>`,
+          );
+          console.log('addButton', script.name, script.id);
+        }
+      });
+    } else {
+      return;
     }
+  }
 
-    const newScript = new Script(script);
-    // 分配一个新的id
-    newScript.id = uuidv4();
-    newScript.enabled = false;
+  addButtonsByType(type: ScriptType) {
+    const scripts = type === ScriptType.GLOBAL ? this.globalScripts : this.characterScripts;
+    for (const script of scripts) {
+      this.addButton(script);
+    }
+  }
 
-    await scriptRepo.saveScript(newScript, type);
-    await scriptRepo.renderScript(newScript, type);
-    toastr.success(`脚本 "${newScript.name}" 导入成功。`);
-  } catch (error) {
-    console.error(error);
-    toastr.error('无效的JSON文件。');
-    return;
+  removeButton(script: Script) {
+    $(`#qr--bar`).find(`#${script.name}_${script.id}`).remove();
+  }
+
+  removeButtonsByType(type: ScriptType) {
+    const scripts = type === ScriptType.GLOBAL ? this.globalScripts : this.characterScripts;
+    for (const script of scripts) {
+      this.removeButton(script);
+    }
   }
 }
 
@@ -867,45 +920,6 @@ export async function purgeEmbeddedScripts({ character }) {
 }
 
 /**
- * 检查角色中的嵌入式脚本
- */
-export async function checkEmbeddedScripts() {
-  const chid = this_chid;
-
-  if (chid !== undefined && !selected_group) {
-    const avatar = characters[chid]?.avatar;
-    const scripts = characters[chid]?.data?.extensions?.TavernHelper_scripts;
-
-    if (Array.isArray(scripts) && scripts.length > 0) {
-      const charactersWithScripts = getSettingValue('script.characters_with_scripts');
-      if (avatar && !charactersWithScripts.includes(avatar)) {
-        const characterScripts = characters[chid]?.data?.extensions?.TavernHelper_scripts;
-        if (Array.isArray(characterScripts) && characterScripts.length > 0) {
-          const scopedScripts = characterScripts.map((scriptData: Script) => new Script(scriptData));
-          scopedScripts.forEach(async (script: Script) => {
-            const scriptHtml = await cloneTemplate(script, ScriptType.CHARACTER);
-            $('#scoped-script-list').append(scriptHtml);
-          });
-
-          const template = await renderExtensionTemplateAsync(`${templatePath}`, 'script_allow_popup');
-          const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', { okButton: 'Yes' });
-
-          if (result) {
-            $('#scoped-script-list')
-              .find('.toggle-script')
-              .each(function () {
-                $(this).prop('checked', !$(this).prop('checked')).trigger('change');
-              });
-          }
-          charactersWithScripts.push(avatar);
-          await saveSettingValue('script.characters_with_scripts', charactersWithScripts);
-        }
-      }
-    }
-  }
-}
-
-/**
  * 清理所有脚本iframe
  */
 export async function clearAllScriptsIframe() {
@@ -915,19 +929,37 @@ export async function clearAllScriptsIframe() {
   }
 }
 
-export async function initScriptRepository() {
+/**
+ * 初始化按钮容器
+ */
+function initButtonContainer() {
+  const $qrBar = $('#qr--bar');
+  if (!$qrBar.length) {
+    $('#send_form').append(
+      '<div class="flex-container flexGap5" id="qr--bar"><div class="qr--buttons qr--color" id="TH-script-buttons"></div></div>',
+    );
+    console.log('initButtonContainer', $qrBar);
+  }
+}
+
+export async function initScriptRepository(scriptRepo: ScriptRepository) {
+  initButtonContainer();
   isGlobalScriptEnabled = getSettingValue('script.global_script_enabled');
   isScopedScriptEnabled = getSettingValue('script.scope_script_enabled');
 
-  handleScriptToggle(ScriptType.GLOBAL, isGlobalScriptEnabled, false);
-  handleScriptToggle(ScriptType.CHARACTER, isScopedScriptEnabled, false);
+  scriptRepo.handleScriptToggle(ScriptType.GLOBAL, isGlobalScriptEnabled, false);
+  scriptRepo.handleScriptToggle(ScriptType.CHARACTER, isScopedScriptEnabled, false);
 
   $('#global-script-enable-toggle')
     .prop('checked', isGlobalScriptEnabled)
-    .on('click', (event: JQuery.ClickEvent) => handleScriptToggle(ScriptType.GLOBAL, event.target.checked, true));
+    .on('click', (event: JQuery.ClickEvent) =>
+      scriptRepo.handleScriptToggle(ScriptType.GLOBAL, event.target.checked, true),
+    );
   $('#scoped-script-enable-toggle')
     .prop('checked', isScopedScriptEnabled)
-    .on('click', (event: JQuery.ClickEvent) => handleScriptToggle(ScriptType.CHARACTER, event.target.checked, true));
+    .on('click', (event: JQuery.ClickEvent) =>
+      scriptRepo.handleScriptToggle(ScriptType.CHARACTER, event.target.checked, true),
+    );
 
   $('#open-global-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptType.GLOBAL, undefined));
   $('#open-scoped-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptType.CHARACTER, undefined));
@@ -941,7 +973,7 @@ export async function initScriptRepository() {
     const inputElement = this instanceof HTMLInputElement && this;
     if (inputElement && inputElement.files) {
       for (const file of inputElement.files) {
-        await onScriptImportFileChange(file, target === 'global' ? ScriptType.GLOBAL : ScriptType.CHARACTER);
+        await scriptRepo.onScriptImportFileChange(file, target === 'global' ? ScriptType.GLOBAL : ScriptType.CHARACTER);
       }
 
       inputElement.value = '';
@@ -952,6 +984,5 @@ export async function initScriptRepository() {
     $('#import-script-file').trigger('click');
   });
 
-  $('#default-script').on('click', loadDefaultScriptsRepository);
-  scriptButtonUi.init();
+  $('#default-script').on('click', () => scriptRepo.loadDefaultScriptsRepository());
 }

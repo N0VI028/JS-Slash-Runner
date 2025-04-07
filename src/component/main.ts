@@ -20,12 +20,10 @@ import {
   viewport_adjust_script,
 } from '@/component/message_iframe';
 import {
-  scriptRepo,
+  ScriptRepository,
   ScriptType,
-  checkEmbeddedScripts,
-  purgeEmbeddedScripts,
   clearAllScriptsIframe,
-  scriptButtonUi,
+  purgeEmbeddedScripts,
 } from '@/component/script_repository/index';
 import { iframe_client } from '@/iframe_client/index';
 import { handleIframe } from '@/iframe_server/index';
@@ -35,11 +33,17 @@ import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 
 import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, this_chid } from '@sillytavern/script';
 
+export let scriptRepo: ScriptRepository;
+
+let qrBarObserver: MutationObserver | null = null;
+
 const handleChatChanged = async () => {
-  await checkEmbeddedScripts();
+  await scriptRepo.checkEmbeddedScripts();
 
   await clearAllScriptsIframe();
-  scriptButtonUi.clear();
+  scriptRepo.removeButtonsByType(ScriptType.GLOBAL);
+  scriptRepo.removeButtonsByType(ScriptType.CHARACTER);
+
   await scriptRepo.loadScriptLibrary();
   await scriptRepo.runScriptsByType(ScriptType.GLOBAL);
   await scriptRepo.runScriptsByType(ScriptType.CHARACTER);
@@ -74,6 +78,46 @@ const handleVariableUpdated = (mesId: string) => {
 };
 
 /**
+ * 监听#qr--bar的元素创建且发出事件
+ */
+function MutationObserverQrBarCreated() {
+  const $qrBar = $('#qr--bar');
+  if ($qrBar.length > 0) {
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(node => {
+            if (node instanceof Element && node.id === 'qr--bar') {
+              setTimeout(() => {
+                const $THbar = $(`<div class="qr--buttons qr--color" id="TH-script-buttons"></div>`);
+                $('#qr--bar').append($THbar);
+                scriptRepo.addButtonsByType(ScriptType.GLOBAL);
+                scriptRepo.addButtonsByType(ScriptType.CHARACTER);
+              }, 1000);
+            }
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+}
+
+/**
+ * 取消监听#qr--bar
+ */
+function removeMutationObserverQrBarCreated() {
+  if (qrBarObserver) {
+    qrBarObserver.disconnect();
+    qrBarObserver = null;
+  }
+}
+
+/**
  * 初始化扩展主设置界面
  */
 export function initExtensionMainPanel() {
@@ -95,6 +139,8 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
   if (enable) {
     // 指示器样式
     $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
+    MutationObserverQrBarCreated();
+    scriptRepo = ScriptRepository.getInstance();
 
     script_url.set('iframe_client', iframe_client);
     script_url.set('viewport_adjust_script', viewport_adjust_script);
@@ -122,13 +168,15 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
       eventSource.on(eventType, handleVariableUpdated);
     });
     eventSource.on(event_types.MESSAGE_DELETED, handleMessageDeleted);
-
     if (userAction && this_chid !== undefined) {
       await reloadCurrentChat();
     }
   } else {
     // 指示器样式
     $('#extension-status-icon').css('color', 'red').next().text('扩展已禁用');
+
+    removeMutationObserverQrBarCreated();
+    ScriptRepository.destroyInstance();
 
     script_url.delete('iframe_client');
     script_url.delete('viewport_adjust_script');

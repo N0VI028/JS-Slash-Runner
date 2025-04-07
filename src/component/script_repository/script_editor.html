@@ -12,16 +12,18 @@
     <h4>作者备注</h4>
     <textarea
       id="script-info-textarea"
-      placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等"
+      placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等，支持简单的markdown和html"
       rows="5"
     ></textarea>
   </div>
   <div id="script-button-content" class="script-editor-container">
-    <div class="flex-container gap10">
+    <div class="flex-container gap10 alignItemsCenter justifyContentCenter">
       <h4>按钮触发</h4>
       <div class="menu_button interactable" id="add-button-trigger">
         <i class="fa-solid fa-plus"></i>
       </div>
     </div>
+    <small>需配合eventOnButton使用</small>
+    <div class="button-list"></div>
   </div>
 </div>
