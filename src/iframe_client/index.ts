@@ -10,3 +10,11 @@ export const iframe_client = [
   event,
   util,
 ].join('\n');
+
+export const window_functions = `
+  SillyTavern = window.parent.SillyTavern.getContext();
+  TavernHelper = window.parent.TavernHelper;
+  for (const key in TavernHelper) {
+    window[key] = TavernHelper[key];
+  }
+`;

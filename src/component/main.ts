@@ -25,7 +25,7 @@ import {
   clearAllScriptsIframe,
   purgeEmbeddedScripts,
 } from '@/component/script_repository/index';
-import { iframe_client } from '@/iframe_client/index';
+import { iframe_client, window_functions } from '@/iframe_client/index';
 import { handleIframe } from '@/iframe_server/index';
 import { checkVariablesEvents, clearTempVariables, shouldUpdateVariables } from '@/iframe_server/variables';
 import { script_url } from '@/script_url';
@@ -143,6 +143,7 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     scriptRepo = ScriptRepository.getInstance();
 
     script_url.set('iframe_client', iframe_client);
+    script_url.set('window_functions', window_functions);
     script_url.set('viewport_adjust_script', viewport_adjust_script);
     script_url.set('tampermonkey_script', tampermonkey_script);
 
@@ -179,6 +180,7 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     ScriptRepository.destroyInstance();
 
     script_url.delete('iframe_client');
+    script_url.delete('window_functions');
     script_url.delete('viewport_adjust_script');
     script_url.delete('tampermonkey_script');
 

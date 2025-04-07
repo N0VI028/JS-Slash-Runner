@@ -5,6 +5,7 @@ export const DEFAULT_SCRIPT_IDS = {
   AUTO_FIX_OPTIONS: 'default_auto_fix_options',
   AUTO_OPEN_SCOPE_REGEX: 'default_auto_open_scope_regex',
   AUTO_TOGGLE_BY_PRESET: 'default_auto_toggle_by_preset',
+  AUTO_IMPORT_QR: 'default_auto_import_qr',
 };
 
 /**
@@ -23,6 +24,10 @@ export const DEFAULT_SCRIPT_CONFIGS = {
   [DEFAULT_SCRIPT_IDS.AUTO_TOGGLE_BY_PRESET]: {
     name: '随预设或API自动切换正则、世界书、提示词条目',
     scriptId: 'auto_toggle_by_preset',
+  },
+  [DEFAULT_SCRIPT_IDS.AUTO_IMPORT_QR]: {
+    name: '自动导入角色卡快速回复',
+    scriptId: 'auto_import_qr',
   },
 };
 
@@ -93,27 +98,12 @@ export async function createDefaultScript(scriptId: string): Promise<any> {
 }
 
 /**
- * 创建自动关闭前端卡不兼容选项脚本
+ * 创建指定类型的默认脚本
+ * @param type 脚本类型
  * @returns 脚本对象
  */
-export async function createAutoFixOptionsScript(): Promise<any> {
-  return (await createDefaultScript(DEFAULT_SCRIPT_IDS.AUTO_FIX_OPTIONS)) || {};
-}
-
-/**
- * 创建自动开启角色卡局部正则脚本
- * @returns 脚本对象
- */
-export async function createAutoOpenScopeRegexScript(): Promise<any> {
-  return (await createDefaultScript(DEFAULT_SCRIPT_IDS.AUTO_OPEN_SCOPE_REGEX)) || {};
-}
-
-/**
- * 创建自动开启角色卡局部正则脚本
- * @returns 脚本对象
- */
-export async function createAutoToggleByPresetScript(): Promise<any> {
-  return (await createDefaultScript(DEFAULT_SCRIPT_IDS.AUTO_TOGGLE_BY_PRESET)) || {};
+export async function createScript(type: keyof typeof DEFAULT_SCRIPT_IDS): Promise<any> {
+  return (await createDefaultScript(DEFAULT_SCRIPT_IDS[type])) || {};
 }
 
 /**

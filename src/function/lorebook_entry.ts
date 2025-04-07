@@ -10,6 +10,55 @@ import {
   world_names,
 } from '@sillytavern/scripts/world-info';
 
+interface LorebookEntry {
+  uid: number; // uid 是相对于世界书内部的, 不要跨世界书使用
+  display_index: number; // 酒馆中将排序设置为 "自定义" 时的显示顺序
+
+  comment: string;
+  enabled: boolean;
+  type: 'constant' | 'selective' | 'vectorized';
+  position:
+    | 'before_character_definition' // 角色定义之前
+    | 'after_character_definition' // 角色定义之后
+    | 'before_example_messages' // 示例消息之前
+    | 'after_example_messages' // 示例消息之后
+    | 'before_author_note' // 作者注释之前
+    | 'after_author_note' // 作者注释之后
+    | 'at_depth_as_system' // @D⚙
+    | 'at_depth_as_assistant' // @D👤
+    | 'at_depth_as_user'; // @D🤖
+  depth: number | null; // 仅对于 `position === 'at_depth_as_???'` 有意义; 其他情况为 null
+  order: number;
+  probability: number;
+
+  key: string[];
+  logic: 'and_any' | 'and_all' | 'not_all' | 'not_any';
+  filter: string[];
+
+  scan_depth: 'same_as_global' | number;
+  case_sensitive: 'same_as_global' | boolean;
+  match_whole_words: 'same_as_global' | boolean;
+  use_group_scoring: 'same_as_global' | boolean;
+  automation_id: string | null;
+
+  exclude_recursion: boolean;
+  prevent_recursion: boolean;
+  delay_until_recursion: boolean | number; // 启用则是 true, 如果设置了具体的 Recursion Level 则是数字 (具体参考酒馆中勾选这个选项后的变化)
+
+  content: string;
+
+  group: string;
+  group_prioritized: boolean;
+  group_weight: number;
+  sticky: number | null;
+  cooldown: number | null;
+  delay: number | null;
+}
+
+interface GetLorebookEntriesOption {
+  filter?: 'none' | Partial<LorebookEntry>; // 按照指定字段值筛选条目, 如 `{position: 'at_depth_as_system'}` 表示仅获取处于 @D⚙ 的条目; 默认为不进行筛选. 由于实现限制, 只能做到这样的简单筛选; 如果需要更复杂的筛选, 请获取所有条目然后自己筛选.
+}
+
 function toLorebookEntry(entry: any): LorebookEntry {
   return {
     uid: entry.uid,
@@ -181,14 +230,17 @@ const reloadEditorDebounced = debounce(reloadEditor);
  *
  * @returns 一个数组, 元素是各条目信息.
  */
-export async function getLorebookEntries(lorebook: string, option: GetLorebookEntriesOption): Promise<LorebookEntry[]> {
+export async function getLorebookEntries(
+  lorebook: string,
+  option?: GetLorebookEntriesOption,
+): Promise<LorebookEntry[]> {
   if (!world_names.includes(lorebook)) {
     throw Error(`未能找到世界书 '${lorebook}'`);
   }
 
   // @ts-ignore
   let entries: LorebookEntry[] = Object.values((await loadWorldInfo(lorebook)).entries).map(toLorebookEntry);
-  const filter = option.filter ?? 'none';
+  const filter = option?.filter ?? 'none';
   if (filter !== 'none') {
     entries = entries.filter(entry =>
       Object.entries(filter).every(([field, expected_value]) => {

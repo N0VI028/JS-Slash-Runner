@@ -22,6 +22,36 @@ import {
   world_names,
 } from '@sillytavern/scripts/world-info';
 
+interface LorebookSettings {
+  selected_global_lorebooks: string[];
+
+  scan_depth: number;
+  context_percentage: number;
+  budget_cap: number;  // 0 表示禁用
+  min_activations: number;
+  max_depth: number;  // 0 表示无限制
+  max_recursion_steps: number;
+
+  insertion_strategy: 'evenly' | 'character_first' | 'global_first';
+
+  include_names: boolean;
+  recursive: boolean;
+  case_sensitive: boolean;
+  match_whole_words: boolean;
+  use_group_scoring: boolean;
+  overflow_alert: boolean;
+};
+
+interface GetCharLorebooksOption {
+  name?: string;
+  type?: 'all' | 'primary' | 'additional';
+};
+
+interface CharLorebooks {
+  primary: string | null;
+  additional: string[];
+}
+
 async function editCurrentCharacter(): Promise<boolean> {
   // @ts-ignore
   $('#rm_info_avatar').html('');
@@ -213,7 +243,7 @@ export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
  *
  * @returns 一个 CharLorebook 数组
  */
-export function getCharLorebooks(option: GetCharLorebooksOption): CharLorebooks {
+export function getCharLorebooks(option?: GetCharLorebooksOption): CharLorebooks {
   // @ts-ignore
   if (selected_group && !option.name) {
     throw Error(`不要在群组中调用这个功能`);
@@ -363,3 +393,13 @@ export async function createLorebook(lorebook: string): Promise<boolean> {
   console.info(`新建世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
   return success;
 }
+
+/**
+ * 获取当前角色卡绑定的主要世界书
+ *
+ * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
+ */
+export async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
+  return (getCharLorebooks()).primary;
+}
+

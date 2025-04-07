@@ -7,14 +7,15 @@ interface VariableOption {
 
 function getVariablesByType(type: 'chat' | 'global'): Record<string, any> {
   switch (type) {
-    case 'chat':
-      { const metadata = chat_metadata as {
+    case 'chat': {
+      const metadata = chat_metadata as {
         variables: Record<string, any> | undefined;
       };
       if (!metadata.variables) {
         metadata.variables = {};
       }
-      return metadata.variables; }
+      return metadata.variables;
+    }
     case 'global':
       return extension_settings.variables.global;
   }
@@ -41,7 +42,8 @@ function getVariablesByType(type: 'chat' | 'global'): Record<string, any> {
  *   ...
  * }
  */
-export function getVariables({ type = 'chat' }: VariableOption): Record<string, any> {
+export function getVariables(option?: VariableOption): Record<string, any> {
+  const type = option?.type ?? 'chat';
   const result = getVariablesByType(type);
 
   console.info(`$获取${type == 'chat' ? `聊天` : `全局`}变量表:\n${JSON.stringify(result, undefined, 2)}`);

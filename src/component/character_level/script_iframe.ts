@@ -14,6 +14,7 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
     <html>
     <head>
       ${third_party}
+      <script src="${script_url.get('window_functions')}"></script>
       <script src="${script_url.get('iframe_client')}"></script>
       ${libraries_text}
     </head>

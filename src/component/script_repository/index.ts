@@ -455,6 +455,89 @@ export class ScriptRepository {
   }
 
   /**
+   * 打开变量编辑器
+   */
+  async openVariableEditor() {
+    const $editorHtml = $(await renderExtensionTemplateAsync(`${templatePath}`, 'script_variable_editor'));
+    const $variableList = $editorHtml.find('#variable-list');
+    const $addVariableTrigger = $editorHtml.find('#add-variable-trigger');
+
+    if (this_chid) {
+      const existingVariables = characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables || {};
+      Object.entries(existingVariables).forEach(([name, value]) => {
+        const $variableItem = $(
+          `
+        <div class="variable-item flex-container flexFlowColumn gap10">
+        <div class="divider"></div>
+          <div class="flex-container">
+            <div class="flex spaceBetween alignItemsCenter width100p">
+            <span>名称:</span>
+              <i class="fa-solid fa-trash" style="font-size: calc(var(--mainFontSize) * 0.8); cursor: pointer;"></i>
+            </div>
+            <input type="text" value="${name}"/>
+          </div>
+          <div class="flex-container">
+            <span>值:</span>
+            <textarea rows="1">${value}</textarea>
+          </div>
+        </div>`,
+        );
+        $variableList.append($variableItem);
+      });
+    }
+
+    $addVariableTrigger.on('click', () => {
+      const $variableItem = $(
+        `
+        <div class="variable-item flex-container flexFlowColumn gap10">
+        <div class="divider"></div>
+          <div class="flex-container">
+            <div class="flex spaceBetween alignItemsCenter width100p">
+            <span>名称:</span>
+              <i class="fa-solid fa-trash" style="font-size: calc(var(--mainFontSize) * 0.8); cursor: pointer;"></i>
+            </div>
+            <input type="text"/>
+          </div>
+          <div class="flex-container">
+            <span>值:</span>
+            <textarea rows="1"></textarea>
+          </div>
+        </div>`,
+      );
+      $variableList.append($variableItem);
+    });
+
+    $editorHtml.on('click', '.fa-trash', function () {
+      $(this).closest('.variable-item').remove();
+    });
+
+    const popupResult = await callGenericPopup($editorHtml, POPUP_TYPE.CONFIRM, '', {
+      okButton: '确认',
+      cancelButton: '取消',
+      large: true,
+    });
+
+    if (popupResult) {
+      const variables: Record<string, string> = {};
+      $variableList.find('.variable-item').each((_index, element) => {
+        const $item = $(element);
+        const name = $item.find('input[type="text"]').val()?.toString().trim();
+        const value = $item.find('textarea').val()?.toString() || '';
+
+        if (name) {
+          variables[name] = value;
+        }
+      });
+
+      if (this_chid) {
+        await writeExtensionField(this_chid, 'TavernHelper_characterScriptVariables', variables);
+      } else {
+        toastr.error('保存失败，当前角色为空');
+      }
+    }
+  }
+
+  /**
    * 删除脚本
    * @param id 脚本ID
    * @param type 类型
@@ -675,7 +758,8 @@ export class ScriptRepository {
       });
 
     scriptHtml.find('.script-info').on('click', async function () {
-      const htmlText = renderMarkdown(script.info);
+      let htmlText = renderMarkdown(script.info);
+      htmlText = `<div class="overflowYAuto">${htmlText}</div>`;
       await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
     });
 
@@ -714,7 +798,8 @@ export class ScriptRepository {
 
     scriptHtml.find('.script-item-name').text(script.name);
     scriptHtml.find('.script-info').on('click', () => {
-      const htmlText = renderMarkdown(script.info);
+      let htmlText = renderMarkdown(script.info);
+      htmlText = `<div class="overflowYAuto">${htmlText}</div>`;
       callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
     });
     scriptHtml.find('.add-script').on('click', async () => {
@@ -930,6 +1015,14 @@ export async function clearAllScriptsIframe() {
 }
 
 /**
+ * 获取脚本库局部变量
+ * @returns 局部变量
+ */
+export function getCharacterScriptVariables() {
+  return characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables || {};
+}
+
+/**
  * 初始化按钮容器
  */
 function initButtonContainer() {
@@ -963,6 +1056,8 @@ export async function initScriptRepository(scriptRepo: ScriptRepository) {
 
   $('#open-global-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptType.GLOBAL, undefined));
   $('#open-scoped-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptType.CHARACTER, undefined));
+
+  $('#scope-variable').on('click', () => scriptRepo.openVariableEditor());
 
   $('#import-script-file').on('change', async function () {
     let target = 'global';

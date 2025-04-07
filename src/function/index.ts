@@ -11,6 +11,7 @@ import {
   getLorebookSettings,
   setCurrentCharLorebooks,
   setLorebookSettings,
+  getCurrentCharPrimaryLorebook,
 } from '@/function/lorebook';
 import {
   activateLorebookEntries,
@@ -24,6 +25,7 @@ import { getTavernRegexes, isCharacterTavernRegexesEnabled, replaceTavernRegexes
 import { substitudeMacros } from '@/function/util';
 import { getVariables, replaceVariables } from '@/function/variables';
 import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
+import { getCharacterScriptVariables } from '@/component/script_repository/index';
 
 /**
  * 初始化TavernHelper全局对象
@@ -71,6 +73,7 @@ export function initTavernHelperObject() {
     getLorebooks,
     deleteLorebook,
     createLorebook,
+    getCurrentCharPrimaryLorebook,
     // 触发命令
     triggerSlash,
     triggerSlashWithResult,
@@ -78,5 +81,7 @@ export function initTavernHelperObject() {
     isCharacterTavernRegexesEnabled,
     getTavernRegexes,
     replaceTavernRegexes,
+    // 脚本库
+    getCharacterScriptVariables,
   };
 }
