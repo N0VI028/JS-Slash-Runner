@@ -86,3 +86,52 @@ export function replaceVariables(variables: Record<string, any>, option: Variabl
 
   console.info(`将${type == 'chat' ? `聊天` : `全局`}变量表替换为:\n${JSON.stringify(variables, undefined, 2)}`);
 }
+
+type VariablesUpdater =
+  | ((variables: Record<string, any>) => Record<string, any>)
+  | ((variables: Record<string, any>) => Promise<Record<string, any>>);
+
+/**
+ * 用 `updater` 函数更新变量表
+ *
+ * @param updater 用于更新变量表的函数. 它应该接收变量表作为参数, 并返回更新后的变量表.
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 对聊天变量表 (`'chat'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
+ *
+ * @returns 更新后的变量表
+ *
+ * @example
+ * // 删除 `{神乐光: {好感度: 5}}` 变量
+ * await updateVariablesWith(variables => {_.unset(variables, "神乐光.好感度"); return variables;});
+ *
+ * @example
+ * // 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
+ * await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
+ */
+async function updateVariablesWith(updater: VariablesUpdater, option: VariableOption = { type: 'chat' }): Promise<Record<string, any>> {
+  const { type = 'chat' } = option;
+  let variables = await getVariables({ type });
+  variables = await updater(variables);
+  console.info(`[Chat Message][updateVariablesWith] 对${type === 'chat' ? `聊天` : `全局`}变量表进行更新, 使用的函数:\n\n ${JSON.stringify(detail.format_function_to_string(updater))}`);
+  replaceVariables(variables, option);
+  return variables;
+}
+
+/**
+ * 插入或修改变量值, 取决于变量是否存在.
+ *
+ * @param variables 要更新的变量
+ *   - 如果变量不存在, 则新增该变量
+ *   - 如果变量已经存在, 则修改该变量的值
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 聊天变量或全局变量, 默认为聊天变量 'chat'
+ *
+ * @example
+ * // 执行前变量: `{爱城华恋: {好感度: 5}}`
+ * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
+ * // 执行后变量: `{爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}`
+ */
+export async function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): Promise<void> {
+  const { type = 'chat' } = option;
+  await updateVariablesWith(old_variables => _.merge(old_variables, variables), { type });
+}
