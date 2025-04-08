@@ -64,9 +64,6 @@ class Script {
   hasName(): boolean {
     return Boolean(this.name);
   }
-  getScript(): Script {
-    return getSettingValue('script.scriptsRepository').find((s: Script) => s.id === this.id);
-  }
 }
 
 export enum ScriptType {
@@ -423,11 +420,8 @@ export class ScriptRepository {
         .filter(button => button && button.text && button.text.trim() !== '');
 
       if (scriptId && script) {
-        const oldButtons = script.buttons;
-        if (oldButtons) {
-          oldButtons.forEach(button => {
-            $(`#${button.name}_${script.id}`).remove();
-          });
+        if (script.buttons) {
+          this.removeButton(script);
         }
 
         script.name = scriptName;
@@ -761,9 +755,9 @@ export class ScriptRepository {
         $(this).hide();
         scriptHtml.find('.script-toggle-on').show();
       });
-
-    scriptHtml.find('.script-info').on('click', async function () {
-      const htmlText = renderMarkdown(script.info);
+    scriptHtml.find('.script-info').on('click', async () => {
+      const scriptInfo = this.getScriptById(script.id)?.info || '';
+      const htmlText = renderMarkdown(scriptInfo);
       await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
     });
 
