@@ -232,15 +232,15 @@ const reloadEditorDebounced = debounce(reloadEditor);
  */
 export async function getLorebookEntries(
   lorebook: string,
-  option?: GetLorebookEntriesOption,
+  option: GetLorebookEntriesOption = { filter: 'none' },
 ): Promise<LorebookEntry[]> {
+  const { filter = 'none' } = option;
   if (!world_names.includes(lorebook)) {
     throw Error(`未能找到世界书 '${lorebook}'`);
   }
 
   // @ts-ignore
   let entries: LorebookEntry[] = Object.values((await loadWorldInfo(lorebook)).entries).map(toLorebookEntry);
-  const filter = option?.filter ?? 'none';
   if (filter !== 'none') {
     entries = entries.filter(entry =>
       Object.entries(filter).every(([field, expected_value]) => {
@@ -257,7 +257,7 @@ export async function getLorebookEntries(
     );
   }
 
-  console.info(`获取世界书 '${lorebook}' 中的条目, 选项: ${JSON.stringify(option)}`);
+  console.info(`获取世界书 '${lorebook}' 中的条目, 选项: ${JSON.stringify({ filter })}`);
   return entries;
 }
 

@@ -1,5 +1,7 @@
 
 import { IframeMessage, getLogPrefix, iframe_handlers } from '@/iframe_server/_impl';
+import { registerIframeVariableHandler } from '@/iframe_server/variables';
+
 
 import { t } from '@sillytavern/scripts/i18n';
 
@@ -31,3 +33,5 @@ export async function handleIframe(event: MessageEvent<IframeMessage>): Promise<
     );
   }
 }
+
+registerIframeVariableHandler();

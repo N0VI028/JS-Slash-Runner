@@ -468,7 +468,7 @@ namespace detail {
 
   export const waiting_event_map: ArrayMultimap<string, number> = new ArrayMultimap();
 
-  $(window).on('beforeunload', eventClearAll);
+  $(window).on('unload', eventClearAll);
 }
 
 //------------------------------------------------------------------------------------------------------------------------

@@ -1,48 +1,50 @@
 $(async () => {
-  const extensions = await getCharacterScriptVariables();
-  if (!extensions) return;
-  for (const [key, value] of Object.entries(extensions)) {
+  const extensionsData = await getCharacterScriptVariables();
+  if (!extensionsData) return;
+
+  const pluginsToInstall = {};
+
+  for (const [key, value] of Object.entries(extensionsData)) {
     const t = key.match(/预安装插件-(.*)/);
     if (!t) continue;
     const urls = YAML.parse(value);
     for (const [name, url] of Object.entries(urls)) {
       let tag = url.replace(/(\.git|\/)$/, '');
       tag = tag.substring(tag.lastIndexOf('/') + 1);
-      return {
-        [tag]: {
-          name,
-          url,
-        },
+      pluginsToInstall[tag] = {
+        name,
+        url,
       };
     }
   }
+
   const current_extensions = await detail.get_third_party_extension_names();
-  const uninstall_extension_tags = _.difference(Object.keys(extensions), current_extensions);
+  const uninstall_extension_tags = _.difference(Object.keys(pluginsToInstall), current_extensions);
   if (uninstall_extension_tags.length === 0) {
     return;
   }
   if (
     !(await notify.confirm(
       '以下需要的插件尚未安装, 是否安装?<br>' +
-        uninstall_extension_tags.map(tag => `- ${extensions[tag].name}`).join('<br>'),
+        uninstall_extension_tags.map(tag => `- ${pluginsToInstall[tag].name}`).join('<br>'),
       { leftAlign: true },
     ))
   ) {
     return;
   }
-  await Promise.allSettled(uninstall_extension_tags.map(tag => detail.install_extension(extensions[tag].url)));
+  await Promise.allSettled(uninstall_extension_tags.map(tag => detail.install_extension(pluginsToInstall[tag].url)));
   setTimeout(() => triggerSlash('/reload-page'), 3000);
 });
-var notify;
-(function (notify) {
+let notify;
+(function (notifys) {
   async function echo(severity, text) {
     await triggerSlash(`/echo severity=${severity} "${text}"`);
   }
-  notify.echo = echo;
+  notifys.echo = echo;
   async function confirm(text, options = {}) {
-    return await sillyTavern().callGenericPopup(text, sillyTavern().POPUP_TYPE.CONFIRM, '', options);
+    return await SillyTavern.callGenericPopup(text, SillyTavern.POPUP_TYPE.CONFIRM, '', options);
   }
-  notify.confirm = confirm;
+  notifys.confirm = confirm;
 })(notify || (notify = {}));
 
 (function (detail) {
@@ -66,7 +68,7 @@ var notify;
   async function install_extension(url) {
     const request = await fetch('/api/extensions/install', {
       method: 'POST',
-      headers: sillyTavern().getRequestHeaders(),
+      headers: SillyTavern.getRequestHeaders(),
       body: JSON.stringify({
         url,
       }),

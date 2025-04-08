@@ -1,27 +1,34 @@
-function createPreload(e) {
+function createPreload(item) {
   return $('<div>')
-    .attr('id', `script_preload-${e.title}`)
-    .append(e.assets.map(e => $('<link>').attr('rel', 'preload').attr('href', e).attr('as', 'image')));
+    .attr('id', `script_preload-${item.title}`)
+    .append(item.assets.map(asset => $('<link>').attr('rel', 'preload').attr('href', asset).attr('as', 'image')));
 }
 $(async () => {
-  const t = (
-    await (async function () {
-      const variables = await getCharacterScriptVariables();
-      if (!variables) return;
-      for (const [key, value] of Object.entries(variables)) {
-        const match = key.match(/^预载-(.+?)$/);
-        if (!match) continue;
-        const assets = value.split('\n').map(e => e.trim()).filter(e => !!e);
-        if (assets.length === 0) continue;
-        return {
-          title: match[1],
-          assets,
-        };
-      }
-    })()
-  ).map(createPreload);
-  !(function (e) {
-    const t = $('head');
-    t.find('#script_preload').remove(), t.append(e);
-  })($('<div>').attr('id', 'script_preload').append(t));
+  const results = [];
+  const variables = await getCharacterScriptVariables();
+
+  if (variables) {
+    for (const [key, value] of Object.entries(variables)) {
+      const match = key.match(/^预载-(.+?)$/);
+      if (!match) continue;
+      const assets = value
+        .split('\n')
+        .map(e => e.trim())
+        .filter(e => !!e);
+      if (assets.length === 0) continue;
+
+      results.push({
+        title: match[1],
+        assets,
+      });
+    }
+  }
+
+  const preloadElements = results.map(createPreload);
+
+  !(function (elements) {
+    const headElement = $('head');
+    headElement.find('#script_preload').remove();
+    headElement.append($('<div>').attr('id', 'script_preload').append(preloadElements));
+  })(preloadElements);
 });

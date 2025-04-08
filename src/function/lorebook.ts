@@ -243,13 +243,17 @@ export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
  *
  * @returns 一个 CharLorebook 数组
  */
-export function getCharLorebooks(option?: GetCharLorebooksOption): CharLorebooks {
+export function getCharLorebooks(
+  option: GetCharLorebooksOption = { name: characters[this_chid]?.avatar ?? null, type: 'all' },
+): CharLorebooks {
+  const { name = characters[this_chid]?.avatar ?? null, type = 'all' } = option;
+
   // @ts-ignore
-  if (selected_group && !option?.name) {
+  if (selected_group && !name) {
     throw Error(`不要在群组中调用这个功能`);
   }
   //@ts-ignore
-  const filename = option?.name ?? characters[this_chid]?.avatar ?? null;
+  const filename = name;
   // @ts-ignore
   const character = findChar({ name: filename });
   if (!character) {
@@ -269,8 +273,8 @@ export function getCharLorebooks(option?: GetCharLorebooksOption): CharLorebooks
   }
 
   // 根据 type 参数过滤结果
-  if (option?.type) {
-    switch (option.type) {
+  if (type) {
+    switch (type) {
       case 'primary':
         return { primary: books.primary, additional: [] };
       case 'additional':
@@ -281,11 +285,10 @@ export function getCharLorebooks(option?: GetCharLorebooksOption): CharLorebooks
     }
   }
 
-  console.info(`获取角色卡绑定的世界书, 选项: ${JSON.stringify(option)}, 获取结果: ${JSON.stringify(books)}`);
+  console.info(`获取角色卡绑定的世界书, 选项: ${JSON.stringify({ name, type })}, 获取结果: ${JSON.stringify(books)}`);
   return books;
 }
 
-// TODO: 加入文档中
 /**
  * 设置当前角色卡绑定的世界书
  *
@@ -295,11 +298,11 @@ export function getCharLorebooks(option?: GetCharLorebooksOption): CharLorebooks
  */
 export async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>): Promise<void> {
   // @ts-ignore
-  if (selected_group && !option.name) {
+  if (selected_group && !name) {
     throw Error(`不要在群组中调用这个功能`);
   }
   // @ts-ignore
-  const filename = getCharaFilename(this_chid);
+  const filename = name ?? getCharaFilename(this_chid);
   if (!filename) {
     throw Error(`未打开任何角色卡`);
   }

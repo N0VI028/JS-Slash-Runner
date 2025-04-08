@@ -3,13 +3,11 @@ import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_ser
 import { chat_metadata, event_types } from '@sillytavern/script';
 import { getContext, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 
-// for compatibility
 interface IframeSetVariables extends IframeMessage {
   request: '[Variables][setVariables]';
   message_id: number;
   variables: Record<string, any>;
 }
-
 let latest_set_variables_message_id: number | null = null;
 
 export function registerIframeVariableHandler() {

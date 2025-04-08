@@ -51,7 +51,175 @@ import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
 import { Stopwatch, getBase64Async } from '@sillytavern/scripts/utils';
 import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from '@sillytavern/scripts/world-info';
 
-// 在文件顶部添加 abortController 声明
+interface GenerateConfig {
+  /** 用户输入 */
+  user_input?: string;
+
+  /**
+   * 图片输入，支持以下格式：
+   * - File 对象：通过 input[type="file"] 获取的文件对象
+   * - Base64 字符串：图片的 base64 编码
+   * - URL 字符串：图片的在线地址
+   */
+  image?: File | string;
+
+  /**
+   * 是否启用流式传输; 默认为 `false`.
+   *
+   * 若启用流式传输, 每次得到流式传输结果时, 函数将会发送事件:
+   * - `ifraem_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+   * - `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+   *
+   * @example
+   * eventOn(iframe_events.STREAM_TOKEN_RECEIVED_FULLY, text => console.info(text));
+   */
+  should_stream?: boolean;
+
+  /**
+   * 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词.
+   *   如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述.
+   */
+  overrides?: Overrides;
+
+  /** 要额外注入的提示词 */
+  injects?: InjectionPrompt[];
+
+  /** 最多使用多少条聊天历史; 默认为 'all' */
+  max_chat_history?: 'all' | number;
+}
+
+interface GenerateRawConfig {
+  /**
+   * 用户输入.
+   *
+   * 如果设置, 则无论 ordered_prompts 中是否有 'user_input' 都会加入该用户输入提示词; 默认加入在 'chat_history' 末尾.
+   */
+  user_input?: string;
+
+  /**
+   * 图片输入，支持以下格式：
+   * - File 对象：通过 input[type="file"] 获取的文件对象
+   * - Base64 字符串：图片的 base64 编码
+   * - URL 字符串：图片的在线地址
+   */
+  image?: File | string;
+
+  /**
+   * 是否启用流式传输; 默认为 `false`.
+
+   *
+   * 若启用流式传输, 每次得到流式传输结果时, 函数将会发送事件:
+   * - `ifraem_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+   * - `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+   *
+   * @example
+   * eventOn(iframe_events.STREAM_TOKEN_RECEIVED_FULLY, text => console.info(text));
+   */
+  should_stream?: boolean;
+
+  /**
+   * 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词.
+   *   如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖提示词
+   */
+  overrides?: Overrides;
+
+  /* 要注入的提示词 */
+  injects?: InjectionRawPrompt[];
+
+  /**
+   * 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设. 该数组允许存放两种类型:
+   * - `BuiltinPrompt`: 内置提示词. 由于不使用预设, 如果需要 "角色描述" 等提示词, 你需要自己指定要用哪些并给出顺序
+   *                      如果不想自己指定, 可通过 `builtin_prompt_default_order` 得到酒馆默认预设所使用的顺序 (但对于这种情况, 也许你更应该用 `generate`).
+   * - `RolePrompt`: 要额外给定的提示词.
+   */
+
+  ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
+
+  /** 最多使用多少条聊天历史; 默认为 'all' */
+  max_chat_history?: 'all' | number;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+interface RolePrompt {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+  image?: File | string;
+}
+
+interface InjectionPrompt {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+
+  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
+  position: 'before_prompt' | 'in_chat' | 'after_prompt' | 'none';
+
+  depth: number;
+
+  /** 是否要加入世界书扫描中 */
+  should_scan: boolean;
+}
+
+interface InjectionRawPrompt {
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+
+  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
+  position: 'in_chat' | 'none';
+
+  depth: number;
+
+  /** 是否要加入世界书扫描中 */
+  should_scan: boolean;
+}
+
+interface Overrides {
+  world_info_before?: string; // 世界书(角色定义前)
+  persona_description?: string; // 用户描述
+  char_description?: string; // 角色描述
+  char_personality?: string; // 角色性格
+  scenario?: string; // 场景
+  world_info_after?: string; // 世界书(角色定义后)
+  dialogue_examples?: string; // 对话示例
+
+  /**
+   * 聊天历史
+   * - `with_depth_entries`: 是否启用世界书中按深度插入的条目; 默认为 `true`
+   * - `author_note`: 若设置, 覆盖 "作者注释" 为给定的字符串
+   * - `prompts`: 若设置, 覆盖 "聊天历史" 为给定的提示词
+   */
+  chat_history?: {
+    with_depth_entries?: boolean;
+    author_note?: string;
+    prompts?: RolePrompt[];
+  };
+}
+
+/**
+ * 预设为内置提示词设置的默认顺序
+ */
+const builtin_prompt_default_order: BuiltinPrompt[] = [
+  'world_info_before', // 世界书(角色定义前)
+  'persona_description', // 用户描述
+  'char_description', // 角色描述
+  'char_personality', // 角色性格
+  'scenario', // 场景
+  'world_info_after', // 世界书(角色定义后)
+  'dialogue_examples', // 对话示例
+  'chat_history', // 聊天历史 (含世界书中按深度插入的条目、作者注释)
+  'user_input', // 用户输入
+];
+
+type BuiltinPrompt =
+  | 'world_info_before' // 世界书(角色定义前)
+  | 'persona_description' // 用户描述
+  | 'char_description' // 角色描述
+  | 'char_personality' // 角色性格
+  | 'scenario' // 场景
+  | 'world_info_after' // 世界书(角色定义后)
+  | 'dialogue_examples' // 对话示例
+  | 'chat_history' // 聊天历史 (含世界书中按深度插入的条目、作者注释)
+  | 'user_input'; // 用户输入
+
 let abortController = new AbortController();
 
 function fromOverrides(overrides: Overrides): detail.OverrideConfig {
@@ -70,19 +238,19 @@ function fromOverrides(overrides: Overrides): detail.OverrideConfig {
   };
 }
 
-function fromInjectionPrompt(inject: InjectionPrompt): detail.InjectionPrompt {
+function fromInjectionPrompt(inject: InjectionPrompt): InjectionPrompt {
   const position_map = {
-    before_prompt: 'BEFORE_PROMPT',
-    in_chat: 'IN_CHAT',
-    after_prompt: 'IN_PROMPT',
-    none: 'NONE',
+    before_prompt: 'before_prompt',
+    in_chat: 'in_chat',
+    after_prompt: 'after_prompt',
+    none: 'none',
   } as const;
   return {
     role: inject.role,
     content: inject.content,
-    position: position_map[inject.position],
+    position: position_map[inject.position] as 'before_prompt' | 'in_chat' | 'after_prompt' | 'none',
     depth: inject.depth,
-    scan: inject.should_scan,
+    should_scan: inject.should_scan,
   };
 }
 
@@ -112,20 +280,6 @@ function fromGenerateRawConfig(config: GenerateRawConfig): detail.GenerateParams
 }
 
 namespace detail {
-  export interface RolePrompt {
-    role: 'system' | 'user' | 'assistant';
-    content: string;
-    image?: File | string;
-  }
-
-  export interface InjectionPrompt {
-    role: 'system' | 'user' | 'assistant';
-    content: string;
-    position?: 'IN_PROMPT' | 'IN_CHAT' | 'BEFORE_PROMPT' | 'NONE';
-    depth?: number;
-    scan?: boolean;
-  }
-
   export interface CustomPrompt {
     role: 'system' | 'user' | 'assistant';
     content: string;
@@ -252,6 +406,7 @@ class StreamingProcessor {
     saveChatConditional();
   }
 
+  // eslint-disable-next-line require-yield
   async *nullStreamingGeneration(): AsyncGenerator<{ text: string }, void, void> {
     throw Error('Generation function for streaming is not hooked up');
   }
@@ -312,7 +467,7 @@ async function iframeGenerate({
   abortController = new AbortController();
 
   // 1. 处理用户输入（正则，宏）
-  const processedUserInput = processUserInput(substituteParams(user_input), oai_settings) || '';
+  const processedUserInput = processUserInput(substituteParams(user_input)) || '';
 
   // 2. 准备过滤后的基础数据
   const baseData = await prepareAndOverrideData(
@@ -354,7 +509,7 @@ async function prepareAndOverrideData(
   config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
   processedUserInput: string,
 ) {
-  const getOverrideContent = (identifier: string): string | detail.RolePrompt[] | undefined => {
+  const getOverrideContent = (identifier: string): string | RolePrompt[] | undefined => {
     if (!config.overrides) return undefined;
     const value = config.overrides[identifier as keyof detail.OverrideConfig];
     if (typeof value === 'boolean') return undefined;
@@ -432,7 +587,7 @@ async function prepareAndOverrideData(
   // 添加临时消息用于激活世界书
   addTemporaryUserMessage(processedUserInput);
   // 8. 处理世界信息
-  const worldInfo = await processWorldInfo(oaiMessages as detail.RolePrompt[], config);
+  const worldInfo = await processWorldInfo(oaiMessages as RolePrompt[], config);
 
   // 移除临时消息
   removeTemporaryUserMessage();
@@ -485,7 +640,7 @@ function handleCharDepthPrompt() {
 function setAuthorNotePrompt(config: detail.GenerateParams) {
   const authorNoteOverride = config?.overrides?.author_note;
   // @ts-ignore
-  let prompt = authorNoteOverride ?? $('#extension_floating_prompt').val() as string;
+  const prompt = authorNoteOverride ?? ($('#extension_floating_prompt').val() as string);
 
   setExtensionPrompt(
     NOTE_MODULE_NAME,
@@ -552,20 +707,20 @@ async function handleInjectedPrompts(promptConfig: Omit<detail.GenerateParams, '
 
   const injects = promptConfig.inject;
 
-  const positionMap = {
-    IN_PROMPT: extension_prompt_types.IN_PROMPT,
-    IN_CHAT: extension_prompt_types.IN_CHAT,
-    BEFORE_PROMPT: extension_prompt_types.BEFORE_PROMPT,
-    NONE: extension_prompt_types.NONE,
-  };
+  const position_map = {
+    before_prompt: extension_prompt_types.BEFORE_PROMPT,
+    in_chat: extension_prompt_types.IN_CHAT,
+    after_prompt: extension_prompt_types.IN_PROMPT,
+    none: extension_prompt_types.NONE,
+  } as const;
 
   for (const inject of injects) {
     const validatedInject = {
       role: roleTypes[inject.role] ?? extension_prompt_roles.SYSTEM,
       content: inject.content || '',
       depth: Number(inject.depth) || 0,
-      scan: Boolean(inject.scan) || true,
-      position: positionMap[inject.position as keyof typeof positionMap] ?? extension_prompt_types.IN_CHAT,
+      should_scan: Boolean(inject.should_scan) || true,
+      position: position_map[inject.position as keyof typeof position_map] ?? extension_prompt_types.IN_CHAT,
     };
 
     // 设置用户自定义注入提示词
@@ -574,21 +729,21 @@ async function handleInjectedPrompts(promptConfig: Omit<detail.GenerateParams, '
       validatedInject.content,
       validatedInject.position,
       validatedInject.depth,
-      validatedInject.scan,
+      validatedInject.should_scan,
       validatedInject.role,
     );
   }
 }
 // 处理聊天记录
-async function processChatHistory(chat: any[]) {
-  let coreChat = chat.filter(x => !x.is_system);
+async function processChatHistory(chatHistory: any[]) {
+  const coreChat = chatHistory.filter(x => !x.is_system);
 
   return await Promise.all(
     coreChat.map(async (chatItem, index) => {
-      let message = chatItem.mes;
-      let regexType = chatItem.is_user ? regex_placement.USER_INPUT : regex_placement.AI_OUTPUT;
+      const message = chatItem.mes;
+      const regexType = chatItem.is_user ? regex_placement.USER_INPUT : regex_placement.AI_OUTPUT;
 
-      let regexedMessage = getRegexedString(message, regexType, {
+      const regexedMessage = getRegexedString(message, regexType, {
         isPrompt: true,
         depth: coreChat.length - index - 1,
       });
@@ -604,7 +759,7 @@ async function processChatHistory(chat: any[]) {
 
 // 处理世界书
 async function processWorldInfo(
-  oaiMessages: detail.RolePrompt[],
+  oaiMessages: RolePrompt[],
   config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
 ) {
   const chatForWI = oaiMessages
@@ -698,7 +853,7 @@ function parseMesExamples(examplesStr: string) {
   return splitExamples;
 }
 //用户输入先正则处理
-function processUserInput(user_input: string, oai_settings: any) {
+function processUserInput(user_input: string) {
   if (user_input === '') {
     user_input = oai_settings.send_if_empty.trim();
   }
@@ -1105,8 +1260,8 @@ async function processChatHistoryAndInject(
     chatCompletion.add(chatCollection, chatHistoryIndex);
   }
 }
-async function populationInjectionPrompts(messages: detail.RolePrompt[], customInjects: detail.InjectionPrompt[] = []) {
-  let processedMessages = [...messages];
+async function populationInjectionPrompts(messages: RolePrompt[], customInjects: InjectionPrompt[] = []) {
+  const processedMessages = [...messages];
   let totalInsertedMessages = 0;
   const injectionPrompts = [];
   // @ts-ignore
@@ -1200,7 +1355,7 @@ async function generateResponse(generate_data: any, useStream = false): Promise<
     deactivateSendButtons();
 
     if (useStream) {
-      let originalStreamSetting = oai_settings.stream_openai;
+      const originalStreamSetting = oai_settings.stream_openai;
       if (!originalStreamSetting) {
         oai_settings.stream_openai = true;
         saveSettingsDebounced();
@@ -1220,7 +1375,7 @@ async function generateResponse(generate_data: any, useStream = false): Promise<
       result = await handleResponse(response);
     }
   } catch (error) {
-    throw error;
+    console.error(error);
   } finally {
     unblockGeneration();
     await clearInjectionPrompts(['INJECTION']);

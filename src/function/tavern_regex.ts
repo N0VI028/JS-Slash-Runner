@@ -5,6 +5,37 @@ import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
 
+interface TavernRegex {
+  id: string;
+  script_name: string;
+  enabled: boolean;
+  run_on_edit: boolean;
+  scope: 'global' | 'character';
+
+  find_regex: string;
+  replace_string: string;
+
+  source: {
+    user_input: boolean;
+    ai_output: boolean;
+    slash_command: boolean;
+    world_info: boolean;
+  };
+
+  destination: {
+    display: boolean;
+    prompt: boolean;
+  };
+
+  min_depth: number | null;
+  max_depth: number | null;
+}
+
+interface GetTavernRegexesOption {
+  scope?: 'all' | 'global' | 'character'; // 按所在区域筛选正则
+  enable_state?: 'all' | 'enabled' | 'disabled'; // 按是否被开启筛选正则
+}
+
 export function isCharacterTavernRegexEnabled(): boolean {
   // @ts-ignore 2345
   return extension_settings?.character_allowed_regex?.includes(characters?.[this_chid]?.avatar);
@@ -80,6 +111,10 @@ function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
   };
 }
 
+interface ReplaceTavernRegexesOption {
+  scope?: 'all' | 'global' | 'character'; // 要替换的酒馆正则部分
+}
+
 /**
  * 判断局部正则是否启用
  * @returns 布尔值
@@ -100,9 +135,8 @@ export function isCharacterTavernRegexesEnabled(): boolean {
  *
  * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
-export function getTavernRegexes(option: GetTavernRegexesOption = {}): TavernRegex[] {
-  const scope = option.scope ?? 'all';
-  const enable_state = option.enable_state ?? 'all';
+export function getTavernRegexes(option: GetTavernRegexesOption = { scope: 'all', enable_state: 'all' }): TavernRegex[] {
+  const { scope = 'all', enable_state = 'all' } = option;
 
   if (!['all', 'enabled', 'disabled'].includes(enable_state)) {
     throw Error(`提供的 enable_state 无效, 请提供 'all', 'enabled' 或 'disabled', 你提供的是: ${enable_state}`);
@@ -139,9 +173,9 @@ export function getTavernRegexes(option: GetTavernRegexesOption = {}): TavernReg
  */
 export async function replaceTavernRegexes(
   regexes: TavernRegex[],
-  option: ReplaceTavernRegexesOption = {},
+  option: ReplaceTavernRegexesOption = { scope: 'all' },
 ): Promise<void> {
-  const scope = option.scope ?? 'all';
+  const { scope = 'all' } = option;
 
   if (!['all', 'global', 'character'].includes(scope)) {
     throw Error(`提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${scope}`);

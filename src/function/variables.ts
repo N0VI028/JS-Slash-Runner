@@ -42,8 +42,8 @@ function getVariablesByType(type: 'chat' | 'global'): Record<string, any> {
  *   ...
  * }
  */
-export function getVariables(option?: VariableOption): Record<string, any> {
-  const type = option?.type ?? 'chat';
+export function getVariables(option: VariableOption = { type: 'chat' }): Record<string, any> {
+  const { type = 'chat' } = option;
   const result = getVariablesByType(type);
 
   console.info(`$获取${type == 'chat' ? `聊天` : `全局`}变量表:\n${JSON.stringify(result, undefined, 2)}`);
@@ -71,7 +71,8 @@ export function getVariables(option?: VariableOption): Record<string, any> {
  * _.unset(variables, "神乐光.好感度");
  * replaceVariables(variables);
  */
-export function replaceVariables(variables: Record<string, any>, { type = 'chat' }: VariableOption): void {
+export function replaceVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): void {
+  const { type = 'chat' } = option;
   switch (type) {
     case 'chat':
       (chat_metadata as { variables: Object }).variables = variables;
