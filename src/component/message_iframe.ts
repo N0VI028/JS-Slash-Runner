@@ -1077,7 +1077,9 @@ export const initIframePanel = () => {
 
   // 处理油猴兼容性设置
   const tampermonkeyEnabled = getSettingValue('render.tampermonkey_compatibility');
-  $('#tampermonkey_compatibility').prop('checked', tampermonkeyEnabled).on('click', onTampermonkeyCompatibilityChange);
+  $('#tampermonkey-compatibility-toggle')
+    .prop('checked', tampermonkeyEnabled)
+    .on('click', onTampermonkeyCompatibilityChange);
 
   if (tampermonkeyEnabled) {
     onTampermonkeyCompatibilityChange();
