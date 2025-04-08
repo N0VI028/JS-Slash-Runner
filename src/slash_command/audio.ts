@@ -1,4 +1,4 @@
-import { extensionName } from '@/util/extension_variables';
+import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 
 import { chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
@@ -38,7 +38,7 @@ export async function audioMode(args: { type: string; mode: string }): Promise<v
   }
 
   if (type === 'bgm') {
-    extension_settings[extensionName].audio.bgm_mode = mode;
+    await saveSettingValue('audio.bgm_mode', mode);
     const iconMap: Record<string, string> = {
       repeat: 'fa-repeat',
       random: 'fa-random',
@@ -48,7 +48,7 @@ export async function audioMode(args: { type: string; mode: string }): Promise<v
     $('#audio_bgm_mode_icon').removeClass('fa-repeat fa-random fa-redo-alt fa-cancel');
     $('#audio_bgm_mode_icon').addClass(iconMap[mode]);
   } else if (type === 'ambient') {
-    extension_settings[extensionName].audio.ambient_mode = mode;
+    await saveSettingValue('audio.ambient_mode', mode);
     const iconMap: Record<string, string> = {
       repeat: 'fa-repeat',
       random: 'fa-random',
@@ -169,10 +169,10 @@ export async function audioImport(args: { type: string; play?: string }, url: st
   if (play === 'true' && urlArray[0]) {
     const selectedUrl = urlArray[0];
     if (type === 'bgm') {
-      extension_settings[extensionName].audio.bgm_selected = selectedUrl;
+      await saveSettingValue('audio.bgm_selected', selectedUrl);
       await updateAudio('bgm', true);
     } else if (type === 'ambient') {
-      extension_settings[extensionName].audio.ambient_selected = selectedUrl;
+      await saveSettingValue('audio.ambient_selected', selectedUrl);
       await updateAudio('ambient', true);
     }
   }
@@ -200,10 +200,10 @@ export async function audioSelect(args: { type: string }, url: string): Promise<
 
   if (playlist && playlist.includes(url)) {
     if (type === 'bgm') {
-      extension_settings[extensionName].audio.bgm_selected = url;
+      await saveSettingValue('audio.bgm_selected', url);
       await updateAudio('bgm', true);
     } else if (type === 'ambient') {
-      extension_settings[extensionName].audio.ambient_selected = url;
+      await saveSettingValue('audio.ambient_selected', url);
       await updateAudio('ambient', true);
     }
     return '';
@@ -217,11 +217,11 @@ export async function audioSelect(args: { type: string }, url: string): Promise<
 
   if (type === 'bgm') {
     updateAudioSelect('bgm');
-    extension_settings[extensionName].audio.bgm_selected = url;
+    await saveSettingValue('audio.bgm_selected', url);
     await updateAudio('bgm', true);
   } else if (type === 'ambient') {
     updateAudioSelect('ambient');
-    extension_settings[extensionName].audio.ambient_selected = url;
+    await saveSettingValue('audio.ambient_selected', url);
     await updateAudio('ambient', true);
   }
 

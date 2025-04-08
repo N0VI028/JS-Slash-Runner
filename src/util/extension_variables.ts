@@ -9,6 +9,7 @@ import { extension_settings } from '@sillytavern/scripts/extensions';
 import { setValueByPath } from '@sillytavern/scripts/utils';
 
 export const extensionName = 'JS-Slash-Runner';
+export const extensionSettingName = 'TavernHelper';
 //TODO: 修改名称
 export const extensionFolderPath = `third-party/${extensionName}`;
 
@@ -29,7 +30,7 @@ export const getCharAvatarPath = () => {
 export function getSettingValue(key: string) {
   const keys = key.split('.');
   //@ts-ignore
-  let value = extension_settings[extensionName];
+  let value = extension_settings[extensionSettingName];
 
   for (const k of keys) {
     if (value === undefined || value === null) {
@@ -48,6 +49,6 @@ export function getSettingValue(key: string) {
  */
 export async function saveSettingValue(key: string, value: any) {
   //@ts-ignore
-  setValueByPath(extension_settings[extensionName], key, value);
+  setValueByPath(extension_settings[extensionSettingName], key, value);
   await saveSettingsDebounced();
 }

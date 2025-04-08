@@ -1,4 +1,4 @@
-import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from '@/iframe_server/tavern_regex';
+import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from '@/function/tavern_regex';
 
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 

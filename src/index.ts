@@ -13,7 +13,7 @@ import {
   runCheckWithPath,
   VERSION_FILE_PATH,
 } from '@/util/check_update';
-import { extensionFolderPath, extensionName } from '@/util/extension_variables';
+import { extensionFolderPath, extensionName, extensionSettingName } from '@/util/extension_variables';
 import { initReference } from '@/component/reference';
 
 import { saveSettingsDebounced } from '@sillytavern/script';
@@ -102,9 +102,13 @@ jQuery(async () => {
   const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'settings');
   getContainer().append(windowHtml);
   //@ts-ignore
-  if (!extension_settings[extensionName]) {
+  if (!extension_settings[extensionSettingName]) {
     //@ts-ignore
-    extension_settings[extensionName] = defaultSettings;
+    extension_settings[extensionSettingName] = defaultSettings;
+    // 删除旧版配置
+    if (extension_settings[extensionName]) {
+      delete extension_settings[extensionName];
+    }
     saveSettingsDebounced();
   }
 
