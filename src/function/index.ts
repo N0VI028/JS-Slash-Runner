@@ -23,7 +23,14 @@ import {
 import { triggerSlash, triggerSlashWithResult } from '@/function/slash';
 import { getTavernRegexes, isCharacterTavernRegexesEnabled, replaceTavernRegexes } from '@/function/tavern_regex';
 import { substitudeMacros } from '@/function/util';
-import { getVariables, replaceVariables, updateVariablesWith, insertOrAssignVariables, deleteVariable, insertVariables } from '@/function/variables';
+import {
+  getVariables,
+  replaceVariables,
+  updateVariablesWith,
+  insertOrAssignVariables,
+  deleteVariable,
+  insertVariables,
+} from '@/function/variables';
 import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
 import { getCharacterScriptVariables } from '@/component/script_repository/index';
 
