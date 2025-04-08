@@ -208,6 +208,6 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
       await reloadCurrentChat();
     }
   }
-  $('#js_slash_runner_text').text(getSettingValue('activate_setting') ? '关闭前端渲染' : '开启前端渲染');
+  $('#js_slash_runner_text').text(getSettingValue('enabled_extension') ? '关闭前端渲染' : '开启前端渲染');
   saveSettingsDebounced();
 }

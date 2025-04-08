@@ -108,7 +108,7 @@ type VariablesUpdater =
  * // 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
  * await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
  */
-async function updateVariablesWith(updater: VariablesUpdater, option: VariableOption = { type: 'chat' }): Promise<Record<string, any>> {
+export async function updateVariablesWith(updater: VariablesUpdater, option: VariableOption = { type: 'chat' }): Promise<Record<string, any>> {
   const { type = 'chat' } = option;
   let variables = await getVariables({ type });
   variables = await updater(variables);
@@ -134,4 +134,46 @@ async function updateVariablesWith(updater: VariablesUpdater, option: VariableOp
 export async function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): Promise<void> {
   const { type = 'chat' } = option;
   await updateVariablesWith(old_variables => _.merge(old_variables, variables), { type });
+}
+
+/**
+ * 插入新变量, 如果变量已经存在则什么也不做
+ *
+ * @param variables 要插入的变量
+ *   - 如果变量不存在, 则新增该变量
+ *   - 如果变量已经存在, 则什么也不做
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 聊天变量或全局变量, 默认为聊天变量 'chat'
+ *
+ * @example
+ * // 执行前变量: `{爱城华恋: {好感度: 5}}`
+ * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
+ * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
+ */
+export async function insertVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): Promise<void> {
+  const { type = 'chat' } = option;
+  await updateVariablesWith(old_variables => _.defaultsDeep(old_variables, variables), { type });
+}
+
+/**
+ * 删除变量, 如果变量不存在则什么也不做
+ *
+ * @param variable_path 要删除的变量路径
+ *   - 如果变量不存在, 则什么也不做
+ *   - 如果变量已经存在, 则删除该变量
+ * @param option 可选选项
+ *   - `type?:'chat'|'global'`: 聊天变量或全局变量, 默认为聊天变量 'chat'
+ *
+ * @returns 是否成功删除变量
+ *
+ * @example
+ * // 执行前变量: `{爱城华恋: {好感度: 5}}`
+ * await deleteVariable("爱城华恋.好感度");
+ * // 执行后变量: `{爱城华恋: {}}`
+ */
+export async function deleteVariable(variable_path: string, option: VariableOption = { type: 'chat' }): Promise<boolean> {
+  const { type = 'chat' } = option;
+  let result: boolean = false;
+  await updateVariablesWith(old_variables => { result = _.unset(old_variables, variable_path); return old_variables; }, { type });
+  return result;
 }

@@ -1487,8 +1487,6 @@ function isPromptFiltered(promptId: string, config: { overrides?: detail.Overrid
  * @returns 生成的最终文本
  */
 export async function generate(config: GenerateConfig) {
-  console.info(`发送生成请求: ${config}`);
-
   const converted_config = fromGenerateConfig(config);
   return await iframeGenerate(converted_config);
 }
@@ -1513,8 +1511,6 @@ export async function generate(config: GenerateConfig) {
  * @returns 生成的最终文本
  */
 export async function generateRaw(config: GenerateRawConfig) {
-  console.info(`发送生成请求: ${config}`);
-
   const converted_config = fromGenerateRawConfig(config);
   return await iframeGenerate(converted_config);
 }

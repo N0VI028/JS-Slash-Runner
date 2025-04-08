@@ -681,7 +681,7 @@ async function handleAudioToggle(enable: boolean = true, userInput: boolean = tr
  */
 export async function playAudio(type: 'bgm' | 'ambient') {
   if (
-    !getSettingValue('activate_setting') ||
+    !getSettingValue('enabled_extension') ||
     !getSettingValue('audio.audio_setting') ||
     !getSettingValue(`audio.${type}_enabled`)
   ) {

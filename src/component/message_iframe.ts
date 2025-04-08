@@ -10,6 +10,7 @@ let tampermonkeyMessageListener: ((event: MessageEvent) => void) | null = null;
 let isRenderEnabled: boolean;
 let isRenderingOptimizeEnabled: boolean;
 let renderDepth: number;
+let isTampermonkeyEnabled: boolean;
 
 const iframeResizeObservers = new Map();
 const isExtensionEnabled = getSettingValue('enabled_extension');
@@ -733,15 +734,16 @@ export async function renderMessageAfterDelete(mesId: number) {
 /**
  * 处理油猴兼容性设置改变
  */
-async function onTampermonkeyCompatibilityChange() {
-  const isEnabled = Boolean($('#tampermonkey_compatibility').prop('checked'));
-  await saveSettingValue('render.tampermonkey_compatibility', isEnabled);
+async function handleTampermonkeyCompatibilityChange(enable: boolean, userInput: boolean = true) {
+  if (userInput) {
+    await saveSettingValue('render.tampermonkey_compatibility', enable);
+  }
 
-  if (!getSettingValue('activate_setting')) {
+  if (!getSettingValue('enabled_extension')) {
     return;
   }
 
-  if (isEnabled) {
+  if (enable) {
     if (!tampermonkeyMessageListener) {
       tampermonkeyMessageListener = handleTampermonkeyMessages;
       window.addEventListener('message', tampermonkeyMessageListener);
@@ -977,10 +979,10 @@ export function removeRenderingOptimizeSettings() {
 
 /**
  * 处理重型前端卡渲染优化
- * @param userInput 是否由用户手动触发
  * @param enable 是否启用重型前端卡渲染优化
+ * @param userInput 是否由用户手动触发
  */
-async function handleRenderingOptimizationToggle(userInput: boolean = true, enable: boolean = true) {
+async function handleRenderingOptimizationToggle(enable: boolean, userInput: boolean = true) {
   if (userInput) {
     await saveSettingValue('render.render_optimize', enable);
     isRenderingOptimizeEnabled = enable;
@@ -1069,21 +1071,21 @@ export const initIframePanel = () => {
   // 处理重型前端卡渲染优化
   isRenderingOptimizeEnabled = getSettingValue('render.render_optimize');
   if (isRenderingOptimizeEnabled) {
-    handleRenderingOptimizationToggle(false, true);
+    handleRenderingOptimizationToggle(true, false);
   }
   $('#render-optimize-toggle')
     .prop('checked', isRenderingOptimizeEnabled)
-    .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(true, event.target.checked));
+    .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(event.target.checked, true));
 
   // 处理油猴兼容性设置
-  const tampermonkeyEnabled = getSettingValue('render.tampermonkey_compatibility');
-  $('#tampermonkey-compatibility-toggle')
-    .prop('checked', tampermonkeyEnabled)
-    .on('click', onTampermonkeyCompatibilityChange);
-
-  if (tampermonkeyEnabled) {
-    onTampermonkeyCompatibilityChange();
+  isTampermonkeyEnabled = getSettingValue('render.tampermonkey_compatibility');
+  if (isTampermonkeyEnabled) {
+    handleTampermonkeyCompatibilityChange(true, false);
   }
+  $('#tampermonkey-compatibility-toggle')
+    .prop('checked', isTampermonkeyEnabled)
+    .on('click', (event: JQuery.ClickEvent) => handleTampermonkeyCompatibilityChange(event.target.checked, true));
+
 
   $(window).on('resize', function () {
     if ($('iframe[data-needs-vh="true"]').length) {
