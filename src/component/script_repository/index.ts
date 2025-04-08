@@ -11,7 +11,6 @@ import { createDefaultScripts } from './default_scripts/index';
 import { selected_group } from '@sillytavern/scripts/group-chats';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { download, getFileText, getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
-import { data } from 'jquery';
 
 interface IFrameElement extends HTMLIFrameElement {
   cleanup: () => void;
@@ -79,7 +78,6 @@ export class ScriptRepository {
   private static instance: ScriptRepository;
   private globalScripts: Script[] = [];
   private characterScripts: Script[] = [];
-  private activeScripts: Map<string, { script: Script; element: HTMLScriptElement }> = new Map();
 
   private constructor() {
     this.loadScripts();
@@ -474,7 +472,7 @@ export class ScriptRepository {
           <div class="flex-container">
             <div class="flex spaceBetween alignItemsCenter width100p">
             <span>名称:</span>
-              <i class="fa-solid fa-trash" style="font-size: calc(var(--mainFontSize) * 0.8); cursor: pointer;"></i>
+              <i class="fa-solid fa-trash" style="font-size: calc(var(--mainFontSize) * 0.8); cursor: pointer; margin-right:5px;"></i>
             </div>
             <input type="text" value="${name}"/>
           </div>
@@ -496,7 +494,7 @@ export class ScriptRepository {
           <div class="flex-container">
             <div class="flex spaceBetween alignItemsCenter width100p">
             <span>名称:</span>
-              <i class="fa-solid fa-trash" style="font-size: calc(var(--mainFontSize) * 0.8); cursor: pointer;"></i>
+              <i class="fa-solid fa-trash" style="font-size: calc(var(--mainFontSize) * 0.8); cursor: pointer; margin-right:5px;"></i>
             </div>
             <input type="text"/>
           </div>
@@ -575,7 +573,7 @@ export class ScriptRepository {
         }
 
         this.removeButton(script);
-      } 
+      }
     } catch (error) {
       console.error('[ScriptRepository] 删除脚本时发生错误:', error);
       throw error;
@@ -765,8 +763,7 @@ export class ScriptRepository {
       });
 
     scriptHtml.find('.script-info').on('click', async function () {
-      let htmlText = renderMarkdown(script.info);
-      htmlText = `<div class="overflowYAuto">${htmlText}</div>`;
+      const htmlText = renderMarkdown(script.info);
       await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
     });
 
@@ -805,8 +802,7 @@ export class ScriptRepository {
 
     scriptHtml.find('.script-item-name').text(script.name);
     scriptHtml.find('.script-info').on('click', () => {
-      let htmlText = renderMarkdown(script.info);
-      htmlText = `<div class="overflowYAuto">${htmlText}</div>`;
+      const htmlText = renderMarkdown(script.info);
       callGenericPopup(htmlText, POPUP_TYPE.DISPLAY);
     });
     scriptHtml.find('.add-script').on('click', async () => {
@@ -962,16 +958,16 @@ export class ScriptRepository {
 
   addButton(script: Script) {
     if (script.buttons && script.buttons.length > 0) {
-      script.buttons.forEach(_button => {
-        $(`#${script.name}_${script.id}`).remove();
-      });
+      this.removeButton(script);
 
       script.buttons.forEach(button => {
         if (button.visible) {
+          initButtonContainer();
+
           $('#TH-script-buttons').append(
-            `<div class="qr--button menu_button interactable" id="${script.name}_${script.id}">${button.name}</div>`,
+            `<div class="qr--button menu_button interactable" id="${button.name}_${script.id}">${button.name}</div>`,
           );
-          $(`#${script.name}_${script.id}`).on('click', () => {
+          $(`#${button.name}_${script.id}`).on('click', () => {
             eventSource.emit(`${button.name}_${script.id}`);
           });
         }
@@ -989,7 +985,7 @@ export class ScriptRepository {
   }
 
   removeButton(script: Script) {
-    $(`#qr--bar`).find(`#${script.name}_${script.id}`).remove();
+    $(`[id$=_${script.id}]`).remove();
   }
 
   removeButtonsByType(type: ScriptType) {
@@ -1044,7 +1040,6 @@ function initButtonContainer() {
     $('#send_form').append(
       '<div class="flex-container flexGap5" id="qr--bar"><div class="qr--buttons qr--color" id="TH-script-buttons"></div></div>',
     );
-    console.log('initButtonContainer', $qrBar);
   }
 }
 

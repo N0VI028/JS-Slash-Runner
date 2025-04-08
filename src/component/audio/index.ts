@@ -872,7 +872,7 @@ function initAudioStyles(type: 'bgm' | 'ambient') {
  * 初始化所有音频相关组件和事件监听器
  */
 export function initAudioComponents() {
-  isAudioEnabled = getSettingValue('audio_enabled');
+  isAudioEnabled = getSettingValue('audio.audio_enabled');
   handleAudioToggle(isAudioEnabled, false);
   $('#audio-enable-toggle')
     .prop('checked', isAudioEnabled)

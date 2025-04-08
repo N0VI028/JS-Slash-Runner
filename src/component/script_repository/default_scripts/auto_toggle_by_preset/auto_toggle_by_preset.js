@@ -1,4 +1,3 @@
-var detail;
 !(function (detail) {
   function get_current_preset_name() {
     return $('#settings_preset_openai').find(':selected').text();
@@ -66,7 +65,7 @@ async function toggle_tags() {
     })(tags),
     await (async function toggle_tagged_regexes(tags) {
       const regexes = await getTavernRegexes({ scope: 'all' });
-      let new_regexes = _.cloneDeep(regexes);
+      const new_regexes = _.cloneDeep(regexes);
       await Promise.all(
         new_regexes
           .filter(regex => null !== regex.script_name.match(/【.*?】/))

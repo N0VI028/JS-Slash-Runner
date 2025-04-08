@@ -1,3 +1,20 @@
+/* 编写参考 */
+.extension-reference-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--grey30);
+  border-radius: 50px;
+  padding: 5px 10px;
+  margin-top: 5px;
+  font-size: calc(var(--mainFontSize) * 0.8);
+  opacity: 0.7;
+}
+
+.extension-reference-button a {
+  color: var(--SmartThemeBodyColor);
+}
+
 #render-depth,
 .script-editor-container input:not([type='checkbox']) {
   width: 100%;
@@ -37,6 +54,7 @@
 #extension-info .info-text {
   font-size: calc(var(--mainFontSize) * 0.8);
   opacity: 0.7;
+  gap: 2px;
 }
 
 .text-decoration {
@@ -53,7 +71,7 @@
 
 .extension-title {
   height: calc(var(--mainFontSize) * 2.5);
-  border: 1px solid var(--SmartThemeBorderColor);
+  border: 1px solid var(--grey5050a);
   border-radius: 50px;
 }
 
@@ -126,7 +144,7 @@
 
 .divider {
   height: 1px;
-  background-color: var(--SmartThemeBorderColor);
+  background-color: var(--grey5050a);
 }
 
 .script-item {

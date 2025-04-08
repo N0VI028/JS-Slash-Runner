@@ -6,7 +6,7 @@
 
 **说明：** 酒馆助手内置的脚本，用于随预设或API连接配置自动开启/关闭正则、世界书、提示词条目
 
-> [点此查看源文件](https://gitgud.io/StageDog/tavern_resource/-/tree/main/酒馆助手/标签化/源文件?ref_type=heads)
+[点此查看源文件](https://gitgud.io/StageDog/tavern_resource/-/tree/main/酒馆助手/标签化/源文件?ref_type=heads)
 
 
 ## 使用说明

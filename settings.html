@@ -55,11 +55,8 @@
               <div class="settings-title-description">包括扩展使用及前端卡游玩相关问题的解答</div>
             </div>
             <div class="TavernHelper-button">
-              <a
-                href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E5%89%8D%E7%AB%AF%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
-                target="_blank"
-                style="cursor: pointer"
-              >
+              <a href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E5%89%8D%E7%AB%AF%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
+                target="_blank" style="cursor: pointer">
                 查看
               </a>
             </div>
@@ -72,6 +69,45 @@
             </div>
             <div id="update-extension" class="TavernHelper-button">更新</div>
           </div>
+          <div class="divider"></div>
+          <div class="extension-content-item flexFlowColumn" style="align-items: flex-start; gap: 5px;">
+            <div class="flex flexFlowColumn">
+              <div class="settings-title-text">编写参考</div>
+              <div class="settings-title-description">编写脚本的可用内容</div>
+            </div>
+            <div id="extension-reference" class="flex-container">
+              <div class="extension-reference-button"><a id="copy_third_party_tag" target="_blank"
+                  style="cursor: pointer" title="复制在 VSCode 中预览 html 需要插入的 tag">
+                  内置库插入
+                </a>
+              </div>
+              <div class="extension-reference-button">
+                <a id="copy_third_party_installation" target="_blank" style="cursor: pointer"
+                  title="复制在 VSCode 中编写酒馆助手角色卡应该执行的安装命令">
+                  内置库安装
+                </a>
+              </div>
+              <div class="extension-reference-button">
+                <a href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/doc/usage.md?ref_type=heads&inline=false"
+                  target="_blank" title="最新酒馆助手提供的所有 TypeScript 函数">
+                  助手函数 (发给 ai 官网的单文件)
+                </a>
+              </div>
+              <div class="extension-reference-button">
+                <a href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client"
+                  target="_blank" title="最新酒馆助手提供的所有 TypeScript 函数">
+                  助手函数 (VSCode 用)
+                </a>
+              </div>
+              <div class="extension-reference-button">
+                <a id="download_slash_commands" target="_blank" style="cursor: pointer"
+                  title="你所用酒馆版本及扩展所提供的酒馆命令">
+                    酒馆命令
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="divider"></div>
           <div id="extension-info">
             <div class="info-text flex flex1 flexFlowColumn">
               <div>作者：KAKAA，青空莉想做舞台少女的狗</div>
@@ -81,10 +117,8 @@
               <a href="https://github.com/n0vi028/TavernHelper" target="_blank">
                 <i class="fa-brands fa-github"></i>
               </a>
-              <a
-                href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E5%89%8D%E7%AB%AF%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
-                target="_blank"
-              >
+              <a href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E5%89%8D%E7%AB%AF%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
+                target="_blank">
                 <i class="fa-brands fa-discord"></i>
               </a>
             </div>
@@ -128,216 +162,194 @@
             <div class="input-number-wrapper">
               <input type="number" id="render-depth" class="input-number" min="0" value="0" />
             </div>
-            
+
           </div>
           <div class="divider"></div>
-            <div class="extension-content-item">
-              <div class="flex flexFlowColumn">
-                <div class="settings-title-text">启用油猴兼容模式</div>
-                <div class="settings-title-description">
-                  启用后，将支持<a href="https://www.tampermonkey.net/documentation.html" target="_blank"
-                    >油猴酒馆HTML注入脚本</a
-                  >的功能
-                </div>
+          <div class="extension-content-item">
+            <div class="flex flexFlowColumn">
+              <div class="settings-title-text">启用油猴兼容模式</div>
+              <div class="settings-title-description">
+                启用后，将支持<a href="https://www.tampermonkey.net/documentation.html" target="_blank">油猴酒馆HTML注入脚本</a>的功能
               </div>
-              <div class="toggle-switch">
-                <input type="checkbox" id="tampermonkey-compatibility-toggle" class="toggle-input" checked />
-                <label for="tampermonkey-compatibility-toggle" class="toggle-label">
-                  <span class="toggle-handle"></span>
-                </label>
+            </div>
+            <div class="toggle-switch">
+              <input type="checkbox" id="tampermonkey-compatibility-toggle" class="toggle-input" checked />
+              <label for="tampermonkey-compatibility-toggle" class="toggle-label">
+                <span class="toggle-handle"></span>
+              </label>
             </div>
           </div>
         </div>
         <div id="script-settings-content" class="extension-content flex flexFlowColumn gap10px">
           <div class="flex-container">
-              <div id="open-global-script-editor" class="menu_button menu_button_icon interactable">
-                <i class="fa-solid fa-pen-to-square"></i>
-                <small>+ 全局</small>
-              </div>
-              <div id="open-scoped-script-editor" class="menu_button menu_button_icon interactable">
-                <i class="fa-solid fa-address-card"></i>
-                <small>+ 局部</small>
-              </div>
-              <div id="scope-variable" class="menu_button menu_button_icon interactable">
-                <i class="fa-solid fa-book-open"></i>
-                <small>变量</small>
-              </div>
-              <div id="import-script" class="menu_button menu_button_icon interactable">
-                <i class="fa-solid fa-file-import"></i>
-                <small>导入</small>
-              </div>
-              <input multiple accept="*.json" hidden id="import-script-file" type="file" />
-              <div id="default-script" class="menu_button menu_button_icon interactable">
-                <i class="fa-solid fa-archive"></i>
-                <small>内置库</small>
-              </div>
+            <div id="open-global-script-editor" class="menu_button menu_button_icon interactable">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <small>+ 全局</small>
             </div>
-            <div id="global-script-content" class="flex-container flexFlowColumn">
-              <div class="extension-content-item">
-                <div class="flex flexFlowColumn">
-                  <div class="settings-title-text">全局脚本库</div>
-                  <div class="settings-title-description">应用于酒馆所有聊天</div>
-                </div>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="global-script-enable-toggle" class="toggle-input" checked />
-                  <label for="global-script-enable-toggle" class="toggle-label">
-                    <span class="toggle-handle"></span>
-                  </label>
-                </div>
-              </div>
-              <div id="global-script-list" class="flex-container flexFlowColumn alignItemsCenter"></div>
-              <div class="divider marginTop10 marginBot10"></div>
-              <div class="extension-content-item">
-                <div class="flex flexFlowColumn">
-                  <div class="settings-title-text">局部脚本库</div>
-                  <div class="settings-title-description">应用于酒馆当前聊天</div>
-                </div>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="scoped-script-enable-toggle" class="toggle-input" checked />
-                  <label for="scoped-script-enable-toggle" class="toggle-label">
-                    <span class="toggle-handle"></span>
-                  </label>
-                </div>
-              </div>
-              <div id="scoped-script-list" class="flex-container flexFlowColumn alignItemsCenter"></div>
+            <div id="open-scoped-script-editor" class="menu_button menu_button_icon interactable">
+              <i class="fa-solid fa-address-card"></i>
+              <small>+ 局部</small>
+            </div>
+            <div id="scope-variable" class="menu_button menu_button_icon interactable">
+              <i class="fa-solid fa-book-open"></i>
+              <small>变量</small>
+            </div>
+            <div id="import-script" class="menu_button menu_button_icon interactable">
+              <i class="fa-solid fa-file-import"></i>
+              <small>导入</small>
+            </div>
+            <input multiple accept="*.json" hidden id="import-script-file" type="file" />
+            <div id="default-script" class="menu_button menu_button_icon interactable">
+              <i class="fa-solid fa-archive"></i>
+              <small>内置库</small>
             </div>
           </div>
-          <div id="audio-settings-content" class="extension-content flex flexFlowColumn gap10px">
+          <div id="global-script-content" class="flex-container flexFlowColumn">
             <div class="extension-content-item">
               <div class="flex flexFlowColumn">
-                <div class="settings-title-text">启用播放器</div>
-                <div class="settings-title-description">扩展内置的全局播放器</div>
+                <div class="settings-title-text">全局脚本库</div>
+                <div class="settings-title-description">应用于酒馆所有聊天</div>
               </div>
               <div class="toggle-switch">
-                <input type="checkbox" id="audio-enable-toggle" class="toggle-input" checked />
-                <label for="audio-enable-toggle" class="toggle-label">
+                <input type="checkbox" id="global-script-enable-toggle" class="toggle-input" checked />
+                <label for="global-script-enable-toggle" class="toggle-label">
                   <span class="toggle-handle"></span>
                 </label>
               </div>
             </div>
-            <div class="divider"></div>
-            <div id="audio-player-content" class="flex-container flexFlowColumn">
-              <div>
-                <div class="title_restorable space-between alignItemsCenter">
-                  <label for="audio_bgm_volume_slider">音乐</label>
-                  <label class="checkbox flex-container" for="enable_bgm">
-                    <input type="checkbox" id="enable_bgm" name="enable_bgm" />
-                    <span class="bgm-toggle-on fa-solid fa-toggle-on" title="禁用BGM播放器"></span>
-                    <span class="bgm-toggle-off fa-solid fa-toggle-off" title="启用BGM播放器"></span>
-                  </label>
-                  <div id="bgm_manager_button" title="管理音乐链接" class="menu_button menu_button_icon manager-button">
-                    <i class="fa-solid fa-list-ol"></i>
-                  </div>
-                </div>
-                <div class="audio-container">
-                  <div class="mute-vol-wrapper">
-                    <div class="mute-div">
-                      <div id="audio_bgm_mute" class="menu_button audio-player-button">
-                        <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_bgm_mute_icon"></i>
-                      </div>
-                    </div>
-                    <div class="vol" id="bgm-volume-control">
-                      <input
-                        type="range"
-                        class="audio-slider vertical-slider"
-                        id="audio_bgm_volume_slider"
-                        value="100"
-                        maxlength="100"
-                      />
-                    </div>
-                  </div>
-                  <div class="play-pause-div">
-                    <div id="audio_bgm_play_pause" class="menu_button audio-player-button">
-                      <i class="fa-solid fa-play fa-lg fa-fw" id="audio_bgm_play_pause_icon"></i>
-                    </div>
-                  </div>
-                  <div class="progress-div">
-                    <input type="range" class="audio-slider" id="audio_bgm_progress_slider" value="0" maxlength="100" />
-                  </div>
-                </div>
-                <div class="audio-adjust">
-                  <div class="playlist">
-                    <select id="audio_bgm_select"></select>
-                  </div>
-                  <div class="audio-mixer-element audio-mixer-mode">
-                    <div id="audio_bgm_mode" class="menu_button audio-player-button">
-                      <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_bgm_mode_icon"></i>
-                    </div>
-                  </div>
-                </div>
-                <audio id="audio_bgm" controls src=""></audio>
+            <div id="global-script-list" class="flex-container flexFlowColumn alignItemsCenter"></div>
+            <div class="divider marginTop10 marginBot10"></div>
+            <div class="extension-content-item">
+              <div class="flex flexFlowColumn">
+                <div class="settings-title-text">局部脚本库</div>
+                <div class="settings-title-description">应用于酒馆当前聊天</div>
               </div>
-              <div>
-                <div class="title_restorable space-between alignItemsCenter">
-                  <label for="audio_ambient_volume_slider">音效</label>
-                  <label class="checkbox flex-container" for="enable_ambient">
-                    <input type="checkbox" id="enable_ambient" name="enable_ambient" />
-                    <span class="ambient-toggle-on fa-solid fa-toggle-on" title="禁用Ambient播放器"></span>
-                    <span class="ambient-toggle-off fa-solid fa-toggle-off" title="启用Ambient播放器"></span>
-                  </label>
-                  <div
-                    id="ambient_manager_button"
-                    title="管理音效链接"
-                    class="menu_button menu_button_icon manager-button"
-                  >
-                    <i class="fa-solid fa-list-ol"></i>
-                  </div>
-                </div>
-                <div class="audio-container">
-                  <div class="mute-vol-wrapper">
-                    <div class="mute-div">
-                      <div id="audio_ambient_mute" class="menu_button audio-player-button">
-                        <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_ambient_mute_icon"></i>
-                      </div>
-                    </div>
-                    <div class="vol" id="ambient-volume-control">
-                      <input
-                        type="range"
-                        class="audio-slider vertical-slider"
-                        id="audio_ambient_volume_slider"
-                        value="100"
-                        maxlength="100"
-                      />
-                    </div>
-                  </div>
-                  <div class="play-pause-div">
-                    <div id="audio_ambient_play_pause" class="menu_button audio-player-button">
-                      <i class="fa-solid fa-play fa-lg fa-fw" id="audio_ambient_play_pause_icon"></i>
-                    </div>
-                  </div>
-                  <div class="progress-div">
-                    <input
-                      type="range"
-                      class="audio-slider"
-                      id="audio_ambient_progress_slider"
-                      value="0"
-                      maxlength="100"
-                    />
-                  </div>
-                </div>
-                <div class="audio-adjust">
-                  <div class="playlist">
-                    <select id="audio_ambient_select"></select>
-                  </div>
-                  <div class="audio-mixer-element audio-mixer-mode">
-                    <div id="audio_ambient_mode" class="menu_button audio-player-button">
-                      <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_ambient_mode_icon"></i>
-                    </div>
-                  </div>
-                </div>
-                <audio id="audio_ambient" controls src=""></audio>
+              <div class="toggle-switch">
+                <input type="checkbox" id="scoped-script-enable-toggle" class="toggle-input" checked />
+                <label for="scoped-script-enable-toggle" class="toggle-label">
+                  <span class="toggle-handle"></span>
+                </label>
               </div>
-              <div class="flex-container gap10px spaceBetween">
-                <div class="wide50p">
-                  <label for="audio_cooldown">淡入淡出时间(秒)</label>
-                  <input id="audio_cooldown" class="text_pole wide25p" />
+            </div>
+            <div id="scoped-script-list" class="flex-container flexFlowColumn alignItemsCenter"></div>
+          </div>
+        </div>
+        <div id="audio-settings-content" class="extension-content flex flexFlowColumn gap10px">
+          <div class="extension-content-item">
+            <div class="flex flexFlowColumn">
+              <div class="settings-title-text">启用播放器</div>
+              <div class="settings-title-description">扩展内置的全局播放器</div>
+            </div>
+            <div class="toggle-switch">
+              <input type="checkbox" id="audio-enable-toggle" class="toggle-input" checked />
+              <label for="audio-enable-toggle" class="toggle-label">
+                <span class="toggle-handle"></span>
+              </label>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div id="audio-player-content" class="flex-container flexFlowColumn">
+            <div>
+              <div class="title_restorable space-between alignItemsCenter">
+                <label for="audio_bgm_volume_slider">音乐</label>
+                <label class="checkbox flex-container" for="enable_bgm">
+                  <input type="checkbox" id="enable_bgm" name="enable_bgm" />
+                  <span class="bgm-toggle-on fa-solid fa-toggle-on" title="禁用BGM播放器"></span>
+                  <span class="bgm-toggle-off fa-solid fa-toggle-off" title="启用BGM播放器"></span>
+                </label>
+                <div id="bgm_manager_button" title="管理音乐链接" class="menu_button menu_button_icon manager-button">
+                  <i class="fa-solid fa-list-ol"></i>
                 </div>
+              </div>
+              <div class="audio-container">
+                <div class="mute-vol-wrapper">
+                  <div class="mute-div">
+                    <div id="audio_bgm_mute" class="menu_button audio-player-button">
+                      <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_bgm_mute_icon"></i>
+                    </div>
+                  </div>
+                  <div class="vol" id="bgm-volume-control">
+                    <input type="range" class="audio-slider vertical-slider" id="audio_bgm_volume_slider" value="100"
+                      maxlength="100" />
+                  </div>
+                </div>
+                <div class="play-pause-div">
+                  <div id="audio_bgm_play_pause" class="menu_button audio-player-button">
+                    <i class="fa-solid fa-play fa-lg fa-fw" id="audio_bgm_play_pause_icon"></i>
+                  </div>
+                </div>
+                <div class="progress-div">
+                  <input type="range" class="audio-slider" id="audio_bgm_progress_slider" value="0" maxlength="100" />
+                </div>
+              </div>
+              <div class="audio-adjust">
+                <div class="playlist">
+                  <select id="audio_bgm_select"></select>
+                </div>
+                <div class="audio-mixer-element audio-mixer-mode">
+                  <div id="audio_bgm_mode" class="menu_button audio-player-button">
+                    <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_bgm_mode_icon"></i>
+                  </div>
+                </div>
+              </div>
+              <audio id="audio_bgm" controls src=""></audio>
+            </div>
+            <div>
+              <div class="title_restorable space-between alignItemsCenter">
+                <label for="audio_ambient_volume_slider">音效</label>
+                <label class="checkbox flex-container" for="enable_ambient">
+                  <input type="checkbox" id="enable_ambient" name="enable_ambient" />
+                  <span class="ambient-toggle-on fa-solid fa-toggle-on" title="禁用Ambient播放器"></span>
+                  <span class="ambient-toggle-off fa-solid fa-toggle-off" title="启用Ambient播放器"></span>
+                </label>
+                <div id="ambient_manager_button" title="管理音效链接" class="menu_button menu_button_icon manager-button">
+                  <i class="fa-solid fa-list-ol"></i>
+                </div>
+              </div>
+              <div class="audio-container">
+                <div class="mute-vol-wrapper">
+                  <div class="mute-div">
+                    <div id="audio_ambient_mute" class="menu_button audio-player-button">
+                      <i class="fa-solid fa-volume-high fa-lg fa-fw" id="audio_ambient_mute_icon"></i>
+                    </div>
+                  </div>
+                  <div class="vol" id="ambient-volume-control">
+                    <input type="range" class="audio-slider vertical-slider" id="audio_ambient_volume_slider"
+                      value="100" maxlength="100" />
+                  </div>
+                </div>
+                <div class="play-pause-div">
+                  <div id="audio_ambient_play_pause" class="menu_button audio-player-button">
+                    <i class="fa-solid fa-play fa-lg fa-fw" id="audio_ambient_play_pause_icon"></i>
+                  </div>
+                </div>
+                <div class="progress-div">
+                  <input type="range" class="audio-slider" id="audio_ambient_progress_slider" value="0"
+                    maxlength="100" />
+                </div>
+              </div>
+              <div class="audio-adjust">
+                <div class="playlist">
+                  <select id="audio_ambient_select"></select>
+                </div>
+                <div class="audio-mixer-element audio-mixer-mode">
+                  <div id="audio_ambient_mode" class="menu_button audio-player-button">
+                    <i class="fa-solid fa-repeat fa-lg fa-fw" id="audio_ambient_mode_icon"></i>
+                  </div>
+                </div>
+              </div>
+              <audio id="audio_ambient" controls src=""></audio>
+            </div>
+            <div class="flex-container gap10px spaceBetween">
+              <div class="wide50p">
+                <label for="audio_cooldown">淡入淡出时间(秒)</label>
+                <input id="audio_cooldown" class="text_pole wide25p" />
+              </div>
 
-                <div class="flex row-reverse alignItemsCenter justifyContentFlexEnd gap-12">
-                  <label for="audio_refresh_assets">刷新播放列表</label>
-                  <div id="audio_refresh_assets" class="menu_button btn-refresh">
-                    <i class="fa-solid fa-refresh fa-lg"></i>
-                  </div>
+              <div class="flex row-reverse alignItemsCenter justifyContentFlexEnd gap-12">
+                <label for="audio_refresh_assets">刷新播放列表</label>
+                <div id="audio_refresh_assets" class="menu_button btn-refresh">
+                  <i class="fa-solid fa-refresh fa-lg"></i>
                 </div>
               </div>
             </div>
@@ -346,4 +358,5 @@
       </div>
     </div>
   </div>
+</div>
 </div>
