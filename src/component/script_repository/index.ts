@@ -119,7 +119,7 @@ export class ScriptRepository {
    */
   async addScript(script: Script, type: ScriptType) {
     if (!script.hasName()) {
-      toastr.error('保存失败，脚本名称为空');
+      toastr.error('[ScriptRepository] 保存失败，脚本名称为空');
     }
     await this.saveScript(script, type);
     await this.renderScript(script, type);
@@ -164,7 +164,7 @@ export class ScriptRepository {
    */
   async runScriptsByType(type: ScriptType) {
     if (!getSettingValue('enabled_extension')) {
-      toastr.error('酒馆助手未启用，无法运行脚本');
+      toastr.error('[ScriptRepository] 酒馆助手未启用，无法运行脚本');
       return;
     }
     if (type === ScriptType.GLOBAL && !isGlobalScriptEnabled) {
@@ -205,7 +205,7 @@ export class ScriptRepository {
    */
   async runScript(script: Script, type: ScriptType, userInput: boolean = true) {
     if (!getSettingValue('enabled_extension')) {
-      toastr.error('扩展未启用');
+      toastr.error('[ScriptRepository] 扩展未启用');
       return;
     }
     const typeName = type === ScriptType.GLOBAL ? '全局' : '局部';
@@ -227,9 +227,14 @@ export class ScriptRepository {
     }
 
     try {
-      const existingIframe = $(`#tavern-helper-script-${script.id}`)[0] as IFrameElement;
-      if (existingIframe) {
-        await this.cancelRunScript(script, type, false);
+      const iframeElement = $('iframe').filter(
+        (_index, element) => $(element).data('scriptId') === script.id,
+      )[0] as IFrameElement;
+      if (iframeElement) {
+        await destroyIframe(iframeElement);
+      }
+      if (script.buttons) {
+        this.removeButton(script);
       }
 
       const htmlContent = `
@@ -259,7 +264,7 @@ export class ScriptRepository {
               try {
                 ${script.content}
               } catch (error) {
-                console.error('脚本执行错误:', error);
+                console.error('[ScriptRepository] 脚本执行错误:', error);
               }
             });
           </script>
@@ -267,23 +272,21 @@ export class ScriptRepository {
         </html>
       `;
 
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-
       const $iframe = $('<iframe>', {
         style: 'display: none;',
-        id: `tavern-helper-script-${script.id}`,
-        src: url,
+        id: `tavern-helper-script-${script.name}`,
+        srcdoc: htmlContent,
+      }).data({
+        scriptId: script.id,
       });
 
       $iframe.on('load', () => {
-        console.info(`[Script]启用${typeName}脚本["${script.name}"]`);
-        URL.revokeObjectURL(url);
+        console.info(`[ScriptRepository] 启用${typeName}脚本["${script.name}"]`);
       });
 
       $('body').append($iframe);
     } catch (error) {
-      console.error(`[Script]${typeName}脚本启用失败:["${script.name}"]`, error);
+      console.error(`[ScriptRepository] ${typeName}脚本启用失败:["${script.name}"]`, error);
       toastr.error(`${typeName}脚本启用失败:["${script.name}"]`);
     }
   }
@@ -303,12 +306,14 @@ export class ScriptRepository {
         script.enabled = false;
         await this.saveScript(script, type);
       }
-      const iframeElement = $(`#tavern-helper-script-${script.id}`)[0] as IFrameElement;
+      const iframeElement = $('iframe').filter(
+        (_index, element) => $(element).data('scriptId') === script.id,
+      )[0] as IFrameElement;
       if (iframeElement) {
         await destroyIframe(iframeElement);
       }
       this.removeButton(script);
-      console.info(`[Script]${typeName}脚本["${script.name}"] 已禁用`);
+      console.info(`[ScriptRepository] ${typeName}脚本["${script.name}"] 已禁用`);
     }
   }
 
@@ -566,7 +571,8 @@ export class ScriptRepository {
             : $(`#scoped-script-list`).append($emptyTip);
         }
 
-        this.removeButton(script);
+        this.cancelRunScript(script, type, false);
+        console.info(`[ScriptRepository] 删除脚本["${script.name}"]`);
       }
     } catch (error) {
       console.error('[ScriptRepository] 删除脚本时发生错误:', error);
@@ -893,7 +899,7 @@ export class ScriptRepository {
       const fileText = await getFileText(file);
       const script = JSON.parse(fileText);
       if (!script.name) {
-        throw new Error('未提供脚本名称。');
+        throw new Error('[ScriptRepository] 未提供脚本名称。');
       }
 
       const newScript = new Script(script);

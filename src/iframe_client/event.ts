@@ -429,7 +429,7 @@ type ListenerType = {
 //------------------------------------------------------------------------------------------------------------------------
 // @ts-expect-error
 namespace detail {
-  export let listener_event_wrapper_map: Map<Function, Map<EventType, Function>> = new Map();
+  export const listener_event_wrapper_map: Map<Function, Map<EventType, Function>> = new Map();
 
   export function try_get_wrapper<T extends EventType>(listener: ListenerType[T], event_type: T): Function | undefined {
     return listener_event_wrapper_map.get(listener)?.get(event_type);
@@ -466,9 +466,9 @@ namespace detail {
     return wrapper as ListenerType[T];
   }
 
-  export let waiting_event_map: ArrayMultimap<string, number> = new ArrayMultimap();
+  export const waiting_event_map: ArrayMultimap<string, number> = new ArrayMultimap();
 
-  $(window).on('unload', eventClearAll);
+  $(window).on('beforeunload', eventClearAll);
 }
 
 //------------------------------------------------------------------------------------------------------------------------

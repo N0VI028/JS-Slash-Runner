@@ -27,9 +27,9 @@ interface LorebookSettings {
 
   scan_depth: number;
   context_percentage: number;
-  budget_cap: number;  // 0 表示禁用
+  budget_cap: number; // 0 表示禁用
   min_activations: number;
-  max_depth: number;  // 0 表示无限制
+  max_depth: number; // 0 表示无限制
   max_recursion_steps: number;
 
   insertion_strategy: 'evenly' | 'character_first' | 'global_first';
@@ -40,12 +40,12 @@ interface LorebookSettings {
   match_whole_words: boolean;
   use_group_scoring: boolean;
   overflow_alert: boolean;
-};
+}
 
 interface GetCharLorebooksOption {
   name?: string;
   type?: 'all' | 'primary' | 'additional';
-};
+}
 
 interface CharLorebooks {
   primary: string | null;
@@ -245,18 +245,18 @@ export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
  */
 export function getCharLorebooks(option?: GetCharLorebooksOption): CharLorebooks {
   // @ts-ignore
-  if (selected_group && !option.name) {
+  if (selected_group && !option?.name) {
     throw Error(`不要在群组中调用这个功能`);
   }
   //@ts-ignore
-  const filename = option.name ?? characters[this_chid]?.avatar ?? null;
+  const filename = option?.name ?? characters[this_chid]?.avatar ?? null;
   // @ts-ignore
   const character = findChar({ name: filename });
   if (!character) {
     throw Error(`未找到名为 '${filename}' 的角色卡`);
   }
 
-  let books: CharLorebooks = { primary: null, additional: [] };
+  const books: CharLorebooks = { primary: null, additional: [] };
 
   if (character.data?.extensions?.world) {
     books.primary = character.data?.extensions?.world;
@@ -266,6 +266,19 @@ export function getCharLorebooks(option?: GetCharLorebooksOption): CharLorebooks
   const extraCharLore = world_info.charLore?.find(e => e.name === filename);
   if (extraCharLore && Array.isArray(extraCharLore.extraBooks)) {
     books.additional = extraCharLore.extraBooks;
+  }
+
+  // 根据 type 参数过滤结果
+  if (option?.type) {
+    switch (option.type) {
+      case 'primary':
+        return { primary: books.primary, additional: [] };
+      case 'additional':
+        return { primary: null, additional: books.additional };
+      case 'all':
+      default:
+        return books;
+    }
   }
 
   console.info(`获取角色卡绑定的世界书, 选项: ${JSON.stringify(option)}, 获取结果: ${JSON.stringify(books)}`);
@@ -333,7 +346,7 @@ export async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>)
       name: string;
       extraBooks: string[];
     }
-    let char_lore = (world_info as { charLore: CharLoreEntry[] }).charLore ?? [];
+    const char_lore = (world_info as { charLore: CharLoreEntry[] }).charLore ?? [];
 
     const existing_char_index = char_lore.findIndex(entry => entry.name === filename);
     if (existing_char_index === -1) {
@@ -400,6 +413,5 @@ export async function createLorebook(lorebook: string): Promise<boolean> {
  * @returns 如果当前角色卡有绑定并使用世界书 (地球图标呈绿色), 返回该世界书的名称; 否则返回 `null`
  */
 export async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
-  return (getCharLorebooks()).primary;
+  return getCharLorebooks().primary;
 }
-
