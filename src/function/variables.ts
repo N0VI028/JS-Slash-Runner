@@ -112,7 +112,7 @@ export async function updateVariablesWith(updater: VariablesUpdater, option: Var
   const { type = 'chat' } = option;
   let variables = await getVariables({ type });
   variables = await updater(variables);
-  console.info(`[Chat Message][updateVariablesWith] 对${type === 'chat' ? `聊天` : `全局`}变量表进行更新, 使用的函数:\n\n ${JSON.stringify(detail.format_function_to_string(updater))}`);
+  console.info(`[Chat Message][updateVariablesWith] 对${type === 'chat' ? `聊天` : `全局`}变量表进行更新`);
   replaceVariables(variables, option);
   return variables;
 }
