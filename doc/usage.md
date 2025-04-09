@@ -2070,15 +2070,6 @@ async function getLastMessageId(): Promise<number>;
 
 ```typescript
 /**
- * 生成唯一的 uuidv4 标识符
- *
- * @returns 唯一的 uuidv4 标识符
- */
-function generateUuidv4(): string
-```
-
-```typescript
-/**
  * 包装 `fn` 函数，返回一个会将报错消息通过酒馆通知显示出来的同功能函数
  *
  * @param fn 要包装的函数

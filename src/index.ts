@@ -7,9 +7,8 @@ import { initAudioSlashCommands } from '@/slash_command/audio';
 import { initSlashEventEmit } from '@/slash_command/event';
 import {
   addVersionUpdateElement,
-  getFileContentByPath,
+  getCurrentVersion,
   handleUpdateButton,
-  parseVersionFromFile,
   runCheckWithPath,
   VERSION_FILE_PATH,
 } from '@/util/check_update';
@@ -85,7 +84,7 @@ function handleSettingPageChange(event: JQuery.ClickEvent) {
  * 版本控制
  */
 async function handleVersionUpdate() {
-  const currentVersion = parseVersionFromFile(await getFileContentByPath(VERSION_FILE_PATH));
+  const currentVersion = await getCurrentVersion(VERSION_FILE_PATH);
   $('.version').text(`Ver ${currentVersion}`);
   const isNeedUpdate = await runCheckWithPath();
   if (isNeedUpdate) {

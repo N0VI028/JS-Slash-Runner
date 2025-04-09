@@ -216,3 +216,45 @@ export async function replaceTavernRegexes(
 ${scope === 'all' || scope === 'global' ? `, 全局正则:\n${JSON.stringify(global_regexes, undefined, 2)}` : ``}\
 ${scope === 'all' || scope === 'character' ? `, 局部正则:\n${JSON.stringify(character_regexes, undefined, 2)}` : ``}`);
 }
+
+type TavernRegexUpdater =
+  | ((regexes: TavernRegex[]) => TavernRegex[])
+  | ((regexes: TavernRegex[]) => Promise<TavernRegex[]>);
+
+/**
+ * 用 `updater` 函数更新酒馆正则
+ *
+ * @param updater 用于更新酒馆正则的函数. 它应该接收酒馆正则作为参数, 并返回更新后的酒馆正则.
+ * @param option 可选选项
+ *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
+ *
+ * @returns 更新后的酒馆正则
+ *
+ * @example
+ * // 开启所有名字里带 "舞台少女" 的正则
+ * await updateTavernRegexesWith(regexes => {
+ *   regexes.forEach(regex => {
+ *     if (regex.script_name.includes('舞台少女')) {
+ *       regex.enabled = true;
+ *     }
+ *   });
+ *   return regexes;
+ * });
+ */
+export async function updateTavernRegexesWith(
+  updater: TavernRegexUpdater,
+  option: ReplaceTavernRegexesOption = {},
+): Promise<TavernRegex[]> {
+  const defaulted_option: Required<ReplaceTavernRegexesOption> = {
+    scope: option.scope ?? 'all',
+  } as Required<ReplaceTavernRegexesOption>;
+  let regexes = await getTavernRegexes(defaulted_option);
+  regexes = await updater(regexes);
+  console.info(
+    `[Chat Message][updateVariablesWith] 对${
+      { all: '全部', global: '全局', character: '局部' }[defaulted_option.scope]
+    }变量表进行更新`,
+  );
+  await replaceTavernRegexes(regexes, defaulted_option);
+  return regexes;
+}

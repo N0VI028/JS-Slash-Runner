@@ -1,7 +1,7 @@
 import { getCharAvatarPath, getCharData, getChatHistoryBrief, getChatHistoryDetail } from '@/function/character';
 import { getChatMessages, setChatMessage } from '@/function/chat_message';
-import { formatAsDisplayedMessage } from '@/function/displayed_message';
-import { updateFrontendVersion } from '@/function/frontend_version';
+import { formatAsDisplayedMessage, retrieveDisplayedMessage } from '@/function/displayed_message';
+import { updateFrontendVersion, getFrontendVersion } from '@/function/frontend_version';
 import { generate, generateRaw } from '@/function/generate';
 import {
   createLorebook,
@@ -9,6 +9,7 @@ import {
   getCharLorebooks,
   getLorebooks,
   getLorebookSettings,
+  getOrCreateChatLorebook,
   setCurrentCharLorebooks,
   setLorebookSettings,
   getCurrentCharPrimaryLorebook,
@@ -21,8 +22,15 @@ import {
   setLorebookEntries,
 } from '@/function/lorebook_entry';
 import { triggerSlash, triggerSlashWithResult } from '@/function/slash';
-import { getTavernRegexes, isCharacterTavernRegexesEnabled, replaceTavernRegexes } from '@/function/tavern_regex';
-import { substitudeMacros } from '@/function/util';
+import { getTavernRegexes, isCharacterTavernRegexesEnabled, replaceTavernRegexes, updateTavernRegexesWith } from '@/function/tavern_regex';
+import {
+  substitudeMacros,
+  errorCatched,
+  getLastMessageId,
+  getCurrentMessageId,
+  getIframeName,
+  getMessageId,
+} from '@/function/util';
 import {
   getVariables,
   replaceVariables,
@@ -63,14 +71,21 @@ export function initTavernHelperObject() {
     setChatMessage,
     // 显示消息
     formatAsDisplayedMessage,
+    retrieveDisplayedMessage,
     // 更新前端版本
+    getFrontendVersion,
     updateFrontendVersion,
     // 工具
     substitudeMacros,
+    errorCatched,
+    getLastMessageId,
+    getCurrentMessageId,
+    getIframeName,
+    getMessageId,
     // 生成
     generate,
     generateRaw,
-    // 世界书
+    // 世界书条目
     getLorebookEntries,
     setLorebookEntries,
     createLorebookEntry,
@@ -78,13 +93,14 @@ export function initTavernHelperObject() {
     activateLorebookEntries,
     // 世界书设置
     getLorebookSettings,
-    setLorebookSettings,
     getCharLorebooks,
     setCurrentCharLorebooks,
+    setLorebookSettings,
     getLorebooks,
     deleteLorebook,
     createLorebook,
     getCurrentCharPrimaryLorebook,
+    getOrCreateChatLorebook,
     // 触发命令
     triggerSlash,
     triggerSlashWithResult,
@@ -92,6 +108,7 @@ export function initTavernHelperObject() {
     isCharacterTavernRegexesEnabled,
     getTavernRegexes,
     replaceTavernRegexes,
+    updateTavernRegexesWith,
     // 脚本库
     getCharacterScriptVariables,
   };

@@ -1,4 +1,5 @@
 import { findChar } from '@/compatibility';
+import { triggerSlashWithResult } from '@/function/slash';
 
 import {
   characters,
@@ -417,4 +418,13 @@ export async function createLorebook(lorebook: string): Promise<boolean> {
  */
 export async function getCurrentCharPrimaryLorebook(): Promise<string | null> {
   return getCharLorebooks().primary;
+}
+
+/**
+ * 获取或创建当前聊天绑定的世界书
+ *
+ * @returns 聊天世界书的名称
+ */
+export async function getOrCreateChatLorebook(): Promise<string> {
+  return triggerSlashWithResult("/getchatbook") as Promise<string>;
 }

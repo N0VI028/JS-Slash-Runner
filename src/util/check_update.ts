@@ -1,7 +1,8 @@
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
+import { getRequestHeaders } from '@sillytavern/script';
+import { t } from '@sillytavern/scripts/i18n';
 
-import { updateFrontendVersion } from '../function/frontend_version';
-import { extensionFolderPath } from './extension_variables';
+import { extensionName, extensionFolderPath } from './extension_variables';
 import { renderMarkdown } from './render_markdown';
 
 const GITLAB_INSTANCE_URL = 'gitlab.com';
@@ -81,6 +82,17 @@ export function parseVersionFromFile(content: string): string {
 }
 
 /**
+ * 获取当前版本号
+ * @param path 版本号文件路径
+ * @returns 当前版本号
+ */
+export async function getCurrentVersion(path: string) {
+  CURRENT_VERSION = parseVersionFromFile(await getFileContentByPath(path));
+  return CURRENT_VERSION;
+}
+
+
+/**
  * 比较两个语义化版本号 (Semantic Versioning - Major.Minor.Patch)
  * @param versionA 版本号字符串 A (例如 "2.5.5")
  * @param versionB 版本号字符串 B (例如 "1.0.0")
@@ -136,7 +148,6 @@ export async function getFileContentByPath(filePath: string) {
 export async function runCheckWithPath() {
   try {
     LATEST_VERSION = parseVersionFromFile(await fetchRawFileContentFromGitLab(VERSION_FILE_PATH_GITLAB));
-    CURRENT_VERSION = parseVersionFromFile(await getFileContentByPath(VERSION_FILE_PATH));
 
     const comparisonResult = compareSemVer(LATEST_VERSION, CURRENT_VERSION);
 
@@ -237,7 +248,7 @@ export async function handleUpdateButton() {
   const result = await callGenericPopup(CHANGELOG_CONTENT, POPUP_TYPE.CONFIRM, '', { okButton: '更新', cancelButton: '取消' });
   if (result) {
     toastr.info('更新中……');
-    await updateFrontendVersion();
+    await updateTavernHelper();
   }
 }
 
@@ -262,4 +273,32 @@ export async function getChangelog() {
   } else {
     CHANGELOG_CONTENT = logs;
   }
+}
+
+/**
+ * 更新酒馆助手
+ */
+export async function updateTavernHelper() {
+  const response = await fetch('/api/extensions/update', {
+    method: 'POST',
+    headers: getRequestHeaders(),
+    body: JSON.stringify({ extensionName: extensionName }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    // @ts-ignore
+    toastr.error(text || response.statusText, t`更新酒馆助手失败`, { timeOut: 5000 });
+    console.error(`更新酒馆助手失败: ${text}`);
+    return false;
+  }
+
+  const data = await response.json();
+  if (data.isUpToDate) {
+    console.info(`酒馆助手已是最新版本, 无需更新`);
+  } else {
+    // @ts-ignore
+    toastr.success(t`成功更新酒馆助手为 ${data.shortCommitHash}`, t`请刷新页面`);
+    console.info(`成功更新酒馆助手为  ${data.shortCommitHash}, 请刷新页面`);
+  }
+  return true;
 }
