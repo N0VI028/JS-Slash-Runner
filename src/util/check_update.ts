@@ -1,8 +1,8 @@
-import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { getRequestHeaders } from '@sillytavern/script';
 import { t } from '@sillytavern/scripts/i18n';
+import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 
-import { extensionName, extensionFolderPath } from './extension_variables';
+import { extensionFolderPath, extensionName } from './extension_variables';
 import { renderMarkdown } from './render_markdown';
 
 const GITLAB_INSTANCE_URL = 'gitlab.com';
@@ -90,7 +90,6 @@ export async function getCurrentVersion(path: string) {
   CURRENT_VERSION = parseVersionFromFile(await getFileContentByPath(path));
   return CURRENT_VERSION;
 }
-
 
 /**
  * 比较两个语义化版本号 (Semantic Versioning - Major.Minor.Patch)
@@ -191,8 +190,9 @@ function parseChangelogBetweenVersions(
   currentVersion: string,
   latestVersion: string,
 ): string | undefined {
-  // 查找所有版本标题
-  const versionRegex = /##\s*([0-9]+\.[0-9]+\.[0-9]+)/g;
+  // 查找所有版本标题，支持多种Markdown标题格式
+  // 匹配 ## 版本号 或 # 版本号 或 [版本号] 等格式
+  const versionRegex = /(?:^|\n)(?:#{1,3}\s*|\[)([0-9]+\.[0-9]+\.[0-9]+)(?:\]|\s|$)/g;
   const matches = [...changelogContent.matchAll(versionRegex)];
 
   if (matches.length === 0) {
@@ -202,6 +202,7 @@ function parseChangelogBetweenVersions(
 
   // 比较当前版本和最新版本
   const comparisonResult = compareSemVer(latestVersion, currentVersion);
+  let extractedContent = '';
 
   if (comparisonResult <= 0) {
     // 当前版本大于或等于最新版本，只返回最新版本的日志
@@ -215,7 +216,7 @@ function parseChangelogBetweenVersions(
     const nextVersionMatch = matches.find(match => match.index > startIndex);
     const endIndex = nextVersionMatch ? nextVersionMatch.index : changelogContent.length;
 
-    return changelogContent.substring(startIndex, endIndex).trim();
+    extractedContent = changelogContent.substring(startIndex, endIndex).trim();
   } else {
     const currentVersionMatch = matches.find(match => match[1] === currentVersion);
     if (!currentVersionMatch) {
@@ -232,10 +233,10 @@ function parseChangelogBetweenVersions(
     const startIndex = currentVersionMatch.index;
     const endIndex = latestVersionMatch.index;
 
-    changelogContent = changelogContent.substring(startIndex, endIndex).trim();
-
-    return renderMarkdown(changelogContent);
+    extractedContent = changelogContent.substring(startIndex, endIndex).trim();
   }
+
+  return renderMarkdown(extractedContent);
 }
 
 /**
@@ -245,7 +246,10 @@ export async function handleUpdateButton() {
   if (!CHANGELOG_CONTENT) {
     await getChangelog();
   }
-  const result = await callGenericPopup(CHANGELOG_CONTENT, POPUP_TYPE.CONFIRM, '', { okButton: '更新', cancelButton: '取消' });
+  const result = await callGenericPopup(CHANGELOG_CONTENT, POPUP_TYPE.CONFIRM, '', {
+    okButton: '更新',
+    cancelButton: '取消',
+  });
   if (result) {
     toastr.info('更新中……');
     await updateTavernHelper();
@@ -257,6 +261,7 @@ export async function handleUpdateButton() {
  * @returns 两个版本之间的日志内容
  */
 export async function getChangelog() {
+  toastr.info('获取更新日志中……');
   const changelogContent = await fetchRawFileContentFromGitLab(CHANGELOG_FILE_PATH_GITLAB);
   if (LATEST_VERSION === undefined) {
     LATEST_VERSION = parseVersionFromFile(await fetchRawFileContentFromGitLab(VERSION_FILE_PATH_GITLAB));

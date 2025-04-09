@@ -3,12 +3,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--grey30);
+  background-color: var(--grey5020a);
   border-radius: 50px;
   padding: 5px 10px;
   margin-top: 5px;
   font-size: calc(var(--mainFontSize) * 0.8);
-  opacity: 0.7;
+  color: var(--SmartThemeBodyColor);
 }
 
 .extension-reference-button a {
