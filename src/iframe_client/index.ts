@@ -3,13 +3,14 @@ import _impl from "@/iframe_client/_impl?raw"
 import _multimap from "@/iframe_client/_multimap?raw"
 import event from "@/iframe_client/event?raw"
 import variables from '@/iframe_client/variables?raw';
-
+import util from '@/iframe_client/util?raw';
 
 export const iframe_client = [
   _impl,
   _multimap,
   event,
   variables,
+  util,
 ].join('\n');
 
 export const window_functions = `

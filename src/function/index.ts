@@ -27,9 +27,6 @@ import {
   substitudeMacros,
   errorCatched,
   getLastMessageId,
-  getCurrentMessageId,
-  getIframeName,
-  getMessageId,
 } from '@/function/util';
 import {
   getVariables,
@@ -79,9 +76,9 @@ export function initTavernHelperObject() {
     substitudeMacros,
     errorCatched,
     getLastMessageId,
-    getCurrentMessageId,
-    getIframeName,
-    getMessageId,
+    // getCurrentMessageId,
+    // getIframeName,
+    // getMessageId,
     // 生成
     generate,
     generateRaw,
