@@ -129,6 +129,9 @@ export class ScriptRepository {
    * 加载脚本库到界面
    */
   async loadScriptLibrary() {
+    
+    await this.loadScripts();
+
     $('#global-script-list').empty();
     $('#scoped-script-list').empty();
 

@@ -12,7 +12,6 @@ let isRenderingOptimizeEnabled: boolean;
 let renderDepth: number;
 let isTampermonkeyEnabled: boolean;
 
-const iframeResizeObservers = new Map();
 const isExtensionEnabled = getSettingValue('enabled_extension');
 
 // 保存原始高亮方法
@@ -23,9 +22,13 @@ const RENDER_MODES = {
   PARTIAL: 'PARTIAL',
 };
 
-interface IFrameElement extends HTMLIFrameElement {
-  cleanup: () => void;
-  [prop: string]: any;
+// 扩展Window接口定义
+declare global {
+  interface Window {
+    _sharedResizeObserver?: ResizeObserver;
+    _observedElements?: Map<HTMLElement, { iframe: HTMLIFrameElement }>;
+    gc?: () => void;
+  }
 }
 
 export const partialRenderEvents = [
@@ -73,7 +76,7 @@ export async function renderAllIframes() {
  * @param mesId 消息ID
  */
 export async function renderPartialIframes(mesId: number) {
-  const processDepth = parseInt($('#process_depth').val() as string, 10);
+  const processDepth = parseInt($('#render-depth').val() as string, 10);
   const context = getContext();
   const totalMessages = context.chat.length;
 
@@ -248,7 +251,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     if ($iframes.length > 0) {
       await Promise.all(
         $iframes.toArray().map(async iframe => {
-          await destroyIframe(iframe as IFrameElement);
+          await destroyIframe(iframe as HTMLIFrameElement);
         }),
       );
       updateMessageBlock(messageId, message);
@@ -357,7 +360,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       $iframe.attr('srcdoc', srcdocContent);
 
       $iframe.on('load', function () {
-        observeIframeContent(this as IFrameElement);
+        observeIframeContent(this as HTMLIFrameElement);
 
         $wrapper = $(this).parent();
         if ($wrapper.length) {
@@ -401,51 +404,70 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
 }
 
 /**
+ * 获取或创建共享的ResizeObserver实例
+ */
+function getSharedResizeObserver(): ResizeObserver {
+  if (!window._sharedResizeObserver) {
+    window._observedElements = new Map();
+
+    window._sharedResizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const element = entry.target;
+
+        const data = window._observedElements?.get(element as HTMLElement);
+        if (data) {
+          const { iframe } = data;
+          adjustIframeHeight(iframe);
+        }
+      }
+    });
+
+    console.log('Created shared ResizeObserver instance');
+  }
+
+  return window._sharedResizeObserver;
+}
+
+/**
  * 观察iframe内容用于自动调整高度
  * @param iframe iframe元素
  */
-function observeIframeContent(iframe: IFrameElement) {
+function observeIframeContent(iframe: HTMLIFrameElement) {
   const $iframe = $(iframe);
   if (!$iframe.length || !$iframe[0].contentWindow || !$iframe[0].contentWindow.document.body) {
     return;
   }
-  const docBody = $iframe[0].contentWindow.document.body;
-  const iframeId = $iframe.attr('id');
-
-  let resizeObserver = null;
-
-  adjustIframeHeight(iframe);
-
   try {
-    if (window.ResizeObserver) {
-      resizeObserver = new ResizeObserver(() => {
-        adjustIframeHeight(iframe);
-      });
-      resizeObserver.observe(docBody);
+    const docBody = $iframe[0].contentWindow.document.body;
 
-      if (iframeId) {
-        iframeResizeObservers.set(iframeId, resizeObserver);
+    const resizeObserver = getSharedResizeObserver();
+
+    if (window._observedElements) {
+      for (const [element, data] of window._observedElements.entries()) {
+        if (data.iframe === iframe) {
+          resizeObserver.unobserve(element);
+          window._observedElements.delete(element);
+          break;
+        }
       }
     }
-  } catch (e) {
-    console.error('ResizeObserver初始化错误:', e);
+
+    window._observedElements?.set(docBody, { iframe });
+    resizeObserver.observe(docBody);
+
+    console.log(`[Render] 观察 ${iframe.id || 'unnamed'} 的内容变化`);
+
+    adjustIframeHeight(iframe);
+  } catch (error) {
+    console.error('[Render] 设置 iframe 内容观察时出错:', error);
   }
-
-  iframe.cleanup = () => {
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-      if (iframeId) {
-        iframeResizeObservers.delete(iframeId);
-      }
-    }
-  };
 }
 
 /**
  * 销毁iframe
  * @param iframe iframe元素
  */
-export function destroyIframe(iframe: IFrameElement): Promise<void> {
+export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
   return new Promise(resolve => {
     const $iframe = $(iframe);
 
@@ -455,7 +477,6 @@ export function destroyIframe(iframe: IFrameElement): Promise<void> {
     }
 
     const iframeId = $iframe.attr('id');
-
     $iframe.off();
 
     try {
@@ -467,7 +488,7 @@ export function destroyIframe(iframe: IFrameElement): Promise<void> {
         }
       }
     } catch (e) {
-      console.debug('清理iframe内部事件时出错:', e);
+      console.debug('[Render] 清理iframe内部事件时出错:', e);
     }
 
     try {
@@ -481,11 +502,23 @@ export function destroyIframe(iframe: IFrameElement): Promise<void> {
         }
       });
     } catch (e) {
-      console.debug('清理媒体元素时出错:', e);
+      console.debug('[Render] 清理媒体元素时出错:', e);
     }
 
     if ($iframe[0].contentWindow && 'stop' in $iframe[0].contentWindow) {
       $iframe[0].contentWindow.stop();
+    }
+
+    // 如果有ResizeObserver实例和已观察元素的记录
+    if (window._sharedResizeObserver && window._observedElements) {
+      for (const [element, data] of window._observedElements.entries()) {
+        if (data.iframe === iframe) {
+          window._sharedResizeObserver.unobserve(element);
+          window._observedElements.delete(element);
+          console.log(`[Render] 停止观察 ${iframe.id || 'unnamed'} 的内容变化`);
+          break;
+        }
+      }
     }
 
     // 清空iframe内容
@@ -498,44 +531,24 @@ export function destroyIframe(iframe: IFrameElement): Promise<void> {
 
         $iframe.attr('src', 'about:blank');
       } catch (e) {
-        console.debug('清空iframe内容时出错:', e);
+        console.debug('[Render] 清空iframe内容时出错:', e);
       }
     }
 
-    // 断开ResizeObserver连接
-    if (iframe.cleanup && typeof iframe.cleanup === 'function') {
-      iframe.cleanup();
-    } else if (iframeId && iframeResizeObservers.has(iframeId)) {
-      const observer = iframeResizeObservers.get(iframeId);
-      observer.disconnect();
-      iframeResizeObservers.delete(iframeId);
-    }
-
-    // 从DOM中移除并清除引用
-    const $clone = $iframe.clone(false);
-    if ($iframe.parent().length) {
-      $iframe.replaceWith($clone);
-    }
-    if ($clone.parent().length) {
-      $clone.remove();
-    }
+    // 从DOM中移除
+    $iframe.remove();
 
     // 移除jQuery数据缓存
     try {
       $iframe.removeData();
     } catch (e) {
-      console.debug('移除jQuery数据缓存时出错:', e);
+      console.debug('[Render] 移除jQuery数据缓存时出错:', e);
     }
 
-    // 清空iframe的属性
-    for (const prop in iframe) {
-      if (Object.prototype.hasOwnProperty.call(iframe, prop)) {
-        try {
-          iframe[prop] = null;
-        } catch (e) {
-          console.debug('清空iframe的属性时出错:', e);
-        }
-      }
+    if (window._observedElements?.size === 0 && window._sharedResizeObserver) {
+      window._sharedResizeObserver.disconnect();
+      window._sharedResizeObserver = undefined;
+      console.log('[Render] 所有iframe已移除，停止观察');
     }
 
     // 确保所有清理操作都完成后再resolve
@@ -553,7 +566,7 @@ export async function clearAllIframes(): Promise<void> {
   const $iframes = $('iframe[id^="message-iframe"]');
   await Promise.all(
     $iframes.toArray().map(async iframe => {
-      await destroyIframe(iframe as IFrameElement);
+      await destroyIframe(iframe as HTMLIFrameElement);
     }),
   );
 
@@ -564,7 +577,7 @@ export async function clearAllIframes(): Promise<void> {
       eventSource.removeListener('message_iframe_render_ended', null as any);
     }
   } catch (e) {
-    console.debug('清理事件监听器时出错:', e);
+    console.debug('[Render] 清理事件监听器时出错:', e);
   }
 
   // 尝试主动触发垃圾回收
@@ -581,6 +594,38 @@ export async function clearAllIframes(): Promise<void> {
   } catch (e) {
     console.debug('尝试触发垃圾回收时出错:', e);
   }
+}
+
+/**
+ * 设置iframe移除监听器
+ * @returns {MutationObserver} 观察器实例
+ */
+function setupIframeRemovalListener(): MutationObserver {
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      if (mutation.removedNodes.length) {
+        mutation.removedNodes.forEach(node => {
+          if (node instanceof HTMLIFrameElement) {
+            destroyIframe(node).catch(err => {
+              console.error('[Render] 清理iframe时出错:', err);
+            });
+          } else if (node instanceof HTMLElement) {
+            const iframes = node.querySelectorAll('iframe');
+            if (iframes.length) {
+              iframes.forEach(iframe => {
+                destroyIframe(iframe).catch(err => {
+                  console.error('[Render] 清理iframe时出错:', err);
+                });
+              });
+            }
+          }
+        });
+      }
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+  return observer;
 }
 
 /**
@@ -642,7 +687,7 @@ function createGlobalAudioManager() {
  * 调整iframe高度
  * @param iframe iframe元素
  */
-function adjustIframeHeight(iframe: IFrameElement) {
+function adjustIframeHeight(iframe: HTMLIFrameElement) {
   const $iframe = $(iframe);
   if (!$iframe.length || !$iframe[0].contentWindow || !$iframe[0].contentWindow.document.body) {
     return;
@@ -698,12 +743,12 @@ function extractTextFromCode(codeElement: HTMLElement) {
  */
 export async function renderMessageAfterDelete(mesId: number) {
   const context = getContext();
-  const processDepth = parseInt($('#process_depth').val() as string, 10);
+  const processDepth = parseInt($('#render-depth').val() as string, 10);
   const totalMessages = context.chat.length;
   const maxRemainId = mesId - 1;
   // 考虑到高楼层的情况，深度为0时，只渲染最后一个消息
   if (processDepth === 0) {
-    const message = context.chat[maxRemainId];
+    const message = context.chat[maxRemainId].mes;
 
     const hasCodeBlock = /```[\s\S]*?```/.test(message);
     const $iframe = $('[id^="message-iframe-' + maxRemainId + '-"]');
@@ -711,21 +756,19 @@ export async function renderMessageAfterDelete(mesId: number) {
     if (!hasCodeBlock && $iframe.length === 0) {
       return;
     }
-    await destroyIframe($iframe.get(0) as IFrameElement);
-    updateMessageBlock(maxRemainId, message);
+    await destroyIframe($iframe.get(0) as HTMLIFrameElement);
     renderPartialIframes(maxRemainId);
   } else {
     const startRenderIndex = totalMessages - processDepth;
     for (let i = startRenderIndex; i <= maxRemainId; i++) {
-      const message = context.chat[i];
+      const message = context.chat[i].mes;
       const hasCodeBlock = /```[\s\S]*?```/.test(message);
       const $iframe = $('[id^="message-iframe-' + i + '-"]');
 
       if (!hasCodeBlock && $iframe.length === 0) {
         continue;
       }
-      await destroyIframe($iframe.get(0) as IFrameElement);
-      updateMessageBlock(i, message);
+      await destroyIframe($iframe.get(0) as HTMLIFrameElement);
       renderPartialIframes(i);
     }
   }
@@ -776,8 +819,8 @@ async function onDepthInput(value: string) {
 }
 
 export const handlePartialRender = (mesId: number) => {
-  console.log('[Render] PARTIAL render event triggered for message ID:', mesId);
-  const processDepth = parseInt($('#process_depth').val() as string, 10);
+  console.log('[Render] 触发局部渲染，消息ID:', mesId);
+  const processDepth = parseInt($('#render-depth').val() as string, 10);
   const context = getContext();
   const totalMessages = context.chat.length;
 
@@ -890,7 +933,7 @@ function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
   $mesText.find('pre').each(function () {
     const $pre = $(this);
     const $toggleButton = $(
-      '<div class="code-toggle-button" title="取消选中‘前端卡渲染优化’关闭此折叠功能">显示代码块</div>',
+      '<div class="code-toggle-button" title="关闭[酒馆助手-渲染器-渲染优化]以取消此折叠功能">显示代码块</div>',
     );
 
     $toggleButton.on('click', function () {
@@ -1086,11 +1129,11 @@ export const initIframePanel = () => {
     .prop('checked', isTampermonkeyEnabled)
     .on('click', (event: JQuery.ClickEvent) => handleTampermonkeyCompatibilityChange(event.target.checked, true));
 
-
   $(window).on('resize', function () {
     if ($('iframe[data-needs-vh="true"]').length) {
       updateIframeViewportHeight();
     }
   });
   injectLoadingStyles();
+  setupIframeRemovalListener();
 };
