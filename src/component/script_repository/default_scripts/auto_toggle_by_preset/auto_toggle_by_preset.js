@@ -1,3 +1,4 @@
+var detail;
 !(function (detail) {
   function get_current_preset_name() {
     return $('#settings_preset_openai').find(':selected').text();
@@ -43,7 +44,7 @@ async function toggle_tags() {
     (preset_name = new_preset_name),
     (connection_profile = new_connection_profile),
     await (async function toggle_tagged_preset_prompts(tags) {
-      const prompt_anchors = $('#completion_prompt_manager')
+      const prompt_identifiers_to_be_toggled = $('#completion_prompt_manager')
         .find('a[title]')
         .filter(function () {
           return (
@@ -53,27 +54,33 @@ async function toggle_tags() {
               .match(/【.*?】/)
           );
         })
-        .toArray();
-      await Promise.all(
-        prompt_anchors.map(prompt_anchor => {
+        .toArray()
+        .map(prompt_anchor => {
           const anchor = $(prompt_anchor),
-            title = anchor.attr('title'),
-            checkbox = anchor.closest('li').find('.prompt-manager-toggle-action');
-          detail.check_should_enable(title, tags) !== checkbox.hasClass('fa-toggle-on') && checkbox[0].click();
-        }),
-      );
+            li = anchor.closest('li');
+          return {
+            identifier: li.attr('data-pm-identifier'),
+            should_toggle:
+              detail.check_should_enable(anchor.attr('title'), tags) !==
+              li.find('.prompt-manager-toggle-action').hasClass('fa-toggle-on'),
+          };
+        })
+        .filter(({ should_toggle }) => should_toggle)
+        .map(({ identifier }) => `identifier=${identifier}`);
+      0 !== prompt_identifiers_to_be_toggled.length &&
+        (await triggerSlash(`/setpromptentry ${prompt_identifiers_to_be_toggled.join(' ')}`));
     })(tags),
     await (async function toggle_tagged_regexes(tags) {
       const regexes = await getTavernRegexes({ scope: 'all' });
-      const new_regexes = _.cloneDeep(regexes);
-      await Promise.all(
-        new_regexes
-          .filter(regex => null !== regex.script_name.match(/【.*?】/))
-          .map(async regex => {
-            regex.enabled = detail.check_should_enable(regex.script_name, tags);
-          }),
-      ),
+      let new_regexes = _.cloneDeep(regexes);
+      new_regexes
+        .filter(regex => null !== regex.script_name.match(/【.*?】/))
+        .forEach(regex => {
+          regex.enabled = detail.check_should_enable(regex.script_name, tags);
+        }),
         _.isEqual(regexes, new_regexes) || (await replaceTavernRegexes(new_regexes, { scope: 'all' }));
     })(tags));
 }
-toggle_tags(), eventOn(tavern_events.SETTINGS_UPDATED, toggle_tags);
+$(() => {
+  toggle_tags(), eventOn(tavern_events.SETTINGS_UPDATED, toggle_tags);
+});

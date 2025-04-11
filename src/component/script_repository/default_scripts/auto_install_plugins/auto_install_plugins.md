@@ -14,7 +14,7 @@
 
 - 发布角色卡前，在酒馆助手的 “脚本库-变量” 中新建一个 "预安装插件-xxx" 的变量, 值的部分在其中以 `插件名称: 插件安装链接` 的格式书写你需要安装的插件, 其中插件名称可任意, 仅对玩家起到提示作用. 例如:
 
-<div style="text-align: left; background-color: #313131; padding: 5px; border-radius: 5px;">
+<div style="text-align: left; background-color: #313131; padding: 5px; border-radius: 5px; color: #cecece;">
 提示词模板: https://codeberg.org/zonde306/ST-Prompt-Template<br>
 记忆增强: https://gitee.com/muyoou/st-memory-enhancement
 </div>
