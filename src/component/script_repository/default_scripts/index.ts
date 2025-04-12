@@ -37,13 +37,19 @@ export const DEFAULT_SCRIPT_CONFIGS: Record<string, ScriptConfig> = {
  */
 export async function loadScriptContent(scriptId: string): Promise<string> {
   try {
-    const response = await fetch(
-      `/scripts/extensions/third-party/JS-Slash-Runner/src/component/script_repository/default_scripts/${scriptId}/${scriptId}.js`,
-    );
-    if (!response.ok) {
-      throw new Error(`[Script] 加载默认脚本内容失败: ${response.statusText}`);
+    // 优先尝试加载TypeScript文件
+    try {
+      const tsModule = await import(
+        `./${scriptId}/${scriptId}.ts?raw`
+      );
+      return tsModule.default;
+    } catch (tsError) {
+      // 如果TypeScript文件不存在，尝试加载JavaScript文件
+      const jsModule = await import(
+        `./${scriptId}/${scriptId}.js?raw`
+      );
+      return jsModule.default;
     }
-    return await response.text();
   } catch (error) {
     console.error(`[Script] 加载默认脚本内容失败: ${scriptId}:`, error);
     return '';

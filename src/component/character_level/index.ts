@@ -7,13 +7,26 @@ import {
 import { event_types, eventSource } from '@sillytavern/script';
 
 const load_events = [event_types.CHAT_CHANGED] as const;
+let app_ready = false;
 
 export function initializeCharacterLevelOnExtension() {
-  // FIXME: 在无角色卡的情况下, 修改正则并不会触发 CHAT_CHANGED 事件, 因而不会加载这些内容
+const register_events = () => {
   load_events.forEach(eventType => {
     eventSource.makeFirst(eventType, initializeScriptIframe);
     eventSource.makeFirst(eventType, initializeLibrary);
   });
+};
+
+if (!app_ready) {
+  eventSource.once(event_types.APP_READY, () => {
+    app_ready = true;
+    initializeScriptIframe();
+    initializeLibrary();
+    register_events();
+  });
+} else {
+  register_events();
+}
 }
 
 export function destroyCharacterLevelOnExtension() {
