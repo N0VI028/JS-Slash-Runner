@@ -1,4 +1,3 @@
-import { libraries_text } from '@/component/character_level/library';
 import { destroyIframe } from '@/component/message_iframe';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
@@ -129,7 +128,7 @@ export class ScriptRepository {
    * 加载脚本库到界面
    */
   async loadScriptLibrary() {
-    
+
     await this.loadScripts();
 
     $('#global-script-list').empty();
@@ -244,7 +243,6 @@ export class ScriptRepository {
         <html>
         <head>
           ${third_party}
-          ${libraries_text}
           <script>
             (function($) {
   var original$ = $;

@@ -1,4 +1,3 @@
-import { libraries_text } from '@/component/character_level/library';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue } from '@/util/extension_variables';
@@ -344,7 +343,6 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
           ${third_party}
           <script src="${script_url.get('window_functions')}"></script>
           <script src="${script_url.get('iframe_client')}"></script>
-          ${libraries_text}
         </head>
         <body>
           ${extractedText}

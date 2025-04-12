@@ -1,4 +1,3 @@
-import { libraries_text } from '@/component/character_level/library';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { loadScripts, Script } from '@/util/load_script';
@@ -16,7 +15,6 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
       ${third_party}
       <script src="${script_url.get('window_functions')}"></script>
       <script src="${script_url.get('iframe_client')}"></script>
-      ${libraries_text}
     </head>
     <body>
       ${script.code}
