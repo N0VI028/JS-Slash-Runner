@@ -116,7 +116,7 @@ function updateVariables(newVariables: Record<string, any>) {
 
   const currentVariables = chat_metadata.variables;
 
-  for (let key in newVariables) {
+  for (const key in newVariables) {
     if (newVariables.hasOwnProperty(key)) {
       currentVariables[key] = newVariables[key];
     }

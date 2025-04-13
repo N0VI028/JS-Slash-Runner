@@ -23,4 +23,4 @@ class ScriptUrl {
   }
 }
 
-export let script_url = new ScriptUrl();
+export const script_url = new ScriptUrl();

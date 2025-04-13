@@ -2,8 +2,8 @@ import { chat, messageFormatting } from '@sillytavern/script';
 import { getLastMessageId } from '@sillytavern/scripts/macros';
 
 interface FormatAsDisplayedMessageOption {
-  message_id?: 'last' | 'last_user' | 'last_char' | number;  // 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为 'last'
-};
+  message_id?: 'last' | 'last_user' | 'last_char' | number; // 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为 'last'
+}
 
 /**
  * 将字符串处理为酒馆用于显示的 html 格式. 将会,
@@ -17,7 +17,10 @@ interface FormatAsDisplayedMessageOption {
  *
  * @returns 处理结果
  */
-export function formatAsDisplayedMessage(text: string, option: FormatAsDisplayedMessageOption = { message_id: 'last' }): string {
+export function formatAsDisplayedMessage(
+  text: string,
+  option: FormatAsDisplayedMessageOption = { message_id: 'last' },
+): string {
   let { message_id = 'last' } = option;
   if (typeof message_id !== 'number' && !['last', 'last_user', 'last_char'].includes(message_id)) {
     throw Error(
@@ -54,16 +57,12 @@ export function formatAsDisplayedMessage(text: string, option: FormatAsDisplayed
   }
 
   const chat_message = chat[message_id];
-  const result = messageFormatting(
-    text,
-    chat_message.name,
-    chat_message.is_system,
-    chat_message.is_user,
-    message_id,
-  );
+  const result = messageFormatting(text, chat_message.name, chat_message.is_system, chat_message.is_user, message_id);
 
   console.info(
-    `将字符串处理为酒馆用于显示的 html 格式, 字符串: '${text}', 选项: '${JSON.stringify({ message_id })}', 结果: '${result}'`,
+    `将字符串处理为酒馆用于显示的 html 格式, 字符串: '${text}', 选项: '${JSON.stringify({
+      message_id,
+    })}', 结果: '${result}'`,
   );
   return result;
 }

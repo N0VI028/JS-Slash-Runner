@@ -108,7 +108,10 @@ type VariablesUpdater =
  * // 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
  * await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
  */
-export async function updateVariablesWith(updater: VariablesUpdater, option: VariableOption = { type: 'chat' }): Promise<Record<string, any>> {
+export async function updateVariablesWith(
+  updater: VariablesUpdater,
+  option: VariableOption = { type: 'chat' },
+): Promise<Record<string, any>> {
   const { type = 'chat' } = option;
   let variables = await getVariables({ type });
   variables = await updater(variables);
@@ -131,7 +134,10 @@ export async function updateVariablesWith(updater: VariablesUpdater, option: Var
  * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-export async function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): Promise<void> {
+export async function insertOrAssignVariables(
+  variables: Record<string, any>,
+  option: VariableOption = { type: 'chat' },
+): Promise<void> {
   const { type = 'chat' } = option;
   await updateVariablesWith(old_variables => _.merge(old_variables, variables), { type });
 }
@@ -150,7 +156,10 @@ export async function insertOrAssignVariables(variables: Record<string, any>, op
  * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-export async function insertVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): Promise<void> {
+export async function insertVariables(
+  variables: Record<string, any>,
+  option: VariableOption = { type: 'chat' },
+): Promise<void> {
   const { type = 'chat' } = option;
   await updateVariablesWith(old_variables => _.defaultsDeep(old_variables, variables), { type });
 }
@@ -171,9 +180,18 @@ export async function insertVariables(variables: Record<string, any>, option: Va
  * await deleteVariable("爱城华恋.好感度");
  * // 执行后变量: `{爱城华恋: {}}`
  */
-export async function deleteVariable(variable_path: string, option: VariableOption = { type: 'chat' }): Promise<boolean> {
+export async function deleteVariable(
+  variable_path: string,
+  option: VariableOption = { type: 'chat' },
+): Promise<boolean> {
   const { type = 'chat' } = option;
   let result: boolean = false;
-  await updateVariablesWith(old_variables => { result = _.unset(old_variables, variable_path); return old_variables; }, { type });
+  await updateVariablesWith(
+    old_variables => {
+      result = _.unset(old_variables, variable_path);
+      return old_variables;
+    },
+    { type },
+  );
   return result;
 }

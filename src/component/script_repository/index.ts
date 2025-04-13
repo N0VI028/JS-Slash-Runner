@@ -1,12 +1,13 @@
 import { destroyIframe } from '@/component/message_iframe';
+import { createDefaultScripts } from '@/component/script_repository/default_scripts/index';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { renderMarkdown } from '@/util/render_markdown';
+
+//@ts-ignore
 import { characters, eventSource, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync, writeExtensionField } from '@sillytavern/scripts/extensions';
-import { createDefaultScripts } from './default_scripts/index';
-//@ts-ignore
 import { selected_group } from '@sillytavern/scripts/group-chats';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { download, getFileText, getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
@@ -128,7 +129,6 @@ export class ScriptRepository {
    * 加载脚本库到界面
    */
   async loadScriptLibrary() {
-
     await this.loadScripts();
 
     $('#global-script-list').empty();

@@ -1,7 +1,7 @@
-import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
+import { saveSettingValue } from '@/util/extension_variables';
 
 import { chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
-import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
+import { saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 import { SlashCommand } from '@sillytavern/scripts/slash-commands/SlashCommand';
 import {
   ARGUMENT_TYPE,
@@ -195,7 +195,7 @@ export async function audioSelect(args: { type: string }, url: string): Promise<
     chat_metadata.variables = {};
   }
 
-  let playlist = type === 'bgm' ? list_BGMS : list_ambients;
+  const playlist = type === 'bgm' ? list_BGMS : list_ambients;
   const typeKey = type === 'bgm' ? 'bgmurl' : 'ambienturl';
 
   if (playlist && playlist.includes(url)) {

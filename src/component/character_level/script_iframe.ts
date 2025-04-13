@@ -2,7 +2,7 @@ import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { loadScripts, Script } from '@/util/load_script';
 
-let script_map: Map<string, HTMLIFrameElement> = new Map();
+const script_map: Map<string, HTMLIFrameElement> = new Map();
 
 function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_promise: Promise<void> } {
   const iframe = document.createElement('iframe');

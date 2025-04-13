@@ -13,7 +13,7 @@ export function loadScripts(prefix: string): Script[] {
   const isEnabled = (script: RegexScriptData) => !script.disabled;
   const toName = (script: RegexScriptData) => script.scriptName.replace(/^【.*】/, '').replace(prefix, '');
 
-  let scripts: RegexScriptData[] = [];
+  const scripts: RegexScriptData[] = [];
 
   const enabled_global_regexes = getGlobalRegexes().filter(filterScriptFromRegex).filter(isEnabled);
   scripts.push(...enabled_global_regexes);

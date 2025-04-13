@@ -135,7 +135,9 @@ export function isCharacterTavernRegexesEnabled(): boolean {
  *
  * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
-export function getTavernRegexes(option: GetTavernRegexesOption = { scope: 'all', enable_state: 'all' }): TavernRegex[] {
+export function getTavernRegexes(
+  option: GetTavernRegexesOption = { scope: 'all', enable_state: 'all' },
+): TavernRegex[] {
   const { scope = 'all', enable_state = 'all' } = option;
 
   if (!['all', 'enabled', 'disabled'].includes(enable_state)) {

@@ -1,18 +1,19 @@
+import { getCharacterScriptVariables } from '@/component/script_repository/index';
 import { getCharAvatarPath, getCharData, getChatHistoryBrief, getChatHistoryDetail } from '@/function/character';
 import { getChatMessages, setChatMessage } from '@/function/chat_message';
 import { formatAsDisplayedMessage, retrieveDisplayedMessage } from '@/function/displayed_message';
-import { updateFrontendVersion, getFrontendVersion } from '@/function/frontend_version';
+import { getFrontendVersion, updateFrontendVersion } from '@/function/frontend_version';
 import { generate, generateRaw } from '@/function/generate';
 import {
   createLorebook,
   deleteLorebook,
   getCharLorebooks,
+  getCurrentCharPrimaryLorebook,
   getLorebooks,
   getLorebookSettings,
   getOrCreateChatLorebook,
   setCurrentCharLorebooks,
   setLorebookSettings,
-  getCurrentCharPrimaryLorebook,
 } from '@/function/lorebook';
 import {
   activateLorebookEntries,
@@ -22,22 +23,22 @@ import {
   setLorebookEntries,
 } from '@/function/lorebook_entry';
 import { triggerSlash, triggerSlashWithResult } from '@/function/slash';
-import { getTavernRegexes, isCharacterTavernRegexesEnabled, replaceTavernRegexes, updateTavernRegexesWith } from '@/function/tavern_regex';
 import {
-  substitudeMacros,
-  errorCatched,
-  getLastMessageId,
-} from '@/function/util';
+  getTavernRegexes,
+  isCharacterTavernRegexesEnabled,
+  replaceTavernRegexes,
+  updateTavernRegexesWith,
+} from '@/function/tavern_regex';
+import { errorCatched, getLastMessageId, substitudeMacros } from '@/function/util';
 import {
+  deleteVariable,
   getVariables,
+  insertOrAssignVariables,
+  insertVariables,
   replaceVariables,
   updateVariablesWith,
-  insertOrAssignVariables,
-  deleteVariable,
-  insertVariables,
 } from '@/function/variables';
 import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
-import { getCharacterScriptVariables } from '@/component/script_repository/index';
 
 /**
  * 初始化TavernHelper全局对象

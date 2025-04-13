@@ -18,10 +18,10 @@ export async function triggerSlash(command: string): Promise<string> {
 
 // QUESTION: 弃用？保留实现但是只推荐使用triggerSlash
 export async function triggerSlashWithResult(command: string): Promise<string> {
-const result = await executeSlashCommandsWithOptions(command);
-      if (result.isError) {
-        throw Error(`运行 Slash 命令 '${command}' 时出错: ${result.errorMessage}`);
-      }
+  const result = await executeSlashCommandsWithOptions(command);
+  if (result.isError) {
+    throw Error(`运行 Slash 命令 '${command}' 时出错: ${result.errorMessage}`);
+  }
 
   console.info(`运行 Slash 命令 '${command}', 结果: ${result.pipe}`);
   return result.pipe;

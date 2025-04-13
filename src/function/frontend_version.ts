@@ -1,5 +1,5 @@
+import { getCurrentVersion, updateTavernHelper, VERSION_FILE_PATH } from '@/util/check_update';
 
-import { getCurrentVersion, VERSION_FILE_PATH, updateTavernHelper } from '@/util/check_update';
 /**
  * 获取酒馆助手版本号
  *

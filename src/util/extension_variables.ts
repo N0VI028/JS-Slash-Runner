@@ -1,10 +1,4 @@
-import {
-  characters,
-  getThumbnailUrl,
-  this_chid,
-  user_avatar,
-  saveSettingsDebounced,
-} from '@sillytavern/script';
+import { characters, getThumbnailUrl, saveSettingsDebounced, this_chid, user_avatar } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 import { setValueByPath } from '@sillytavern/scripts/utils';
 

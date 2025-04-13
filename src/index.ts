@@ -1,6 +1,7 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initExtensionMainPanel, scriptRepo } from '@/component/main';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
+import { initReference } from '@/component/reference';
 import { defaultScriptSettings, initScriptRepository } from '@/component/script_repository';
 import { initTavernHelperObject } from '@/function';
 import { initAudioSlashCommands } from '@/slash_command/audio';
@@ -13,7 +14,6 @@ import {
   VERSION_FILE_PATH,
 } from '@/util/check_update';
 import { extensionFolderPath, extensionName, extensionSettingName } from '@/util/extension_variables';
-import { initReference } from '@/component/reference';
 
 import { saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';

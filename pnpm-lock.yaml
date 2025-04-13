@@ -21,7 +21,7 @@ importers:
         specifier: ^2.1.43
         version: 2.1.43
       '@typescript-eslint/parser':
-        specifier: ^8.27.0
+        specifier: ^8.28.0
         version: 8.28.0(eslint@9.23.0(jiti@1.21.7))(typescript@5.8.2)
       css-loader:
         specifier: ^7.1.2

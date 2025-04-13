@@ -36,11 +36,11 @@ async function setVariables(
   // 初始化变量
   let actual_message_id: number;
   let actual_variables: Record<string, any>;
-  
+
   // 处理参数
   if (new_or_updated_variables) {
     actual_variables = new_or_updated_variables;
-    
+
     if (!message_id) {
       actual_message_id = getCurrentMessageId();
     } else {
@@ -50,12 +50,12 @@ async function setVariables(
     console.error("[Variables][setVariables] 调用出错, 请检查你的参数是否正确");
     return;
   }
-  
+
   if (typeof actual_message_id !== 'number' || typeof actual_variables !== 'object') {
     console.error("[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确");
     return;
   }
-  
+
   return detail.make_iframe_promise({
     request: "[Variables][setVariables]",
     message_id: actual_message_id,

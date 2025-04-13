@@ -1,4 +1,4 @@
-export { SetMultimap, ArrayMultimap };
+export { ArrayMultimap, SetMultimap };
 
 abstract class Multimap<K, V, I extends Iterable<V>> implements Iterable<[K, V]> {
   private size_ = 0;

@@ -270,6 +270,9 @@ export async function setChatMessage(
   }
 
   console.info(
-    `设置第 ${message_id} 楼消息, 选项: ${JSON.stringify({ swipe_id, refresh })}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index} `,
+    `设置第 ${message_id} 楼消息, 选项: ${JSON.stringify({
+      swipe_id,
+      refresh,
+    })}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index} `,
   );
 }

@@ -9,21 +9,21 @@ const load_events = [event_types.CHAT_CHANGED] as const;
 let app_ready = false;
 
 export function initializeCharacterLevelOnExtension() {
-const register_events = () => {
-  load_events.forEach(eventType => {
-    eventSource.makeFirst(eventType, initializeScriptIframe);
-  });
-};
+  const register_events = () => {
+    load_events.forEach(eventType => {
+      eventSource.makeFirst(eventType, initializeScriptIframe);
+    });
+  };
 
-if (!app_ready) {
-  eventSource.once(event_types.APP_READY, () => {
-    app_ready = true;
-    initializeScriptIframe();
+  if (!app_ready) {
+    eventSource.once(event_types.APP_READY, () => {
+      app_ready = true;
+      initializeScriptIframe();
+      register_events();
+    });
+  } else {
     register_events();
-  });
-} else {
-  register_events();
-}
+  }
 }
 
 export function destroyCharacterLevelOnExtension() {

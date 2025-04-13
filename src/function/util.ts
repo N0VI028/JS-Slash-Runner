@@ -1,5 +1,5 @@
-import { substituteParamsExtended } from '@sillytavern/script';
 import { triggerSlash } from '@/function/slash';
+import { substituteParamsExtended } from '@sillytavern/script';
 
 /**
  * 替换字符串中的酒馆宏
@@ -47,9 +47,7 @@ export async function getLastMessageId(): Promise<number> {
  */
 export function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U {
   const onError = (error: Error) => {
-    triggerSlash(
-      `/echo severity=error ${error.stack ? error.stack : error.name + ': ' + error.message}`,
-    );
+    triggerSlash(`/echo severity=error ${error.stack ? error.stack : error.name + ': ' + error.message}`);
     throw error;
   };
   return (...args: T): U => {

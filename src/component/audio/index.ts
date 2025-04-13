@@ -1,10 +1,7 @@
-import { getSettingValue, saveSettingValue, extensionFolderPath } from '@/util/extension_variables';
+import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 
 import { chat_metadata, eventSource, event_types, saveSettingsDebounced } from '@sillytavern/script';
-import {
-  renderExtensionTemplateAsync,
-  saveMetadataDebounced,
-} from '@sillytavern/scripts/extensions';
+import { renderExtensionTemplateAsync, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
 import { getSortableDelay } from '@sillytavern/scripts/utils';
@@ -46,9 +43,7 @@ export async function updateAudio(type = 'bgm', isUserInput = false) {
   }
 
   const isTypeEnabled =
-    type === 'bgm'
-      ? getSettingValue('audio.bgm_enabled')
-      : getSettingValue('audio.ambient_enabled');
+    type === 'bgm' ? getSettingValue('audio.bgm_enabled') : getSettingValue('audio.ambient_enabled');
 
   if (!isTypeEnabled) {
     return;
@@ -69,15 +64,9 @@ export async function updateAudio(type = 'bgm', isUserInput = false) {
         ? getSettingValue('audio.bgm_selected') || playlist[0]
         : getSettingValue('audio.ambient_selected') || playlist[0];
   } else {
-    const mode =
-      type === 'bgm'
-        ? getSettingValue('audio.bgm_mode')
-        : getSettingValue('audio.ambient_mode');
+    const mode = type === 'bgm' ? getSettingValue('audio.bgm_mode') : getSettingValue('audio.ambient_mode');
 
-    const selected =
-      type === 'bgm'
-        ? getSettingValue('audio.bgm_selected')
-        : getSettingValue('audio.ambient_selected');
+    const selected = type === 'bgm' ? getSettingValue('audio.bgm_selected') : getSettingValue('audio.ambient_selected');
 
     audio_url = getNextFileByMode(mode, playlist, selected);
   }
@@ -96,8 +85,8 @@ export async function updateAudio(type = 'bgm', isUserInput = false) {
       return;
     }
   } else if (decodeURIComponent(audio.src) === decodeURIComponent(audio_url) && !audioEnded) {
-      return;
-    }
+    return;
+  }
 
   // 设置audioEnded状态
   if (type === 'bgm') {
@@ -182,9 +171,7 @@ export async function updateAudioSelect(type = 'bgm') {
 
   const audioList = type === 'bgm' ? list_BGMS : list_ambients;
   let selectedSetting =
-    type === 'bgm'
-      ? getSettingValue('audio.bgm_selected')
-      : getSettingValue('audio.ambient_selected');
+    type === 'bgm' ? getSettingValue('audio.bgm_selected') : getSettingValue('audio.ambient_selected');
 
   if (audioList && audioList.length > 0) {
     // 检查当前选择的音频是否在列表中，如果不在则选择第一个
@@ -369,7 +356,7 @@ export function initializeProgressBar(type: 'bgm' | 'ambient') {
 
     this.volume = 0;
     const fadeStep = targetVolume / (cooldownBGM * 10);
-    let fadeInInterval = setInterval(() => {
+    const fadeInInterval = setInterval(() => {
       if (this.volume < targetVolume) {
         this.volume = Math.min(targetVolume, this.volume + fadeStep);
       } else {
@@ -801,7 +788,7 @@ export async function togglePlayPause(type: 'bgm' | 'ambient') {
  * @param type 音频类型
  */
 async function openUrlImportPopup(): Promise<string[] | null> {
-  const input = await callGenericPopup('输入要导入的网络音频链接（每行一个）', POPUP_TYPE.INPUT, '') as string | null;
+  const input = (await callGenericPopup('输入要导入的网络音频链接（每行一个）', POPUP_TYPE.INPUT, '')) as string | null;
 
   if (!input) {
     console.debug('[Audio] URL import cancelled');
@@ -890,7 +877,7 @@ export function initAudioComponents() {
       selector: string;
       event: string;
       // eslint-disable-next-line no-shadow
-      handler: (type: 'bgm' | 'ambient') => void; 
+      handler: (type: 'bgm' | 'ambient') => void;
     }>,
   ) => {
     events.forEach(({ selector, event, handler }) => {
