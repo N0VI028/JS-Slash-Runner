@@ -52,9 +52,8 @@
 }
 
 #extension-info .info-text {
-  font-size: calc(var(--mainFontSize) * 0.8);
+  font-size: calc(var(--mainFontSize) * 0.7);
   opacity: 0.7;
-  gap: 2px;
 }
 
 .text-decoration {

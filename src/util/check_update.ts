@@ -1,7 +1,7 @@
 import { getRequestHeaders } from '@sillytavern/script';
 import { t } from '@sillytavern/scripts/i18n';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
-
+import { extensionTypes } from '@sillytavern/scripts/extensions';
 import { extensionFolderPath, extensionName } from './extension_variables';
 import { renderMarkdown } from './render_markdown';
 
@@ -284,10 +284,11 @@ export async function getChangelog() {
  * 更新酒馆助手
  */
 export async function updateTavernHelper() {
+  const extensionType = getExtensionType(extensionName);
   const response = await fetch('/api/extensions/update', {
     method: 'POST',
     headers: getRequestHeaders(),
-    body: JSON.stringify({ extensionName: extensionName }),
+    body: JSON.stringify({ extensionName: extensionName, global: extensionType === 'global' ? true : false }),
   });
   if (!response.ok) {
     const text = await response.text();
@@ -306,4 +307,18 @@ export async function updateTavernHelper() {
     console.info(`成功更新酒馆助手为  ${data.shortCommitHash}, 请刷新页面`);
   }
   return true;
+}
+
+// 酒馆原代码复制来的
+/**
+ * Gets the type of an extension based on its external ID.
+ * @param {string} externalId External ID of the extension (excluding or including the leading 'third-party/')
+ * @returns {string} Type of the extension (global, local, system, or empty string if not found)
+ */
+function getExtensionType(externalId: string) {
+  const id = Object.keys(extensionTypes).find(
+    // eslint-disable-next-line no-shadow
+    (id: string) => id === externalId || (id.startsWith('third-party') && id.endsWith(externalId)),
+  );
+  return id ? extensionTypes[id] : '';
 }
