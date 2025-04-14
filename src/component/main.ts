@@ -140,10 +140,6 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
   if (enable) {
     // 指示器样式
     $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
-    MutationObserverQrBarCreated();
-    scriptRepo = ScriptRepository.getInstance();
-    await scriptRepo.runScriptsByType(ScriptType.GLOBAL);
-    scriptRepo.addButtonsByType(ScriptType.GLOBAL);
 
     script_url.set('iframe_client', iframe_client);
     script_url.set('window_functions', window_functions);
@@ -153,6 +149,11 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     registerAllMacros();
     initializeMacroOnExtension();
     initializeCharacterLevelOnExtension();
+
+    MutationObserverQrBarCreated();
+    scriptRepo = ScriptRepository.getInstance();
+    await scriptRepo.runScriptsByType(ScriptType.GLOBAL);
+    scriptRepo.addButtonsByType(ScriptType.GLOBAL);
 
     // 重新注入前端卡优化的样式和设置
     if (userAction && getSettingValue('render.rendering_optimize')) {

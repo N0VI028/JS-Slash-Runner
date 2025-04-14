@@ -247,23 +247,14 @@ export class ScriptRepository {
             (function($) {
   var original$ = $;
   window.$ = function(selector, context){
-    // 如果 context 没有被明确提供
     if (context === undefined || context === null) {
-      // 检查 window.parent 是否存在并且有 document 属性
       if (window.parent && window.parent.document) {
         context = window.parent.document;
       } else {
-        // Fallback: 如果父窗口或其 document 不可用，
-        // 可以选择使用 iframe 自己的 document 作为备选，
-        // 或者根据你的逻辑决定是否应该报错或返回空结果。
-        // 使用 iframe 自己的 document 通常更安全：
         console.warn("无法访问 window.parent.document，将使用当前 iframe 的 document 作为上下文。");
-        context = window.document; // 或者 document
-        // 如果默认不应该访问父窗口，这里甚至可以直接设为 window.document
-        // context = document;
+        context = window.document; 
       }
     }
-    // 使用原始的 jQuery 函数执行选择
     return original$(selector, context);
   }
 })(jQuery);
