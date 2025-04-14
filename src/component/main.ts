@@ -40,8 +40,9 @@ let qrBarObserver: MutationObserver | null = null;
 const handleChatChanged = async () => {
   await scriptRepo.checkEmbeddedScripts();
 
-  await clearAllScriptsIframe();
+  //await clearAllScriptsIframe();
   //scriptRepo.removeButtonsByType(ScriptType.GLOBAL);
+  scriptRepo.cancelRunScriptsByType(ScriptType.CHARACTER);
   scriptRepo.removeButtonsByType(ScriptType.CHARACTER);
 
   await scriptRepo.loadScriptLibrary();
