@@ -774,10 +774,15 @@ export class ScriptRepository {
 
     scriptHtml.find('.edit-script').on('click', () => this.openScriptEditor(type, script.id));
     scriptHtml.find('.script-storage-location').on('click', () => this.moveScriptToOtherType(script, type));
-    scriptHtml.find('.export-script').on('click', async function () {
+    scriptHtml.find('.export-script').on('click', async () => {
+      const getScript = this.getScriptById(script.id);
+      if (!getScript) {
+        toastr.error('脚本不存在');
+        return;
+      }
       // eslint-disable-next-line no-control-regex
-      const fileName = `${script.name.replace(/[\s.<>:"/\\|?*\x00-\x1F\x7F]/g, '_').toLowerCase()}.json`;
-      const { id, enabled, ...scriptData } = script;
+      const fileName = `${getScript?.name.replace(/[\s.<>:"/\\|?*\x00-\x1F\x7F]/g, '_').toLowerCase()}.json`;
+      const { id, enabled, ...scriptData } = getScript;
       const fileData = JSON.stringify(scriptData, null, 4);
       download(fileData, fileName, 'application/json');
     });
