@@ -48,13 +48,15 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
  * eventOnButton(对应的按钮名称, hello);
  */
 function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  const script_id = getIframeName().replace(/^tavern-helper-script-/, '');
+  const frameElement = window.frameElement;
+  const script_id = frameElement ? $(frameElement).attr('script-id') ?? 'unknown_script' : 'unknown_script';
   if (detail.try_get_wrapper(listener, event_type)) {
-    console.warn(`[Event][eventOnButton](id为${script_id}) 的脚本已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
+    console.warn(`[Event][eventOnButton](id为${String(script_id)}) 的脚本已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
     return;
   }
-  const event_type_with_script_id = `${event_type}_${script_id}`;
+  const event_type_with_script_id = `${event_type}_${String(script_id)}`;
   SillyTavern.eventSource.on(event_type_with_script_id, detail.get_or_make_wrapper(listener, event_type_with_script_id, false));
+  console.info(`[Event][eventOnButton](script_id为${String(script_id)}) 函数开始监听 '${event_type}' 事件并将随事件触发\n\n  ${detail.format_function_to_string(listener)}`);
 }
 
 

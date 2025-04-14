@@ -230,7 +230,7 @@ export class ScriptRepository {
 
     try {
       const iframeElement = $('iframe').filter(
-        (_index, element) => $(element).data('scriptId') === script.id,
+        (_index, element) => $(element).attr('script-id') === script.id,
       )[0] as IFrameElement;
       if (iframeElement) {
         await destroyIframe(iframeElement);
@@ -270,11 +270,7 @@ export class ScriptRepository {
         <body>
           <script type="module">
             $(async () => {
-              try {
                 ${script.content}
-              } catch (error) {
-                console.error('[ScriptRepository] 脚本执行错误:', error);
-              }
             });
           </script>
         </body>
@@ -285,8 +281,7 @@ export class ScriptRepository {
         style: 'display: none;',
         id: `tavern-helper-script-${script.name}`,
         srcdoc: htmlContent,
-      }).data({
-        scriptId: script.id,
+        'script-id': script.id,
       });
 
       $iframe.on('load', () => {
@@ -316,7 +311,7 @@ export class ScriptRepository {
         await this.saveScript(script, type);
       }
       const iframeElement = $('iframe').filter(
-        (_index, element) => $(element).data('scriptId') === script.id,
+        (_index, element) => $(element).attr('script-id') === script.id,
       )[0] as IFrameElement;
       if (iframeElement) {
         await destroyIframe(iframeElement);
@@ -433,6 +428,7 @@ export class ScriptRepository {
         .filter(button => button && button.text && button.text.trim() !== '');
 
       if (scriptId && script) {
+        this.cancelRunScript(script, type, false);
         if (script.buttons) {
           this.removeButton(script);
         }
@@ -978,6 +974,7 @@ export class ScriptRepository {
           );
           $(`#${button.name}_${script.id}`).on('click', () => {
             eventSource.emit(`${button.name}_${script.id}`);
+            console.log(`[ScriptRepository] 点击按钮：${button.name}_${script.id}`);
           });
         }
       });
