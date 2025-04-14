@@ -256,7 +256,9 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       updateMessageBlock(messageId, message);
     }
     if (isRenderingOptimizeEnabled) {
-      const $mesText = $(`.mes[mesid="${messageId}"] .mes_block .mes_text`);
+      const $mesText = $(
+        `.mes[mesid="${messageId}"] .mes_block .mes_reasoning_details, .mes[mesid="${messageId}"] .mes_block .mes_text`,
+      );
       addToggleButtonsToMessage($mesText);
     }
   }
@@ -274,127 +276,133 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       continue;
     }
 
-    let iframeCounter = 1;
+    let iframeCounter = 1; // iframe计数器
 
     $codeElements.each(function () {
       let extractedText = extractTextFromCode(this);
-      if (!extractedText.includes('<body') || !extractedText.includes('</body>')) {
-        if (isRenderingOptimizeEnabled) {
-          addCodeToggleButtons(messageId);
-        }
-        return;
+      console.log(extractedText);
+
+      const shouldHaveButton = shouldHaveCodeToggle(this);
+      const shouldRenderAsIframe = !shouldHaveButton;
+
+      if (shouldHaveButton && isRenderingOptimizeEnabled) {
+        const $pre = $(this);
+        addToggleButtonToCodeBlock($pre);
       }
-      const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
-      const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
-      extractedText = hasMinVh ? processVhUnits(extractedText) : extractedText;
 
-      let $wrapper = $('<div>').css({
-        position: 'relative',
-        width: '100%',
-      });
+      if (shouldRenderAsIframe) {
+        const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
+        const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
+        extractedText = hasMinVh ? processVhUnits(extractedText) : extractedText;
 
-      const $iframe = $('<iframe>')
-        .attr({
-          id: `message-iframe-${messageId}-${iframeCounter}`,
-          srcdoc: '',
-          loading: 'lazy',
-        })
-        .css({
-          margin: '5px auto',
-          border: 'none',
+        let $wrapper = $('<div>').css({
+          position: 'relative',
           width: '100%',
         });
 
-      iframeCounter++;
+        const $iframe = $('<iframe>')
+          .attr({
+            id: `message-iframe-${messageId}-${iframeCounter}`,
+            srcdoc: '',
+            loading: 'lazy',
+          })
+          .css({
+            margin: '5px auto',
+            border: 'none',
+            width: '100%',
+          });
 
-      if (hasMinVh) {
-        $iframe.attr('data-needs-vh', 'true');
+        iframeCounter++;
+
+        if (hasMinVh) {
+          $iframe.attr('data-needs-vh', 'true');
+        }
+
+        let loadingTimeout: NodeJS.Timeout | null = null;
+        if (!disableLoading) {
+          const $loadingOverlay = $('<div>').addClass('iframe-loading-overlay').html(`
+              <div class="iframe-loading-content">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span class="loading-text">Loading...</span>
+              </div>`);
+
+          loadingTimeout = setTimeout(() => {
+            const $loadingText = $loadingOverlay.find('.loading-text');
+            if ($loadingText.length) {
+              $loadingText.text('如加载时间过长，请检查网络');
+            }
+          }, 10000);
+
+          $wrapper.append($loadingOverlay);
+        }
+
+        $wrapper.append($iframe);
+
+        const srcdocContent = `
+          <html>
+          <head>
+            <style>
+            ${hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : ``}
+            html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}
+            .user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
+            .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
+            </style>
+            ${third_party}
+            <script src="${script_url.get('window_functions')}"></script>
+            <script src="${script_url.get('iframe_client')}"></script>
+          </head>
+          <body>
+            ${extractedText}
+            ${hasMinVh ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
+            ${
+              getSettingValue('render.tampermonkey_compatibility')
+                ? `<script src="${script_url.get('tampermonkey_script')}"></script>`
+                : ``
+            }
+          </body>
+          </html>
+        `;
+        $iframe.attr('srcdoc', srcdocContent);
+
+        $iframe.on('load', function () {
+          observeIframeContent(this as HTMLIFrameElement);
+
+          $wrapper = $(this).parent();
+          if ($wrapper.length) {
+            const $loadingOverlay = $wrapper.find('.iframe-loading-overlay');
+            if ($loadingOverlay.length) {
+              $loadingOverlay.css('opacity', '0');
+              setTimeout(() => $loadingOverlay.remove(), 300);
+            }
+          }
+
+          if ($(this).attr('data-needs-vh') === 'true') {
+            const iframe = this as HTMLIFrameElement;
+            if (iframe.contentWindow) {
+              iframe.contentWindow.postMessage(
+                {
+                  request: 'updateViewportHeight',
+                  newHeight: window.innerHeight,
+                },
+                '*',
+              );
+            }
+          }
+
+          eventSource.emitAndWait('message_iframe_render_ended', this.id);
+
+          if (isRenderingOptimizeEnabled) {
+            removeCodeToggleButtonsByMesId(messageId);
+          }
+
+          if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+          }
+        });
+
+        eventSource.emitAndWait('message_iframe_render_started', $iframe.attr('id'));
+        $(this).replaceWith($wrapper);
       }
-
-      let loadingTimeout: NodeJS.Timeout | null = null;
-      if (!disableLoading) {
-        const $loadingOverlay = $('<div>').addClass('iframe-loading-overlay').html(`
-            <div class="iframe-loading-content">
-              <i class="fa-solid fa-spinner fa-spin"></i>
-              <span class="loading-text">Loading...</span>
-            </div>`);
-
-        loadingTimeout = setTimeout(() => {
-          const $loadingText = $loadingOverlay.find('.loading-text');
-          if ($loadingText.length) {
-            $loadingText.text('如加载时间过长，请检查网络');
-          }
-        }, 10000);
-
-        $wrapper.append($loadingOverlay);
-      }
-
-      $wrapper.append($iframe);
-
-      const srcdocContent = `
-        <html>
-        <head>
-          <style>
-          ${hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : ``}
-          html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}
-          .user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
-          .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
-          </style>
-          ${third_party}
-          <script src="${script_url.get('window_functions')}"></script>
-          <script src="${script_url.get('iframe_client')}"></script>
-        </head>
-        <body>
-          ${extractedText}
-          ${hasMinVh ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
-          ${
-            getSettingValue('render.tampermonkey_compatibility')
-              ? `<script src="${script_url.get('tampermonkey_script')}"></script>`
-              : ``
-          }
-        </body>
-        </html>
-      `;
-      $iframe.attr('srcdoc', srcdocContent);
-
-      $iframe.on('load', function () {
-        observeIframeContent(this as HTMLIFrameElement);
-
-        $wrapper = $(this).parent();
-        if ($wrapper.length) {
-          const $loadingOverlay = $wrapper.find('.iframe-loading-overlay');
-          if ($loadingOverlay.length) {
-            $loadingOverlay.css('opacity', '0');
-            setTimeout(() => $loadingOverlay.remove(), 300);
-          }
-        }
-
-        if ($(this).attr('data-needs-vh') === 'true') {
-          const iframe = this as HTMLIFrameElement;
-          if (iframe.contentWindow) {
-            iframe.contentWindow.postMessage(
-              {
-                request: 'updateViewportHeight',
-                newHeight: window.innerHeight,
-              },
-              '*',
-            );
-          }
-        }
-
-        eventSource.emitAndWait('message_iframe_render_ended', this.id);
-
-        if (isRenderingOptimizeEnabled) {
-          removeCodeToggleButtonsByMesId(messageId);
-        }
-
-        if (loadingTimeout) {
-          clearTimeout(loadingTimeout);
-        }
-      });
-
-      eventSource.emitAndWait('message_iframe_render_started', $iframe.attr('id'));
-      $(this).replaceWith($wrapper);
     });
 
     renderedMessages.push(messageId);
@@ -920,6 +928,35 @@ function removeCodeBlockHideStyles() {
 }
 
 /**
+ * 为单个代码块添加折叠按钮
+ * @param $pre 代码块元素
+ */
+function addToggleButtonToCodeBlock($pre: JQuery<HTMLElement>) {
+  // 检查代码块是否已经有折叠按钮
+  if ($pre.prev('.code-toggle-button').length > 0) {
+    return;
+  }
+
+  const $toggleButton = $(
+    '<div class="code-toggle-button" title="关闭[酒馆助手-渲染器-渲染优化]以取消此折叠功能">显示代码块</div>',
+  );
+
+  $toggleButton.on('click', function () {
+    const isVisible = $pre.is(':visible');
+
+    if (isVisible) {
+      $pre.hide();
+      $(this).text('显示代码块');
+    } else {
+      $pre.show();
+      $(this).text('隐藏代码块');
+    }
+  });
+
+  $pre.before($toggleButton);
+}
+
+/**
  * 为消息添加折叠控件
  * @param $mesText 消息文本元素
  */
@@ -930,23 +967,10 @@ function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
 
   $mesText.find('pre').each(function () {
     const $pre = $(this);
-    const $toggleButton = $(
-      '<div class="code-toggle-button" title="关闭[酒馆助手-渲染器-渲染优化]以取消此折叠功能">显示代码块</div>',
-    );
-
-    $toggleButton.on('click', function () {
-      const isVisible = $pre.is(':visible');
-
-      if (isVisible) {
-        $pre.hide();
-        $(this).text('显示代码块');
-      } else {
-        $pre.show();
-        $(this).text('隐藏代码块');
-      }
-    });
-
-    $pre.before($toggleButton);
+    const $code = $pre.find('code');
+    if ($code.length && shouldHaveCodeToggle($code[0])) {
+      addToggleButtonToCodeBlock($pre);
+    }
   });
 }
 
@@ -959,23 +983,22 @@ export function addCodeToggleButtonsToAllMessages() {
     return;
   }
 
-  $chat.find('.mes .mes_block .mes_text').each(function () {
+  $chat.find('.mes .mes_block .mes_text, .mes .mes_block .mes_reasoning_details').each(function () {
     const $mesText = $(this);
     addToggleButtonsToMessage($mesText);
   });
 }
 
 /**
- * 根据mesId为消息添加折叠控件
- * @param mesId 消息ID
+ * 从代码块中移除折叠按钮
+ * @param $codeElement 代码元素
  */
-function addCodeToggleButtons(mesId: number) {
-  const $chat = $('#chat');
-  if (!$chat.length) {
-    return;
+function removeToggleButtonFromCodeBlock($codeElement: JQuery<HTMLElement>) {
+  const $parent = $codeElement.parent();
+  const $toggleButton = $parent.prev('.code-toggle-button');
+  if ($toggleButton.length) {
+    $toggleButton.off('click').remove();
   }
-  const $mesText = $chat.find(`div[mesid="${mesId}"] .mes_block .mes_text`);
-  addToggleButtonsToMessage($mesText);
 }
 
 /**
@@ -983,8 +1006,16 @@ function addCodeToggleButtons(mesId: number) {
  * @param mesId 消息ID
  */
 function removeCodeToggleButtonsByMesId(mesId: number) {
-  $(`div[mesid="${mesId}"] .code-toggle-button`).each(function () {
-    $(this).off('click').remove();
+  const $messageElement = $(`div[mesid="${mesId}"]`);
+  const $codeElements = $messageElement.find('pre code');
+
+  $codeElements.each(function () {
+    const $codeElement = $(this);
+
+    // 只有不应该有折叠按钮的代码块才移除按钮
+    if (!shouldHaveCodeToggle(this)) {
+      removeToggleButtonFromCodeBlock($codeElement);
+    }
   });
 }
 
@@ -1135,3 +1166,13 @@ export const initIframePanel = () => {
   injectLoadingStyles();
   setupIframeRemovalListener();
 };
+
+/**
+ * 判断代码块是否应该有折叠按钮
+ * @param codeElement 代码块元素
+ * @returns 是否应该有折叠按钮
+ */
+function shouldHaveCodeToggle(codeElement: HTMLElement): boolean {
+  const extractedText = extractTextFromCode(codeElement);
+  return !(extractedText.includes('<body') && extractedText.includes('</body>'));
+}

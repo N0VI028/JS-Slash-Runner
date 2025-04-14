@@ -191,9 +191,9 @@ export class ScriptRepository {
    */
   async cancelRunScriptsByType(type: ScriptType) {
     const scripts = type === ScriptType.GLOBAL ? this.globalScripts : this.characterScripts;
-    const disabledScripts = scripts.map((script, index) => ({ script, index })).filter(({ script }) => !script.enabled);
+    const enabledScripts = scripts.map((script, index) => ({ script, index })).filter(({ script }) => script.enabled);
 
-    for (const { script } of disabledScripts) {
+    for (const { script } of enabledScripts) {
       // 不要保存设置
       await this.cancelRunScript(script, type, false);
     }
@@ -330,7 +330,6 @@ export class ScriptRepository {
       if (iframeElement) {
         await destroyIframe(iframeElement);
       }
-      this.removeButton(script);
       console.info(`[ScriptRepository] ${typeName}脚本["${script.name}"] 已禁用`);
     }
   }
@@ -590,6 +589,7 @@ export class ScriptRepository {
         }
 
         this.cancelRunScript(script, type, false);
+        this.removeButton(script);
         console.info(`[ScriptRepository] 删除脚本["${script.name}"]`);
       }
     } catch (error) {

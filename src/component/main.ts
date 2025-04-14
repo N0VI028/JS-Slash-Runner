@@ -41,12 +41,12 @@ const handleChatChanged = async () => {
   await scriptRepo.checkEmbeddedScripts();
 
   await clearAllScriptsIframe();
-  scriptRepo.removeButtonsByType(ScriptType.GLOBAL);
+  //scriptRepo.removeButtonsByType(ScriptType.GLOBAL);
   scriptRepo.removeButtonsByType(ScriptType.CHARACTER);
 
   await scriptRepo.loadScriptLibrary();
-  await scriptRepo.runScriptsByType(ScriptType.GLOBAL);
   await scriptRepo.runScriptsByType(ScriptType.CHARACTER);
+  scriptRepo.addButtonsByType(ScriptType.CHARACTER);
 
   await renderAllIframes();
   if (getSettingValue('render.rendering_optimize')) {
@@ -141,6 +141,8 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
     MutationObserverQrBarCreated();
     scriptRepo = ScriptRepository.getInstance();
+    await scriptRepo.runScriptsByType(ScriptType.GLOBAL);
+    scriptRepo.addButtonsByType(ScriptType.GLOBAL);
 
     script_url.set('iframe_client', iframe_client);
     script_url.set('window_functions', window_functions);
@@ -177,6 +179,10 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     $('#extension-status-icon').css('color', 'red').next().text('扩展已禁用');
 
     removeMutationObserverQrBarCreated();
+    await scriptRepo.cancelRunScriptsByType(ScriptType.GLOBAL);
+    await scriptRepo.cancelRunScriptsByType(ScriptType.CHARACTER);
+    scriptRepo.removeButtonsByType(ScriptType.GLOBAL);
+    scriptRepo.removeButtonsByType(ScriptType.CHARACTER);
     ScriptRepository.destroyInstance();
 
     script_url.delete('iframe_client');
