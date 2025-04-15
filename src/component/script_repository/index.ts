@@ -967,6 +967,10 @@ export class ScriptRepository {
   }
 
   addButton(script: Script) {
+    if (!script.enabled) {
+      return;
+    }
+
     if (script.buttons && script.buttons.length > 0) {
       this.removeButton(script);
 
