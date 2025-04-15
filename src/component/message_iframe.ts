@@ -752,29 +752,48 @@ export async function renderMessageAfterDelete(mesId: number) {
   const processDepth = parseInt($('#render-depth').val() as string, 10);
   const totalMessages = context.chat.length;
   const maxRemainId = mesId - 1;
+
+  const getMessage = (id: number) => {
+    const message = context.chat[id] ?? {};
+    return message;
+  };
+
+  const getIframe = (id: number) => {
+    const $iframe = $('[id^="message-iframe-' + id + '-"]');
+    return $iframe.length > 0 ? $iframe.get(0) as HTMLIFrameElement : null;
+  };
+
+  const checkCodeBlock = (message: any) => {
+    return /```[\s\S]*?```/.test(message.mes);
+  };
   // 考虑到高楼层的情况，深度为0时，只渲染最后一个消息
   if (processDepth === 0) {
-    const message = context.chat[maxRemainId].mes;
+    const message = getMessage(maxRemainId);
+    const hasCodeBlock = checkCodeBlock(message);
+    const iframe = getIframe(maxRemainId);
 
-    const hasCodeBlock = /```[\s\S]*?```/.test(message);
-    const $iframe = $('[id^="message-iframe-' + maxRemainId + '-"]');
-
-    if (!hasCodeBlock && $iframe.length === 0) {
+    if (!hasCodeBlock && !iframe) {
       return;
     }
-    await destroyIframe($iframe.get(0) as HTMLIFrameElement);
+    await destroyIframe(iframe as HTMLIFrameElement);
+    updateMessageBlock(maxRemainId, message);
     renderPartialIframes(maxRemainId);
   } else {
-    const startRenderIndex = totalMessages - processDepth;
-    for (let i = startRenderIndex; i <= maxRemainId; i++) {
-      const message = context.chat[i].mes;
-      const hasCodeBlock = /```[\s\S]*?```/.test(message);
-      const $iframe = $('[id^="message-iframe-' + i + '-"]');
+    let startRenderIndex = totalMessages - processDepth;
+    if (startRenderIndex < 0) {
+      startRenderIndex = 0;
+    }
 
-      if (!hasCodeBlock && $iframe.length === 0) {
+    for (let i = startRenderIndex; i <= maxRemainId; i++) {
+      const message = getMessage(i);
+      const hasCodeBlock = checkCodeBlock(message);
+      const iframe = getIframe(i);
+
+      if (!hasCodeBlock && !iframe) {
         continue;
       }
-      await destroyIframe($iframe.get(0) as HTMLIFrameElement);
+      await destroyIframe(iframe as HTMLIFrameElement);
+      updateMessageBlock(i, message);
       renderPartialIframes(i);
     }
   }
