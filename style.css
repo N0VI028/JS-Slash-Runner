@@ -518,20 +518,18 @@
 }
 
 .collapsible .settings-title-text::before {
-  content: '';
+  content: '▶';
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: transparent transparent transparent var(--SmartThemeBodyColor);
+  font-size: calc(var(--mainFontSize) * 0.7);
   transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-  transform-origin: 25% 50%;
+  transform-origin: center;
 }
 
 .collapsible.expanded .settings-title-text::before {
-  transform: translateY(-50%) translateX(2px) rotate(90deg);
+  transform: translateY(-50%) rotate(90deg);
 }
 
 .collapsible-content {
