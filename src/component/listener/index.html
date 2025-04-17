@@ -1,0 +1,87 @@
+<div class="flex-container flexFlowColumn width100p">
+  <div class="divider"></div>
+  <div class="iframe_update_listener">
+    <div class="flex-container" style="margin: 10px 0;">
+      <div class="flex alignItemsCenter">
+        <input
+          id="iframe_update_listener_switch"
+          type="checkbox"
+          style="margin: 3px 5px 0 0"
+        /><span style="margin-right: 10px;">允许监听</span>
+      </div>
+      <div class="flex alignItemsCenter">
+        <input
+          id="iframe_update_listener_enable_echo"
+          type="checkbox"
+          style="margin: 3px 5px 0 0"
+        /><span>启用酒馆弹窗报错</span>
+      </div>
+    </div>
+    <div class="flex-container flexFlowColumn">
+      <div class="flex flexFlowColumn">
+        <b class="table_setting_category_header">监听地址</b>
+        <input id="iframe_update_listener_input" class="text_pole" type="url" />
+      </div>
+      <div class="flex flexFlowColumn">
+        <b class="table_setting_category_header">刷新间隔 (毫秒)</b>
+        <input
+          id="iframe_update_listener_duration"
+          class="text_pole"
+          type="number"
+          min="1"
+        />
+      </div>
+    </div>
+  </div>
+  <hr />
+  <div class="buttons-group">
+    <div class="extension-reference-button">
+      <a
+        id="copy_third_party_tag"
+        target="_blank"
+        style="cursor: pointer"
+        title="复制在 VSCode 中预览 html 需要插入的 tag"
+      >
+        内置库插入
+      </a>
+    </div>
+    <div class="extension-reference-button">
+      <a
+        id="copy_third_party_installation"
+        target="_blank"
+        style="cursor: pointer"
+        title="复制在 VSCode 中编写酒馆助手角色卡应该执行的安装命令"
+      >
+        内置库安装
+      </a>
+    </div>
+    <div class="extension-reference-button">
+      <a
+        href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/doc/usage.md?ref_type=heads&inline=false"
+        target="_blank"
+        title="最新酒馆助手提供的所有 TypeScript 函数"
+      >
+        助手函数 (发给 ai 官网的单文件)
+      </a>
+    </div>
+    <div class="extension-reference-button">
+      <a
+        href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client"
+        target="_blank"
+        title="最新酒馆助手提供的所有 TypeScript 函数"
+      >
+        助手函数 (VSCode 用)
+      </a>
+    </div>
+    <div class="extension-reference-button">
+      <a
+        id="download_slash_commands"
+        target="_blank"
+        style="cursor: pointer"
+        title="你所用酒馆版本及扩展所提供的酒馆命令"
+      >
+        酒馆命令
+      </a>
+    </div>
+  </div>
+</div>

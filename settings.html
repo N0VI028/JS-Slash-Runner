@@ -55,8 +55,11 @@
               <div class="settings-title-description">包括扩展使用及前端卡游玩相关问题的解答</div>
             </div>
             <div class="TavernHelper-button">
-              <a href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E9%85%92%E9%A6%86%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
-                target="_blank" style="cursor: pointer">
+              <a
+                href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E9%85%92%E9%A6%86%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
+                target="_blank"
+                style="cursor: pointer"
+              >
                 查看
               </a>
             </div>
@@ -69,48 +72,29 @@
             </div>
             <div id="update-extension" class="TavernHelper-button">更新</div>
           </div>
-          <div class="divider"></div>
-          <div class="extension-content-item flexFlowColumn" style="align-items: flex-start; gap: 5px;">
-            <div class="flex flexFlowColumn">
-              <div class="settings-title-text">编写参考</div>
-              <div class="settings-title-description">编写脚本的可用内容</div>
-            </div>
-            <div id="extension-reference" class="flex-container">
-              <div class="extension-reference-button"><a id="copy_third_party_tag" target="_blank"
-                  style="cursor: pointer" title="复制在 VSCode 中预览 html 需要插入的 tag">
-                  内置库插入
-                </a>
-              </div>
-              <div class="extension-reference-button">
-                <a id="copy_third_party_installation" target="_blank" style="cursor: pointer"
-                  title="复制在 VSCode 中编写酒馆助手角色卡应该执行的安装命令">
-                  内置库安装
-                </a>
-              </div>
-              <div class="extension-reference-button">
-                <a href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/doc/usage.md?ref_type=heads&inline=false"
-                  target="_blank" title="最新酒馆助手提供的所有 TypeScript 函数">
-                  助手函数 (发给 ai 官网的单文件)
-                </a>
-              </div>
-              <div class="extension-reference-button">
-                <a href="https://download-directory.github.io/?url=https://github.com/N0VI028/JS-Slash-Runner/tree/main/src/iframe_client"
-                  target="_blank" title="最新酒馆助手提供的所有 TypeScript 函数">
-                  助手函数 (VSCode 用)
-                </a>
-              </div>
-              <div class="extension-reference-button">
-                <a id="download_slash_commands" target="_blank" style="cursor: pointer"
-                  title="你所用酒馆版本及扩展所提供的酒馆命令">
-                    酒馆命令
-                </a>
-              </div>
-            </div>
+          <div class="major-divider-container">
+            <div class="major-divider-text"><i class="fa-solid fa-tools margin-r5"></i>编写工具</div>
+            <div class="major-divider-line"></div>
           </div>
-          <div class="divider"></div>
+          <div class="extension-content-item box-container collapsible flexFlowColumn" style="align-items: flex-start">
+            <div id="extension-listener-header" class="flex-container spaceBetween alignItemsCenter width100p">
+              <div class="flex flexFlowColumn">
+                <div class="settings-title-text">实时监听</div>
+                <div class="settings-title-description">连接 VSCode / Cursor ，将代码修改实时同步到酒馆</div>
+              </div>
+              <i id="online_status_indicator" class="fa-solid fa-wifi"></i>
+            </div>
+            <div id="extension-listener" class="flex-container collapsible-content width100p"></div>
+          </div>
+          <div class="major-divider-container">
+            <div class="major-divider-text"><i class="fa-solid fa-shapes margin-r5"></i>扩展信息</div>
+            <div class="major-divider-line"></div>
+          </div>
           <div id="extension-info">
             <div class="info-text flex flex1 flexFlowColumn">
-              <div style="font-size: calc(var(--mainFontSize) * 0.8); margin-bottom: 5px; font-weight: 500;">作者：KAKAA，青空莉想做舞台少女的狗</div>
+              <div style="font-size: calc(var(--mainFontSize) * 0.8); margin-bottom: 5px; font-weight: 500">
+                作者：KAKAA，青空莉想做舞台少女的狗
+              </div>
               <div>本扩展免费使用，禁止任何形式的商业用途</div>
               <div>脚本可能存在风险，请确保安全后再运行</div>
             </div>
@@ -118,8 +102,10 @@
               <a href="https://github.com/n0vi028/TavernHelper" target="_blank">
                 <i class="fa-brands fa-github"></i>
               </a>
-              <a href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E5%89%8D%E7%AB%AF%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
-                target="_blank">
+              <a
+                href="https://n0vi028.github.io/JS-Slash-Runner-Doc/%E5%85%B3%E4%BA%8E%E5%89%8D%E7%AB%AF%E5%8A%A9%E6%89%8B/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%AE%89%E8%A3%85%E4%B8%8E%E6%9B%B4%E6%96%B0%E9%97%AE%E9%A2%98.html"
+                target="_blank"
+              >
                 <i class="fa-brands fa-discord"></i>
               </a>
             </div>
@@ -163,14 +149,15 @@
             <div class="input-number-wrapper">
               <input type="number" id="render-depth" class="input-number" min="0" value="0" />
             </div>
-
           </div>
           <div class="divider"></div>
           <div class="extension-content-item">
             <div class="flex flexFlowColumn">
               <div class="settings-title-text">启用油猴兼容模式</div>
               <div class="settings-title-description">
-                启用后，将支持<a href="https://www.tampermonkey.net/documentation.html" target="_blank">油猴酒馆HTML注入脚本</a>的功能
+                启用后，将支持<a href="https://www.tampermonkey.net/documentation.html" target="_blank"
+                  >油猴酒馆HTML注入脚本</a
+                >的功能
               </div>
             </div>
             <div class="toggle-switch">
@@ -270,8 +257,13 @@
                     </div>
                   </div>
                   <div class="vol" id="bgm-volume-control">
-                    <input type="range" class="audio-slider vertical-slider" id="audio_bgm_volume_slider" value="100"
-                      maxlength="100" />
+                    <input
+                      type="range"
+                      class="audio-slider vertical-slider"
+                      id="audio_bgm_volume_slider"
+                      value="100"
+                      maxlength="100"
+                    />
                   </div>
                 </div>
                 <div class="play-pause-div">
@@ -303,7 +295,11 @@
                   <span class="ambient-toggle-on fa-solid fa-toggle-on" title="禁用Ambient播放器"></span>
                   <span class="ambient-toggle-off fa-solid fa-toggle-off" title="启用Ambient播放器"></span>
                 </label>
-                <div id="ambient_manager_button" title="管理音效链接" class="menu_button menu_button_icon manager-button">
+                <div
+                  id="ambient_manager_button"
+                  title="管理音效链接"
+                  class="menu_button menu_button_icon manager-button"
+                >
                   <i class="fa-solid fa-list-ol"></i>
                 </div>
               </div>
@@ -315,8 +311,13 @@
                     </div>
                   </div>
                   <div class="vol" id="ambient-volume-control">
-                    <input type="range" class="audio-slider vertical-slider" id="audio_ambient_volume_slider"
-                      value="100" maxlength="100" />
+                    <input
+                      type="range"
+                      class="audio-slider vertical-slider"
+                      id="audio_ambient_volume_slider"
+                      value="100"
+                      maxlength="100"
+                    />
                   </div>
                 </div>
                 <div class="play-pause-div">
@@ -325,8 +326,13 @@
                   </div>
                 </div>
                 <div class="progress-div">
-                  <input type="range" class="audio-slider" id="audio_ambient_progress_slider" value="0"
-                    maxlength="100" />
+                  <input
+                    type="range"
+                    class="audio-slider"
+                    id="audio_ambient_progress_slider"
+                    value="0"
+                    maxlength="100"
+                  />
                 </div>
               </div>
               <div class="audio-adjust">
@@ -359,5 +365,4 @@
       </div>
     </div>
   </div>
-</div>
 </div>

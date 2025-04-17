@@ -1,7 +1,7 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initExtensionMainPanel, scriptRepo } from '@/component/main';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
-import { initReference } from '@/component/reference';
+import { initReference } from '@/component/listener';
 import { defaultScriptSettings, initScriptRepository } from '@/component/script_repository';
 import { initTavernHelperObject } from '@/function';
 import { initAudioSlashCommands } from '@/slash_command/audio';
