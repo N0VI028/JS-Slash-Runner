@@ -1063,35 +1063,67 @@ export async function initScriptRepository(scriptRepo: ScriptRepository) {
   isGlobalScriptEnabled = getSettingValue('script.global_script_enabled');
   isScopedScriptEnabled = getSettingValue('script.scope_script_enabled');
 
-  scriptRepo.handleScriptToggle(ScriptType.GLOBAL, isGlobalScriptEnabled, false);
-  scriptRepo.handleScriptToggle(ScriptType.CHARACTER, isScopedScriptEnabled, false);
+  scriptRepo.handleScriptToggle(
+    ScriptType.GLOBAL,
+    isGlobalScriptEnabled,
+    false,
+  );
+  scriptRepo.handleScriptToggle(
+    ScriptType.CHARACTER,
+    isScopedScriptEnabled,
+    false,
+  );
 
   $('#global-script-enable-toggle')
     .prop('checked', isGlobalScriptEnabled)
     .on('click', (event: JQuery.ClickEvent) =>
-      scriptRepo.handleScriptToggle(ScriptType.GLOBAL, event.target.checked, true),
+      scriptRepo.handleScriptToggle(
+        ScriptType.GLOBAL,
+        event.target.checked,
+        true,
+      ),
     );
   $('#scoped-script-enable-toggle')
     .prop('checked', isScopedScriptEnabled)
     .on('click', (event: JQuery.ClickEvent) =>
-      scriptRepo.handleScriptToggle(ScriptType.CHARACTER, event.target.checked, true),
+      scriptRepo.handleScriptToggle(
+        ScriptType.CHARACTER,
+        event.target.checked,
+        true,
+      ),
     );
 
-  $('#open-global-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptType.GLOBAL, undefined));
-  $('#open-scoped-script-editor').on('click', () => scriptRepo.openScriptEditor(ScriptType.CHARACTER, undefined));
+  $('#open-global-script-editor').on('click', () =>
+    scriptRepo.openScriptEditor(ScriptType.GLOBAL, undefined),
+  );
+  $('#open-scoped-script-editor').on('click', () =>
+    scriptRepo.openScriptEditor(ScriptType.CHARACTER, undefined),
+  );
 
   $('#scope-variable').on('click', () => scriptRepo.openVariableEditor());
 
   $('#import-script-file').on('change', async function () {
     let target = 'global';
-    const template = $(await renderExtensionTemplateAsync(`${templatePath}`, 'script_import_target'));
-    template.find('#script-import-target-global').on('input', () => (target = 'global'));
-    template.find('#script-import-target-scoped').on('input', () => (target = 'scoped'));
+    const template = $(
+      await renderExtensionTemplateAsync(
+        `${templatePath}`,
+        'script_import_target',
+      ),
+    );
+    template
+      .find('#script-import-target-global')
+      .on('input', () => (target = 'global'));
+    template
+      .find('#script-import-target-scoped')
+      .on('input', () => (target = 'scoped'));
     await callGenericPopup(template, POPUP_TYPE.TEXT);
     const inputElement = this instanceof HTMLInputElement && this;
     if (inputElement && inputElement.files) {
       for (const file of inputElement.files) {
-        await scriptRepo.onScriptImportFileChange(file, target === 'global' ? ScriptType.GLOBAL : ScriptType.CHARACTER);
+        await scriptRepo.onScriptImportFileChange(
+          file,
+          target === 'global' ? ScriptType.GLOBAL : ScriptType.CHARACTER,
+        );
       }
 
       inputElement.value = '';
@@ -1102,5 +1134,10 @@ export async function initScriptRepository(scriptRepo: ScriptRepository) {
     $('#import-script-file').trigger('click');
   });
 
-  $('#default-script').on('click', () => scriptRepo.loadDefaultScriptsRepository());
+  $('#default-script').on('click', () =>
+    scriptRepo.loadDefaultScriptsRepository(),
+  );
+
+  // 修复和正则同时存在white-space:nowrap时布局出错的问题
+  $('#extensions_settings').css('min-width', '0');
 }
