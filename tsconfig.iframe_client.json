@@ -1,0 +1,40 @@
+// tsconfig.declaration.json — 专门用于生成声明文件
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // 打开声明文件输出
+    "declaration": true,
+    // 仅输出声明文件，不编译 JavaScript
+    "emitDeclarationOnly": true,
+    // 将所有声明文件合并到一个输出文件
+    "outFile": "./dist/iframe_client.d.ts",
+    // 保留注释，以便在声明文件中查看文档注释
+    "removeComments": false,
+    // 过滤带有 @internal 注解的声明
+    "stripInternal": true,
+    // 关闭 isolatedModules，避免对注释产生影响
+    "isolatedModules": false,
+    // 即使编译出错，也继续输出声明文件
+    "noEmitOnError": false,
+    // 允许隐式 any
+    "noImplicitAny": false,
+    // 跳过对库文件的类型检查，加快生成速度
+    "skipLibCheck": true,
+    "allowJs": false
+  },
+  // 范围仅包含你的源码和需要智能提示的 JS 文件
+  "include": [
+    "src/iframe_client/*.ts",
+    "src/function/exported.ts",
+    "src/function/*.ts"
+  ],
+  // 排除 node_modules 和上次输出的声明文件目录
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/iframe_client/index.ts",
+    "../../../../lib/*.js",
+    "../../../*.js",
+    "src/slash_command/*.ts"
+  ]
+}

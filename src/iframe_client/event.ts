@@ -429,7 +429,7 @@ type ListenerType = {
 };
 
 //------------------------------------------------------------------------------------------------------------------------
-// @ts-expect-error
+// @ts-ignore
 namespace detail {
   export const listener_event_wrapper_map: Map<Function, Map<EventType, Function>> = new Map();
 

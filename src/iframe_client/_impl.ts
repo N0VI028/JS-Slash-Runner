@@ -1,4 +1,4 @@
-// @ts-expect-error
+// @ts-ignore
 namespace detail {
   export interface IframeCallbackMessage {
     request: string;

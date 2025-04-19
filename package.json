@@ -7,7 +7,8 @@
     "build": "webpack --mode production",
     "watch:dev": "webpack --mode development --watch",
     "watch": "webpack --mode production --watch",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:dts": "tsc -p tsconfig.iframe_client.json",
   },
   "browserslist": {
     "production": [

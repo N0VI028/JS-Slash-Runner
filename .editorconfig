@@ -1,0 +1,58 @@
+# EditorConfig 配置文件
+# https://editorconfig.org
+
+root = true
+
+# 通用设置，针对所有文件
+[*]
+# 使用空格缩进（对应 prettier.useTabs = false）
+indent_style = space
+# 缩进为 2 个空格（对应 prettier.tabWidth = 2）
+indent_size = 2
+# 若编辑器支持，统一制表符宽度也设为 2
+tab_width = 2
+
+# 文件编码（推荐统一为 UTF-8，无 BOM）
+charset = utf-8
+
+# 行尾符统一使用 LF（Linux / macOS 风格）
+end_of_line = lf
+
+# 删除行尾多余空格
+trim_trailing_whitespace = true
+
+# 文件末尾一定要空一行
+insert_final_newline = true
+
+# 控制最大行长度，建议配合编辑器可视化标尺（对应 prettier.printWidth = 120）
+# 该字段并非官方标准，但常见于 EditorConfig 扩展
+max_line_length = 120
+
+# 注意：以下 prettier 专有配置项需保留在 .prettierrc 或相关配置文件内
+# arrowParens = avoid
+# bracketSpacing = true
+# jsxBracketSameLine = false
+# proseWrap = always
+# quoteProps = as-needed
+# semi = true
+# singleQuote = true
+# trailingComma = all
+
+###############################
+# 针对特定文件类型的覆盖
+###############################
+
+# Markdown 文件通常不删除行尾空白，以保留软换行格式
+[*.md]
+trim_trailing_whitespace = false
+
+# JSON 文件统一双引号，不按 prettier.singleQuote
+[*.json]
+indent_style = space
+indent_size = 2
+
+# YAML 文件也保留双引号，且通常可以不删除行尾空白（可视项目需求）
+[*.yml]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
