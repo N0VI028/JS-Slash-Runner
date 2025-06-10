@@ -13,6 +13,76 @@ export class VariableCardFactory {
    */
   constructor(defaultTypeDialogCallback?: (callback: (dataType: VariableDataType) => void) => Promise<void>) {
     this.defaultTypeDialogCallback = defaultTypeDialogCallback;
+    this.setupGlobalEventDelegation();
+  }
+
+  /**
+   * 设置全局事件委托
+   */
+  private setupGlobalEventDelegation(): void {
+    $(document).on('click', '.variable-action-btn.object-save-btn', event => {
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const $button = $(event.currentTarget);
+      const $nestedCard = $button.closest('.variable-card');
+
+      const $parentCard = this.findTopLevelCard($nestedCard);
+
+      if ($parentCard) {
+        this.saveNestedCardValue($parentCard);
+      }
+    });
+
+    $(document).on('click', '.variable-action-btn.object-delete-btn', event => {
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const $button = $(event.currentTarget);
+      const $nestedCard = $button.closest('.variable-card');
+
+      const $parentCard = this.findTopLevelCard($nestedCard);
+
+      if ($parentCard) {
+        this.deleteNestedCardValue($parentCard, $nestedCard);
+      }
+    });
+
+    $(document).on('click', '.variable-action-btn.add-nested-key-btn', async event => {
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const $button = $(event.currentTarget);
+      const $card = $button.closest('.variable-card');
+
+      const dialogCallback = this.defaultTypeDialogCallback;
+      if (dialogCallback) {
+        await dialogCallback((dataType: VariableDataType) => {
+          this.addObjectKey($card, dataType, this.defaultTypeDialogCallback);
+        });
+      } else {
+        console.error('添加卡片出错');
+        toastr.error('添加卡片出错');
+      }
+    });
+
+    $(document).on('click', '.variable-action-btn.add-key-btn', async event => {
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const $button = $(event.currentTarget);
+      const $card = $button.closest('.variable-card');
+
+      const dialogCallback = this.defaultTypeDialogCallback;
+      if (dialogCallback) {
+        await dialogCallback((dataType: VariableDataType) => {
+          this.addObjectKey($card, dataType, this.defaultTypeDialogCallback);
+        });
+      } else {
+        console.error('未提供类型选择对话框回调函数');
+        toastr.error('未提供类型选择对话框回调函数');
+      }
+    });
   }
 
   /**
@@ -50,6 +120,18 @@ export class VariableCardFactory {
       </div>
     `);
 
+    if (isNested) {
+      card.removeAttr('data-variable-id');
+      card
+        .find('.variable-action-btn.save-btn')
+        .removeClass('save-btn')
+        .addClass('object-save-btn')
+        .end()
+        .find('.variable-action-btn.delete-btn')
+        .removeClass('delete-btn')
+        .addClass('object-delete-btn');
+    }
+
     switch (dataType) {
       case 'array':
         card
@@ -73,28 +155,6 @@ export class VariableCardFactory {
         break;
       case 'object':
         card.find('.variable-title-container i').addClass('fa-regular fa-code');
-
-        if (isNested) {
-          card.addClass('nested-card').removeAttr('data-variable-id');
-
-          card
-            .find('.variable-title')
-            .removeClass('variable-title')
-            .addClass('nested-card-key-input')
-            .attr('title', '点击编辑键名')
-            .removeAttr('placeholder');
-
-          card
-            .find('.variable-actions')
-            .find('.save-btn')
-            .removeClass('save-btn')
-            .addClass('object-save-btn')
-            .end()
-            .find('.delete-btn')
-            .removeClass('delete-btn')
-            .addClass('object-delete-btn');
-        }
-
         this.setupObjectCard(card, variable, isNested, showTypeDialogCallback);
         break;
       case 'boolean':
@@ -150,7 +210,6 @@ export class VariableCardFactory {
     const id = card.attr('data-variable-id') || '';
     const name = card.find('.variable-title').val() as string;
     const dataType = card.attr('data-type') as VariableDataType;
-
     const value = this.extractValueFromCard(card, dataType);
 
     return {
@@ -182,37 +241,55 @@ export class VariableCardFactory {
         card.find('.list-item').each((_, elem) => {
           const $listItem = $(elem);
 
-          if ($listItem.hasClass('list-item-object')) {
-            const nestedCard = $listItem.find('.nested-card');
-            if (nestedCard.length > 0) {
-              const nestedVariable = this.getVariableFromCard(nestedCard);
-              if (nestedVariable) {
-                arrayItems.push(nestedVariable.value);
-              }
-            }
-          } else {
-            const itemValue = $listItem.find('.variable-content-input').val() as string;
-            try {
-              arrayItems.push(JSON.parse(itemValue));
-            } catch {
-              arrayItems.push(itemValue);
-            }
+          const itemValue = $listItem.find('.variable-content-input').val() as string;
+          try {
+            arrayItems.push(JSON.parse(itemValue));
+          } catch {
+            arrayItems.push(itemValue);
           }
         });
         return arrayItems;
       }
       case 'object': {
+        console.log('[VariableManager] 提取对象值，卡片信息:', {
+          cardType: card.attr('data-type'),
+          cardId: card.attr('data-variable-id'),
+          hasJsonInput: card.find('.json-input').length > 0,
+          hasNestedContainer: card.find('.nested-cards-container').length > 0,
+          viewMode: card.attr('data-view-mode')
+        });
+
+        // 检查卡片的视图模式
+        const viewMode = card.attr('data-view-mode') || 'card';
+        console.log('[VariableManager] 当前视图模式:', viewMode);
+
+        // 在卡片视图模式下，强制从嵌套卡片提取值
+        if (viewMode === 'card') {
+          console.log('[VariableManager] 卡片视图模式，从嵌套卡片提取值');
+          const extracted = this.extractObjectFromNestedCards(card);
+          console.log('[VariableManager] 从嵌套卡片提取到:', extracted);
+          return extracted;
+        }
+
+        // 在JSON视图模式下，从JSON输入框提取值
         const jsonValue = card.find('.json-input').val() as string;
-        if (jsonValue) {
+        console.log('[VariableManager] JSON视图模式，JSON输入框值:', jsonValue);
+        
+        if (jsonValue && jsonValue.trim()) {
           try {
-            return JSON.parse(jsonValue);
+            const parsed = JSON.parse(jsonValue);
+            console.log('[VariableManager] 从JSON解析得到:', parsed);
+            return parsed;
           } catch (e) {
             console.error('JSON解析错误:', e);
             toastr.error('JSON解析错误');
             return {};
           }
         } else {
-          return this.extractObjectFromNestedCards(card);
+          console.log('[VariableManager] JSON为空，从嵌套卡片提取值');
+          const extracted = this.extractObjectFromNestedCards(card);
+          console.log('[VariableManager] 从嵌套卡片提取到:', extracted);
+          return extracted;
         }
       }
       default:
@@ -228,17 +305,59 @@ export class VariableCardFactory {
   private extractObjectFromNestedCards(card: JQuery<HTMLElement>): Record<string, any> {
     const result: Record<string, any> = {};
 
-    card.find('.nested-cards-container .nested-card').each((_index, element) => {
+    // 调试信息：记录当前卡片信息
+    console.log('[VariableManager] 开始提取嵌套卡片值，卡片信息:', {
+      cardType: card.attr('data-type'),
+      cardId: card.attr('data-variable-id'),
+      hasNestedContainer: card.find('.nested-cards-container').length > 0,
+      nestedContainerCount: card.find('.nested-cards-container').length
+    });
+
+    // 更精确的容器选择：优先查找直接子级的nested-cards-container
+    let $container = card.find('> .variable-card-content > .object-card-view > .nested-cards-container');
+    
+    // 如果没找到，尝试查找嵌套对象容器
+    if ($container.length === 0) {
+      $container = card.find('> .variable-card-content > .nested-object-container > .nested-cards-container');
+    }
+    
+    // 最后的备选方案：查找第一个nested-cards-container
+    if ($container.length === 0) {
+      $container = card.find('.nested-cards-container').first();
+    }
+
+    console.log('[VariableManager] 找到的容器:', {
+      containerFound: $container.length > 0,
+      childrenCount: $container.children('.variable-card').length
+    });
+
+    $container.children('.variable-card').each((_index, element) => {
       const $nestedCard = $(element);
-      const key = $nestedCard.find('.nested-card-key-input').val() as string;
+      const key = $nestedCard.find('.variable-title').val() as string;
       const nestedDataType = $nestedCard.attr('data-type') as VariableDataType;
+
+      console.log('[VariableManager] 处理嵌套卡片:', {
+        index: _index,
+        key: key,
+        dataType: nestedDataType,
+        cardHtml: $nestedCard[0].outerHTML.substring(0, 200) + '...'
+      });
 
       if (key) {
         const nestedValue = this.extractValueFromCard($nestedCard, nestedDataType);
         result[key] = nestedValue;
+        
+        console.log('[VariableManager] 提取到的值:', {
+          key: key,
+          value: nestedValue,
+          valueType: typeof nestedValue
+        });
+      } else {
+        console.warn('[VariableManager] 跳过空键的嵌套卡片:', _index);
       }
     });
 
+    console.log('[VariableManager] 最终提取结果:', result);
     return result;
   }
 
@@ -273,14 +392,6 @@ export class VariableCardFactory {
       const nestedCard = this.createCard(propertyVariable, true, showTypeDialogCallback);
 
       $container.append(nestedCard);
-
-      nestedCard.find('.variable-action-btn.object-save-btn').on('click', () => {
-        this.saveNestedCardValue(card);
-      });
-
-      nestedCard.find('.variable-action-btn.object-delete-btn').on('click', () => {
-        this.deleteNestedCardValue(card, nestedCard);
-      });
     });
   }
 
@@ -300,15 +411,15 @@ export class VariableCardFactory {
   /**
    * 找到顶级对象卡片
    * @param card 当前卡片
-   * @returns 顶级卡片或null
+   * @returns 具有data-variable-id属性的卡片或null
    */
   private findTopLevelCard(card: JQuery<HTMLElement>): JQuery<HTMLElement> | null {
-    if (card.hasClass('variable-card') && !card.hasClass('nested-card')) {
+    if (card.attr('data-variable-id')) {
       return card;
     }
 
-    const topLevelCard = card.closest('.variable-card:not(.nested-card)');
-    return topLevelCard.length > 0 ? topLevelCard : null;
+    const cardWithId = card.closest('[data-variable-id]');
+    return cardWithId.length > 0 ? cardWithId : null;
   }
 
   /**
@@ -339,81 +450,42 @@ export class VariableCardFactory {
     showTypeDialogCallback?: (callback: (dataType: VariableDataType) => void) => Promise<void>,
   ): void {
     const defaultValue = VariableManagerUtil.getDefaultValueForType(newDataType);
-    const isNestedCard = card.hasClass('nested-card');
-
     const existingKeys = new Set<string>();
 
-    if (isNestedCard) {
-      card.find('.nested-cards-container .nested-card').each((_, element) => {
-        const key = $(element).find('.nested-card-key-input').val() as string;
+    const $targetCard = card.closest('.variable-card');
+    $targetCard
+      .find('.nested-cards-container')
+      .first()
+      .children('.variable-card')
+      .each((_, element) => {
+        const key = $(element).find('.variable-title').val() as string;
         if (key) {
           existingKeys.add(key);
         }
       });
-    } else {
-      const currentVariable = this.getVariableFromCard(card);
-      if (!currentVariable) {
-        console.error('找不到当前变量');
-        return;
-      }
-      if (currentVariable.value && typeof currentVariable.value === 'object') {
-        Object.keys(currentVariable.value).forEach(key => existingKeys.add(key));
-      }
-    }
 
     const newKey = VariableManagerUtil.generateUniqueKey(existingKeys);
 
-    if (isNestedCard) {
-      const newVariable: VariableItem = {
-        name: newKey,
-        dataType: newDataType,
-        value: defaultValue,
-        id: '',
-      };
+    const newVariable: VariableItem = {
+      name: newKey,
+      dataType: newDataType,
+      value: defaultValue,
+      id: '',
+    };
 
-      const newNestedCard = this.createCard(newVariable, true, showTypeDialogCallback);
+    const newNestedCard = this.createCard(newVariable, true, showTypeDialogCallback);
 
-      const $container = card.find('.nested-cards-container');
-      $container.prepend(newNestedCard);
+    const $targetCardHeader = $targetCard.find('.variable-card-header').first();
+    const $targetCardContent = $targetCardHeader.siblings('.variable-card-content').first();
+    const $container = $targetCardContent.find('.nested-cards-container').first();
 
-      newNestedCard.find('.variable-action-btn.object-save-btn').on('click', () => {
-        this.saveNestedCardValue(card);
-      });
+    $container.prepend(newNestedCard);
 
-      newNestedCard.find('.variable-action-btn.object-delete-btn').on('click', () => {
-        this.deleteNestedCardValue(card, newNestedCard);
-      });
+    newNestedCard.find('.variable-title').focus().select();
 
-      newNestedCard.find('.nested-card-key-input').focus().select();
-
-      this.syncCardViewToJsonInput(card);
-    } else {
-      const newVariable: VariableItem = {
-        name: newKey,
-        dataType: newDataType,
-        value: defaultValue,
-        id: '',
-      };
-
-      const newNestedCard = this.createCard(newVariable, true, showTypeDialogCallback);
-
-      // 确保新嵌套卡片的data-type属性正确设置
-      newNestedCard.attr('data-type', newDataType);
-
-      const $container = card.find('.nested-cards-container');
-      $container.prepend(newNestedCard);
-
-      newNestedCard.find('.variable-action-btn.object-save-btn').on('click', () => {
-        this.saveNestedCardValue(card);
-      });
-
-      newNestedCard.find('.variable-action-btn.object-delete-btn').on('click', () => {
-        this.deleteNestedCardValue(card, newNestedCard);
-      });
-
-      newNestedCard.find('.nested-card-key-input').focus().select();
-
-      this.syncCardViewToJsonInput(card);
+    const topLevelCard = this.findTopLevelCard($targetCard);
+    if (topLevelCard && topLevelCard.is($targetCard)) {
+      this.syncCardViewToJsonInput($targetCard);
     }
   }
 
@@ -442,26 +514,12 @@ export class VariableCardFactory {
           <i class="fa-regular fa-plus"></i>
         </button>
       `);
-
-      card.find('.add-nested-key-btn').on('click', async () => {
-        const dialogCallback = showTypeDialogCallback || this.defaultTypeDialogCallback;
-        if (dialogCallback) {
-          await dialogCallback((dataType: VariableDataType) => {
-            const $card = card.closest('.nested-card');
-            $card.trigger('object:addKey', [dataType]);
-          });
-        } else {
-          console.error('添加卡片出错');
-          toastr.error('添加卡片出错');
-        }
-      });
     } else {
       card.find('.variable-card-content').append(`
         <textarea class="json-input variable-content-input" placeholder="输入JSON对象" style="display: none;"></textarea>
             <div class="object-card-view">
               <div class="nested-cards-container"></div>
             </div>
-          </div>
       `);
 
       card.find('.variable-actions .save-btn').before(`
@@ -497,6 +555,7 @@ export class VariableCardFactory {
             .addClass('fa-eye')
             .end()
             .attr('title', '切换到卡片视图');
+          $card.find('.variable-action-btn.add-key-btn').hide();
 
           $card.find('.json-input').show().end().find('.object-card-view').hide();
 
@@ -508,31 +567,14 @@ export class VariableCardFactory {
             .addClass('fa-list')
             .end()
             .attr('title', '切换到JSON视图');
+          $card.find('.variable-action-btn.add-key-btn').show();
 
           $card.find('.json-input').hide().end().find('.object-card-view').show();
 
           this.syncJsonInputToCardView($card, showTypeDialogCallback);
         }
       });
-
-      card.find('.add-key-btn').on('click', async () => {
-        const dialogCallback = showTypeDialogCallback || this.defaultTypeDialogCallback;
-        if (dialogCallback) {
-          await dialogCallback((dataType: VariableDataType) => {
-            const $card = card.closest('.variable-card');
-            $card.trigger('object:addKey', [dataType]);
-          });
-        } else {
-          console.error('未提供类型选择对话框回调函数');
-          toastr.error('未提供类型选择对话框回调函数');
-        }
-      });
     }
-
-    card.on('object:addKey', (event, dataType: VariableDataType) => {
-      event.stopPropagation();
-      this.addObjectKey(card, dataType, showTypeDialogCallback);
-    });
 
     try {
       this.renderObjectCardView(card, variable, showTypeDialogCallback);
@@ -547,10 +589,6 @@ export class VariableCardFactory {
    * @param card 对象卡片
    */
   private syncCardViewToJsonInput(card: JQuery<HTMLElement>): void {
-    if (card.hasClass('nested-card')) {
-      return;
-    }
-
     const objectValue = this.extractObjectFromNestedCards(card);
     card.find('.json-input').val(JSON.stringify(objectValue, null, 2));
   }
@@ -564,10 +602,6 @@ export class VariableCardFactory {
     card: JQuery<HTMLElement>,
     showTypeDialogCallback?: (callback: (dataType: VariableDataType) => void) => Promise<void>,
   ): void {
-    if (card.hasClass('nested-card')) {
-      return;
-    }
-
     try {
       const jsonValue = card.find('.json-input').val() as string;
       if (jsonValue && jsonValue.trim()) {
@@ -610,19 +644,5 @@ export class VariableCardFactory {
       `);
       listContainer.append(listItem);
     });
-
-    card
-      .find('.add-list-item')
-      .off('click')
-      .on('click', () => {
-        const listItem = $(`
-          <div class="list-item">
-            <span class="drag-handle">☰</span>
-            <textarea class="variable-content-input"></textarea>
-            <button class="list-item-delete"><i class="fa-solid fa-times"></i></button>
-          </div>
-        `);
-        listContainer.append(listItem);
-      });
   }
 }

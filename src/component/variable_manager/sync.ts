@@ -58,6 +58,7 @@ export class VariableSyncService {
    */
   public async initCurrentType(): Promise<void> {
     this.currentType = 'global';
+    this._activateCurrentListeners();
   }
 
   /**

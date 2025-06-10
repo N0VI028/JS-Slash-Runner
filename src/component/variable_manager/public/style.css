@@ -772,7 +772,6 @@
   width: 100%;
   padding-right: 0 !important;
   margin-right: 0 !important;
-  border-left: 3px solid var(--SmartThemeQuoteColor);
 }
 
 .nested-cards-container .variable-card {
@@ -850,21 +849,20 @@
   border-left-color: var(--vm-type-object) !important;
 }
 
-/* 嵌套卡片容器类型颜色 */
-.nested-cards-container[data-type='string'] {
-  border-left-color: var(--vm-type-string) !important;
+.nested-cards-container .variable-card[data-type='string'] {
+  border-left: 3px solid var(--vm-type-string) !important;
 }
-.nested-cards-container[data-type='number'] {
-  border-left-color: var(--vm-type-number) !important;
+.nested-cards-container .variable-card[data-type='number'] {
+  border-left: 3px solid var(--vm-type-number) !important;
 }
-.nested-cards-container[data-type='boolean'] {
-  border-left-color: var(--vm-type-boolean) !important;
+.nested-cards-container .variable-card[data-type='boolean'] {
+  border-left: 3px solid var(--vm-type-boolean) !important;
 }
-.nested-cards-container[data-type='array'] {
-  border-left-color: var(--vm-type-array) !important;
+.nested-cards-container .variable-card[data-type='array'] {
+  border-left: 3px solid var(--vm-type-array) !important;
 }
-.nested-cards-container[data-type='object'] {
-  border-left-color: var(--vm-type-object) !important;
+.nested-cards-container .variable-card[data-type='object'] {
+  border-left: 3px solid var(--vm-type-object) !important;
 }
 
 /* 动画效果 */

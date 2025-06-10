@@ -232,7 +232,7 @@ export class VariableController {
 
     let newVariable: VariableItem = {
       name: this.view.getVariableCardName(card),
-      value: this.cardFactory.getVariableFromCard(card),
+      value: this.cardFactory.getVariableFromCard(card)?.value,
       dataType: dataType,
       id: card.attr('data-variable-id') || '',
       ...(message_id !== undefined && { message_id }),
@@ -422,7 +422,7 @@ export class VariableController {
 
     if (currentMode === 'card') {
       const objectValue = this.cardFactory.getVariableFromCard(card);
-      card.find('.json-input').val(JSON.stringify(objectValue, null, 2));
+      card.find('.json-input').val(JSON.stringify(objectValue?.value, null, 2));
     }
   }
 
