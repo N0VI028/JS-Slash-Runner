@@ -1,7 +1,7 @@
 import { TavernVariables, VariableDataType, VariableItem, VariableType } from '@/component/variable_manager/types';
 import { getVariables, replaceVariables } from '@/function/variables';
-import { uuidv4 } from '../../../../../../utils';
-import { VariableManagerUtil } from './util';
+import { uuidv4 } from '@sillytavern/scripts/utils';
+import { VariableManagerUtil } from '@/component/variable_manager/util';
 
 export class VariableModel {
   private currentVariables: VariableItem[] | null = null;

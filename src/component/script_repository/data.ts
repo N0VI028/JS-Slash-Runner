@@ -2,7 +2,6 @@ import { Script, ScriptType } from '@/component/script_repository/types';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { characters, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
-import { accountStorage } from '@sillytavern/scripts/util/AccountStorage';
 
 /**
  * 脚本数据管理类
@@ -302,7 +301,8 @@ export async function purgeEmbeddedScripts({ character }: { character: any }): P
   const avatar = character?.character?.avatar;
   const charactersWithScripts = getSettingValue('script.characters_with_scripts') || [];
   if (avatar) {
-    accountStorage.removeItem(`AlertScript_${avatar}`);
+    // TODO: 旧版没有 accountStorage，等酒馆更新几个版本后再更换
+    localStorage.removeItem(`AlertScript_${avatar}`);
     if (charactersWithScripts?.includes(avatar)) {
       const index = charactersWithScripts.indexOf(avatar);
       if (index !== -1) {

@@ -1,3 +1,42 @@
+## 3.2.1
+
+### 🐛修复
+
+- 修复 `{{get_message_variable::stat_data}}` 在第 0 楼中会显示最新数值而不是第 0 楼应该对应数值的问题
+
+## 3.2.1
+
+### 🐛修复
+
+- 修复 `{{get_message_variable::stat_data}}`
+
+## 3.2.0
+
+### ⏫功能
+
+完善了助手宏功能,
+
+- 现在楼层中的 `{{get_message_variable::stat_data}}` 等助手宏将会显示为对应的值, 因此你可以用酒馆正则直接制作带变量的文字状态栏:
+
+  ```typescript
+  熟络度: {{get_message_variable::stat_data.络络.熟络度[0]}}
+  笨蛋度: {{get_message_variable::stat_data.络络.笨蛋度[0]}}
+  ```
+
+- 新增了 `registerMacros` 用于注册新的助手宏:
+
+  ```typescript
+  registerMacros(
+    /<checkbox>(.*?)<checkbox>/gi,
+    (context: Context, substring: string, content: string) => { return content; });
+  ```
+
+## 3.1.9
+
+### 🐛修复
+
+- 兼容旧版酒馆，目前支持的最低酒馆版本为1.12.10
+
 ## 3.1.8
 
 ### 🐛修复

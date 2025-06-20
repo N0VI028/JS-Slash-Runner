@@ -1075,10 +1075,6 @@ async function handleRenderingOptimizationToggle(enable: boolean, userInput: boo
     isRenderingOptimizeEnabled = enable;
   }
 
-  if (!isRenderEnabled) {
-    return;
-  }
-
   if (enable) {
     addRenderingOptimizeSettings();
     if (userInput) {
@@ -1116,9 +1112,6 @@ async function handleRenderingHideStyleToggle(enable: boolean, userInput: boolea
   if (userInput) {
     saveSettingValue('render.render_hide_style', enable);
     isRenderingHideStyleEnabled = enable;
-  }
-  if (!isRenderEnabled) {
-    return;
   }
 
   if (enable) {

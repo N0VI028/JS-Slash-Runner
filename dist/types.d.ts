@@ -747,6 +747,9 @@ interface Window {
     readonly getCurrentCharPrimaryLorebook: typeof getCurrentCharPrimaryLorebook;
     readonly getOrCreateChatLorebook: typeof getOrCreateChatLorebook;
 
+    // macrolike
+    readonly registerMacroLike: typeof registerMacroLike;
+
     // slash
     readonly triggerSlash: typeof triggerSlash;
 
@@ -1056,6 +1059,32 @@ async function createLorebookEntry(lorebook: string, field_values: Partial<Loreb
 
 /** @deprecated 请使用 `deleteLorebookEntries` 代替 */
 async function deleteLorebookEntry(lorebook: string, lorebook_uid: number): Promise<boolean>;
+interface MacroLike {
+  regex: RegExp;
+  replace: (context: Context, substring: string, ...args: any[]) => string;
+}
+
+interface Context {
+  message_id?: number;
+  role?: 'user' | 'assistant' | 'system';
+}
+
+/**
+ * 注册一个新的助手宏
+ *
+ * @param regex 匹配的正则表达式
+ * @param replace 针对匹配到的文本所要进行的替换
+ *
+ * @example
+ * registerMacros(
+ *   /<checkbox>(.*?)<checkbox>/gi,
+ *   (context: Context, substring: string, content: string) => { return content; });
+ */
+function registerMacroLike(
+  regex: RegExp,
+  replace: (context: Context, substring: string, ...args: any[]) => string,
+): void;
+
 /**
  * 运行 Slash 命令, 注意如果命令写错了将不会有任何反馈
  *

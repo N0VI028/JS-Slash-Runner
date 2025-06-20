@@ -22,6 +22,7 @@ import { initVariableManager } from '@/component/variable_manager';
 
 import { event_types, eventSource, saveSettings } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
+import { renderAllMacros } from './component/macrolike';
 
 const defaultSettings = {
   enabled_extension: true,
@@ -156,6 +157,7 @@ jQuery(async () => {
     initSlashEventEmit();
     await buildScriptRepository();
     await initIframePanel();
+    renderAllMacros();
     await initReference();
     await initListener();
     initVariableManager();

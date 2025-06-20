@@ -251,34 +251,18 @@ export class VariableCardFactory {
         return arrayItems;
       }
       case 'object': {
-        console.log('[VariableManager] 提取对象值，卡片信息:', {
-          cardType: card.attr('data-type'),
-          cardId: card.attr('data-variable-id'),
-          hasJsonInput: card.find('.json-input').length > 0,
-          hasNestedContainer: card.find('.nested-cards-container').length > 0,
-          viewMode: card.attr('data-view-mode')
-        });
-
-        // 检查卡片的视图模式
         const viewMode = card.attr('data-view-mode') || 'card';
-        console.log('[VariableManager] 当前视图模式:', viewMode);
 
-        // 在卡片视图模式下，强制从嵌套卡片提取值
         if (viewMode === 'card') {
-          console.log('[VariableManager] 卡片视图模式，从嵌套卡片提取值');
           const extracted = this.extractObjectFromNestedCards(card);
-          console.log('[VariableManager] 从嵌套卡片提取到:', extracted);
           return extracted;
         }
 
-        // 在JSON视图模式下，从JSON输入框提取值
         const jsonValue = card.find('.json-input').val() as string;
-        console.log('[VariableManager] JSON视图模式，JSON输入框值:', jsonValue);
-        
+
         if (jsonValue && jsonValue.trim()) {
           try {
             const parsed = JSON.parse(jsonValue);
-            console.log('[VariableManager] 从JSON解析得到:', parsed);
             return parsed;
           } catch (e) {
             console.error('JSON解析错误:', e);
@@ -286,9 +270,7 @@ export class VariableCardFactory {
             return {};
           }
         } else {
-          console.log('[VariableManager] JSON为空，从嵌套卡片提取值');
           const extracted = this.extractObjectFromNestedCards(card);
-          console.log('[VariableManager] 从嵌套卡片提取到:', extracted);
           return extracted;
         }
       }
@@ -305,31 +287,15 @@ export class VariableCardFactory {
   private extractObjectFromNestedCards(card: JQuery<HTMLElement>): Record<string, any> {
     const result: Record<string, any> = {};
 
-    // 调试信息：记录当前卡片信息
-    console.log('[VariableManager] 开始提取嵌套卡片值，卡片信息:', {
-      cardType: card.attr('data-type'),
-      cardId: card.attr('data-variable-id'),
-      hasNestedContainer: card.find('.nested-cards-container').length > 0,
-      nestedContainerCount: card.find('.nested-cards-container').length
-    });
-
-    // 更精确的容器选择：优先查找直接子级的nested-cards-container
     let $container = card.find('> .variable-card-content > .object-card-view > .nested-cards-container');
-    
-    // 如果没找到，尝试查找嵌套对象容器
+
     if ($container.length === 0) {
       $container = card.find('> .variable-card-content > .nested-object-container > .nested-cards-container');
     }
-    
-    // 最后的备选方案：查找第一个nested-cards-container
+
     if ($container.length === 0) {
       $container = card.find('.nested-cards-container').first();
     }
-
-    console.log('[VariableManager] 找到的容器:', {
-      containerFound: $container.length > 0,
-      childrenCount: $container.children('.variable-card').length
-    });
 
     $container.children('.variable-card').each((_index, element) => {
       const $nestedCard = $(element);
@@ -346,12 +312,6 @@ export class VariableCardFactory {
       if (key) {
         const nestedValue = this.extractValueFromCard($nestedCard, nestedDataType);
         result[key] = nestedValue;
-        
-        console.log('[VariableManager] 提取到的值:', {
-          key: key,
-          value: nestedValue,
-          valueType: typeof nestedValue
-        });
       } else {
         console.warn('[VariableManager] 跳过空键的嵌套卡片:', _index);
       }

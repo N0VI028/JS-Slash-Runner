@@ -1,6 +1,6 @@
 import { ScriptManager } from '@/component/script_repository/script_controller';
 import { eventSource } from '@sillytavern/script';
-import { Script } from './types';
+import { Script } from '@/component/script_repository/types';
 
 let isQrEnabled = false;
 let isCombined = false;

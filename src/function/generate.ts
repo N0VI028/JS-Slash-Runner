@@ -13,6 +13,7 @@ import {
   extension_prompt_types,
   getBiasStrings,
   getCharacterCardFields,
+  getExtensionPromptByName,
   getExtensionPromptRoleByName,
   getMaxContextSize,
   isOdd,
@@ -26,7 +27,6 @@ import {
   stopGeneration,
   substituteParams,
   this_chid,
-  getExtensionPromptByName,
 } from '@sillytavern/script';
 import { NOTE_MODULE_NAME, metadata_keys, shouldWIAddPrompt } from '@sillytavern/scripts/authors-note';
 import { extension_settings, getContext } from '@sillytavern/scripts/extensions';
@@ -888,130 +888,53 @@ async function handlePresetPath(
     }
   }
 }
+
 async function convertSystemPromptsToCollection(
   baseData: any,
   promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
 ) {
   const promptCollection = new PromptCollection();
   const examplesCollection = new MessageCollection('dialogue_examples');
-  // 处理自定义注入
-  const customPrompts = (promptConfig.order || default_order)
-    .map((item, index) => {
-      if (typeof item === 'object' && item.role && item.content) {
-        const identifier = `custom_prompt_${index}`;
-        return {
-          identifier,
-          role: item.role as 'system' | 'user' | 'assistant',
-          content: item.content,
-        };
+  
+  const orderArray = promptConfig.order || builtin_prompt_default_order;
+  
+  const builtinPromptContents = {
+    world_info_before: baseData.worldInfo.worldInfoBefore,
+    persona_description: power_user.persona_description && 
+                        power_user.persona_description_position === persona_description_positions.IN_PROMPT
+                        ? baseData.characterInfo.persona : null,
+    char_description: baseData.characterInfo.description,
+    char_personality: baseData.characterInfo.personality,
+    scenario: baseData.characterInfo.scenario,
+    world_info_after: baseData.worldInfo.worldInfoAfter,
+  };
+
+  for (const [index, item] of orderArray.entries()) {
+    if (typeof item === 'string') {
+      // 处理内置提示词
+      const content = builtinPromptContents[item as keyof typeof builtinPromptContents];
+      if (content) {
+        promptCollection.add(
+          new Prompt({
+            identifier: item,
+            role: 'system',
+            content: content,
+            system_prompt: true,
+          }),
+        );
       }
-      return null;
-    })
-    .filter((item): item is NonNullable<typeof item> => item !== null);
-
-  for (const prompt of customPrompts) {
-    promptCollection.add(
-      // @ts-ignore
-      new Prompt({
-        // @ts-ignore
-        identifier: prompt.identifier,
-        // @ts-ignore
-        role: prompt.role,
-        content: prompt.content,
-        system_prompt: prompt.role === 'system',
-      }),
-    );
-  }
-
-  // 处理角色信息
-  const characterPrompts = [
-    {
-      id: 'char_description',
-      content: baseData.characterInfo.description,
-      role: 'system',
-    },
-    {
-      id: 'char_personality',
-      content: baseData.characterInfo.personality,
-      role: 'system',
-    },
-    {
-      id: 'scenario',
-      content: baseData.characterInfo.scenario,
-      role: 'system',
-    },
-  ];
-
-  // 添加角色相关提示词
-  characterPrompts.forEach(prompt => {
-    if (prompt.content) {
+    } else if (typeof item === 'object' && item.role && item.content) {
+      // 处理自定义注入
+      const identifier = `custom_prompt_${index}`;
       promptCollection.add(
-        // @ts-ignore
         new Prompt({
-          // @ts-ignore
-          identifier: prompt.id,
-          // @ts-ignore
-          role: prompt.role,
-          // @ts-ignore
-          content: prompt.content,
-          // @ts-ignore
-          system_prompt: true,
+          identifier: identifier,
+          role: item.role,
+          content: item.content,
+          system_prompt: item.role === 'system',
         }),
       );
     }
-  });
-
-  //当user信息在提示词管理器中时
-  if (
-    power_user.persona_description &&
-    power_user.persona_description_position === persona_description_positions.IN_PROMPT
-  ) {
-    promptCollection.add(
-      // @ts-ignore
-      new Prompt({
-        // @ts-ignore
-        identifier: 'persona_description',
-        // @ts-ignore
-        role: 'system',
-        // @ts-ignore
-        content: baseData.characterInfo.persona,
-        // @ts-ignore
-        system_prompt: true,
-      }),
-    );
-  }
-
-  // 处理世界信息
-  if (baseData.worldInfo.world_info_before) {
-    promptCollection.add(
-      // @ts-ignore
-      new Prompt({
-        // @ts-ignore
-        identifier: 'world_info_before',
-        // @ts-ignore
-        role: 'system',
-        // @ts-ignore
-        content: baseData.worldInfo.world_info_before,
-        // @ts-ignore
-        system_prompt: true,
-      }),
-    );
-  }
-
-  if (baseData.worldInfo.world_info_after) {
-    promptCollection.add(
-      // @ts-ignore
-      new Prompt({
-        // @ts-ignore
-        identifier: 'world_info_after',
-        // @ts-ignore
-        role: 'system',
-        // @ts-ignore
-        content: baseData.worldInfo.world_info_after,
-        // @ts-ignore
-        system_prompt: true,
-      }),
-    );
   }
 
   if (baseData.chatContext.oaiMessageExamples.length > 0) {
@@ -1040,6 +963,7 @@ async function convertSystemPromptsToCollection(
     dialogue_examples: examplesCollection,
   };
 }
+
 //不使用预设
 async function handleCustomPath(
   baseData: any,

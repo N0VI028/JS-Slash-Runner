@@ -1,9 +1,5 @@
-import {
-  destroyMacroOnExtension,
-  initializeMacroOnExtension,
-  registerAllMacros,
-  unregisterAllMacros,
-} from '@/component/macro';
+import { registerAllMacros, unregisterAllMacros } from '@/component/macro';
+import { destroyMacroOnExtension, initializeMacroOnExtension, renderAllMacros } from '@/component/macrolike';
 import {
   addCodeToggleButtonsToAllMessages,
   addRenderingHideStyleSettings,
@@ -22,15 +18,16 @@ import {
   buildScriptRepositoryOnExtension,
   destroyScriptRepositoryOnExtension,
 } from '@/component/script_repository/index';
+import { initializeToastr } from '@/component/toastr';
 import { iframe_client } from '@/iframe_client/index';
 import { handleIframe } from '@/iframe_server/index';
 import { checkVariablesEvents, clearTempVariables, shouldUpdateVariables } from '@/iframe_server/variables';
 import { script_url } from '@/script_url';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
-import { initializeToastr } from '@/component/toastr';
 import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, this_chid } from '@sillytavern/script';
 
 const handleChatChanged = async () => {
+  renderAllMacros();
   await renderAllIframes();
   if (getSettingValue('render.rendering_optimize')) {
     addCodeToggleButtonsToAllMessages();

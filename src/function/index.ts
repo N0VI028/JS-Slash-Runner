@@ -1,3 +1,4 @@
+import { registerMacroLike } from '@/component/macrolike';
 import {
   Character,
   getCharAvatarPath,
@@ -116,6 +117,9 @@ function getTavernHelper() {
     getChatLorebook,
     setChatLorebook,
     getOrCreateChatLorebook,
+
+    // macrolike
+    registerMacroLike,
 
     // slash
     triggerSlash,

@@ -56,6 +56,9 @@ interface Window {
     readonly getCurrentCharPrimaryLorebook: typeof getCurrentCharPrimaryLorebook;
     readonly getOrCreateChatLorebook: typeof getOrCreateChatLorebook;
 
+    // macrolike
+    readonly registerMacroLike: typeof registerMacroLike;
+
     // slash
     readonly triggerSlash: typeof triggerSlash;
 
