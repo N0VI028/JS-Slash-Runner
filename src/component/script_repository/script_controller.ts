@@ -1,7 +1,13 @@
 import { destroyIframe } from '@/component/message_iframe';
 import { ScriptData } from '@/component/script_repository/data';
 import { scriptEvents, ScriptRepositoryEventType } from '@/component/script_repository/events';
-import { IFrameElement, Script, ScriptType } from '@/component/script_repository/types';
+import {
+  getOppositeScriptType,
+  IFrameElement,
+  Script,
+  ScriptRepositoryItem,
+  ScriptType,
+} from '@/component/script_repository/types';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { getSettingValue } from '@/util/extension_variables';
@@ -18,7 +24,6 @@ class ScriptExecutor {
     const typeName = type === ScriptType.GLOBAL ? '全局' : '局部';
 
     try {
-      // 先检查是否已经存在同名iframe，如果存在则销毁
       const iframeElement = $('iframe').filter(
         (_index, element) => $(element).attr('script-id') === script.id,
       )[0] as IFrameElement;
@@ -27,10 +32,8 @@ class ScriptExecutor {
         await destroyIframe(iframeElement);
       }
 
-      // 创建运行脚本的HTML内容
       const htmlContent = this.createScriptHtml(script);
 
-      // 创建新的iframe元素
       const $iframe = $('<iframe>', {
         style: 'display: none;',
         id: `tavern-helper-script-${script.name}`,
@@ -38,15 +41,13 @@ class ScriptExecutor {
         'script-id': script.id,
       });
 
-      // 设置加载事件
       $iframe.on('load', () => {
-        console.info(`[Script] 启用${typeName}脚本["${script.name}"]`);
+        console.info(`[ScriptManager] 启用${typeName}脚本["${script.name}"]`);
       });
 
-      // 添加到页面
       $('body').append($iframe);
     } catch (error) {
-      console.error(`[Script] ${typeName}脚本启用失败:["${script.name}"]`, error);
+      console.error(`[ScriptManager] ${typeName}脚本启用失败:["${script.name}"]`, error);
       toastr.error(`${typeName}脚本启用失败:["${script.name}"]`);
       throw error;
     }
@@ -66,7 +67,7 @@ class ScriptExecutor {
 
     if (iframeElement) {
       await destroyIframe(iframeElement);
-      console.info(`[Script] 禁用${typeName}脚本["${script.name}"]`);
+      console.info(`[ScriptManager] 禁用${typeName}脚本["${script.name}"]`);
     }
   }
 
@@ -162,64 +163,69 @@ export class ScriptManager {
    * 注册事件监听器
    */
   private registerEventListeners(): void {
-    // 脚本切换事件
     scriptEvents.on(ScriptRepositoryEventType.SCRIPT_TOGGLE, async data => {
       const { script, type, enable, userInput = true } = data;
       await this.toggleScript(script, type, enable, userInput);
     });
 
-    // 类型切换事件
     scriptEvents.on(ScriptRepositoryEventType.TYPE_TOGGLE, async data => {
       const { type, enable, userInput = true } = data;
       await this.toggleScriptType(type, enable, userInput);
     });
 
-    // 脚本导入事件
     scriptEvents.on(ScriptRepositoryEventType.SCRIPT_IMPORT, async data => {
       const { file, type } = data;
       await this.importScript(file, type);
     });
 
-    // 脚本删除事件
     scriptEvents.on(ScriptRepositoryEventType.SCRIPT_DELETE, async data => {
       const { scriptId, type } = data;
       await this.deleteScript(scriptId, type);
     });
 
-    // 脚本保存事件
-    scriptEvents.on(ScriptRepositoryEventType.SCRIPT_SAVE, async data => {
+    scriptEvents.on(ScriptRepositoryEventType.SCRIPT_CREATE, async data => {
       const { script, type } = data;
-      await this.saveScript(script, type);
+      await this.createScript(script, type);
     });
 
-    // 脚本移动事件
+    scriptEvents.on(ScriptRepositoryEventType.SCRIPT_UPDATE, async data => {
+      const { script, type } = data;
+      await this.updateScript(script, type);
+    });
+
     scriptEvents.on(ScriptRepositoryEventType.SCRIPT_MOVE, async data => {
       const { script, fromType } = data;
       await this.moveScript(script, fromType);
     });
 
-    // UI加载完成事件 - 自动运行已启用的脚本
+    scriptEvents.on(ScriptRepositoryEventType.FOLDER_MOVE, async data => {
+      const { folderId, fromType } = data;
+      await this.moveFolder(folderId, fromType);
+    });
+
+    scriptEvents.on(ScriptRepositoryEventType.ORDER_CHANGED, async data => {
+      const { data: orderData, type } = data;
+      await this.saveOrder(orderData, type);
+    });
+
     scriptEvents.on(ScriptRepositoryEventType.UI_LOADED, async () => {
       if (!getSettingValue('enabled_extension')) {
         return;
       }
 
-      // 获取全局和角色脚本列表
       const globalScripts = this.scriptData.getGlobalScripts();
       const characterScripts = this.scriptData.getCharacterScripts();
 
-      // 检查全局脚本类型开关是否启用
       if (this.scriptData.isGlobalScriptEnabled) {
         await this.runScriptsByType(globalScripts, ScriptType.GLOBAL);
       } else {
-        console.info('[Script] 全局脚本类型未启用，跳过运行全局脚本');
+        console.info('[ScriptManager] 全局脚本类型未启用，跳过运行全局脚本');
       }
 
-      // 检查角色脚本类型开关是否启用
       if (this.scriptData.isCharacterScriptEnabled) {
         await this.runScriptsByType(characterScripts, ScriptType.CHARACTER);
       } else {
-        console.info('[Script] 角色脚本类型未启用，跳过运行角色脚本');
+        console.info('[ScriptManager] 角色脚本类型未启用，跳过运行角色脚本');
       }
     });
   }
@@ -244,7 +250,6 @@ export class ScriptManager {
 
     try {
       if (enable) {
-        // 检查对应类型的脚本总开关是否启用
         if (type === ScriptType.GLOBAL && !this.scriptData.isGlobalScriptEnabled) {
           console.info(`[script_manager] 全局脚本类型未启用，跳过启用脚本["${script.name}"]`);
           return;
@@ -266,7 +271,7 @@ export class ScriptManager {
         enable,
       });
     } catch (error) {
-      console.error(`[Script] 切换脚本状态失败: ${script.name}`, error);
+      console.error(`[ScriptManager] 切换脚本状态失败: ${script.name}`, error);
       toastr.error(`切换脚本状态失败: ${script.name}`);
     }
   }
@@ -298,7 +303,7 @@ export class ScriptManager {
         enable,
       });
     } catch (error) {
-      console.error(`[Script] 切换脚本类型状态失败: ${type}`, error);
+      console.error(`[ScriptManager] 切换脚本类型状态失败: ${type}`, error);
       toastr.error(`切换脚本类型状态失败: ${type}`);
     }
   }
@@ -309,13 +314,11 @@ export class ScriptManager {
    * @param type 脚本类型
    */
   public async runScript(script: Script, type: ScriptType): Promise<void> {
-    // 检查扩展是否启用
     if (!getSettingValue('enabled_extension')) {
-      toastr.error('[Script] 扩展未启用');
+      toastr.error('[ScriptManager] 扩展未启用');
       return;
     }
 
-    // 检查相应类型的脚本是否启用
     if (type === ScriptType.GLOBAL && !this.scriptData.isGlobalScriptEnabled) {
       return;
     }
@@ -323,10 +326,8 @@ export class ScriptManager {
       return;
     }
 
-    // 运行脚本
     await this.executor.runScript(script, type);
 
-    // 处理按钮
     if (script.buttons && script.buttons.length > 0) {
       scriptEvents.emit(ScriptRepositoryEventType.BUTTON_ADD, { script });
     }
@@ -340,7 +341,6 @@ export class ScriptManager {
   public async stopScript(script: Script, type: ScriptType): Promise<void> {
     await this.executor.stopScript(script, type);
 
-    // 处理按钮
     if (script.buttons && script.buttons.length > 0) {
       scriptEvents.emit(ScriptRepositoryEventType.BUTTON_REMOVE, { scriptId: script.id });
     }
@@ -353,11 +353,10 @@ export class ScriptManager {
    */
   public async runScriptsByType(scripts: Script[], type: ScriptType): Promise<void> {
     if (!getSettingValue('enabled_extension')) {
-      toastr.error('[Script] 酒馆助手未启用，无法运行脚本');
+      toastr.error('[ScriptManager] 酒馆助手未启用，无法运行脚本');
       return;
     }
 
-    // 检查相应类型的脚本是否启用
     if (type === ScriptType.GLOBAL && !this.scriptData.isGlobalScriptEnabled) {
       return;
     }
@@ -365,14 +364,11 @@ export class ScriptManager {
       return;
     }
 
-    // 筛选启用的脚本
     const enabledScripts = scripts.filter(script => script.enabled);
 
-    // 运行每个脚本
     for (const script of enabledScripts) {
       await this.executor.runScript(script, type);
 
-      // 处理按钮
       if (script.buttons && script.buttons.length > 0) {
         scriptEvents.emit(ScriptRepositoryEventType.BUTTON_ADD, { script });
       }
@@ -390,7 +386,6 @@ export class ScriptManager {
     for (const script of enabledScripts) {
       await this.executor.stopScript(script, type);
 
-      // 处理按钮
       if (script.buttons && script.buttons.length > 0) {
         scriptEvents.emit(ScriptRepositoryEventType.BUTTON_REMOVE, { scriptId: script.id });
       }
@@ -398,80 +393,270 @@ export class ScriptManager {
   }
 
   /**
-   * 导入脚本
-   * @param file 文件
+   * 导入脚本或文件夹
+   * @param file 脚本文件或文件夹导出文件
    * @param type 导入目标类型
    */
   public async importScript(file: File, type: ScriptType): Promise<void> {
     try {
-      const content = await this.readFileAsText(file);
-      const scriptData = JSON.parse(content);
+      if (file.name.toLowerCase().endsWith('.zip')) {
+        await this.importFromZip(file, type);
+      } else if (file.name.toLowerCase().endsWith('.json')) {
+        const content = await this.readFileAsText(file);
+        const importData = JSON.parse(content);
 
-      if (!scriptData.name || !scriptData.content) {
-        throw new Error('无效的脚本数据');
+        if (Array.isArray(importData)) {
+          await this.importMultipleItems(importData, type);
+        } else {
+          await this.importSingleScript(importData, type);
+        }
+      } else {
+        throw new Error('不支持的文件格式，请选择 .json 或 .zip 文件');
       }
+    } catch (error) {
+      console.error('[ScriptManager] 导入失败:', error);
+      toastr.error(`导入失败: ${error instanceof Error ? error.message : '无效的文件格式'}`);
+    }
+  }
 
-      // 新建脚本对象，默认为未启用状态
-      const scriptToImport = new Script({
+  /**
+   * 从ZIP文件导入
+   * @param file ZIP文件
+   * @param type 脚本类型
+   */
+  private async importFromZip(file: File, type: ScriptType): Promise<void> {
+    //@ts-ignore
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(file);
+
+    let importedScripts = 0;
+    let importedFolders = 0;
+
+    const folders = new Set<string>();
+    const rootScripts: string[] = [];
+
+    for (const fileName in zipContent.files) {
+      const file = zipContent.files[fileName];
+
+      if (!file.dir && fileName.endsWith('.json')) {
+        const pathParts = fileName.split('/');
+
+        if (pathParts.length === 1) {
+          rootScripts.push(fileName);
+        } else if (pathParts.length === 2) {
+          folders.add(pathParts[0]);
+        }
+      }
+    }
+
+    for (const fileName of rootScripts) {
+      const file = zipContent.files[fileName];
+      const scriptContent = await file.async('string');
+      const scriptData = JSON.parse(scriptContent);
+
+      if (scriptData.name && scriptData.content) {
+        const script = new Script({
+          ...scriptData,
+          enabled: false,
+        });
+        await this.handleScriptImport(script, type);
+        importedScripts++;
+      }
+    }
+
+    for (const folderName of folders) {
+      await this.importFolderFromZipNew(zipContent, folderName, type);
+      importedFolders++;
+    }
+
+    scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
+      action: type === ScriptType.GLOBAL ? 'refresh_global_scripts' : 'refresh_charact_scripts',
+    });
+
+    toastr.success(`成功导入 ${importedScripts} 个脚本和 ${importedFolders} 个文件夹`);
+  }
+
+  /**
+   * 从ZIP中导入文件夹（新格式）
+   * @param zipContent ZIP内容
+   * @param folderName 文件夹名称
+   * @param type 脚本类型
+   */
+  private async importFolderFromZipNew(zipContent: any, folderName: string, type: ScriptType): Promise<void> {
+    const repository =
+      type === ScriptType.GLOBAL
+        ? this.scriptData.getGlobalRepositoryItems()
+        : this.scriptData.getCharacterRepositoryItems();
+
+    let finalFolderName = folderName;
+    let counter = 1;
+    while (repository.some(item => item.type === 'folder' && item.name === finalFolderName)) {
+      finalFolderName = `${folderName}_${counter}`;
+      counter++;
+    }
+
+    const folderId = await this.scriptData.createFolder(finalFolderName, type);
+
+    for (const fileName in zipContent.files) {
+      const file = zipContent.files[fileName];
+
+      if (!file.dir && fileName.startsWith(`${folderName}/`) && fileName.endsWith('.json')) {
+        const scriptContent = await file.async('string');
+        const scriptData = JSON.parse(scriptContent);
+
+        if (scriptData.name && scriptData.content) {
+          const script = new Script({
+            ...scriptData,
+            enabled: false,
+          });
+          await this.handleScriptImport(script, type);
+          await this.scriptData.moveScriptToFolder(script.id, folderId, type);
+        }
+      }
+    }
+  }
+
+  /**
+   * 导入单个脚本
+   * @param scriptData 脚本数据
+   * @param type 脚本类型
+   */
+  private async importSingleScript(scriptData: any, type: ScriptType): Promise<void> {
+    if (!scriptData.name || !scriptData.content) {
+      throw new Error('无效的脚本数据');
+    }
+
+    const scriptToImport = new Script({
+      ...scriptData,
+      enabled: false,
+    });
+
+    await this.handleScriptImport(scriptToImport, type);
+
+    scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
+      action: 'script_imported',
+      script: scriptToImport,
+      type,
+    });
+
+    toastr.success(`脚本 '${scriptToImport.name}' 导入成功。`);
+  }
+
+  /**
+   * 导入多个项目（脚本或文件夹）
+   * @param items 项目数组
+   * @param type 脚本类型
+   */
+  private async importMultipleItems(items: any[], type: ScriptType): Promise<void> {
+    let importedCount = 0;
+    let folderCount = 0;
+    let scriptCount = 0;
+
+    for (const item of items) {
+      if (item.type === 'folder') {
+        await this.importFolder(item, type);
+        folderCount++;
+        importedCount++;
+      } else if (item.type === 'script') {
+        const script = new Script({
+          ...item.value,
+          enabled: false,
+        });
+        await this.handleScriptImport(script, type);
+        scriptCount++;
+        importedCount++;
+      } else if (item.name && item.content) {
+        const script = new Script({
+          ...item,
+          enabled: false,
+        });
+        await this.handleScriptImport(script, type);
+        scriptCount++;
+        importedCount++;
+      }
+    }
+
+    scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
+      action: type === ScriptType.GLOBAL ? 'refresh_global_scripts' : 'refresh_charact_scripts',
+    });
+
+    toastr.success(`导入成功`);
+  }
+
+  /**
+   * 导入文件夹
+   * @param folderData 文件夹数据
+   * @param type 脚本类型
+   */
+  private async importFolder(folderData: any, type: ScriptType): Promise<void> {
+    if (!folderData.name || !Array.isArray(folderData.value)) {
+      throw new Error('无效的文件夹数据');
+    }
+
+    const repository =
+      type === ScriptType.GLOBAL
+        ? this.scriptData.getGlobalRepositoryItems()
+        : this.scriptData.getCharacterRepositoryItems();
+
+    let folderName = folderData.name;
+    let counter = 1;
+    while (repository.some(item => item.type === 'folder' && item.name === folderName)) {
+      folderName = `${folderData.name}_${counter}`;
+      counter++;
+    }
+
+    const folderId = await this.scriptData.createFolder(folderName, type);
+
+    for (const scriptData of folderData.value) {
+      const script = new Script({
         ...scriptData,
         enabled: false,
       });
+      await this.handleScriptImport(script, type);
+      await this.scriptData.moveScriptToFolder(script.id, folderId, type);
+    }
+  }
 
-      // 分别检查全局和角色脚本中是否存在ID冲突
-      const globalScripts = this.scriptData.getGlobalScripts();
-      const characterScripts = this.scriptData.getCharacterScripts();
+  /**
+   * 处理脚本导入冲突
+   * @param script 要导入的脚本
+   * @param type 目标类型
+   */
+  private async handleScriptImport(script: Script, type: ScriptType): Promise<void> {
+    const globalScripts = this.scriptData.getGlobalScripts();
+    const characterScripts = this.scriptData.getCharacterScripts();
 
-      // 检查全局脚本中是否存在冲突
-      const conflictInGlobal = globalScripts.find(script => script.id === scriptToImport.id);
-      // 检查角色脚本中是否存在冲突
-      const conflictInCharacter = characterScripts.find(script => script.id === scriptToImport.id);
+    const conflictInGlobal = globalScripts.find(s => s.id === script.id);
+    const conflictInCharacter = characterScripts.find(s => s.id === script.id);
 
-      // 确定是否存在冲突及冲突的类型
-      let existingScript: Script | undefined;
-      let conflictType: ScriptType | undefined;
+    let existingScript: Script | undefined;
+    let conflictType: ScriptType | undefined;
 
-      if (conflictInGlobal) {
-        existingScript = conflictInGlobal;
-        conflictType = ScriptType.GLOBAL;
-      } else if (conflictInCharacter) {
-        existingScript = conflictInCharacter;
-        conflictType = ScriptType.CHARACTER;
+    if (conflictInGlobal) {
+      existingScript = conflictInGlobal;
+      conflictType = ScriptType.GLOBAL;
+    } else if (conflictInCharacter) {
+      existingScript = conflictInCharacter;
+      conflictType = ScriptType.CHARACTER;
+    }
+
+    if (existingScript && conflictType) {
+      const action = await this.handleScriptIdConflict(script, existingScript, type);
+
+      switch (action) {
+        case 'new':
+          script.id = uuidv4();
+          await this.createScript(script, type);
+          break;
+        case 'override':
+          await this.deleteScript(existingScript.id, conflictType);
+          await this.createScript(script, type);
+          break;
+        case 'cancel':
+          return;
       }
-
-      // 如果存在冲突，处理冲突
-      if (existingScript && conflictType) {
-        const action = await this.handleScriptIdConflict(scriptToImport, existingScript, type);
-
-        switch (action) {
-          case 'new':
-            // 生成新ID
-            scriptToImport.id = uuidv4();
-            await this.saveScript(scriptToImport, type);
-            break;
-          case 'override':
-            // 先删除冲突的脚本（注意：使用冲突脚本的实际类型）
-            await this.deleteScript(existingScript.id, conflictType);
-            // 保存新脚本到目标类型
-            await this.saveScript(scriptToImport, type);
-            break;
-          case 'cancel':
-            return;
-        }
-      } else {
-        // 无冲突，直接保存
-        await this.saveScript(scriptToImport, type);
-      }
-
-      scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-        action: 'script_imported',
-        script: scriptToImport,
-        type,
-      });
-
-      toastr.success(`脚本 '${scriptToImport.name}' 导入成功。`);
-    } catch (error) {
-      console.error('[script_repository] 导入脚本失败:', error);
-      toastr.error('无效的JSON文件。');
+    } else {
+      await this.createScript(script, type);
     }
   }
 
@@ -490,33 +675,74 @@ export class ScriptManager {
   }
 
   /**
-   * 保存脚本
+   * 创建新脚本
    * @param script 脚本
    * @param type 脚本类型
    */
-  public async saveScript(script: Script, type: ScriptType): Promise<void> {
+  public async createScript(script: Script, type: ScriptType): Promise<void> {
     await this.scriptData.saveScript(script, type);
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'script_saved',
+      action: 'script_created',
       script,
       type,
     });
   }
 
   /**
-   * 保存脚本顺序
-   * @param scripts 排序后的脚本数组
+   * 更新现有脚本
+   * @param script 脚本
+   * @param type 脚本类型
+   */
+  public async updateScript(script: Script, type: ScriptType): Promise<void> {
+    await this.scriptData.saveScript(script, type);
+    scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
+      action: 'script_updated',
+      script,
+      type,
+    });
+  }
+
+  /**
+   * 统一保存排序方法 - 保存仓库项排序
+   * @param repositoryItems 仓库项数组（包含文件夹和脚本的混合结构）
+   * @param type 脚本类型
+   */
+  public async saveOrder(repositoryItems: ScriptRepositoryItem[], type: ScriptType): Promise<void> {
+    if (type === ScriptType.GLOBAL) {
+      await this.scriptData.saveGlobalRepositoryItems(repositoryItems);
+    } else {
+      await this.scriptData.saveCharacterRepositoryItems(repositoryItems);
+    }
+
+    this.scriptData.loadScripts();
+  }
+
+  /**
+   * @deprecated 使用统一的 saveOrder 方法替代
+   * 保存脚本排序
+   * @param scripts 脚本数组
    * @param type 脚本类型
    */
   public async saveScriptsOrder(scripts: Script[], type: ScriptType): Promise<void> {
-    if (type === ScriptType.GLOBAL) {
-      await this.scriptData.saveGlobalScripts(scripts);
-    } else {
-      await this.scriptData.saveCharacterScripts(scripts);
-    }
+    console.warn('[ScriptManager] saveScriptsOrder 已废弃，请使用 saveOrder 方法');
 
-    // 刷新本地数据
-    this.scriptData.loadScripts();
+    const repositoryItems: ScriptRepositoryItem[] = scripts.map(script => ({
+      type: 'script' as const,
+      value: script,
+    }));
+
+    await this.saveOrder(repositoryItems, type);
+  }
+
+  /**
+   * @deprecated 使用统一的 saveOrder 方法替代
+   * 保存仓库项排序（包含文件夹和脚本的混合排序）
+   * @param repositoryItems 仓库项数组
+   * @param type 脚本类型
+   */
+  public async saveRepositoryItemsOrder(repositoryItems: ScriptRepositoryItem[], type: ScriptType): Promise<void> {
+    console.warn('[ScriptManager] saveRepositoryItemsOrder 已废弃，请使用 saveOrder 方法');
+    await this.saveOrder(repositoryItems, type);
   }
 
   /**
@@ -527,13 +753,11 @@ export class ScriptManager {
   public async deleteScript(scriptId: string, type: ScriptType): Promise<void> {
     const script = this.scriptData.getScriptById(scriptId);
     if (!script) {
-      throw new Error('[Script] 脚本不存在');
+      throw new Error('[ScriptManager] 脚本不存在');
     }
 
-    // 先停止脚本
     await this.stopScript(script, type);
 
-    // 删除脚本
     await this.scriptData.deleteScript(scriptId, type);
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
@@ -549,37 +773,29 @@ export class ScriptManager {
    * @param fromType 源类型
    */
   public async moveScript(script: Script, fromType: ScriptType): Promise<void> {
-    // 先停止脚本
     await this.stopScript(script, fromType);
 
-    // 确定目标类型
-    const targetType = fromType === ScriptType.GLOBAL ? ScriptType.CHARACTER : ScriptType.GLOBAL;
+    const targetType = getOppositeScriptType(fromType);
 
-    // 检查目标类型中是否已存在相同ID的脚本
     const existingScriptInTarget = this.scriptData.getScriptById(script.id);
     const existingScriptType = existingScriptInTarget ? this.scriptData.getScriptType(existingScriptInTarget) : null;
 
-    // 只有在目标类型中已存在同ID脚本时才处理冲突
     if (existingScriptInTarget && existingScriptType === targetType) {
       const action = await this.handleScriptIdConflict(script, existingScriptInTarget, targetType);
 
       switch (action) {
         case 'new':
-          // 生成新ID
           script.id = uuidv4();
           break;
         case 'override':
-          // 先删除目标类型中的脚本
           await this.deleteScript(existingScriptInTarget.id, targetType);
           break;
         case 'cancel':
-          // 取消移动操作
           return;
       }
     }
 
-    // 移动脚本
-    await this.scriptData.moveScriptToOtherType(script, fromType);
+    await this.scriptData.moveItemToOtherType({ type: 'script', id: script.id, value: script }, fromType);
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
       action: 'script_moved',
@@ -588,7 +804,6 @@ export class ScriptManager {
       targetType,
     });
 
-    // 如果目标类型已启用，且脚本本身是启用状态，则启动脚本
     if (
       script.enabled &&
       ((targetType === ScriptType.GLOBAL && this.scriptData.isGlobalScriptEnabled) ||
@@ -649,6 +864,198 @@ export class ScriptManager {
   }
 
   /**
+   * 获取全局脚本仓库项（包含文件夹结构）
+   */
+  public getGlobalRepositoryItems(): ScriptRepositoryItem[] {
+    return this.scriptData.getGlobalRepositoryItems();
+  }
+
+  /**
+   * 获取角色脚本仓库项（包含文件夹结构）
+   */
+  public getCharacterRepositoryItems(): ScriptRepositoryItem[] {
+    return this.scriptData.getCharacterRepositoryItems();
+  }
+
+  /**
+   * 创建文件夹
+   */
+  public async createFolder(name: string, type: ScriptType, icon?: string, color?: string): Promise<string> {
+    return await this.scriptData.createFolder(name, type, icon, color);
+  }
+
+  /**
+   * 重命名文件夹
+   */
+  public async editFolder(
+    folderId: string,
+    newName: string,
+    type: ScriptType,
+    newIcon?: string,
+    newColor?: string,
+  ): Promise<void> {
+    await this.scriptData.editFolder(folderId, newName, type, newIcon, newColor);
+  }
+
+  /**
+   * 删除文件夹
+   */
+  public async deleteFolder(folderId: string, type: ScriptType): Promise<void> {
+    await this.scriptData.deleteFolder(folderId, type);
+  }
+
+  /**
+   * 将脚本移动到文件夹
+   */
+  public async moveScriptToFolder(scriptId: string, targetFolderId: string | null, type: ScriptType): Promise<void> {
+    await this.scriptData.moveScriptToFolder(scriptId, targetFolderId, type);
+  }
+
+  /**
+   * 将文件夹移动到其他类型
+   * @param folderId 文件夹ID
+   * @param fromType 源类型
+   */
+  public async moveFolder(folderId: string, fromType: ScriptType): Promise<void> {
+    const targetType = getOppositeScriptType(fromType);
+
+    await this.scriptData.moveItemToOtherType({ type: 'folder', id: folderId }, fromType);
+
+    scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
+      action: 'folder_moved',
+      folderId,
+      fromType,
+      targetType,
+    });
+  }
+
+  /**
+   * 获取文件夹中的脚本
+   */
+  public getFolderScripts(folderId: string, type: ScriptType): Script[] {
+    return this.scriptData.getFolderScripts(folderId, type);
+  }
+
+  /**
+   * 获取根级别的脚本
+   */
+  public getRootScripts(type: ScriptType): Script[] {
+    return this.scriptData.getRootScripts(type);
+  }
+
+  /**
+   * 获取所有文件夹
+   */
+  public getFolders(type: ScriptType): ScriptRepositoryItem[] {
+    return this.scriptData.getFolders(type);
+  }
+
+  /**
+   * 批量切换文件夹内所有脚本的启用状态
+   * @param folderId 文件夹ID
+   * @param type 脚本类型
+   * @param enable 是否启用
+   */
+  public async toggleFolderScripts(folderId: string, type: ScriptType, enable: boolean): Promise<void> {
+    try {
+      await this.scriptData.toggleFolderScripts(folderId, type, enable);
+
+      const scripts = this.scriptData.getFolderScripts(folderId, type);
+
+      const isTypeEnabled =
+        type === ScriptType.GLOBAL ? this.scriptData.isGlobalScriptEnabled : this.scriptData.isCharacterScriptEnabled;
+
+      if (isTypeEnabled) {
+        for (const script of scripts) {
+          if (enable && script.enabled) {
+            await this.runScript(script, type);
+          } else if (!enable) {
+            await this.stopScript(script, type);
+          }
+        }
+      }
+
+      scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
+        action: 'folder_scripts_toggled',
+        folderId,
+        type,
+        enable,
+      });
+    } catch (error) {
+      console.error(`[ScriptManager] 批量切换文件夹脚本状态失败: ${folderId}`, error);
+      toastr.error(`批量切换文件夹脚本状态失败`);
+    }
+  }
+
+  /**
+   * 获取文件夹内脚本的整体启用状态
+   * @param folderId 文件夹ID
+   * @param type 脚本类型
+   */
+  public getFolderScriptsState(folderId: string, type: ScriptType): 'all' | 'none' {
+    return this.scriptData.getFolderScriptsState(folderId, type);
+  }
+
+  /**
+   * 获取指定脚本的变量数据
+   * @param scriptId 脚本ID
+   * @returns 脚本的data字段，如果脚本不存在返回空对象
+   */
+  public getScriptVariables(scriptId: string): { [key: string]: any } {
+    const script = this.scriptData.getScriptById(scriptId);
+    if (!script) {
+      console.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
+      return {};
+    }
+    return script.data || {};
+  }
+
+  /**
+   * 更新指定脚本的变量数据
+   * @param scriptId 脚本ID
+   * @param variables 新的变量数据
+   * @param type 脚本类型
+   * @returns 是否更新成功
+   */
+  public async updateScriptVariables(
+    scriptId: string,
+    variables: { [key: string]: any },
+    type: ScriptType,
+  ): Promise<boolean> {
+    const script = this.scriptData.getScriptById(scriptId);
+    if (!script) {
+      console.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
+      return false;
+    }
+
+    script.data = variables;
+    await this.scriptData.saveScript(script, type);
+
+    console.info(`[ScriptManager] 已更新脚本变量: ${script.name}`);
+    return true;
+  }
+
+  /**
+   * 获取所有脚本的变量数据（用于调试和管理）
+   * @param type 脚本类型
+   * @returns 所有脚本的变量数据映射
+   */
+  public getAllScriptVariables(type: ScriptType): Map<string, { [key: string]: any }> {
+    const scripts =
+      type === ScriptType.GLOBAL ? this.scriptData.getGlobalScripts() : this.scriptData.getCharacterScripts();
+
+    const variablesMap = new Map<string, { [key: string]: any }>();
+
+    scripts.forEach(script => {
+      if (script.data && Object.keys(script.data).length > 0) {
+        variablesMap.set(script.id, script.data);
+      }
+    });
+
+    return variablesMap;
+  }
+
+  /**
    * 清理所有资源
    */
   public async cleanup(): Promise<void> {
@@ -667,14 +1074,9 @@ export class ScriptManager {
     existingScript: Script,
     targetType: ScriptType,
   ): Promise<'new' | 'override' | 'cancel'> {
-    // 获取已存在脚本的类型文本
     const existingScriptType = this.scriptData.getScriptType(existingScript);
     const existingTypeText = existingScriptType === ScriptType.GLOBAL ? '全局脚本' : '角色脚本';
 
-    // 获取目标类型文本
-    const targetTypeText = targetType === ScriptType.GLOBAL ? '全局脚本' : '角色脚本';
-
-    // 显示冲突处理选项
     const input = await callGenericPopup(
       `要${targetType === existingScriptType ? '导入' : '移动'}的脚本 '${script.name}' 与${existingTypeText}库中的 '${
         existingScript.name

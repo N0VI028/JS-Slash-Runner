@@ -62,7 +62,7 @@ async function loadScriptInfo(info: string): Promise<string> {
 export async function createDefaultScript(script_id: string): Promise<any> {
   const config = DEFAULT_SCRIPT_CONFIGS[script_id];
   if (!config) {
-    console.error(`[Script] 未找到脚本配置: ${script_id}`);
+    console.error(`[ScriptManager] 未找到脚本配置: ${script_id}`);
     return null;
   }
 
@@ -73,9 +73,11 @@ export async function createDefaultScript(script_id: string): Promise<any> {
       content: loadScriptContent(config.content),
       info: await loadScriptInfo(config.info),
       enabled: false,
+      buttons: [],
+      data: {},
     };
   } catch (error) {
-    console.error(`[Script] 创建默认脚本失败: ${script_id}:`, error);
+    console.error(`[ScriptManager] 创建默认脚本失败: ${script_id}:`, error);
     return null;
   }
 }

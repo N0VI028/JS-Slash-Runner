@@ -30,7 +30,6 @@ export class ScriptRepositoryApp {
     this.scriptManager = ScriptManager.getInstance();
     this.uiManager = UIController.getInstance();
 
-    // 监听角色切换事件
     this.registerEvents();
   }
 
@@ -74,7 +73,7 @@ export class ScriptRepositoryApp {
       await this.uiManager.initialize();
       this.initialized = true;
     } catch (error) {
-      console.error('[script_repository] 初始化失败:', error);
+      console.error('[ScriptManager] 初始化失败:', error);
       this.initialized = false;
     }
   }
@@ -99,7 +98,6 @@ export class ScriptRepositoryApp {
     if (!this.initialized) {
       return;
     }
-    // 清理上一个角色脚本库的iframe
     const previousCharacterScripts: Script[] = [];
     $(`#character-script-list`)
       .find('.script-item')
@@ -115,32 +113,28 @@ export class ScriptRepositoryApp {
       });
     this.scriptManager.stopScriptsByType(previousCharacterScripts, ScriptType.CHARACTER);
 
-    // 获取全局脚本和角色脚本
     const scriptData = ScriptData.getInstance();
     const globalScripts = this.scriptManager.getGlobalScripts();
     const characterScripts = this.scriptManager.getCharacterScripts();
 
     this.scriptManager.refreshCharacterScriptEnabledState();
 
-    console.info('[script_repository] 刷新角色脚本库');
+    console.info('[ScriptManager] 刷新角色脚本库');
 
     if (this_chid && characterScripts.length > 0) {
       await this.uiManager.checkEmbeddedScripts(this_chid);
     }
 
-    // 检查ID冲突
     const conflictScripts = characterScripts.filter(charScript =>
       globalScripts.some(globalScript => globalScript.id === charScript.id),
     );
 
-    // 处理冲突脚本
     if (conflictScripts.length > 0) {
-      console.info(`[script_repository] 发现${conflictScripts.length}个脚本ID冲突`);
+      console.info(`[ScriptManager] 发现${conflictScripts.length}个脚本ID冲突`);
 
       for (const charScript of conflictScripts) {
         const globalScript = globalScripts.find(gs => gs.id === charScript.id)!;
 
-        // 创建冲突处理弹窗
         const result = await callGenericPopup(
           `全局脚本中已存在 "${globalScript.name}" 脚本，是否关闭冲突脚本？`,
           POPUP_TYPE.TEXT,
@@ -151,15 +145,13 @@ export class ScriptRepositoryApp {
           },
         );
 
-        // 无论选择哪个，都修改局部脚本ID以避免冲突
         charScript.id = uuidv4();
 
-        // 根据用户选择禁用相应脚本
         if (result) {
           if (globalScript.enabled) {
             await this.scriptManager.stopScript(globalScript, ScriptType.GLOBAL);
             globalScript.enabled = false;
-            console.info(`[script_repository] 关闭全局脚本: ${globalScript.name}`);
+            console.info(`[ScriptManager] 关闭全局脚本: ${globalScript.name}`);
             scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
               action: 'script_toggled',
               script: globalScript,
@@ -171,17 +163,15 @@ export class ScriptRepositoryApp {
         } else if (charScript.enabled) {
           charScript.enabled = false;
           await scriptData.saveCharacterScripts(characterScripts);
-          console.info(`[script_repository] 关闭局部脚本: ${charScript.name}`);
+          console.info(`[ScriptManager] 关闭局部脚本: ${charScript.name}`);
         }
       }
     }
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, { action: 'refresh_charact_scripts' });
     checkQrEnabledStatusAndAddButton();
-    // 在聊天切换后重新绑定事件监听器
     bindQrEnabledChangeListener();
 
-    // 运行所有已启用的角色脚本
     await this.scriptManager.runScriptsByType(characterScripts, ScriptType.CHARACTER);
   }
 
@@ -194,14 +184,13 @@ export class ScriptRepositoryApp {
         eventSource.removeListener(eventType, this.refreshCharacterRepository.bind(this));
       });
 
-      // 清理组件资源
       await this.scriptManager.cleanup();
       this.uiManager.cleanup();
 
       this.initialized = false;
-      console.info('[script_repository] 清理完成');
+      console.info('[ScriptManager] 清理完成');
     } catch (error) {
-      console.error('[script_repository] 清理失败:', error);
+      console.error('[ScriptManager] 清理失败:', error);
     }
   }
 }

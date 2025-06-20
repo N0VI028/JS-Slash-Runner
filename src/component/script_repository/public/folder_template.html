@@ -1,0 +1,22 @@
+<div class="script-folder" id="{{folderId}}">
+  <div class="folder-header" data-folder-id="{{folderId}}">
+    <input type="checkbox" class="folder-checkbox" style="display: none" />
+    <span class="drag-handle menu-handle">☰</span>
+    <i class="fa {{folderIcon}} folder-icon marginLeft5"></i>
+    <span class="folder-name flexGrow overflow-hidden marginLeft5">{{folderName}}</span>
+    <div class="folder-control flex-container flexnowrap alignItemsCenter">
+      <div class="folder-script-toggle" title="批量开关文件夹内脚本" data-folder-id="{{folderId}}">
+        <i class="fa-solid fa-toggle-off"></i>
+        <i class="fa-solid fa-toggle-on" style="display: none"></i>
+      </div>
+      <i class="fa fa-pencil folder-edit" title="编辑文件夹" data-folder-id="{{folderId}}"></i>
+      <i class="fa fa-file-export folder-export" title="导出文件夹" data-folder-id="{{folderId}}"></i>
+      <i class="fa {{moveIcon}} folder-move {{moveClass}}" title="{{moveTitle}}" data-folder-id="{{folderId}}"></i>
+      <i class="fa fa-trash folder-delete" title="删除文件夹" data-folder-id="{{folderId}}"></i>
+      <i class="fa fa-chevron-down folder-toggle" data-folder-id="{{folderId}}"></i>
+    </div>
+  </div>
+  <div class="folder-content" data-folder-id="{{folderId}}" style="display: none">
+    <!-- 文件夹内的脚本将动态插入-->
+  </div>
+</div>

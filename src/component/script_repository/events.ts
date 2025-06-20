@@ -2,30 +2,34 @@
  * 脚本仓库事件类型
  */
 export enum ScriptRepositoryEventType {
-  // 脚本操作相关事件
   SCRIPT_TOGGLE = 'script_toggle',
   SCRIPT_RUN = 'script_run',
   SCRIPT_STOP = 'script_stop',
   SCRIPT_SAVE = 'script_save',
+  SCRIPT_CREATE = 'script_create',
+  SCRIPT_UPDATE = 'script_update',
   SCRIPT_DELETE = 'script_delete',
   SCRIPT_MOVE = 'script_move',
   SCRIPT_EDIT = 'script_edit',
 
-  // 类型开关相关事件
+  FOLDER_CREATE = 'folder_create',
+  FOLDER_EDIT = 'folder_edit',
+  FOLDER_DELETE = 'folder_delete',
+  FOLDER_MOVE = 'folder_move',
+  FOLDER_SCRIPTS_TOGGLE = 'folder_scripts_toggle',
+
   TYPE_TOGGLE = 'type_toggle',
 
-  // 按钮相关事件
   BUTTON_ADD = 'button_add',
   BUTTON_REMOVE = 'button_remove',
 
-  // 导入导出相关事件
   SCRIPT_IMPORT = 'script_import',
   SCRIPT_EXPORT = 'script_export',
 
-  // 变量编辑相关事件
-  VARIABLE_EDIT = 'variable_edit',
+  //VARIABLE_EDIT = 'variable_edit',
 
-  // 界面相关事件
+  ORDER_CHANGED = 'order_changed',
+
   UI_REFRESH = 'ui_refresh',
   UI_LOADED = 'ui_loaded',
 }
@@ -35,12 +39,10 @@ export enum ScriptRepositoryEventType {
  */
 export type EventListener = (data: any) => void;
 
-// 导入SillyTavern的事件源
 import { eventSource } from '@sillytavern/script';
 
 /**
  * 事件总线类，用于组件间通信
- * 基于SillyTavern.eventSource实现，但增加命名空间前缀避免冲突
  */
 export class EventBus {
   private static instance: EventBus;
@@ -74,13 +76,11 @@ export class EventBus {
    * @param listener 监听器函数
    */
   public on(eventType: ScriptRepositoryEventType, listener: EventListener): void {
-    // 保存监听器引用，用于后续移除
     if (!this.activeListeners.has(eventType)) {
       this.activeListeners.set(eventType, new Set());
     }
     this.activeListeners.get(eventType)?.add(listener);
 
-    // 使用SillyTavern的事件系统，但加上命名空间前缀
     const namespacedEvent = this.getNamespacedEvent(eventType);
     eventSource.on(namespacedEvent, listener);
   }
@@ -94,7 +94,6 @@ export class EventBus {
     const namespacedEvent = this.getNamespacedEvent(eventType);
     eventSource.removeListener(namespacedEvent, listener);
 
-    // 从本地记录中移除
     const listeners = this.activeListeners.get(eventType);
     if (listeners) {
       listeners.delete(listener);
@@ -118,7 +117,6 @@ export class EventBus {
    * 清空所有事件监听器
    */
   public clear(): void {
-    // 移除所有已注册的监听器
     this.activeListeners.forEach((listeners, eventType) => {
       const namespacedEvent = this.getNamespacedEvent(eventType);
       listeners.forEach(listener => {
@@ -139,5 +137,4 @@ export class EventBus {
   }
 }
 
-// 导出事件总线单例
 export const scriptEvents = EventBus.getInstance();

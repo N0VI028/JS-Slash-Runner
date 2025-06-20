@@ -6,15 +6,25 @@
   </div>
   <div id="script-content" class="script-editor-container">
     <h4>脚本内容</h4>
-    <textarea id="script-content-textarea" placeholder="脚本的JavaScript代码" rows="10"></textarea>
+    <textarea id="script-content-textarea" placeholder="脚本的JavaScript代码" rows="6"></textarea>
   </div>
   <div id="script-info" class="script-editor-container">
     <h4>作者备注</h4>
     <textarea
       id="script-info-textarea"
       placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等，支持简单的markdown和html"
-      rows="5"
+      rows="3"
     ></textarea>
+  </div>
+  <div id="variable-editor" class="script-editor-container">
+    <div class="flex-container alignItemsCenter justifyContentCenter">
+      <h4>变量列表</h4>
+      <div class="menu_button interactable" id="add-variable-trigger">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+    </div>
+    <small>绑定到脚本的变量，会随脚本一同导出</small>
+    <div id="variable-list" class="flex-container flexFlowColumn width100p gap10p"></div>
   </div>
   <div id="script-button-content" class="script-editor-container">
     <div class="flex-container gap10 alignItemsCenter justifyContentCenter">
