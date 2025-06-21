@@ -426,6 +426,11 @@ export class ScriptManager {
    */
   private async importFromZip(file: File, type: ScriptType): Promise<void> {
     //@ts-ignore
+    if (!window.JSZip) {
+      console.log('import jszip');
+      await import('@sillytavern/lib/jszip.min.js');
+    }
+    //@ts-ignore
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);
 
@@ -435,7 +440,7 @@ export class ScriptManager {
     const folders = new Set<string>();
     const rootScripts: string[] = [];
 
-    for (const fileName in zipContent.files) {
+        for (const fileName in zipContent.files) {
       const file = zipContent.files[fileName];
 
       if (!file.dir && fileName.endsWith('.json')) {
@@ -449,12 +454,12 @@ export class ScriptManager {
       }
     }
 
-    for (const fileName of rootScripts) {
+        for (const fileName of rootScripts) {
       const file = zipContent.files[fileName];
       const scriptContent = await file.async('string');
       const scriptData = JSON.parse(scriptContent);
 
-      if (scriptData.name && scriptData.content) {
+      if (scriptData.name && 'content' in scriptData) {
         const script = new Script({
           ...scriptData,
           enabled: false,
@@ -464,8 +469,9 @@ export class ScriptManager {
       }
     }
 
-    for (const folderName of folders) {
-      await this.importFolderFromZipNew(zipContent, folderName, type);
+        for (const folderName of folders) {
+      const folderScriptCount = await this.importFolderFromZipNew(zipContent, folderName, type);
+      importedScripts += folderScriptCount;
       importedFolders++;
     }
 
@@ -477,12 +483,13 @@ export class ScriptManager {
   }
 
   /**
-   * 从ZIP中导入文件夹（新格式）
+   * 从ZIP中导入文件夹
    * @param zipContent ZIP内容
    * @param folderName 文件夹名称
    * @param type 脚本类型
+   * @returns 导入的脚本数量
    */
-  private async importFolderFromZipNew(zipContent: any, folderName: string, type: ScriptType): Promise<void> {
+  private async importFolderFromZipNew(zipContent: any, folderName: string, type: ScriptType): Promise<number> {
     const repository =
       type === ScriptType.GLOBAL
         ? this.scriptData.getGlobalRepositoryItems()
@@ -496,6 +503,7 @@ export class ScriptManager {
     }
 
     const folderId = await this.scriptData.createFolder(finalFolderName, type);
+    let folderScriptCount = 0;
 
     for (const fileName in zipContent.files) {
       const file = zipContent.files[fileName];
@@ -504,16 +512,19 @@ export class ScriptManager {
         const scriptContent = await file.async('string');
         const scriptData = JSON.parse(scriptContent);
 
-        if (scriptData.name && scriptData.content) {
+        if (scriptData.name && 'content' in scriptData) {
           const script = new Script({
             ...scriptData,
             enabled: false,
           });
           await this.handleScriptImport(script, type);
           await this.scriptData.moveScriptToFolder(script.id, folderId, type);
+          folderScriptCount++;
         }
       }
     }
+
+    return folderScriptCount;
   }
 
   /**
@@ -522,7 +533,7 @@ export class ScriptManager {
    * @param type 脚本类型
    */
   private async importSingleScript(scriptData: any, type: ScriptType): Promise<void> {
-    if (!scriptData.name || !scriptData.content) {
+    if (!scriptData.name || !('content' in scriptData)) {
       throw new Error('无效的脚本数据');
     }
 
@@ -532,12 +543,6 @@ export class ScriptManager {
     });
 
     await this.handleScriptImport(scriptToImport, type);
-
-    scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'script_imported',
-      script: scriptToImport,
-      type,
-    });
 
     toastr.success(`脚本 '${scriptToImport.name}' 导入成功。`);
   }
@@ -565,7 +570,7 @@ export class ScriptManager {
         await this.handleScriptImport(script, type);
         scriptCount++;
         importedCount++;
-      } else if (item.name && item.content) {
+      } else if (item.name && 'content' in item) {
         const script = new Script({
           ...item,
           enabled: false,
@@ -641,7 +646,7 @@ export class ScriptManager {
     }
 
     if (existingScript && conflictType) {
-      const action = await this.handleScriptIdConflict(script, existingScript, type);
+      const action = await this.handleScriptIdConflict(script, existingScript, type, 'import');
 
       switch (action) {
         case 'new':
@@ -781,7 +786,7 @@ export class ScriptManager {
     const existingScriptType = existingScriptInTarget ? this.scriptData.getScriptType(existingScriptInTarget) : null;
 
     if (existingScriptInTarget && existingScriptType === targetType) {
-      const action = await this.handleScriptIdConflict(script, existingScriptInTarget, targetType);
+      const action = await this.handleScriptIdConflict(script, existingScriptInTarget, targetType, 'move');
 
       switch (action) {
         case 'new':
@@ -1067,28 +1072,31 @@ export class ScriptManager {
    * @param script 要处理的脚本
    * @param existingScript 已存在的脚本
    * @param targetType 目标类型
+   * @param operationType 操作类型：'import' - 导入, 'move' - 移动
    * @returns 处理结果：'new' - 使用新ID, 'override' - 覆盖已有脚本, 'cancel' - 取消操作
    */
   public async handleScriptIdConflict(
     script: Script,
     existingScript: Script,
     targetType: ScriptType,
+    operationType: 'import' | 'move' = 'import',
   ): Promise<'new' | 'override' | 'cancel'> {
     const existingScriptType = this.scriptData.getScriptType(existingScript);
     const existingTypeText = existingScriptType === ScriptType.GLOBAL ? '全局脚本' : '角色脚本';
+    const targetTypeText = targetType === ScriptType.GLOBAL ? '全局脚本' : '角色脚本';
 
-    const input = await callGenericPopup(
-      `要${targetType === existingScriptType ? '导入' : '移动'}的脚本 '${script.name}' 与${existingTypeText}库中的 '${
-        existingScript.name
-      }' id 相同，是否要继续操作？`,
-      POPUP_TYPE.TEXT,
-      '',
-      {
-        okButton: '覆盖原脚本',
-        cancelButton: '取消',
-        customButtons: ['新建脚本'],
-      },
-    );
+    let message: string;
+    if (operationType === 'import') {
+      message = `要导入的脚本 '${script.name}' 与${existingTypeText}库中的 '${existingScript.name}' id 相同，是否要继续操作？`;
+    } else {
+      message = `要移动到${targetTypeText}库的脚本 '${script.name}' 与目标库中的 '${existingScript.name}' id 相同，是否要继续操作？`;
+    }
+
+    const input = await callGenericPopup(message, POPUP_TYPE.TEXT, '', {
+      okButton: '覆盖原脚本',
+      cancelButton: '取消',
+      customButtons: ['新建脚本'],
+    });
 
     let action: 'new' | 'override' | 'cancel' = 'cancel';
 

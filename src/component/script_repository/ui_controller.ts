@@ -137,16 +137,8 @@ export class UIController {
         });
       });
 
-    $('#open-global-script-editor').on('click', () => {
-      scriptEvents.emit(ScriptRepositoryEventType.SCRIPT_EDIT, {
-        type: ScriptType.GLOBAL,
-      });
-    });
-
-    $('#open-character-script-editor').on('click', () => {
-      scriptEvents.emit(ScriptRepositoryEventType.SCRIPT_EDIT, {
-        type: ScriptType.CHARACTER,
-      });
+    $('#create-script').on('click', async () => {
+      await this.showCreateScriptDialog();
     });
 
     $('#import-script-file').on('change', async function () {
@@ -154,7 +146,13 @@ export class UIController {
       const template = $(
         await renderExtensionTemplateAsync(
           `${extensionFolderPath}/src/component/script_repository/public`,
-          'script_import_target',
+          'script_target_selector',
+          {
+            title: '导入到:',
+            prefix: 'script-import',
+            globalLabel: '全局脚本',
+            characterLabel: '局部脚本',
+          },
         ),
       );
       template.find('#script-import-target-global').on('input', () => (target = 'global'));
@@ -603,8 +601,8 @@ export class UIController {
       placeholder: 'sortable-placeholder',
       connectWith: '.folder-content',
 
-      stop: async ui => {
-        await this.handleDragStop(ui, type);
+      stop: async (_event) => {
+        await this.handleDragStop(type);
       },
     });
 
@@ -626,8 +624,8 @@ export class UIController {
       tolerance: 'pointer',
       placeholder: 'sortable-placeholder',
       connectWith: `${getScriptListSelector(type)}, .folder-content`,
-      stop: async ui => {
-        await this.handleDragStop(ui, type);
+      stop: async (_event) => {
+        await this.handleDragStop(type);
       },
     });
   }
@@ -716,7 +714,7 @@ export class UIController {
               return false;
             }
           } catch (error) {
-            console.error('[UIController] 拖拽脚本到文件夹失败:', error);
+            console.error('[ScriptManager] 拖拽脚本到文件夹失败:', error);
             toastr.error(`移动脚本失败: ${error instanceof Error ? error.message : String(error)}`);
 
             $folder.removeClass('folder-drag-target');
@@ -777,12 +775,9 @@ export class UIController {
 
       $draggedElement.detach().prependTo($folderContent);
 
-      const script = this.scriptManager.getScriptById(scriptId);
-      const folderName = $(`#${folderId} .folder-name`).text();
-      toastr.success(`脚本"${script?.name || scriptId}"已移动到文件夹"${folderName}"`);
       return true;
     } catch (error) {
-      console.error('[UIController] 移动脚本到文件夹失败:', error);
+      console.error('[ScriptManager] 移动脚本到文件夹失败:', error);
       throw error;
     }
   }
@@ -792,18 +787,18 @@ export class UIController {
    * @param ui jQuery UI 拖拽事件对象
    * @param type 脚本类型
    */
-  private async handleDragStop(ui: any, type: ScriptType): Promise<void> {
-    const itemId = ui.item.attr('id');
-    if (!itemId) return;
+  private async handleDragStop(type: ScriptType): Promise<void> {
+    try {
+      const repositoryItems = await this.buildRepositoryFromDOM(type);
 
-    const repositoryItems = await this.buildRepositoryFromDOM(type);
-
-    scriptEvents.emit(ScriptRepositoryEventType.ORDER_CHANGED, {
-      data: repositoryItems,
-      type,
-    });
+      scriptEvents.emit(ScriptRepositoryEventType.ORDER_CHANGED, {
+        data: repositoryItems,
+        type,
+      });
+    } catch (error) {
+      console.error('[ScriptManager] handleDragStop: 处理拖拽结束失败:', error);
+    }
   }
-
   /**
    * 从DOM构建仓库结构
    * @param type 脚本类型
@@ -884,9 +879,14 @@ export class UIController {
 
     scriptHtml.find('.add-script').on('click', async () => {
       let target: ScriptType = ScriptType.GLOBAL;
-      const template = $(await renderExtensionTemplateAsync(this.templatePath, 'script_import_target'));
-      template.find('#script-import-target-global').on('input', () => (target = ScriptType.GLOBAL));
-      template.find('#script-import-target-character').on('input', () => (target = ScriptType.CHARACTER));
+      const template = $(await renderExtensionTemplateAsync(this.templatePath, 'script_target_selector', {
+        title: '添加到:',
+        prefix: 'script-add',
+        globalLabel: '全局脚本库',
+        characterLabel: '角色脚本库',
+      }));
+      template.find('#script-add-target-global').on('input', () => (target = ScriptType.GLOBAL));
+      template.find('#script-add-target-character').on('input', () => (target = ScriptType.CHARACTER));
       const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', {
         okButton: '确认',
         cancelButton: '取消',
@@ -1530,7 +1530,7 @@ export class UIController {
             return null;
         }
       } catch (error) {
-        console.error('[UIController] 导出脚本数据选择对话框出错:', error);
+        console.error('[ScriptManager] 导出脚本数据选择对话框出错:', error);
         return scriptData;
       }
     }
@@ -1611,6 +1611,34 @@ export class UIController {
   }
 
   /**
+   * 显示新建脚本对话框
+   */
+  private async showCreateScriptDialog(): Promise<void> {
+    let target: ScriptType = ScriptType.GLOBAL;
+    const template = $(
+      await renderExtensionTemplateAsync(this.templatePath, 'script_target_selector', {
+        title: '新建脚本到:',
+        prefix: 'script-create',
+        globalLabel: '全局脚本库',
+        characterLabel: '角色脚本库',
+      }),
+    );
+    template.find('#script-create-target-global').on('input', () => (target = ScriptType.GLOBAL));
+    template.find('#script-create-target-character').on('input', () => (target = ScriptType.CHARACTER));
+    
+    const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', {
+      okButton: '确认',
+      cancelButton: '取消',
+    });
+
+    if (result) {
+      scriptEvents.emit(ScriptRepositoryEventType.SCRIPT_EDIT, {
+        type: target,
+      });
+    }
+  }
+
+  /**
    * 显示创建文件夹对话框
    */
   private async showCreateFolderDialog(): Promise<void> {
@@ -1627,7 +1655,7 @@ export class UIController {
           template.find('#folder-icon-value').val(selectedIcon);
         }
       } catch (error) {
-        console.error('[UIController] 图标选择失败:', error);
+        console.error('[ScriptManager] 图标选择失败:', error);
       }
     });
 
@@ -1678,7 +1706,7 @@ export class UIController {
         color: folderColor,
       });
     } catch (error) {
-      console.error('[UIController] 创建文件夹失败:', error);
+      console.error('[ScriptManager] 创建文件夹失败:', error);
       toastr.error(`创建文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -1733,7 +1761,7 @@ export class UIController {
           template.find('#folder-icon-value').val(selectedIcon);
         }
       } catch (error) {
-        console.error('[UIController] 图标选择失败:', error);
+        console.error('[ScriptManager] 图标选择失败:', error);
       }
     });
     template.find('#folder-color-picker').on('change', evt => {
@@ -1781,6 +1809,10 @@ export class UIController {
         return;
       }
       //@ts-ignore
+      if (!window.JSZip) {
+        await import('@sillytavern/lib/jszip.min.js');
+      }
+      //@ts-ignore
       const zip = new JSZip();
 
       const folderName = folder.name || 'folder';
@@ -1823,7 +1855,7 @@ export class UIController {
 
       toastr.success(`文件夹 "${folder.name}" 导出成功`);
     } catch (error) {
-      console.error('[UIController] 导出文件夹失败:', error);
+      console.error('[ScriptManager] 导出文件夹失败:', error);
       toastr.error(`导出文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2157,7 +2189,7 @@ export class UIController {
       this.exitBatchMode(type);
       await this.renderScriptLists();
     } catch (error) {
-      console.error('[UIController] 批量删除失败:', error);
+      console.error('[ScriptManager] 批量删除失败:', error);
       toastr.error(`批量删除失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2175,6 +2207,10 @@ export class UIController {
     }
 
     try {
+      //@ts-ignore
+      if (!window.JSZip) {
+        await import('@sillytavern/lib/jszip.min.js');
+      }
       //@ts-ignore
       const zip = new JSZip();
       let exportedCount = 0;
@@ -2259,7 +2295,7 @@ export class UIController {
 
       toastr.success(`成功导出 ${exportedCount} 个项目`);
     } catch (error) {
-      console.error('[UIController] 批量导出失败:', error);
+      console.error('[ScriptManager] 批量导出失败:', error);
       toastr.error(`批量导出失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2326,7 +2362,7 @@ export class UIController {
       this.exitBatchMode(type);
       await this.renderScriptLists();
     } catch (error) {
-      console.error('[UIController] 批量移动失败:', error);
+      console.error('[ScriptManager] 批量移动失败:', error);
       toastr.error(`批量移动失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2343,7 +2379,7 @@ export class UIController {
       await this.renderScriptLists();
       toastr.success(`文件夹 "${name}" 创建成功`);
     } catch (error) {
-      console.error('[UIController] 创建文件夹失败:', error);
+      console.error('[ScriptManager] 创建文件夹失败:', error);
       toastr.error(`创建文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2381,7 +2417,7 @@ export class UIController {
 
       toastr.success(`文件夹更新成功`);
     } catch (error) {
-      console.error('[UIController] 更新文件夹失败:', error);
+      console.error('[ScriptManager] 更新文件夹失败:', error);
       toastr.error(`更新文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2400,7 +2436,7 @@ export class UIController {
         toastr.success('文件夹删除成功');
       }
     } catch (error) {
-      console.error('[UIController] 删除文件夹失败:', error);
+      console.error('[ScriptManager] 删除文件夹失败:', error);
       if (!skipUIRefresh) {
         toastr.error(`删除文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
       }

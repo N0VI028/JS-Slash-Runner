@@ -53,6 +53,7 @@ export class ScriptData {
    */
   public checkCharacterScriptEnabled(): boolean {
     const charactersWithScripts = getSettingValue('script.characters_with_scripts') || [];
+    //@ts-ignore
     const avatar = characters?.[this_chid]?.avatar;
     return charactersWithScripts?.includes(avatar) || false;
   }
@@ -134,6 +135,7 @@ export class ScriptData {
           console.warn('[ScriptManager] 无法保存角色脚本迁移数据：当前角色为空');
           return;
         }
+        //@ts-ignore
         await writeExtensionField(this_chid, 'TavernHelper_scripts', repository);
       }
       console.log(`[ScriptManager] 成功迁移${type}脚本数据结构`);
@@ -299,6 +301,7 @@ export class ScriptData {
       throw new Error('[ScriptManager] 保存失败，当前角色为空');
     }
 
+    //@ts-ignore
     await writeExtensionField(this_chid, 'TavernHelper_scripts', array);
 
     this.characterScripts = array;
@@ -321,7 +324,7 @@ export class ScriptData {
     if (!this_chid) {
       throw new Error('[ScriptManager] 保存失败，当前角色为空');
     }
-
+    //@ts-ignore
     await writeExtensionField(this_chid, 'TavernHelper_scripts', repository);
 
     this.characterScripts = extractScriptsFromRepository(repository);
@@ -377,6 +380,7 @@ export class ScriptData {
       this._isGlobalScriptEnabled = enable;
     } else {
       const charactersWithScripts = getSettingValue('script.characters_with_scripts') || [];
+      //@ts-ignore
       const avatar = characters?.[this_chid]?.avatar;
 
       if (enable) {
@@ -798,6 +802,7 @@ export async function replaceCharacterScriptVariables(variables: Record<string, 
   if (!this_chid) {
     throw new Error('[ScriptManager] 保存变量失败，当前角色为空');
   }
+  //@ts-ignore
   await writeExtensionField(this_chid, 'TavernHelper_characterScriptVariables', variables);
 }
 
