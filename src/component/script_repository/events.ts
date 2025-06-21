@@ -5,7 +5,6 @@ export enum ScriptRepositoryEventType {
   SCRIPT_TOGGLE = 'script_toggle',
   SCRIPT_RUN = 'script_run',
   SCRIPT_STOP = 'script_stop',
-  SCRIPT_SAVE = 'script_save',
   SCRIPT_CREATE = 'script_create',
   SCRIPT_UPDATE = 'script_update',
   SCRIPT_DELETE = 'script_delete',

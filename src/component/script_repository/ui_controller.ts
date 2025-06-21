@@ -950,7 +950,7 @@ export class UIController {
           return;
       }
 
-      scriptEvents.emit(ScriptRepositoryEventType.SCRIPT_SAVE, { script: newScript, type: target });
+      scriptEvents.emit(ScriptRepositoryEventType.SCRIPT_CREATE, { script: newScript, type: target });
 
       toastr.success(`脚本"${newScript.name}"已添加到${target === ScriptType.GLOBAL ? '全局' : '角色'}脚本库`);
     });
