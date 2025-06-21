@@ -1813,10 +1813,47 @@ const EjsTemplate: {
    * 并不会实际执行
    *
    * @param content 模板代码
-   * @param max_lines 发生错误时输出的附近行数
+   * @param output_line_count 发生错误时输出的附近行数
    * @returns 语法错误信息, 无错误返回空字符串
    */
-  getSyntaxErrorInfo: (code: string, max_lines: number = 4) => Promise<string>;
+  getSyntaxErrorInfo: (code: string, output_line_count: number = 4) => Promise<string>;
+
+  /**
+   * 获取全局变量、聊天变量、消息楼层变量的并集
+   *
+   * @param end_message_id 要合并的消息楼层变量最大楼层数
+   * @returns 合并后的变量
+   */
+  allVariables: (end_message_id?: number) => Record<string, any>;
+
+  /**
+   * 设置提示词模板语法插件的设置
+   *
+   * @param features 设置
+   */
+  setFeatures: (
+    features: Partial<{
+      enabled: boolean;
+      generate_enabled: boolean;
+      generate_loader_enabled: boolean;
+      render_enabled: boolean;
+      render_loader_enabled: boolean;
+      with_context_disabled: boolean;
+      debug_enabled: boolean;
+      autosave_enabled: boolean;
+      preload_worldinfo_enabled: boolean;
+      code_blocks_enabled: boolean;
+      world_active_enabled: boolean;
+      raw_message_evaluation_enabled: boolean;
+      filter_message_enabled: boolean;
+      cache_enabled: boolean;
+    }>,
+  ) => void;
+
+  /**
+   * 重置提示词模板语法插件的设置
+   */
+  resetFeatures: () => void;
 };
 namespace SillyTavern {
   interface ChatMessage {

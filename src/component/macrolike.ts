@@ -31,9 +31,8 @@ const macros: MacroLike[] = [
     replace: (context: Context, _substring: string, path: string) => {
       const variables =
         (context.message_id !== undefined ? chat.slice(0, context.message_id + 1) : chat)
-          .filter(message => message.variables?.[message.swipe_id ?? 0] !== undefined)
-          .map(message => message.variables[message.swipe_id ?? 0])
-          .at(-1) ?? {};
+          .map(chat_message => _.get(chat_message, ['variables', chat_message.swipe_id ?? 0]))
+          .findLast(data => data !== undefined) ?? {};
       return JSON.stringify(_.get(variables, path, null));
     },
   },
