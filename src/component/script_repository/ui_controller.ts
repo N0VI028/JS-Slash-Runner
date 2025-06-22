@@ -601,7 +601,7 @@ export class UIController {
       placeholder: 'sortable-placeholder',
       connectWith: '.folder-content',
 
-      stop: async (_event) => {
+      stop: async _event => {
         await this.handleDragStop(type);
       },
     });
@@ -624,7 +624,7 @@ export class UIController {
       tolerance: 'pointer',
       placeholder: 'sortable-placeholder',
       connectWith: `${getScriptListSelector(type)}, .folder-content`,
-      stop: async (_event) => {
+      stop: async _event => {
         await this.handleDragStop(type);
       },
     });
@@ -879,12 +879,14 @@ export class UIController {
 
     scriptHtml.find('.add-script').on('click', async () => {
       let target: ScriptType = ScriptType.GLOBAL;
-      const template = $(await renderExtensionTemplateAsync(this.templatePath, 'script_target_selector', {
-        title: '添加到:',
-        prefix: 'script-add',
-        globalLabel: '全局脚本库',
-        characterLabel: '角色脚本库',
-      }));
+      const template = $(
+        await renderExtensionTemplateAsync(this.templatePath, 'script_target_selector', {
+          title: '添加到:',
+          prefix: 'script-add',
+          globalLabel: '全局脚本库',
+          characterLabel: '角色脚本库',
+        }),
+      );
       template.find('#script-add-target-global').on('input', () => (target = ScriptType.GLOBAL));
       template.find('#script-add-target-character').on('input', () => (target = ScriptType.CHARACTER));
       const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', {
@@ -1625,7 +1627,7 @@ export class UIController {
     );
     template.find('#script-create-target-global').on('input', () => (target = ScriptType.GLOBAL));
     template.find('#script-create-target-character').on('input', () => (target = ScriptType.CHARACTER));
-    
+
     const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', {
       okButton: '确认',
       cancelButton: '取消',
@@ -2061,6 +2063,7 @@ export class UIController {
       $element.addClass('batch-mode');
       $element.find('.script-checkbox').show();
       $element.find('.drag-handle').hide();
+      $element.find('.script-controls').hide();
 
       $element
         .find('.script-checkbox')
@@ -2075,6 +2078,11 @@ export class UIController {
       $element.addClass('batch-mode');
       $element.find('.folder-checkbox').show();
       $element.find('.drag-handle').hide();
+      $element.find('.folder-control .folder-script-toggle').hide();
+      $element.find('.folder-control .folder-edit').hide();
+      $element.find('.folder-control .folder-export').hide();
+      $element.find('.folder-control .folder-move').hide();
+      $element.find('.folder-control .folder-delete').hide();
 
       $element
         .find('.folder-checkbox')
@@ -2108,6 +2116,12 @@ export class UIController {
       $element.removeClass('batch-mode selected');
       $element.find('.script-checkbox, .folder-checkbox').hide().prop('checked', false);
       $element.find('.drag-handle').show();
+      $element.find('.script-controls').show();
+      $element.find('.folder-control .folder-script-toggle').show();
+      $element.find('.folder-control .folder-edit').show();
+      $element.find('.folder-control .folder-export').show();
+      $element.find('.folder-control .folder-move').show();
+      $element.find('.folder-control .folder-delete').show();
       $element.find('.script-checkbox, .folder-checkbox').off('change.batch');
     });
   }
