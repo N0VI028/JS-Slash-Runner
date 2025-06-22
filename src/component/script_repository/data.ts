@@ -783,31 +783,6 @@ export class ScriptData {
   }
 }
 
-//=======TODO: 脚本变量==========
-
-/**
- * 获取脚本库局部变量
- * @returns 局部变量
- */
-export function getCharacterScriptVariables(): Record<string, any> {
-  //@ts-ignore
-  return characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables || {};
-}
-
-/**
- * 替换角色脚本变量
- * @param variables 变量
- */
-export async function replaceCharacterScriptVariables(variables: Record<string, any>): Promise<void> {
-  if (!this_chid) {
-    throw new Error('[ScriptManager] 保存变量失败，当前角色为空');
-  }
-  //@ts-ignore
-  await writeExtensionField(this_chid, 'TavernHelper_characterScriptVariables', variables);
-}
-
-//=======TODO: 脚本变量==========
-
 /**
  * 从脚本允许列表中删除角色
  * @param param0

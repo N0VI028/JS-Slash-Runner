@@ -5,6 +5,7 @@
 1. 脚本支持文件夹分组
    - 根据文件夹批量开关脚本
    - 自定义文件夹图标和图标颜色
+   - 通过拖动脚本控件，可直接移动到指定文件夹
 
 2. 脚本批量管理
    - 通过全局/角色脚本库文字旁的齿轮图标进入批量操作模式
@@ -12,7 +13,16 @@
    - 脚本导入导出支持zip格式，保留文件夹层级结构
   
 3. 脚本支持存储数据
-   - 待补充
+   - 新增脚本变量存储功能，脚本可以存储和读取自己的数据
+   - 提供完整的脚本变量操作API：
+     - `getScriptVariables()` - 获取脚本变量
+     - `replaceScriptVariables(variables)` - 替换全部脚本变量  
+     - `updateScriptVariablesWith(updater)` - 使用更新器函数更新变量
+     - `insertOrAssignScriptVariables(variables)` - 插入或分配变量（覆盖同名变量）
+     - `insertScriptVariables(variables)` - 仅插入新变量（不覆盖已存在的变量）
+     - `deleteScriptVariable(variablePath)` - 删除指定路径的变量
+   - 脚本编辑界面新增可视化变量管理
+   - 当脚本包含数据时，导出时会弹出选择对话框，注意API-KEY等敏感数据的处理，可清除数据后导出
 
 
 ## 3.2.2

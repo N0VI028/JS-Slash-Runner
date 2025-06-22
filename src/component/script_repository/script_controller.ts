@@ -125,10 +125,7 @@ class ScriptExecutor {
   }
 }
 
-/**
- * 脚本管理器 - 负责脚本的运行、停止等核心功能
- * 作为统一入口，内部使用ScriptExecutor处理具体执行
- */
+
 export class ScriptManager {
   private static instance: ScriptManager;
   private scriptData: ScriptData;
@@ -265,7 +262,7 @@ export class ScriptManager {
       }
 
       scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-        action: 'script_toggled',
+        action: 'script_toggle',
         script,
         type,
         enable,
@@ -298,7 +295,7 @@ export class ScriptManager {
       }
 
       scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-        action: 'type_toggled',
+        action: 'type_toggle',
         type,
         enable,
       });
@@ -687,7 +684,7 @@ export class ScriptManager {
   public async createScript(script: Script, type: ScriptType): Promise<void> {
     await this.scriptData.saveScript(script, type);
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'script_created',
+      action: 'script_create',
       script,
       type,
     });
@@ -701,7 +698,7 @@ export class ScriptManager {
   public async updateScript(script: Script, type: ScriptType): Promise<void> {
     await this.scriptData.saveScript(script, type);
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'script_updated',
+      action: 'script_update',
       script,
       type,
     });
@@ -766,7 +763,7 @@ export class ScriptManager {
     await this.scriptData.deleteScript(scriptId, type);
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'script_deleted',
+      action: 'script_delete',
       scriptId,
       type,
     });
@@ -803,7 +800,7 @@ export class ScriptManager {
     await this.scriptData.moveItemToOtherType({ type: 'script', id: script.id, value: script }, fromType);
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'script_moved',
+      action: 'script_move',
       script,
       fromType,
       targetType,
@@ -927,7 +924,7 @@ export class ScriptManager {
     await this.scriptData.moveItemToOtherType({ type: 'folder', id: folderId }, fromType);
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'folder_moved',
+      action: 'folder_move',
       folderId,
       fromType,
       targetType,
@@ -981,7 +978,7 @@ export class ScriptManager {
       }
 
       scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-        action: 'folder_scripts_toggled',
+        action: 'folder_scripts_toggle',
         folderId,
         type,
         enable,

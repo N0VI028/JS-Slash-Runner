@@ -1,7 +1,14 @@
-import { getCharacterScriptVariables, replaceCharacterScriptVariables } from '@/component/script_repository/data';
 import { getChatMessages, setChatMessages } from '@/function/chat_message';
 
-import { chat, chat_metadata, eventSource, saveMetadata, saveSettings } from '@sillytavern/script';
+import {
+  characters,
+  chat,
+  chat_metadata,
+  eventSource,
+  saveMetadata,
+  saveSettings,
+  this_chid,
+} from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
 interface VariableOption {
@@ -28,7 +35,8 @@ function getVariablesByType({ type = 'chat', message_id = 'latest' }: VariableOp
       return metadata.variables;
     }
     case 'character': {
-      return getCharacterScriptVariables();
+      //@ts-ignore
+      return characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables || {};
     }
     case 'global':
       return extension_settings.variables.global;
@@ -60,7 +68,11 @@ export async function replaceVariables(
       await saveMetadata();
       break;
     case 'character':
-      await replaceCharacterScriptVariables(variables);
+      if (!this_chid) {
+        throw new Error('保存变量失败，当前角色为空');
+      }
+      //@ts-ignore
+      await writeExtensionField(this_chid, 'TavernHelper_characterScriptVariables', variables);
       eventSource.emit('character_variables_changed', { variables });
       break;
     case 'global':

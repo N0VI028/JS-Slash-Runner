@@ -153,7 +153,7 @@ export class ScriptRepositoryApp {
             globalScript.enabled = false;
             console.info(`[ScriptManager] 关闭全局脚本: ${globalScript.name}`);
             scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-              action: 'script_toggled',
+              action: 'script_toggle',
               script: globalScript,
               type: ScriptType.GLOBAL,
               enable: false,

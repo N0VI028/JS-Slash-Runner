@@ -203,32 +203,32 @@ export class UIController {
       const { action } = data;
 
       switch (action) {
-        case 'script_toggled':
+        case 'script_toggle':
           await this.refreshScriptState(data.script, data.enable);
           this.updateParentFolderToggle(data.script.id, data.type);
           break;
-        case 'type_toggled':
+        case 'type_toggle':
           await this.refreshTypeState(data.type, data.enable);
           break;
-        case 'script_imported':
+        case 'script_import':
           await this.addScriptToContainer(data.script, data.type);
           break;
-        case 'script_created':
+        case 'script_create':
           await this.addScriptToContainer(data.script, data.type);
           break;
-        case 'script_updated':
+        case 'script_update':
           this.updateScriptUI(data.script, data.type);
           break;
-        case 'script_deleted':
+        case 'script_delete':
           this.removeScriptElement(data.scriptId);
           break;
-        case 'script_moved':
+        case 'script_move':
           this.handleScriptMoved(data.script, data.fromType, data.targetType);
           break;
-        case 'folder_moved':
+        case 'folder_move':
           await this.renderScriptLists();
           break;
-        case 'folder_scripts_toggled':
+        case 'folder_scripts_toggle':
           this.updateFolderAndScriptsUI(data.folderId, data.type, data.enable);
           break;
         case 'load_default_scripts':
@@ -562,7 +562,7 @@ export class UIController {
     }
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-      action: 'script_imported',
+      action: 'script_import',
       script,
       type: targetType,
     });
@@ -1180,7 +1180,7 @@ export class UIController {
     const $variableItem = $(`
       <div class="variable-item flex-container flexFlowColumn width100p">
         <div class="flex flexFlowColumn">
-        <div class="flex-container alignitemscenter spaceBetween wide100p"">
+        <div class="flex-container alignitemscenter spaceBetween wide100p">
           <div>名称:</div>
           <div class="menu_button interactable delete-variable" title="删除变量">
             <i class="fa-solid fa-trash"></i>
@@ -1190,7 +1190,7 @@ export class UIController {
         </div>
         <div class="flex flexFlowColumn" style="align-items: flex-start;">
           <div>值:</div>
-          <textarea class="text_pole variable-value" style="min-height: 12px;" rows="1", placeholder="变量值">${this.escapeHtml(
+          <textarea class="text_pole variable-value" style="min-height: 12px;" rows="1" placeholder="变量值">${this.escapeHtml(
             valueStr,
           )}</textarea>
         </div>
