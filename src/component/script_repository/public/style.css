@@ -3,6 +3,7 @@
   width: 100%;
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 10px;
+  min-height: 35px;
 }
 
 .script-folder {
@@ -156,19 +157,18 @@
 }
 
 .folder-header {
-  padding: 0 5px;
+  padding: 5px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
   user-select: none;
   border-radius: 10px;
-  min-height: 40px;
 }
 
 .folder-control {
   gap: 10px;
-  padding-right: 5px;
+  padding: 3px;
 }
 
 .folder-toggle.expanded {

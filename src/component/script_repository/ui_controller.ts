@@ -2063,7 +2063,7 @@ export class UIController {
       $element.addClass('batch-mode');
       $element.find('.script-checkbox').show();
       $element.find('.drag-handle').hide();
-      $element.find('.script-controls').hide();
+      $element.find('.script-item-control').hide();
 
       $element
         .find('.script-checkbox')
@@ -2115,6 +2115,7 @@ export class UIController {
       const $element = $(element);
       $element.removeClass('batch-mode selected');
       $element.find('.script-checkbox, .folder-checkbox').hide().prop('checked', false);
+      $element.find('.script-item-control').show();
       $element.find('.drag-handle').show();
       $element.find('.script-controls').show();
       $element.find('.folder-control .folder-script-toggle').show();
