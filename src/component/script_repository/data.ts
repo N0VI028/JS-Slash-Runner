@@ -1,11 +1,11 @@
 import {
-  extractScriptsFromRepository,
-  getOppositeScriptType,
-  isScript,
-  isScriptRepositoryItem,
-  Script,
-  ScriptRepositoryItem,
-  ScriptType,
+    extractScriptsFromRepository,
+    getOppositeScriptType,
+    isScript,
+    isScriptRepositoryItem,
+    Script,
+    ScriptRepositoryItem,
+    ScriptType,
 } from '@/component/script_repository/types';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { characters, this_chid } from '@sillytavern/script';
