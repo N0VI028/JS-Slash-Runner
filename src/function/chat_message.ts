@@ -211,6 +211,10 @@ export async function setChatMessages(
           _.set(data, 'variables', _.times(data.swipes?.length ?? 1, _.constant({})));
         }
         _.set(data, ['variables', data.swipe_id ?? 0], chat_message.data);
+        eventSource.emit('message_variables_changed', {
+          message_id: chat_message.message_id,
+          variables: chat_message.data,
+        });
       }
       if (chat_message?.extra !== undefined) {
         if (data?.swipes_info === undefined) {
@@ -241,6 +245,11 @@ export async function setChatMessages(
       _.set(data, 'swipe_id', chat_message.swipe_id);
       _.set(data, 'mes', data.swipes[data.swipe_id]);
       _.set(data, 'extra', data.swipes_info[data.swipe_id]);
+
+      eventSource.emit('message_variables_changed', {
+        message_id: chat_message.message_id,
+        variables: (chat_message.swipes_data as Record<string, any>[])[chat_message.swipe_id as number],
+      });
     }
   };
 

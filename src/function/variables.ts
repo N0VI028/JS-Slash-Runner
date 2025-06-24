@@ -59,9 +59,8 @@ export async function replaceVariables(
       if (message_id !== 'latest' && (message_id < -chat.length || message_id >= chat.length)) {
         throw Error(`提供的 message_id(${message_id}) 超出了聊天消息楼层号范围`);
       }
-      message_id = message_id === 'latest' ? -1 : message_id;
+      message_id = message_id === 'latest' ? chat.length - 1 : (message_id < 0 ? chat.length + message_id : message_id);
       await setChatMessages([{ message_id, data: variables }], { refresh: 'none' });
-      eventSource.emit('message_variables_changed', { message_id, variables });
       break;
     case 'chat':
       _.set(chat_metadata, 'variables', variables);
