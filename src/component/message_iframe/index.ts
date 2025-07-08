@@ -25,7 +25,7 @@ const RENDER_MODES = {
 declare global {
   interface Window {
     _sharedResizeObserver?: ResizeObserver;
-    _observedElements?: Map<HTMLElement, { iframe: HTMLIFrameElement }>;
+    _observedElements?: Map<HTMLElement, { iframe: HTMLIFrameElement; blobUrl?: string }>;
     gc?: () => void;
   }
 }
@@ -305,7 +305,6 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
         const $iframe = $('<iframe>')
           .attr({
             id: `message-iframe-${messageId}-${iframeCounter}`,
-            srcdoc: '',
             loading: 'lazy',
           })
           .css({
@@ -343,6 +342,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
         const srcdocContent = `
           <html>
           <head>
+            <base href="${window.location.origin}/">
             <style>
             ${hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : ``}
             html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}
@@ -363,10 +363,13 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
           </body>
           </html>
         `;
-        $iframe.attr('srcdoc', srcdocContent);
+
+        const blob = new Blob([srcdocContent], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+        $iframe.attr('src', blobUrl).attr('data-blob-url', blobUrl);
 
         $iframe.on('load', function () {
-          observeIframeContent(this);
+          observeIframeContent(this, blobUrl);
 
           $wrapper = $(this).parent();
           if ($wrapper.length) {
@@ -433,8 +436,9 @@ function getSharedResizeObserver(): ResizeObserver {
 /**
  * 观察iframe内容用于自动调整高度
  * @param iframe iframe元素
+ * @param blobUrl Blob URL（如果使用）
  */
-function observeIframeContent(iframe: HTMLIFrameElement) {
+function observeIframeContent(iframe: HTMLIFrameElement, blobUrl?: string) {
   const $iframe = $(iframe);
   if (!$iframe.length || !$iframe[0].contentWindow || !$iframe[0].contentWindow.document.body) {
     return;
@@ -448,13 +452,16 @@ function observeIframeContent(iframe: HTMLIFrameElement) {
       for (const [element, data] of window._observedElements.entries()) {
         if (data.iframe === iframe) {
           resizeObserver.unobserve(element);
+          if (data.blobUrl) {
+            URL.revokeObjectURL(data.blobUrl);
+          }
           window._observedElements.delete(element);
           break;
         }
       }
     }
 
-    window._observedElements?.set(docBody, { iframe });
+    window._observedElements?.set(docBody, { iframe, blobUrl });
     resizeObserver.observe(docBody);
 
     adjustIframeHeight(iframe);
@@ -477,6 +484,12 @@ export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
     }
 
     const iframeId = $iframe.attr('id');
+    const blobUrl = $iframe.attr('data-blob-url');
+
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+    }
+
     $iframe.off();
 
     try {
@@ -514,6 +527,9 @@ export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
       for (const [element, data] of window._observedElements.entries()) {
         if (data.iframe === iframe) {
           window._sharedResizeObserver.unobserve(element);
+          if (data.blobUrl) {
+            URL.revokeObjectURL(data.blobUrl);
+          }
           window._observedElements.delete(element);
           break;
         }

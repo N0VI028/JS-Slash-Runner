@@ -32,9 +32,9 @@ function loadScripts(): Script[] {
   return scripts.map(to_script);
 }
 
-const script_map: Map<string, HTMLIFrameElement> = new Map();
+const script_map: Map<string, { iframe: HTMLIFrameElement; blobUrl: string }> = new Map();
 
-function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_promise: Promise<void> } {
+function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_promise: Promise<void>; blobUrl: string } {
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   iframe.id = `script-iframe-${script.name}`;
@@ -42,6 +42,7 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
   const srcdocContent = `
     <html>
     <head>
+      <base href="${window.location.origin}/">
       ${third_party}
       <script src="${script_url.get('iframe_client')}"></script>
     </head>
@@ -51,7 +52,9 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
     </html>
   `;
 
-  iframe.srcdoc = srcdocContent;
+  const blob = new Blob([srcdocContent], { type: 'text/html' });
+  const blobUrl = URL.createObjectURL(blob);
+  iframe.src = blobUrl;
 
   const load_promise = new Promise<void>(resolve => {
     iframe.onload = () => {
@@ -62,14 +65,15 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
 
   document.body.appendChild(iframe);
 
-  return { iframe, load_promise };
+  return { iframe, load_promise, blobUrl };
 }
 
 function destroy(): void {
   if (script_map.size !== 0) {
     console.log(`[(deprecated)Script] 清理全局脚本...`);
-    script_map.forEach((iframe, _) => {
+    script_map.forEach(({ iframe, blobUrl }, _) => {
       iframe.remove();
+      URL.revokeObjectURL(blobUrl);
     });
     script_map.clear();
     console.log(`[(deprecated)Script] 全局脚本清理完成!`);
@@ -86,8 +90,8 @@ async function initialize(): Promise<void> {
     const load_promises: Promise<void>[] = [];
 
     scripts.forEach(script => {
-      const { iframe, load_promise } = makeScriptIframe(script);
-      script_map.set(script.name, iframe);
+      const { iframe, load_promise, blobUrl } = makeScriptIframe(script);
+      script_map.set(script.name, { iframe, blobUrl });
       load_promises.push(load_promise);
     });
 
