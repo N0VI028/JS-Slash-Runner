@@ -312,8 +312,8 @@ class StreamingProcessor {
     // 计算增量文本
     const newText = text.slice(this.messageBuffer.length);
     this.messageBuffer = text;
-
-    // @ts-expect-error
+    // 兼容旧版本
+    // @ts-ignore
     let processedText = cleanUpMessage(newText, false, false, !isFinal, this.stoppingStrings);
 
     const charsToBalance = ['*', '"', '```'];
@@ -328,7 +328,8 @@ class StreamingProcessor {
     eventSource.emit('js_stream_token_received_incrementally', processedText);
 
     if (isFinal) {
-      // @ts-expect-error
+      // 兼容旧版本
+      // @ts-ignore
       const fullText = cleanUpMessage(text, false, false, false, this.stoppingStrings);
       eventSource.emit('js_generation_ended', fullText);
     }
@@ -469,6 +470,18 @@ async function prepareAndOverrideData(
   }
 
   // 4. 获取角色卡基础字段
+  const charDepthPrompt = baseChatReplace(
+    // @ts-ignore
+    characters[this_chid]?.data?.extensions?.depth_prompt?.prompt?.trim(),
+    name1,
+    name2,
+  );
+  const creatorNotes = baseChatReplace(
+    // @ts-ignore
+    characters[this_chid]?.data?.creator_notes?.trim(),
+    name1,
+    name2,
+  );
   const {
     description: rawDescription,
     personality: rawPersonality,
@@ -477,8 +490,6 @@ async function prepareAndOverrideData(
     mesExamples: rawMesExamples,
     system,
     jailbreak,
-    charDepthPrompt,
-    creatorNotes,
   } = getCharacterCardFields();
 
   // 判断是否被过滤,如果被过滤返回空字符串,否则返回override的值或原始值
@@ -734,6 +745,8 @@ async function processWorldInfo(
     creatorNotes: characterInfo.creatorNotes,
   };
   const { worldInfoString, worldInfoBefore, worldInfoAfter, worldInfoExamples, worldInfoDepth } =
+    // globalScanData只在新的酒馆版本中存在
+    // @ts-ignore
     await getWorldInfoPrompt(chatForWI, this_max_context, dryRun, globalScanData);
 
   await clearInjectionPrompts(['customDepthWI']);
@@ -915,6 +928,7 @@ async function convertSystemPromptsToCollection(
       const content = builtinPromptContents[item as keyof typeof builtinPromptContents];
       if (content) {
         promptCollection.add(
+          // @ts-ignore
           new Prompt({
             identifier: item,
             role: 'system',
@@ -927,6 +941,7 @@ async function convertSystemPromptsToCollection(
       // 处理自定义注入
       const identifier = `custom_prompt_${index}`;
       promptCollection.add(
+        // @ts-ignore
         new Prompt({
           identifier: identifier,
           role: item.role,
@@ -1054,7 +1069,6 @@ async function processChatHistoryAndInject(
   // 创建用户输入消息
   const userMessage = await Message.createAsync('user', processedUserInput, 'user_input');
 
-  // 仅在需要时添加图像
   if (promptConfig.image && hasUserInput) {
     await userMessage.addImage(await convertFileToBase64(promptConfig.image));
   }
@@ -1342,10 +1356,10 @@ function extractMessageFromData(data: any) {
 }
 
 async function convertFileToBase64(image: File | string): Promise<string> {
-  if (image instanceof File) {
-    return await getBase64Async(image);
+  if (typeof image === 'string') {
+    return image;
   }
-  return image;
+  return await getBase64Async(image);
 }
 
 function addTemporaryUserMessage(userContent: string) {

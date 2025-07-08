@@ -2,7 +2,7 @@ import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue } from '@/util/extension_variables';
 
-import { eventSource, event_types, reloadCurrentChat, updateMessageBlock, this_chid } from '@sillytavern/script';
+import { eventSource, event_types, reloadCurrentChat, this_chid, updateMessageBlock } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 
 let isExtensionEnabled: boolean;
@@ -312,7 +312,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
             margin: '5px auto',
             border: 'none',
             width: '100%',
-          });
+          }) as JQuery<HTMLIFrameElement>;
 
         iframeCounter++;
 
@@ -366,7 +366,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
         $iframe.attr('srcdoc', srcdocContent);
 
         $iframe.on('load', function () {
-          observeIframeContent(this as HTMLIFrameElement);
+          observeIframeContent(this);
 
           $wrapper = $(this).parent();
           if ($wrapper.length) {
@@ -378,16 +378,13 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
           }
 
           if ($(this).attr('data-needs-vh') === 'true') {
-            const iframe = this as HTMLIFrameElement;
-            if (iframe.contentWindow) {
-              iframe.contentWindow.postMessage(
-                {
-                  request: 'updateViewportHeight',
-                  newHeight: window.innerHeight,
-                },
-                '*',
-              );
-            }
+            this.contentWindow?.postMessage(
+              {
+                request: 'updateViewportHeight',
+                newHeight: window.innerHeight,
+              },
+              '*',
+            );
           }
 
           eventSource.emitAndWait('message_iframe_render_ended', this.id);

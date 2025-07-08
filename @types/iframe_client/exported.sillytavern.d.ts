@@ -49,6 +49,16 @@ const SillyTavern: {
   /** chat_metadata */
   readonly chatMetadata: Record<string, any>;
   readonly streamingProcessor: any;
+  readonly eventSource: {
+    on: typeof eventOn,
+    makeLast: typeof eventMakeLast,
+    makeFirst: typeof eventMakeFirst,
+    removeListener: typeof eventRemoveListener,
+    emit: typeof eventEmit,
+    emitAndWait: typeof eventEmitAndWait,
+    once: typeof eventOnce,
+  };
+  readonly eventTypes: typeof tavern_events;
   readonly addOneMessage: (mes: object, options: any) => Promise<void>;
   readonly deleteLastMessage: () => Promise<void>;
   readonly generate: Function;

@@ -130,6 +130,14 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener: Liste
 async function eventEmit<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): Promise<void>;
 
 /**
+ * 携带 `data` 而发送 `event_type` 事件并等待事件处理结束.
+ *
+ * @param event_type 要发送的事件
+ * @param data 要随着事件发送的数据
+ */
+function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void
+
+/**
  * 让 `listener` 取消对 `event_type` 的监听.
  *
  * - 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.

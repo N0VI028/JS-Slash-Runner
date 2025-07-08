@@ -59,6 +59,10 @@ interface Window {
     // macrolike
     readonly registerMacroLike: typeof registerMacroLike;
 
+    // script_repository
+    readonly getScriptButtons: typeof getScriptButtons;
+    readonly replaceScriptButtons: typeof replaceScriptButtons;
+
     // slash
     readonly triggerSlash: typeof triggerSlash;
 

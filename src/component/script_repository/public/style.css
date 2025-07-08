@@ -90,7 +90,6 @@
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 8px;
   padding: 10px;
-  background-color: var(--grey5020a);
 }
 
 #script-editor .variable-item .variable-value,

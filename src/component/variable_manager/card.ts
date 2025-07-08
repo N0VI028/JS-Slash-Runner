@@ -107,12 +107,12 @@ export class VariableCardFactory {
             <input type="text" class="variable-title" value="${name}" placeholder="变量名称">
           </div>
           <div class="variable-actions">
-            <button class="variable-action-btn save-btn" title="保存">
+            <div class="variable-action-btn save-btn" title="保存">
               <i class="fa-regular fa-save"></i>
-            </button>
-            <button class="variable-action-btn delete-btn" title="删除">
+            </div>
+            <div class="variable-action-btn delete-btn" title="删除">
               <i class="fa-regular fa-trash-can"></i>
-            </button>
+            </div>
           </div>
         </div>
         <div class="variable-card-content">
@@ -140,7 +140,7 @@ export class VariableCardFactory {
           .end()
           .find('.variable-card-content')
           .append(
-            `<div class="list-items-container"></div><button class="add-list-item"><i class="fa-solid fa-plus"></i> 添加项目</button>`,
+            `<div class="list-items-container"></div><div class="add-list-item"><i class="fa-solid fa-plus"></i> 添加项目</div>`,
           );
 
         this.populateArrayItems(card, value);
@@ -167,8 +167,8 @@ export class VariableCardFactory {
             `
               <div class="boolean-input-container">
                 <div class="boolean-buttons-container">
-                  <button class="boolean-btn ${value ? 'active' : ''}" data-value="true">True</button>
-                  <button class="boolean-btn ${!value ? 'active' : ''}" data-value="false">False</button>
+                  <div class="boolean-btn ${value ? 'active' : ''}" data-value="true">True</div>
+                  <div class="boolean-btn ${!value ? 'active' : ''}" data-value="false">False</div>
                 </div>
               </div>
             `,
@@ -306,7 +306,7 @@ export class VariableCardFactory {
         index: _index,
         key: key,
         dataType: nestedDataType,
-        cardHtml: $nestedCard[0].outerHTML.substring(0, 200) + '...'
+        cardHtml: $nestedCard[0].outerHTML.substring(0, 200) + '...',
       });
 
       if (key) {
@@ -470,9 +470,9 @@ export class VariableCardFactory {
       `);
 
       card.find('.variable-actions .object-save-btn').before(`
-        <button class="variable-action-btn add-nested-key-btn" title="添加键值对">
+        <div class="variable-action-btn add-nested-key-btn" title="添加键值对">
           <i class="fa-regular fa-plus"></i>
-        </button>
+        </div>
       `);
     } else {
       card.find('.variable-card-content').append(`
@@ -483,13 +483,30 @@ export class VariableCardFactory {
       `);
 
       card.find('.variable-actions .save-btn').before(`
-        <button class="variable-action-btn toggle-view-btn" title="切换到JSON视图">
+        <div class="variable-action-btn toggle-view-btn" title="切换到JSON视图">
           <i class="fa-regular fa-list"></i>
-        </button>
-        <button class="variable-action-btn add-key-btn" title="添加键值对">
+        </div>
+        <div class="variable-action-btn add-key-btn" title="添加键值对">
           <i class="fa-regular fa-plus"></i>
-        </button>
+        </div>
       `);
+
+      card.find('.variable-actions .delete-btn').after(`
+        <div class="variable-action-btn collapse-btn flex" title="折叠">
+          <i class="fa-solid fa-chevron-down"></i>
+        </div>
+      `);
+
+      card.find('.variable-card-content').addClass('expanded');
+      card.find('.collapse-btn').addClass('expanded');
+
+      card.find('.collapse-btn').on('click', () => {
+        const $icon = card.find('.collapse-btn');
+        const $body = card.children('.variable-card-content');
+
+        $icon.toggleClass('expanded');
+        $body.toggleClass('expanded');
+      });
 
       card.find('.json-input').val(JSON.stringify(variable.value, null, 2)).end().attr('data-view-mode', 'card');
 
@@ -599,7 +616,7 @@ export class VariableCardFactory {
         <div class="list-item">
           <span class="drag-handle">☰</span>
           <textarea class="variable-content-input">${displayValue}</textarea>
-          <button class="list-item-delete"><i class="fa-solid fa-times"></i></button>
+          <div class="list-item-delete"><i class="fa-solid fa-times"></i></div>
         </div>
       `);
       listContainer.append(listItem);

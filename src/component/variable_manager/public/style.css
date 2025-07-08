@@ -249,10 +249,10 @@
 .variable-card-header i,
 .variable-card-header input,
 .add-list-item {
-  font-size: var(--vm-font-small);
+  font-size: var(--vm-font-small) !important;
 }
 
-.variable-title,
+input.variable-title,
 .nested-card-key-input {
   background-color: transparent !important;
   border: none !important;
@@ -274,6 +274,7 @@
   display: flex;
   gap: 5px;
   flex-shrink: 0;
+  align-items: end;
 }
 
 /* 变量内容输入 */
@@ -707,7 +708,8 @@
 }
 
 /* 楼层面板 */
-.floor-panel {
+.floor-panel,
+.object-panel {
   margin-bottom: 10px;
   border-radius: var(--vm-border-radius);
   overflow: hidden;
@@ -729,7 +731,12 @@
   display: none;
 }
 
-.floor-panel-body.expanded {
+.variable-card[data-type='object']:not(.nested-cards-container .variable-card) > .variable-card-content {
+  display: none;
+}
+
+.floor-panel-body.expanded,
+.variable-card[data-type='object']:not(.nested-cards-container .variable-card) .variable-card-content.expanded {
   display: block;
 }
 
@@ -737,7 +744,8 @@
   transition: transform 0.3s;
 }
 
-.floor-panel-icon.expanded {
+.floor-panel-icon.expanded,
+.collapse-btn.expanded {
   transform: rotate(180deg);
 }
 

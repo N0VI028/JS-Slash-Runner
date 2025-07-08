@@ -125,7 +125,6 @@ class ScriptExecutor {
   }
 }
 
-
 export class ScriptManager {
   private static instance: ScriptManager;
   private scriptData: ScriptData;
@@ -437,7 +436,7 @@ export class ScriptManager {
     const folders = new Set<string>();
     const rootScripts: string[] = [];
 
-        for (const fileName in zipContent.files) {
+    for (const fileName in zipContent.files) {
       const file = zipContent.files[fileName];
 
       if (!file.dir && fileName.endsWith('.json')) {
@@ -451,7 +450,7 @@ export class ScriptManager {
       }
     }
 
-        for (const fileName of rootScripts) {
+    for (const fileName of rootScripts) {
       const file = zipContent.files[fileName];
       const scriptContent = await file.async('string');
       const scriptData = JSON.parse(scriptContent);
@@ -466,7 +465,7 @@ export class ScriptManager {
       }
     }
 
-        for (const folderName of folders) {
+    for (const folderName of folders) {
       const folderScriptCount = await this.importFolderFromZipNew(zipContent, folderName, type);
       importedScripts += folderScriptCount;
       importedFolders++;
@@ -663,7 +662,7 @@ export class ScriptManager {
   }
 
   /**
-   * 读取文件内容为文本 - 使用Promise代替回调
+   * 读取文件内容为文本
    * @param file 文件对象
    * @returns 文件内容
    */
@@ -717,34 +716,6 @@ export class ScriptManager {
     }
 
     this.scriptData.loadScripts();
-  }
-
-  /**
-   * @deprecated 使用统一的 saveOrder 方法替代
-   * 保存脚本排序
-   * @param scripts 脚本数组
-   * @param type 脚本类型
-   */
-  public async saveScriptsOrder(scripts: Script[], type: ScriptType): Promise<void> {
-    console.warn('[ScriptManager] saveScriptsOrder 已废弃，请使用 saveOrder 方法');
-
-    const repositoryItems: ScriptRepositoryItem[] = scripts.map(script => ({
-      type: 'script' as const,
-      value: script,
-    }));
-
-    await this.saveOrder(repositoryItems, type);
-  }
-
-  /**
-   * @deprecated 使用统一的 saveOrder 方法替代
-   * 保存仓库项排序（包含文件夹和脚本的混合排序）
-   * @param repositoryItems 仓库项数组
-   * @param type 脚本类型
-   */
-  public async saveRepositoryItemsOrder(repositoryItems: ScriptRepositoryItem[], type: ScriptType): Promise<void> {
-    console.warn('[ScriptManager] saveRepositoryItemsOrder 已废弃，请使用 saveOrder 方法');
-    await this.saveOrder(repositoryItems, type);
   }
 
   /**
@@ -996,6 +967,37 @@ export class ScriptManager {
    */
   public getFolderScriptsState(folderId: string, type: ScriptType): 'all' | 'none' {
     return this.scriptData.getFolderScriptsState(folderId, type);
+  }
+
+  /**
+   * 获取指定脚本的按钮数组
+   * @param scriptId 脚本ID
+   * @returns 按钮数组
+   */
+  public getScriptButton(scriptId: string): Script['buttons'] {
+    const script = this.scriptData.getScriptById(scriptId);
+    if (!script) {
+      console.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
+      return [];
+    }
+    return script.buttons;
+  }
+
+  /**
+   * 修改后更新脚本按钮（仅重建按钮，不重启脚本）
+   * @param script 脚本对象
+   * @param type 脚本类型
+   */
+  public async setScriptButton(script: Script, type: ScriptType): Promise<void> {
+    await this.scriptData.saveScript(script, type);
+
+    if (script.enabled) {
+      scriptEvents.emit(ScriptRepositoryEventType.BUTTON_REMOVE, { scriptId: script.id });
+
+      if (script.buttons && script.buttons.length > 0) {
+        scriptEvents.emit(ScriptRepositoryEventType.BUTTON_ADD, { script });
+      }
+    }
   }
 
   /**

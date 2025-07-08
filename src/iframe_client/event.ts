@@ -1,31 +1,5 @@
-/**
- * 事件可以是
- * - `iframe_events` 中的 iframe 事件
- * - `tavern_events` 中的酒馆事件
- * - 自定义的字符串事件
- */
 type EventType = IframeEventType | TavernEventType | string;
 
-/**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动运行 `listener`.
- *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
- *
- * @param event_type 要监听的事件
- * @param listener 要注册的函数
- *
- * @example
- * function hello() { alert("hello"); }
- * eventOn(要监听的事件, hello);
- *
- * @example
- * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_UPDATED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageUpdated(message_id) {
- *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
- * }
- * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
- */
 function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   if (detail.try_get_wrapper(listener, event_type)) {
     console.warn(
@@ -43,18 +17,6 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
   );
 }
 
-/**
- * 让 `listener` 监听 `event_type`, 按下脚本库中附加了按钮的脚本时自动运行 `listener`.
- *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
- *
- * @param event_type 要监听的事件
- * @param listener 要注册的函数
- *
- * @example
- * function hello() { alert("hello"); }
- * eventOnButton(对应的按钮名称, hello);
- */
 function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const script_id = getScriptId();
   if (detail.try_get_wrapper(listener, event_type)) {
@@ -77,17 +39,6 @@ function eventOnButton<T extends EventType>(event_type: T, listener: ListenerTyp
   );
 }
 
-/**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`.
- *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
- *
- * @param event_type 要监听的事件
- * @param listener 要注册/调整到最后运行的函数
- *
- * @example
- * eventMakeLast(要监听的事件, 要注册的函数);
- */
 function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
   SillyTavern.eventSource.makeLast(event_type, detail.get_or_make_wrapper(listener, event_type, false));
@@ -106,17 +57,6 @@ function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerTyp
   }
 }
 
-/**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动在最先运行 `listener`.
- *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
- *
- * @param event_type 要监听的事件
- * @param listener 要注册/调整为最先运行的函数
- *
- * @example
- * eventMakeFirst(要监听的事件, 要注册的函数);
- */
 function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
   SillyTavern.eventSource.makeFirst(event_type, detail.get_or_make_wrapper(listener, event_type, false));
@@ -135,17 +75,6 @@ function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerTy
   }
 }
 
-/**
- * 让 `listener` 仅监听下一次 `event_type`, 当该次事件发生时运行 `listener`, 此后取消监听.
- *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
- *
- * @param event_type 要监听的事件
- * @param listener 要注册的函数
- *
- * @example
- * eventOnce(要监听的事件, 要注册的函数);
- */
 function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   if (detail.try_get_wrapper(listener, event_type)) {
     console.warn(
@@ -163,32 +92,8 @@ function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]
   );
 }
 
-/**
- * 等待一次 `event_type` 事件
- *
- * @param event_type 要等待的事件
- *
- * @example
- * await eventWaitOnce(tavern_events.MESSAGE_DELETED);
- */
 async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
-
-/**
- * 等待 `listener` 监听到一次 `event_type` 且执行完成, 返回 `listener` 的执行结果
- *
- * 如果填入 `listener`, 则在调用本函数前 `listener` 必须已经在监听 `event_type`
- *
- * @param event_type `listener` 在监听的事件
- * @param listener 已经在监听 `event_type` 的函数
- *
- * @returns  `listener` 得到的结果
- *
- * @example
- * eventOnce("存档", save);
- * await eventWaitOnce("存档", save);
- */
 async function eventWaitOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<any | undefined>;
-
 async function eventWaitOnce<T extends EventType>(event_type: T, listener?: ListenerType[T]): Promise<any | undefined> {
   if (!listener) {
     const do_nothing = () => {};
@@ -224,42 +129,17 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
   });
 }
 
-/**
- * 发送 `event_type` 事件, 同时可以发送一些数据 `data`.
- *
- * 所有正在监听 `event_type` 消息频道的都会收到该消息并接收到 `data`.
- *
- * @param event_type 要发送的事件
- * @param data 要随着事件发送的数据
- *
- * @example
- * // 发送 "角色阶段更新完成" 事件, 所有监听该事件的 `listener` 都会被运行
- * eventEmit("角色阶段更新完成");
- *
- * @example
- * // 发送 "存档" 事件, 并等待所有 `listener` (也许是负责存档的函数) 执行完毕后才继续
- * await eventEmit("存档");
- *
- * @example
- * // 发送时携带数据 ["你好", 0]
- * eventEmit("事件", "你好", 0);
- */
 async function eventEmit<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): Promise<void> {
   await SillyTavern.eventSource.emit(event_type, ...data);
   console.info(`[Event][eventEmit](${getIframeName()}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
 }
 
-/**
- * 让 `listener` 取消对 `event_type` 的监听.
- *
- * - 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
- *
- * @param event_type 要监听的事件
- * @param listener 要取消注册的函数
- *
- * @example
- * eventRemoveListener(要监听的事件, 要取消注册的函数);
- */
+
+function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void {
+  SillyTavern.eventSource.emitAndWait(event_type, ...data);
+  console.info(`[Event][eventEmitAndWait](${getIframeName()}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
+}
+
 function eventRemoveListener<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const wrapper = detail.try_get_wrapper(listener, event_type);
   if (!wrapper) {
@@ -279,11 +159,6 @@ function eventRemoveListener<T extends EventType>(event_type: T, listener: Liste
   );
 }
 
-/**
- * 取消本 iframe 中对 `event_type` 的所有监听
- *
- * @param event_type 要取消监听的事件
- */
 function eventClearEvent(event_type: EventType): void {
   detail.listener_event_wrapper_map.forEach((event_wrapper_map, _) => {
     const wrapper = event_wrapper_map.get(event_type);
@@ -296,11 +171,6 @@ function eventClearEvent(event_type: EventType): void {
   console.info(`[Event][eventClearEvent](${getIframeName()})所有函数都不再监听 '${event_type}' 事件`);
 }
 
-/**
- * 取消本 iframe 中 `listener` 的的所有监听
- *
- * @param listener 要取消注册的函数
- */
 function eventClearListener(listener: Function): void {
   const event_callback_map = detail.extract(detail.listener_event_wrapper_map, listener);
   if (event_callback_map) {
@@ -316,9 +186,6 @@ function eventClearListener(listener: Function): void {
   );
 }
 
-/**
- * 取消本 iframe 中对所有事件的所有监听
- */
 function eventClearAll(): void {
   detail.listener_event_wrapper_map.forEach((event_wrapper_map, _) => {
     event_wrapper_map.forEach((wrapper, event_type) => {
@@ -331,27 +198,19 @@ function eventClearAll(): void {
 }
 
 //------------------------------------------------------------------------------------------------------------------------
-// 以下是可用的事件, 你可以发送和监听它们
-
 type IframeEventType = (typeof iframe_events)[keyof typeof iframe_events];
 
-// iframe 事件
 const iframe_events = {
   MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
   MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
-  /** `generate` 函数开始生成 */
   GENERATION_STARTED: 'js_generation_started',
-  /** 启用流式传输的 `generate` 函数传输当前完整文本: "这是", "这是一条", "这是一条流式传输" */
   STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully',
-  /** 启用流式传输的 `generate` 函数传输当前增量文本: "这是", "一条", "流式传输" */
   STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally',
-  /** `generate` 函数完成生成 */
   GENERATION_ENDED: 'js_generation_ended',
 } as const;
 
 type TavernEventType = (typeof tavern_events)[keyof typeof tavern_events];
 
-// 酒馆事件. **不建议自己发送酒馆事件, 因为你并不清楚它需要发送什么数据**
 const tavern_events = {
   APP_READY: 'app_ready',
   EXTRAS_CONNECTED: 'extras_connected',

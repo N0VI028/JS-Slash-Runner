@@ -39,6 +39,7 @@ import {
   setLorebookEntries,
   updateLorebookEntriesWith,
 } from '@/function/lorebook_entry';
+import { getScriptButtons, replaceScriptButtons } from '@/function/script_repository';
 import { triggerSlash } from '@/function/slash';
 import {
   getTavernRegexes,
@@ -143,6 +144,10 @@ function getTavernHelper() {
     insertOrAssignVariables,
     deleteVariable,
     insertVariables,
+
+    // script_repository
+    getScriptButtons,
+    replaceScriptButtons,
 
     // version
     getTavernHelperVersion,

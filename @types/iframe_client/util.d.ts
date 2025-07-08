@@ -6,7 +6,7 @@
 function getIframeName(): string;
 
 /**
- * 获取脚本库的 id, **只能对脚本库使用**
+ * 获取脚本的脚本库 id, **只能在脚本内使用**
  *
  * @returns 脚本库的 id
  */

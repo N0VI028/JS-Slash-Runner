@@ -750,6 +750,10 @@ interface Window {
     // macrolike
     readonly registerMacroLike: typeof registerMacroLike;
 
+    // script_repository
+    readonly getScriptButtons: typeof getScriptButtons;
+    readonly replaceScriptButtons: typeof replaceScriptButtons;
+
     // slash
     readonly triggerSlash: typeof triggerSlash;
 
@@ -1085,6 +1089,57 @@ function registerMacroLike(
   replace: (context: Context, substring: string, ...args: any[]) => string,
 ): void;
 
+interface ScriptButton {
+  name: string;
+  visible: boolean;
+}
+
+/**
+ * 获取指定脚本的按钮设置
+ * @param script_id 脚本ID
+ * @returns 按钮
+ *
+ * @example
+ * // 在脚本内获取当前脚本的按钮设置
+ * const buttons = getScriptButtons(getScriptId());
+ */
+function getScriptButtons(script_id: string): ScriptButton[] {
+  if (!script_id) {
+    throw new Error('脚本ID不能为空');
+  }
+  return ScriptManager.getInstance().getScriptButton(script_id);
+}
+
+/**
+ * 替换指定脚本的按钮设置
+ * @param script_id 脚本ID
+ * @param buttons 按钮
+ *
+ * @example
+ * // 在脚本内设置脚本按钮为一个"开始游戏"按钮
+ * replaceScriptButtons(getScriptId(), [{name: '开始游戏', visible: true}])
+ *
+ * @example
+ * // 点击"前往地点"按钮后，切换为地点选项按钮
+ * eventOnButton("前往地点" () => {
+ *   replaceScriptButtons(getScriptId(), [{name: '学校', visible: true}, {name: '商店', visible: true}])
+ * })
+ */
+function replaceScriptButtons(script_id: string, buttons: ScriptButton[]): void {
+  if (!script_id) {
+    throw new Error(`脚本ID不能为空`);
+  }
+
+  const script = ScriptManager.getInstance().getScriptById(script_id);
+  if (!script) {
+    throw new Error(`脚本不存在: ${script_id}`);
+  }
+
+  const type = ScriptData.getInstance().getScriptType(script);
+
+  script.buttons = buttons;
+  ScriptManager.getInstance().setScriptButton(script, type);
+}
 /**
  * 运行 Slash 命令, 注意如果命令写错了将不会有任何反馈
  *
@@ -1225,14 +1280,19 @@ function getLastMessageId(): number;
 function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U;
 interface VariableOption {
   /**
-   * 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
+   * 对某一楼层的聊天变量 (`message`)、聊天变量 (`'chat'`)、角色卡变量 (`'character'`)、聊天变量 (`'script'`) 或全局变量 (`'global'`) 进行操作, 默认为 `'chat'`
    */
-  type?: 'message' | 'chat' | 'character' | 'global';
+  type?: 'message' | 'chat' | 'character' | 'script' | 'global';
 
   /**
    * 当 `type` 为 `'message'` 时, 该参数指定要获取变量的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
    */
   message_id?: number | 'latest';
+
+  /**
+   * 当 `type` 为 `'script'` 时, 该参数指定要获取变量的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
+   */
+  script_id?: string;
 }
 
 /**
@@ -1241,6 +1301,7 @@ interface VariableOption {
  * @param option 可选选项
  *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+ *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
  *
  * @returns 变量表
  *
@@ -1260,8 +1321,12 @@ interface VariableOption {
  * @example
  * // 获取倒数第二楼层的聊天变量
  * const variables = getVariables({type: 'message', message_id: -2});
+ *
+ * @example
+ * // 在脚本内获取该脚本绑定的变量
+ * const variables = getVariables({type: 'script', script_id: getScriptId()});
  */
-function getVariables({ type, message_id }?: VariableOption): Record<string, any>;
+function getVariables({ type, message_id, script_id }?: VariableOption): Record<string, any>;
 
 /**
  * 完全替换变量表为 `variables`
@@ -1273,6 +1338,7 @@ function getVariables({ type, message_id }?: VariableOption): Record<string, any
  * @param option 可选选项
  *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+ *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
  *
  * @example
  * // 执行前的聊天变量: `{爱城华恋: {好感度: 5}}`
@@ -1284,8 +1350,15 @@ function getVariables({ type, message_id }?: VariableOption): Record<string, any
  * let variables = getVariables();
  * _.unset(variables, "神乐光.好感度");
  * await replaceVariables(variables);
+ *
+ * @example
+ * // 在脚本内替换该脚本绑定的变量
+ * await replaceVariables({神乐光: {好感度: 5, 认知度: 0}}, {type: 'script', script_id: getScriptId()});
  */
-async function replaceVariables(variables: Record<string, any>, { type, message_id }?: VariableOption): Promise<void>;
+async function replaceVariables(
+  variables: Record<string, any>,
+  { type, message_id, script_id }?: VariableOption,
+): Promise<void>;
 
 type VariablesUpdater =
   | ((variables: Record<string, any>) => Record<string, any>)
@@ -1298,6 +1371,7 @@ type VariablesUpdater =
  * @param option 可选选项
  *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+ *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
  *
  * @returns 更新后的变量表
  *
@@ -1311,7 +1385,7 @@ type VariablesUpdater =
  */
 async function updateVariablesWith(
   updater: VariablesUpdater,
-  { type, message_id }?: VariableOption,
+  { type, message_id, script_id }?: VariableOption,
 ): Promise<Record<string, any>>;
 
 /**
@@ -1323,6 +1397,7 @@ async function updateVariablesWith(
  * @param option 可选选项
  *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+ *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
  *
  * @example
  * // 执行前变量: `{爱城华恋: {好感度: 5}}`
@@ -1331,7 +1406,7 @@ async function updateVariablesWith(
  */
 async function insertOrAssignVariables(
   variables: Record<string, any>,
-  { type, message_id }?: VariableOption,
+  { type, message_id, script_id }?: VariableOption,
 ): Promise<void>;
 
 /**
@@ -1343,13 +1418,17 @@ async function insertOrAssignVariables(
  * @param option 可选选项
  *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+ *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
  *
  * @example
  * // 执行前变量: `{爱城华恋: {好感度: 5}}`
  * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-async function insertVariables(variables: Record<string, any>, { type, message_id }?: VariableOption): Promise<void>;
+async function insertVariables(
+  variables: Record<string, any>,
+  { type, message_id, script_id }?: VariableOption,
+): Promise<void>;
 
 /**
  * 删除变量, 如果变量不存在则什么也不做
@@ -1360,6 +1439,7 @@ async function insertVariables(variables: Record<string, any>, { type, message_i
  * @param option 可选选项
  *   - `type?:'message'|'chat'|'character'|'global'`: 对某一楼层的聊天变量 (`message`)、聊天变量表 (`'chat'`)、角色卡变量 (`'character'`) 或全局变量表 (`'global'`) 进行操作, 默认为 `'chat'`
  *   - `message_id?:number|'latest'`: 当 `type` 为 `'message'` 时, 该参数指定要获取的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+ *   - `script_id?:string`: 当 `type` 为 `'script'` 时, 该参数指定要获取的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
  *
  * @returns 是否成功删除变量
  *
@@ -1368,7 +1448,10 @@ async function insertVariables(variables: Record<string, any>, { type, message_i
  * await deleteVariable("爱城华恋.好感度");
  * // 执行后变量: `{爱城华恋: {}}`
  */
-async function deleteVariable(variable_path: string, { type, message_id }?: VariableOption): Promise<boolean>;
+async function deleteVariable(
+  variable_path: string,
+  { type, message_id, script_id }?: VariableOption,
+): Promise<boolean>;
 /**
  * 获取酒馆助手版本号
  */
@@ -1508,6 +1591,14 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener: Liste
  * eventEmit("事件", "你好", 0);
  */
 async function eventEmit<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): Promise<void>;
+
+/**
+ * 携带 `data` 而发送 `event_type` 事件并等待事件处理结束.
+ *
+ * @param event_type 要发送的事件
+ * @param data 要随着事件发送的数据
+ */
+function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void
 
 /**
  * 让 `listener` 取消对 `event_type` 的监听.
@@ -1906,6 +1997,16 @@ const SillyTavern: {
   /** chat_metadata */
   readonly chatMetadata: Record<string, any>;
   readonly streamingProcessor: any;
+  readonly eventSource: {
+    on: typeof eventOn,
+    makeLast: typeof eventMakeLast,
+    makeFirst: typeof eventMakeFirst,
+    removeListener: typeof eventRemoveListener,
+    emit: typeof eventEmit,
+    emitAndWait: typeof eventEmitAndWait,
+    once: typeof eventOnce,
+  };
+  readonly eventTypes: typeof tavern_events;
   readonly addOneMessage: (mes: object, options: any) => Promise<void>;
   readonly deleteLastMessage: () => Promise<void>;
   readonly generate: Function;
@@ -2122,7 +2223,7 @@ const TavernHelper: typeof window.TavernHelper;
 function getIframeName(): string;
 
 /**
- * 获取脚本库的 id, **只能对脚本库使用**
+ * 获取脚本的脚本库 id, **只能在脚本内使用**
  *
  * @returns 脚本库的 id
  */

@@ -1,3 +1,26 @@
+## 3.2.5
+
+### ⏫功能
+
+- 新增 `getScriptButtons` 和 `replaceScriptButtons` 用于获取和替换脚本的按钮设置, 例如, 你可以这样设置二级按钮:
+
+  ```typescript
+  eventOnButton('前往地点', () => {
+    replaceScriptButtons(getScriptId(), [
+      { name: '学校', visible: true },
+      { name: '商店', visible: true },
+    ]);
+  });
+  ```
+
+- 新增 `eventEmitAndWait` 用于在非异步函数中监听并等待事件.
+
+## 3.2.4
+
+### 💻界面
+
+- 变量管理器的对象类型增加折叠功能
+
 ## 3.2.3
 
 ⚠️有破坏性变更, 升级本版本后如果再降级扩展，脚本功能将出现不可预期的问题。如有降级需求，在升级之前备份`sillytavern/data/用户名/settings.json`文件。
@@ -16,17 +39,9 @@
    - 支持搜索脚本
   
 3. 脚本支持存储数据
-   - 新增脚本变量存储功能，脚本可以存储和读取自己的数据
-   - 提供完整的脚本变量操作API：
-     - `getScriptVariables()` - 获取脚本变量
-     - `replaceScriptVariables(variables)` - 替换全部脚本变量  
-     - `updateScriptVariablesWith(updater)` - 使用更新器函数更新变量
-     - `insertOrAssignScriptVariables(variables)` - 插入或分配变量（覆盖同名变量）
-     - `insertScriptVariables(variables)` - 仅插入新变量（不覆盖已存在的变量）
-     - `deleteScriptVariable(variablePath)` - 删除指定路径的变量
+   - 新增脚本变量存储功能，脚本可以存储和读取自己的数据，你可以通过 `getVariables({type: 'script', script_id: getScriptId()})` 等来访问脚本变量
    - 脚本编辑界面新增可视化变量管理
    - 当脚本包含数据时，导出时会弹出选择对话框，注意API-KEY等敏感数据的处理，可清除数据后导出
-
 
 ## 3.2.2
 
