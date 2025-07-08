@@ -140,7 +140,6 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       const srcdocContent = `
             <html>
             <head>
-              <base href="${window.location.origin}/">
               <style>
               ${hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : ``}
               html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}
