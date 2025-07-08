@@ -1,4 +1,4 @@
-import { destroyIframe } from '@/component/message_iframe';
+import { destroyIframe } from '@/component/message_iframe/render_message';
 import { ScriptData } from '@/component/script_repository/data';
 import { scriptEvents, ScriptRepositoryEventType } from '@/component/script_repository/events';
 import {
