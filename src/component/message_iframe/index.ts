@@ -713,7 +713,7 @@ function adjustIframeHeight(iframe: HTMLIFrameElement) {
   const bodyHeight = doc.body.offsetHeight;
   const htmlHeight = doc.documentElement.offsetHeight;
 
-  const newHeight = Math.max(bodyHeight, htmlHeight);
+  const newHeight = Math.min(bodyHeight, htmlHeight);
   const currentHeight = parseFloat($iframe.css('height')) || 0;
 
   if (Math.abs(currentHeight - newHeight) > 5) {
@@ -996,8 +996,8 @@ function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
     return;
   }
 
-  $mesText.find('pre').each(function () {
-    const $pre = $(this);
+  $mesText.find('pre').each(function (_index, element) {
+    const $pre = $(element);
     const $code = $pre.find('code');
     if ($code.length && shouldHaveCodeToggle($code[0])) {
       addToggleButtonToCodeBlock($pre);
@@ -1014,8 +1014,8 @@ export function addCodeToggleButtonsToAllMessages() {
     return;
   }
 
-  $chat.find('.mes .mes_block .mes_text, .mes .mes_block .mes_reasoning_details').each(function () {
-    const $mesText = $(this);
+  $chat.find('.mes .mes_block .mes_text, .mes .mes_block .mes_reasoning_details').each(function (_index, element) {
+    const $mesText = $(element);
     addToggleButtonsToMessage($mesText);
   });
 }
@@ -1151,24 +1151,14 @@ async function handleRenderEnableToggle(enable: boolean, userInput: boolean = tr
     isRenderEnabled = enable;
   }
   if (enable) {
-    $('#render-settings-content .extension-content-item').not(':first').css('opacity', 1);
-    if (isRenderingOptimizeEnabled) {
-      addRenderingOptimizeSettings();
-    }
-    if (isRenderingHideStyleEnabled) {
-      addRenderingHideStyleSettings();
-    }
+    $('#render-settings-content .extension-content-item').slice(3).css('opacity', 1);
     await renderAllIframes();
   } else {
-    $('#render-settings-content .extension-content-item').not(':first').css('opacity', 0.5);
-    if (isRenderingOptimizeEnabled) {
-      removeRenderingOptimizeSettings();
-    }
-    if (isRenderingHideStyleEnabled) {
-      removeRenderingHideStyleSettings();
-    }
+    $('#render-settings-content .extension-content-item').slice(3).css('opacity', 0.5);
     await clearAllIframes();
-    await reloadCurrentChat();
+    if (this_chid !== undefined) {
+      await reloadCurrentChat();
+    }
   }
 }
 
@@ -1248,9 +1238,9 @@ export async function initIframePanel() {
 /**
  * 判断代码块是否应该有折叠按钮
  * @param codeElement 代码块元素
- * @returns 是否应该有折叠按钮
+ * @returns 是否应该有折叠按钮，只有包含<body>和</body>的代码块才应该有折叠按钮
  */
 function shouldHaveCodeToggle(codeElement: HTMLElement): boolean {
   const extractedText = extractTextFromCode(codeElement);
-  return !(extractedText.includes('<body') && extractedText.includes('</body>'));
+  return extractedText.includes('<body') && extractedText.includes('</body>');
 }

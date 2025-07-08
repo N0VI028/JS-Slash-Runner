@@ -29,7 +29,7 @@ import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, thi
 const handleChatChanged = async () => {
   renderAllMacros();
   await renderAllIframes();
-  if (getSettingValue('render.rendering_optimize')) {
+  if (getSettingValue('render.render_hide_style')) {
     addCodeToggleButtonsToAllMessages();
   }
 };
@@ -43,7 +43,7 @@ const handleMessageDeleted = (mesId: string) => {
   const mesIdNumber = parseInt(mesId, 10);
   clearTempVariables();
   renderMessageAfterDelete(mesIdNumber);
-  if (getSettingValue('render.rendering_optimize')) {
+  if (getSettingValue('render.render_hide_style')) {
     addCodeToggleButtonsToAllMessages();
   }
 };
