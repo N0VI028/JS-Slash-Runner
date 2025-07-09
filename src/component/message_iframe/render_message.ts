@@ -93,7 +93,12 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
 
       const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
       const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
-      extractedText = hasMinVh ? processVhUnits(extractedText) : extractedText;
+      const hasJsVhUsage = /\d+vh/.test(extractedText);
+
+      if (hasMinVh || hasJsVhUsage) {
+        extractedText = processAllVhUnits(extractedText);
+      }
+      const needsVhHandling = hasMinVh || hasJsVhUsage;
 
       let $wrapper = $('<div>').css({
         position: 'relative',
@@ -113,7 +118,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
 
       iframeCounter++;
 
-      if (hasMinVh) {
+      if (needsVhHandling) {
         $iframe.attr('data-needs-vh', 'true');
       }
 
@@ -142,8 +147,8 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
             <head>
               <base href="${window.location.origin}/">
               <style>
-              ${hasMinVh ? `:root{--viewport-height:${window.innerHeight}px;}` : ``}
-              html,body{margin:0;padding:0;overflow:hidden;max-width:100%!important;box-sizing:border-box}
+              ${needsVhHandling ? `:root{--viewport-height:${window.innerHeight}px;}` : ``}
+              html,body{margin:0;padding:0;overflow:hidden!important;max-width:100%!important;max-height:9999px!important;box-sizing:border-box}
               .user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
               .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
               </style>
@@ -152,7 +157,8 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
             </head>
             <body>
               ${extractedText}
-              ${hasMinVh ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
+              ${needsVhHandling ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
+
               ${
                 getSettingValue('render.tampermonkey_compatibility')
                   ? `<script src="${script_url.get('tampermonkey_script')}"></script>`
@@ -162,9 +168,13 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
             </html>
           `;
 
-      $iframe.attr('srcdoc', srcdocContent);
+      const blob = new Blob([srcdocContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      $iframe.attr('src', url);
 
       $iframe.on('load', function () {
+        URL.revokeObjectURL(url);
+
         observeIframeContent(this);
 
         $wrapper = $(this).parent();
@@ -278,25 +288,60 @@ $(window).on('message', function(event) {
 `;
 
 /**
- * 转换代码块中的min-height:vh
+ * 转换代码块中所有vh单位（包括JavaScript动态设置）
  * @param htmlContent 代码块内容
  * @returns 转换后的代码块内容
  */
-function processVhUnits(htmlContent: string) {
-  const hasMinVh = /min-height:\s*[^;]*vh/.test(htmlContent);
-
-  if (!hasMinVh) {
-    return htmlContent;
-  }
-
+function processAllVhUnits(htmlContent: string) {
   const viewportHeight = window.innerHeight;
-  const processedContent = htmlContent.replace(/min-height:\s*([^;]*vh[^;]*);/g, expression => {
-    const processedExpression = expression.replace(
-      /(\d+)vh/g,
-      `calc(var(--viewport-height, ${viewportHeight}px) * $1 / 100)`,
-    );
+
+  let processedContent = htmlContent.replace(
+    /((?:document\.body\.style\.minHeight|\.style\.minHeight|setProperty\s*\(\s*['"]min-height['"])\s*[=,]\s*['"`])([^'"`]*?)(['"`])/g,
+    (match, prefix, value, suffix) => {
+      if (value.includes('vh')) {
+        const convertedValue = value.replace(/(\d+(?:\.\d+)?)vh/g, (num: string) => {
+          const numValue = parseFloat(num);
+          if (numValue === 100) {
+            return `var(--viewport-height, ${viewportHeight}px)`;
+          } else {
+            return `calc(var(--viewport-height, ${viewportHeight}px) * ${numValue / 100})`;
+          }
+        });
+        return prefix + convertedValue + suffix;
+      }
+      return match;
+    },
+  );
+
+  processedContent = processedContent.replace(/min-height:\s*([^;]*vh[^;]*);/g, expression => {
+    const processedExpression = expression.replace(/(\d+(?:\.\d+)?)vh/g, (num) => {
+      const numValue = parseFloat(num);
+      if (numValue === 100) {
+        return `var(--viewport-height, ${viewportHeight}px)`;
+      } else {
+        return `calc(var(--viewport-height, ${viewportHeight}px) * ${numValue / 100})`;
+      }
+    });
     return `${processedExpression};`;
   });
+
+  processedContent = processedContent.replace(
+    /style\s*=\s*["']([^"']*min-height:\s*[^"']*vh[^"']*?)["']/gi,
+    (match, styleContent) => {
+      const processedStyleContent = styleContent.replace(/min-height:\s*([^;]*vh[^;]*)/g, (expression: string) => {
+        const processedExpression = expression.replace(/(\d+(?:\.\d+)?)vh/g, (num) => {
+          const numValue = parseFloat(num);
+          if (numValue === 100) {
+            return `var(--viewport-height, ${viewportHeight}px)`;
+          } else {
+            return `calc(var(--viewport-height, ${viewportHeight}px) * ${numValue / 100})`;
+          }
+        });
+        return processedExpression;
+      });
+      return match.replace(styleContent, processedStyleContent);
+    },
+  );
 
   return processedContent;
 }
@@ -347,6 +392,39 @@ function getSharedResizeObserver(): ResizeObserver {
   }
 
   return window._sharedResizeObserver;
+}
+
+/**
+ * 调整iframe高度
+ * @param iframe iframe元素
+ */
+function adjustIframeHeight(iframe: HTMLIFrameElement) {
+  const $iframe = $(iframe);
+  if (!$iframe.length || !$iframe[0].contentWindow || !$iframe[0].contentWindow.document.body) {
+    return;
+  }
+
+  const doc = $iframe[0].contentWindow.document;
+
+  const bodyHeight = doc.body.scrollHeight;
+  const htmlHeight = doc.documentElement.scrollHeight;
+
+  const newHeight = Math.max(bodyHeight, htmlHeight);
+  const currentHeight = parseFloat($iframe.css('height')) || 0;
+
+  if (Math.abs(currentHeight - newHeight) > 5) {
+    $iframe.css('height', newHeight + 'px');
+
+    if ($iframe.attr('data-needs-vh') === 'true' && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(
+        {
+          request: 'updateViewportHeight',
+          newHeight: window.innerHeight,
+        },
+        '*',
+      );
+    }
+  }
 }
 
 /**
@@ -435,39 +513,6 @@ function createGlobalAudioManager() {
       currentPlayingIframeId = newIframeId;
     }
   });
-}
-
-/**
- * 调整iframe高度
- * @param iframe iframe元素
- */
-function adjustIframeHeight(iframe: HTMLIFrameElement) {
-  const $iframe = $(iframe);
-  if (!$iframe.length || !$iframe[0].contentWindow || !$iframe[0].contentWindow.document.body) {
-    return;
-  }
-
-  const doc = $iframe[0].contentWindow.document;
-
-  const bodyHeight = doc.body.offsetHeight;
-  const htmlHeight = doc.documentElement.offsetHeight;
-
-  const newHeight = Math.max(bodyHeight, htmlHeight);
-  const currentHeight = parseFloat($iframe.css('height')) || 0;
-
-  if (Math.abs(currentHeight - newHeight) > 5) {
-    $iframe.css('height', newHeight + 'px');
-
-    if ($iframe.attr('data-needs-vh') === 'true' && iframe.contentWindow) {
-      iframe.contentWindow.postMessage(
-        {
-          request: 'updateViewportHeight',
-          newHeight: window.innerHeight,
-        },
-        '*',
-      );
-    }
-  }
 }
 
 /**
@@ -626,6 +671,11 @@ export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
         if (iframeId && typeof eventSource.removeListener === 'function') {
           eventSource.removeListener('message_iframe_render_ended', iframeId as any);
           eventSource.removeListener('message_iframe_render_started', iframeId as any);
+        }
+
+        const currentSrc = $iframe.attr('src');
+        if (currentSrc && currentSrc.startsWith('blob:')) {
+          URL.revokeObjectURL(currentSrc);
         }
 
         $iframe.attr('src', 'about:blank');
