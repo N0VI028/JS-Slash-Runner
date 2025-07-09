@@ -1,4 +1,3 @@
-import { isRenderEnabled, isRenderingHideStyleEnabled, renderDepth } from '@/component/message_iframe/index';
 import {
   addToggleButtonsToMessage,
   removeCodeToggleButtonsByMesId,
@@ -10,8 +9,6 @@ import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue
 
 import { eventSource, event_types, reloadCurrentChat, this_chid, updateMessageBlock } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
-
-let isExtensionEnabled: boolean;
 
 let tampermonkeyMessageListener: ((event: MessageEvent) => void) | null = null;
 
@@ -26,15 +23,12 @@ const RENDER_MODES = {
  * @param specificMesId 指定消息ID
  */
 async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: number | null = null) {
-  if (isExtensionEnabled === undefined) {
-    isExtensionEnabled = getSettingValue('enabled_extension');
-  }
-  if (!isExtensionEnabled || !isRenderEnabled) {
+  if (!getSettingValue('enabled_extension') || !getSettingValue('render.render_enabled')) {
     return;
   }
   const context = getContext();
   const totalMessages = context.chat.length;
-  const processDepth = renderDepth ?? 0;
+  const processDepth = getSettingValue('render.render_depth') ?? 0;
   const depthLimit = processDepth > 0 ? processDepth : totalMessages;
   const depthLimitedMessageIds = [...Array(totalMessages).keys()].slice(-depthLimit);
 
@@ -64,7 +58,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
       );
       updateMessageBlock(messageId, message);
     }
-    if (isRenderingHideStyleEnabled) {
+    if (getSettingValue('render.render_hide_style')) {
       const $mesTexts = $(
         `.mes[mesid="${messageId}"] .mes_block .mes_reasoning_details, .mes[mesid="${messageId}"] .mes_block .mes_text`,
       );
@@ -77,7 +71,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
   for (const messageId of messagesToRenderIds) {
     const $messageElement = $(`.mes[mesid="${messageId}"]`);
     if (!$messageElement.length) {
-      console.debug(`未找到 mesid: ${messageId} 对应的消息元素。`);
+      log.debug(`未找到 mesid: ${messageId} 对应的消息元素。`);
       continue;
     }
 
@@ -198,7 +192,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
 
         eventSource.emitAndWait('message_iframe_render_ended', this.id);
 
-        if (isRenderingHideStyleEnabled) {
+        if (getSettingValue('render.render_hide_style')) {
           removeCodeToggleButtonsByMesId(messageId);
         }
 
@@ -388,7 +382,6 @@ function getSharedResizeObserver(): ResizeObserver {
       }
     });
 
-    console.log('Created shared ResizeObserver instance');
   }
 
   return window._sharedResizeObserver;
@@ -456,7 +449,7 @@ function observeIframeContent(iframe: HTMLIFrameElement) {
 
     adjustIframeHeight(iframe);
   } catch (error) {
-    console.error('[Render] 设置 iframe 内容观察时出错:', error);
+    log.error('[Render] 设置 iframe 内容观察时出错:', error);
   }
 }
 
@@ -582,7 +575,7 @@ export async function clearAndRenderAllIframes() {
  */
 export async function renderAllIframes() {
   await renderMessagesInIframes(RENDER_MODES.FULL);
-  console.log('[Render] 渲染所有iframe');
+  log.info('[Render] 渲染所有iframe');
 }
 
 /**
@@ -604,7 +597,7 @@ export async function renderPartialIframes(mesId: number) {
 
   await renderMessagesInIframes(RENDER_MODES.PARTIAL, mesId);
 
-  console.log('[Render] 渲染' + mesId + '号消息的iframe');
+  log.info('[Render] 渲染' + mesId + '号消息的iframe');
 }
 
 /**
@@ -633,7 +626,7 @@ export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
         }
       }
     } catch (e) {
-      console.debug('[Render] 清理iframe内部事件时出错:', e);
+      log.debug('[Render] 清理iframe内部事件时出错:', e);
     }
 
     try {
@@ -647,7 +640,7 @@ export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
         }
       });
     } catch (e) {
-      console.debug('[Render] 清理媒体元素时出错:', e);
+      log.debug('[Render] 清理媒体元素时出错:', e);
     }
 
     if ($iframe[0].contentWindow && 'stop' in $iframe[0].contentWindow) {
@@ -680,7 +673,7 @@ export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
 
         $iframe.attr('src', 'about:blank');
       } catch (e) {
-        console.debug('[Render] 清空iframe内容时出错:', e);
+        log.debug('[Render] 清空iframe内容时出错:', e);
       }
     }
 
@@ -691,13 +684,13 @@ export function destroyIframe(iframe: HTMLIFrameElement): Promise<void> {
     try {
       $iframe.removeData();
     } catch (e) {
-      console.debug('[Render] 移除jQuery数据缓存时出错:', e);
+      log.debug('[Render] 移除jQuery数据缓存时出错:', e);
     }
 
     if (window._observedElements?.size === 0 && window._sharedResizeObserver) {
       window._sharedResizeObserver.disconnect();
       window._sharedResizeObserver = undefined;
-      console.log('[Render] 所有iframe已移除，停止观察');
+      log.info('[Render] 所有iframe已移除，停止观察');
     }
 
     // 确保所有清理操作都完成后再resolve
@@ -726,7 +719,7 @@ export async function clearAllIframes(): Promise<void> {
       eventSource.removeListener('message_iframe_render_ended', null as any);
     }
   } catch (e) {
-    console.debug('[Render] 清理事件监听器时出错:', e);
+    log.debug('[Render] 清理事件监听器时出错:', e);
   }
 
   // 尝试主动触发垃圾回收
@@ -741,7 +734,7 @@ export async function clearAllIframes(): Promise<void> {
       window.gc();
     }
   } catch (e) {
-    console.debug('尝试触发垃圾回收时出错:', e);
+    log.debug('尝试触发垃圾回收时出错:', e);
   }
 }
 
@@ -756,14 +749,14 @@ export function setupIframeRemovalListener(): MutationObserver {
         mutation.removedNodes.forEach(node => {
           if (node instanceof HTMLIFrameElement) {
             destroyIframe(node).catch(err => {
-              console.error('[Render] 清理iframe时出错:', err);
+              log.error('[Render] 清理iframe时出错:', err);
             });
           } else if (node instanceof HTMLElement) {
             const iframes = node.querySelectorAll('iframe');
             if (iframes.length) {
               iframes.forEach(iframe => {
                 destroyIframe(iframe).catch(err => {
-                  console.error('[Render] 清理iframe时出错:', err);
+                  log.error('[Render] 清理iframe时出错:', err);
                 });
               });
             }
@@ -834,7 +827,7 @@ export async function renderMessageAfterDelete(mesId: number) {
 }
 
 export const handlePartialRender = (mesId: number) => {
-  console.log('[Render] 触发局部渲染，消息ID:', mesId);
+  log.info('[Render] 触发局部渲染，消息ID:', mesId);
   const processDepth = parseInt($('#render-depth').val() as string, 10);
   const context = getContext();
   const totalMessages = context.chat.length;

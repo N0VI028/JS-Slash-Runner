@@ -19,7 +19,13 @@ import {
   VERSION_FILE_PATH,
 } from '@/util/check_update';
 import { Collapsible } from '@/util/collapsible';
-import { extensionFolderPath, extensionName, extensionSettingName } from '@/util/extension_variables';
+import {
+  extensionFolderPath,
+  extensionName,
+  extensionSettingName,
+  getOrSaveSettingValue,
+  saveSettingValue,
+} from '@/util/extension_variables';
 
 import { event_types, eventSource, saveSettings } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
@@ -36,6 +42,9 @@ const defaultSettings = {
   },
   audio: {
     ...defaultAudioSettings,
+  },
+  debug: {
+    enabled: false,
   },
 };
 
@@ -130,6 +139,21 @@ function initLogObject() {
   globalThis.log = log_object;
 }
 
+async function initDebugMode() {
+  const debugEnabled = await getOrSaveSettingValue('debug.enabled', defaultSettings.debug.enabled);
+  $('#debug-mode-toggle')
+    .prop('checked', debugEnabled)
+    .on('click', (event: JQuery.ClickEvent) => {
+      const isDebugMode = event.target.checked;
+      saveSettingValue('debug.enabled', isDebugMode);
+      if (isDebugMode) {
+        log.enableAll();
+      } else {
+        log.setLevel('warn');
+      }
+    });
+}
+
 /**
  * 初始化扩展面板
  */
@@ -146,7 +170,7 @@ jQuery(async () => {
 
   initTavernHelperObject();
   initLogObject();
-
+  await initDebugMode();
   // 默认显示主设置界面
   $('#main-settings-title').addClass('title-item-active');
   $('#main-settings-content').show();

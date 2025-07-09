@@ -18,12 +18,6 @@ import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 
 import { reloadCurrentChat, this_chid } from '@sillytavern/script';
 
-export let isRenderEnabled: boolean;
-export let renderDepth: number;
-export let isTampermonkeyEnabled: boolean;
-export let isRenderingOptimizeEnabled: boolean;
-export let isRenderingHideStyleEnabled: boolean;
-
 export const defaultIframeSettings = {
   render_enabled: true,
   tampermonkey_compatibility: false,
@@ -78,10 +72,11 @@ function addRenderQuickButton() {
   const buttonHtml = $(`
   <div id="tavern-helper-render-container" class="list-group-item flex-container flexGap5 interactable">
       <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" /></div>
-      <span id="tavern-helper-render-text">${isRenderEnabled ? '关闭前端渲染' : '开启前端渲染'}</span>
+      <span id="tavern-helper-render-text">${getSettingValue('render.render_enabled') ? '关闭前端渲染' : '开启前端渲染'}</span>
   </div>`);
   buttonHtml.css('display', 'flex');
   $('#extensionsMenu').append(buttonHtml);
+  const isRenderEnabled = getSettingValue('render.render_enabled') ?? defaultIframeSettings.render_enabled;
   $('#tavern-helper-render-container').on('click', async function () {
     $('#tavern-helper-render-text').text(!isRenderEnabled ? '关闭前端渲染' : '开启前端渲染');
     await handleRenderEnableToggle(!isRenderEnabled, true);
@@ -94,7 +89,7 @@ function addRenderQuickButton() {
  */
 export async function initIframePanel() {
   // 处理重型前端卡渲染优化
-  isRenderingOptimizeEnabled = getSettingValue('render.render_optimize');
+  const isRenderingOptimizeEnabled = getSettingValue('render.render_optimize') ?? defaultIframeSettings.render_optimize;
   if (isRenderingOptimizeEnabled) {
     await handleRenderingOptimizationToggle(true, false);
   }
@@ -102,15 +97,15 @@ export async function initIframePanel() {
     .prop('checked', isRenderingOptimizeEnabled)
     .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(event.target.checked, true));
   // 处理处理深度设置
-  renderDepth = getSettingValue('render.render_depth');
+  const renderDepth = getSettingValue('render.render_depth') ?? defaultIframeSettings.render_depth;
   $('#render-depth')
-    .val(renderDepth ?? defaultIframeSettings.render_depth)
+    .val(renderDepth)
     .on('blur', function (event) {
       onDepthInput((event.target as HTMLInputElement).value);
     });
 
   // 处理油猴兼容性设置
-  isTampermonkeyEnabled = getSettingValue('render.tampermonkey_compatibility');
+  const isTampermonkeyEnabled = getSettingValue('render.tampermonkey_compatibility') ?? defaultIframeSettings.tampermonkey_compatibility;
   if (isTampermonkeyEnabled) {
     handleTampermonkeyCompatibilityChange(true, false);
   }
@@ -119,14 +114,14 @@ export async function initIframePanel() {
     .on('click', (event: JQuery.ClickEvent) => handleTampermonkeyCompatibilityChange(event.target.checked, true));
 
   // 首先处理前端渲染设置 - 这个必须先执行，因为它可能会调用reloadCurrentChat
-  isRenderEnabled = getSettingValue('render.render_enabled');
+  const isRenderEnabled = getSettingValue('render.render_enabled') ?? defaultIframeSettings.render_enabled;
   await handleRenderEnableToggle(isRenderEnabled, false);
   $('#render-enable-toggle')
     .prop('checked', isRenderEnabled)
     .on('click', (event: JQuery.ClickEvent) => handleRenderEnableToggle(event.target.checked, true));
 
   // 处理代码块折叠设置 - 这个放在渲染设置之后，确保不被reloadCurrentChat清除
-  isRenderingHideStyleEnabled = getSettingValue('render.render_hide_style');
+  const isRenderingHideStyleEnabled = getSettingValue('render.render_hide_style');
   if (isRenderingHideStyleEnabled) {
     await handleRenderingHideStyleToggle(true, false);
   }
@@ -150,7 +145,6 @@ export async function initIframePanel() {
  */
 export async function onDepthInput(value: string) {
   const processDepth = parseInt(value, 10);
-  renderDepth = processDepth;
 
   if (processDepth < 0) {
     toastr.warning('处理深度不能为负数');
@@ -171,7 +165,6 @@ export async function onDepthInput(value: string) {
 export async function handleRenderEnableToggle(enable: boolean, userInput: boolean = true) {
   if (userInput) {
     saveSettingValue('render.render_enabled', enable);
-    isRenderEnabled = enable;
   }
   if (enable) {
     $('#render-settings-content .extension-content-item').slice(3).css('opacity', 1);
@@ -193,7 +186,6 @@ export async function handleRenderEnableToggle(enable: boolean, userInput: boole
 export async function handleRenderingHideStyleToggle(enable: boolean, userInput: boolean = true) {
   if (userInput) {
     saveSettingValue('render.render_hide_style', enable);
-    isRenderingHideStyleEnabled = enable;
   }
 
   if (enable) {
@@ -217,7 +209,6 @@ export async function handleRenderingHideStyleToggle(enable: boolean, userInput:
 export async function handleRenderingOptimizationToggle(enable: boolean, userInput: boolean = true) {
   if (userInput) {
     saveSettingValue('render.render_optimize', enable);
-    isRenderingOptimizeEnabled = enable;
   }
 
   if (enable) {
