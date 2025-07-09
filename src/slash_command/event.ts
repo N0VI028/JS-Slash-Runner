@@ -3,13 +3,15 @@ import { SlashCommand } from '@sillytavern/scripts/slash-commands/SlashCommand';
 import { ARGUMENT_TYPE, SlashCommandNamedArgument } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 
+import log from 'loglevel';
+
 export async function slashEventEmit(named_args: any): Promise<any> {
   const event: string = named_args.event;
   const data: string[] = named_args.data ?? [];
 
   eventSource.emit(event, ...data);
 
-  console.info(`[Event][/event-emit] 发送 '${event}' 事件, 携带数据: ${JSON.stringify(data)}`);
+  log.info(`[Event][/event-emit] 发送 '${event}' 事件, 携带数据: ${JSON.stringify(data)}`);
 
   return event;
 }

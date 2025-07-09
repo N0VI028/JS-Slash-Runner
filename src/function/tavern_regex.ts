@@ -3,6 +3,8 @@ import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
 
+import log from 'loglevel';
+
 interface TavernRegex {
   id: string;
   script_name: string;
@@ -104,7 +106,7 @@ function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
 export function isCharacterTavernRegexesEnabled(): boolean {
   const result = isCharacterTavernRegexEnabled();
 
-  console.info(`查询到局部正则${result ? '被启用' : '被禁用'}`);
+  log.info(`查询到局部正则${result ? '被启用' : '被禁用'}`);
   return result;
 }
 
@@ -175,7 +177,7 @@ export async function replaceTavernRegexes(
   }
   await reloadCurrentChat();
 
-  console.info(`替换酒馆正则\
+  log.info(`替换酒馆正则\
 ${scope === 'all' || scope === 'global' ? `, 全局正则:\n${JSON.stringify(global_regexes)}` : ``}\
 ${scope === 'all' || scope === 'character' ? `, 局部正则:\n${JSON.stringify(character_regexes)}` : ``}`);
 }
@@ -190,7 +192,7 @@ export async function updateTavernRegexesWith(
 ): Promise<TavernRegex[]> {
   let regexes = getTavernRegexes({ scope });
   regexes = await updater(regexes);
-  console.info(`对${{ all: '全部', global: '全局', character: '局部' }[scope]}变量表进行更新`);
+  log.info(`对${{ all: '全部', global: '全局', character: '局部' }[scope]}变量表进行更新`);
   await replaceTavernRegexes(regexes, { scope });
   return regexes;
 }

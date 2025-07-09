@@ -1,16 +1,18 @@
 import {
-    extractScriptsFromRepository,
-    getOppositeScriptType,
-    isScript,
-    isScriptRepositoryItem,
-    Script,
-    ScriptRepositoryItem,
-    ScriptType,
+  extractScriptsFromRepository,
+  getOppositeScriptType,
+  isScript,
+  isScriptRepositoryItem,
+  Script,
+  ScriptRepositoryItem,
+  ScriptType,
 } from '@/component/script_repository/types';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { characters, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
 import { uuidv4 } from '@sillytavern/scripts/utils';
+
+import log from 'loglevel';
 
 /**
  * 脚本数据管理类
@@ -110,7 +112,7 @@ export class ScriptData {
           });
         }
       } else {
-        console.warn('[ScriptManager] 无法解析的脚本数据:', item);
+        log.warn('[ScriptManager] 无法解析的脚本数据:', item);
       }
     }
 
@@ -132,15 +134,15 @@ export class ScriptData {
         saveSettingValue('script.scriptsRepository', repository);
       } else {
         if (!this_chid) {
-          console.warn('[ScriptManager] 无法保存角色脚本迁移数据：当前角色为空');
+          log.warn('[ScriptManager] 无法保存角色脚本迁移数据：当前角色为空');
           return;
         }
         //@ts-ignore
         await writeExtensionField(this_chid, 'TavernHelper_scripts', repository);
       }
-      console.log(`[ScriptManager] 成功迁移${type}脚本数据结构`);
+      log.info(`[ScriptManager] 成功迁移${type}脚本数据结构`);
     } catch (error) {
-      console.error(`[ScriptManager] 迁移${type}脚本数据失败:`, error);
+      log.error(`[ScriptManager] 迁移${type}脚本数据失败:`, error);
     }
   }
 
@@ -275,7 +277,7 @@ export class ScriptData {
             value: new Script(item),
           });
         } catch (error) {
-          console.warn('[ScriptManager] 无法解析的脚本数据:', item, error);
+          log.warn('[ScriptManager] 无法解析的脚本数据:', item, error);
         }
       }
     }

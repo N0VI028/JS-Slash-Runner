@@ -1,6 +1,8 @@
 import { chat, messageFormatting } from '@sillytavern/script';
 import { getLastMessageId } from '@sillytavern/scripts/macros';
 
+import log from 'loglevel';
+
 interface FormatAsDisplayedMessageOption {
   message_id?: 'last' | 'last_user' | 'last_char' | number;
 }
@@ -48,7 +50,7 @@ export function formatAsDisplayedMessage(
   const chat_message = chat[message_id];
   const result = messageFormatting(text, chat_message.name, chat_message.is_system, chat_message.is_user, message_id);
 
-  console.info(
+  log.info(
     `将字符串处理为酒馆用于显示的 html 格式, 字符串: '${text}', 选项: '${JSON.stringify({
       message_id,
     })}', 结果: '${result}'`,

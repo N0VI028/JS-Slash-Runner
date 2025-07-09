@@ -52,6 +52,7 @@
     "@gitbeaker/core": "^42.5.0",
     "@gitbeaker/requester-utils": "^42.5.0",
     "@gitbeaker/rest": "^42.5.0",
+    "loglevel": "^1.9.2",
     "socket.io-client": "^4.8.1",
     "yaml": "^2.7.1"
   }

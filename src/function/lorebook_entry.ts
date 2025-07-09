@@ -1,5 +1,8 @@
 import { reloadEditorDebounced } from '@/compatibility';
+
 import { loadWorldInfo, saveWorldInfo, world_names } from '@sillytavern/scripts/world-info';
+
+import log from 'loglevel';
 
 interface LorebookEntry {
   uid: number;
@@ -215,7 +218,7 @@ export async function getLorebookEntries(
     );
   }
 
-  console.info(`获取世界书 '${lorebook}' 中的条目, 选项: ${JSON.stringify({ filter })}`);
+  log.info(`获取世界书 '${lorebook}' 中的条目, 选项: ${JSON.stringify({ filter })}`);
   return structuredClone(entries);
 }
 
@@ -357,7 +360,7 @@ export async function replaceLorebookEntries(lorebook: string, entries: Partial<
   await saveWorldInfo(lorebook, data);
   reloadEditorDebounced(lorebook);
 
-  console.info(`更新世界书 '${lorebook}' 中的条目`);
+  log.info(`更新世界书 '${lorebook}' 中的条目`);
 }
 
 type LorebookEntriesUpdater =
@@ -368,7 +371,7 @@ export async function updateLorebookEntriesWith(
   lorebook: string,
   updater: LorebookEntriesUpdater,
 ): Promise<LorebookEntry[]> {
-  console.info(`对世界书 '${lorebook}' 中的条目进行更新`);
+  log.info(`对世界书 '${lorebook}' 中的条目进行更新`);
   await replaceLorebookEntries(lorebook, await updater(await getLorebookEntries(lorebook)));
   return getLorebookEntries(lorebook);
 }

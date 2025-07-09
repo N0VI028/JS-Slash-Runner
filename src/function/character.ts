@@ -1,6 +1,9 @@
 import { charsPath } from '@/util/extension_variables';
+
 import { characters, getPastCharacterChats, getRequestHeaders, getThumbnailUrl, this_chid } from '@sillytavern/script';
 import { v1CharData } from '@sillytavern/scripts/char-data';
+
+import log from 'loglevel';
 
 export class Character {
   private charData: v1CharData;
@@ -36,7 +39,7 @@ export class Character {
     // 查找所有匹配的角色
     const matchingCharacters = name ? filteredCharacters.filter(matches) : filteredCharacters;
     if (matchingCharacters.length > 1) {
-      console.warn(`找到多个符合条件的角色，返回导入时间最早的角色: ${name}`);
+      log.warn(`找到多个符合条件的角色，返回导入时间最早的角色: ${name}`);
     }
 
     if (matchingCharacters.length === 0) {
@@ -179,10 +182,10 @@ export function getCharData(name?: string, allowAvatar: boolean = true): v1CharD
     if (!characterData) return null;
 
     const character = new Character(characterData);
-    console.info(`获取角色卡数据成功, 角色: ${name || '未知'}`);
+    log.info(`获取角色卡数据成功, 角色: ${name || '未知'}`);
     return character.getCardData();
   } catch (error) {
-    console.error(`获取角色卡数据失败, 角色: ${name || '未知'}`, error);
+    log.error(`获取角色卡数据失败, 角色: ${name || '未知'}`, error);
     return null;
   }
 }
@@ -200,10 +203,10 @@ export function getCharAvatarPath(name?: string, allowAvatar: boolean = true): s
     const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
 
     // 假设charsPath在其他地方定义
-    console.info(`获取角色头像路径成功, 角色: ${name || '未知'}`);
+    log.info(`获取角色头像路径成功, 角色: ${name || '未知'}`);
     return charsPath + targetAvatarImg;
   } catch (error) {
-    console.error(`获取角色头像路径失败, 角色: ${name || '未知'}`, error);
+    log.error(`获取角色头像路径失败, 角色: ${name || '未知'}`, error);
     return null;
   }
 }
@@ -219,10 +222,10 @@ export async function getChatHistoryBrief(name?: string, allowAvatar: boolean = 
     if (index === -1) return null;
 
     const chats = await getPastCharacterChats(index);
-    console.info(`获取角色聊天历史摘要成功, 角色: ${name || '未知'}`);
+    log.info(`获取角色聊天历史摘要成功, 角色: ${name || '未知'}`);
     return chats;
   } catch (error) {
-    console.error(`获取角色聊天历史摘要失败, 角色: ${name || '未知'}`, error);
+    log.error(`获取角色聊天历史摘要失败, 角色: ${name || '未知'}`, error);
     return null;
   }
 }
@@ -233,10 +236,10 @@ export async function getChatHistoryDetail(
 ): Promise<Record<string, any> | null> {
   try {
     const result = await Character.getChatsFromFiles(data, isGroupChat);
-    console.info(`获取聊天文件详情成功`);
+    log.info(`获取聊天文件详情成功`);
     return result;
   } catch (error) {
-    console.error(`获取聊天文件详情失败`, error);
+    log.error(`获取聊天文件详情失败`, error);
     return null;
   }
 }

@@ -11,8 +11,11 @@ import {
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { getSettingValue } from '@/util/extension_variables';
+
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { uuidv4 } from '@sillytavern/scripts/utils';
+
+import log from 'loglevel';
 
 class ScriptExecutor {
   /**
@@ -46,12 +49,12 @@ class ScriptExecutor {
       });
 
       $iframe.on('load', () => {
-        console.info(`[ScriptManager] 启用${typeName}脚本["${script.name}"]`);
+        log.info(`[ScriptManager] 启用${typeName}脚本["${script.name}"]`);
       });
 
       $('body').append($iframe);
     } catch (error) {
-      console.error(`[ScriptManager] ${typeName}脚本启用失败:["${script.name}"]`, error);
+      log.error(`[ScriptManager] ${typeName}脚本启用失败:["${script.name}"]`, error);
       toastr.error(`${typeName}脚本启用失败:["${script.name}"]`);
       throw error;
     }
@@ -71,7 +74,7 @@ class ScriptExecutor {
 
     if (iframeElement) {
       await destroyIframe(iframeElement);
-      console.info(`[ScriptManager] 禁用${typeName}脚本["${script.name}"]`);
+      log.info(`[ScriptManager] 禁用${typeName}脚本["${script.name}"]`);
     }
   }
 
@@ -94,19 +97,13 @@ class ScriptExecutor {
                 if (window.parent && window.parent.document) {
                   context = window.parent.document;
                 } else {
-                  console.warn('无法访问 window.parent.document，将使用当前 iframe 的 document 作为上下文。');
+                  log.warn('无法访问 window.parent.document，将使用当前 iframe 的 document 作为上下文。');
                   context = window.document;
                 }
               }
               return original$(selector, context);
             };
           })(jQuery);
-
-          SillyTavern = window.parent.SillyTavern.getContext();
-          TavernHelper = window.parent.TavernHelper;
-          for (const key in TavernHelper) {
-            window[key] = TavernHelper[key];
-          }
         </script>
         <script src="${script_url.get('iframe_client')}"></script>
       </head>
@@ -220,13 +217,13 @@ export class ScriptManager {
       if (this.scriptData.isGlobalScriptEnabled) {
         await this.runScriptsByType(globalScripts, ScriptType.GLOBAL);
       } else {
-        console.info('[ScriptManager] 全局脚本类型未启用，跳过运行全局脚本');
+        log.info('[ScriptManager] 全局脚本类型未启用，跳过运行全局脚本');
       }
 
       if (this.scriptData.isCharacterScriptEnabled) {
         await this.runScriptsByType(characterScripts, ScriptType.CHARACTER);
       } else {
-        console.info('[ScriptManager] 角色脚本类型未启用，跳过运行角色脚本');
+        log.info('[ScriptManager] 角色脚本类型未启用，跳过运行角色脚本');
       }
     });
   }
@@ -252,11 +249,11 @@ export class ScriptManager {
     try {
       if (enable) {
         if (type === ScriptType.GLOBAL && !this.scriptData.isGlobalScriptEnabled) {
-          console.info(`[script_manager] 全局脚本类型未启用，跳过启用脚本["${script.name}"]`);
+          log.info(`[script_manager] 全局脚本类型未启用，跳过启用脚本["${script.name}"]`);
           return;
         }
         if (type === ScriptType.CHARACTER && !this.scriptData.isCharacterScriptEnabled) {
-          console.info(`[script_manager] 角色脚本类型未启用，跳过启用脚本["${script.name}"]`);
+          log.info(`[script_manager] 角色脚本类型未启用，跳过启用脚本["${script.name}"]`);
           return;
         }
 
@@ -272,7 +269,7 @@ export class ScriptManager {
         enable,
       });
     } catch (error) {
-      console.error(`[ScriptManager] 切换脚本状态失败: ${script.name}`, error);
+      log.error(`[ScriptManager] 切换脚本状态失败: ${script.name}`, error);
       toastr.error(`切换脚本状态失败: ${script.name}`);
     }
   }
@@ -304,7 +301,7 @@ export class ScriptManager {
         enable,
       });
     } catch (error) {
-      console.error(`[ScriptManager] 切换脚本类型状态失败: ${type}`, error);
+      log.error(`[ScriptManager] 切换脚本类型状态失败: ${type}`, error);
       toastr.error(`切换脚本类型状态失败: ${type}`);
     }
   }
@@ -415,7 +412,7 @@ export class ScriptManager {
         throw new Error('不支持的文件格式，请选择 .json 或 .zip 文件');
       }
     } catch (error) {
-      console.error('[ScriptManager] 导入失败:', error);
+      log.error('[ScriptManager] 导入失败:', error);
       toastr.error(`导入失败: ${error instanceof Error ? error.message : '无效的文件格式'}`);
     }
   }
@@ -428,7 +425,7 @@ export class ScriptManager {
   private async importFromZip(file: File, type: ScriptType): Promise<void> {
     //@ts-ignore
     if (!window.JSZip) {
-      console.log('import jszip');
+      log.info('import jszip');
       await import('@sillytavern/lib/jszip.min.js');
     }
     //@ts-ignore
@@ -960,7 +957,7 @@ export class ScriptManager {
         enable,
       });
     } catch (error) {
-      console.error(`[ScriptManager] 批量切换文件夹脚本状态失败: ${folderId}`, error);
+      log.error(`[ScriptManager] 批量切换文件夹脚本状态失败: ${folderId}`, error);
       toastr.error(`批量切换文件夹脚本状态失败`);
     }
   }
@@ -982,7 +979,7 @@ export class ScriptManager {
   public getScriptButton(scriptId: string): Script['buttons'] {
     const script = this.scriptData.getScriptById(scriptId);
     if (!script) {
-      console.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
+      log.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
       return [];
     }
     return script.buttons;
@@ -1013,7 +1010,7 @@ export class ScriptManager {
   public getScriptVariables(scriptId: string): { [key: string]: any } {
     const script = this.scriptData.getScriptById(scriptId);
     if (!script) {
-      console.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
+      log.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
       return {};
     }
     return script.data || {};
@@ -1033,14 +1030,14 @@ export class ScriptManager {
   ): Promise<boolean> {
     const script = this.scriptData.getScriptById(scriptId);
     if (!script) {
-      console.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
+      log.warn(`[ScriptManager] 脚本不存在: ${scriptId}`);
       return false;
     }
 
     script.data = variables;
     await this.scriptData.saveScript(script, type);
 
-    console.info(`[ScriptManager] 已更新脚本变量: ${script.name}`);
+    log.info(`[ScriptManager] 已更新脚本变量: ${script.name}`);
     return true;
   }
 

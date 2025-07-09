@@ -5,6 +5,8 @@ import { VariableDataType, VariableItem, VariableType } from '@/component/variab
 import { VariableManagerUtil } from '@/component/variable_manager/util';
 import { VariableView } from '@/component/variable_manager/view';
 
+import log from 'loglevel';
+
 export class VariableController {
   /**
    * 变量数据模型
@@ -191,7 +193,7 @@ export class VariableController {
             this.view.removeVariableCard(variable_id);
           }
         } catch (error) {
-          console.error(`[VariableManager] 删除变量失败:`, error);
+          log.error(`[VariableManager] 删除变量失败:`, error);
         }
       }
     });
@@ -267,7 +269,7 @@ export class VariableController {
 
       this.view.addAnimation(card, 'variable-changed', () => {});
     } catch (error) {
-      console.error(`[VariableManager] 保存变量失败:`, error);
+      log.error(`[VariableManager] 保存变量失败:`, error);
       toastr.error(`保存变量失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
@@ -292,7 +294,7 @@ export class VariableController {
             }
             toastr.success(`已清除所有${this.getVariableTypeName(type)}变量`);
           } catch (error: any) {
-            console.error(`[VariableManager] 清除${type}变量失败:`, error);
+            log.error(`[VariableManager] 清除${type}变量失败:`, error);
             toastr.error(`清除${this.getVariableTypeName(type)}变量时出错: ${error.message || '未知错误'}`);
           }
         }
@@ -398,7 +400,7 @@ export class VariableController {
       this.view.updateFloorRangeInputs(min, max);
       await this.loadVariables('message');
     } catch (error: any) {
-      console.error(`[VariableManager] 应用楼层范围并重新加载变量失败:`, error);
+      log.error(`[VariableManager] 应用楼层范围并重新加载变量失败:`, error);
     }
   }
 
@@ -409,7 +411,7 @@ export class VariableController {
     try {
       this.syncService.cleanup();
     } catch (error) {
-      console.error(`[VariableManager] 清理资源失败:`, error);
+      log.error(`[VariableManager] 清理资源失败:`, error);
     }
   }
 

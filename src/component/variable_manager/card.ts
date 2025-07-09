@@ -1,6 +1,9 @@
 import { VariableDataType, VariableItem } from '@/component/variable_manager/types';
 import { VariableManagerUtil } from '@/component/variable_manager/util';
+
 import { getSortableDelay } from '@sillytavern/scripts/utils';
+
+import log from 'loglevel';
 
 declare const toastr: any;
 
@@ -61,7 +64,7 @@ export class VariableCardFactory {
           this.addObjectKey($card, dataType, this.defaultTypeDialogCallback);
         });
       } else {
-        console.error('添加卡片出错');
+        log.error('添加卡片出错');
         toastr.error('添加卡片出错');
       }
     });
@@ -79,7 +82,7 @@ export class VariableCardFactory {
           this.addObjectKey($card, dataType, this.defaultTypeDialogCallback);
         });
       } else {
-        console.error('未提供类型选择对话框回调函数');
+        log.error('未提供类型选择对话框回调函数');
         toastr.error('未提供类型选择对话框回调函数');
       }
     });
@@ -265,7 +268,7 @@ export class VariableCardFactory {
             const parsed = JSON.parse(jsonValue);
             return parsed;
           } catch (e) {
-            console.error('JSON解析错误:', e);
+            log.error('JSON解析错误:', e);
             toastr.error('JSON解析错误');
             return {};
           }
@@ -302,7 +305,7 @@ export class VariableCardFactory {
       const key = $nestedCard.find('.variable-title').val() as string;
       const nestedDataType = $nestedCard.attr('data-type') as VariableDataType;
 
-      console.log('[VariableManager] 处理嵌套卡片:', {
+      log.info('[VariableManager] 处理嵌套卡片:', {
         index: _index,
         key: key,
         dataType: nestedDataType,
@@ -313,11 +316,11 @@ export class VariableCardFactory {
         const nestedValue = this.extractValueFromCard($nestedCard, nestedDataType);
         result[key] = nestedValue;
       } else {
-        console.warn('[VariableManager] 跳过空键的嵌套卡片:', _index);
+        log.warn('[VariableManager] 跳过空键的嵌套卡片:', _index);
       }
     });
 
-    console.log('[VariableManager] 最终提取结果:', result);
+    log.info('[VariableManager] 最终提取结果:', result);
     return result;
   }
 
@@ -556,7 +559,7 @@ export class VariableCardFactory {
     try {
       this.renderObjectCardView(card, variable, showTypeDialogCallback);
     } catch (e) {
-      console.error('渲染初始对象卡片视图错误:', e);
+      log.error('渲染初始对象卡片视图错误:', e);
       toastr.error('渲染对象卡片视图错误');
     }
   }
@@ -592,7 +595,7 @@ export class VariableCardFactory {
         this.renderObjectCardView(card, tempVariable, showTypeDialogCallback);
       }
     } catch (parseError) {
-      console.error('JSON解析错误:', parseError);
+      log.error('JSON解析错误:', parseError);
       toastr.error('JSON格式错误，无法同步到卡片视图');
     }
   }

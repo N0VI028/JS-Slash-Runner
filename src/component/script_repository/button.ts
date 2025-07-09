@@ -2,6 +2,8 @@ import { ScriptManager } from '@/component/script_repository/script_controller';
 import { Script } from '@/component/script_repository/types';
 import { eventSource } from '@sillytavern/script';
 
+import log from 'loglevel';
+
 let isQrEnabled = false;
 let isCombined = false;
 export abstract class Button {
@@ -38,7 +40,7 @@ export class ScriptButton extends Button {
   bindEvents(): void {
     $(`#${this.id}`).on('click', () => {
       eventSource.emit(this.id);
-      console.log(`[ScriptManager] 点击按钮：${this.id}`);
+      log.info(`[ScriptManager] 点击按钮：${this.id}`);
     });
   }
 }
@@ -239,18 +241,18 @@ export function bindQrEnabledChangeListener() {
   $(`#qr--isEnabled`).on('change', () => {
     isQrEnabled = $('#qr--isEnabled').prop('checked');
     checkQrEnabledStatusAndAddButton();
-    console.log('[script_manager] 创建按钮');
+    log.info('[script_manager] 创建按钮');
   });
 
   $('#qr--isCombined').on('change', () => {
     isCombined = $('#qr--isCombined').prop('checked');
     checkQrEnabledStatusAndAddButton();
-    console.log('[script_manager] 创建按钮');
+    log.info('[script_manager] 创建按钮');
   });
 
   $('#qr--global-setListAdd, #qr--chat-setListAdd, .qr--del').on('click', () => {
     checkQrEnabledStatusAndAddButton();
-    console.log('[script_manager] 创建按钮');
+    log.info('[script_manager] 创建按钮');
   });
 }
 

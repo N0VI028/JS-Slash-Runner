@@ -1,4 +1,3 @@
-import { extractTextFromCode } from '@/component/message_iframe/utils';
 import { getSettingValue } from '@/util/extension_variables';
 
 /**
@@ -53,7 +52,10 @@ function removeCodeBlockHideStyles() {
  * @param $pre 代码块元素
  */
 export function addToggleButtonToCodeBlock($pre: JQuery<HTMLElement>) {
-  // 检查代码块是否已经有折叠按钮
+  if (!getSettingValue('render.render_hide_style')) {
+    return;
+  }
+
   if ($pre.prev('.code-toggle-button').length > 0) {
     return;
   }
@@ -81,7 +83,7 @@ export function addToggleButtonToCodeBlock($pre: JQuery<HTMLElement>) {
  * 为消息添加折叠控件
  * @param $mesText 消息文本元素
  */
-export function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
+function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
   if ($mesText.find('.code-toggle-button').length > 0 || $mesText.find('pre').length === 0) {
     return;
   }
@@ -89,7 +91,7 @@ export function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
   $mesText.find('pre').each(function (_index, element) {
     const $pre = $(element);
     const $code = $pre.find('code');
-    if ($code.length && shouldHaveCodeToggle($code[0])) {
+    if ($code.length) {
       addToggleButtonToCodeBlock($pre);
     }
   });
@@ -99,7 +101,6 @@ export function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
  * 给所有消息添加折叠控件
  */
 export function addCodeToggleButtonsToAllMessages() {
-  // 渲染开启时，控件的添加由渲染函数负责
   if (!getSettingValue('render.render_hide_style') || getSettingValue('render.render_enabled')) {
     return;
   }
@@ -141,9 +142,7 @@ export function removeAllCodeToggleButtons() {
  */
 export function addRenderingHideStyleSettings() {
   injectCodeBlockHideStyles();
-  if (!getSettingValue('render.render_enabled')) {
-    addCodeToggleButtonsToAllMessages();
-  }
+  addCodeToggleButtonsToAllMessages();
 }
 
 /**
@@ -152,14 +151,4 @@ export function addRenderingHideStyleSettings() {
 export function removeRenderingHideStyleSettings() {
   removeCodeBlockHideStyles();
   removeAllCodeToggleButtons();
-}
-
-/**
- * 判断代码块是否应该有折叠按钮
- * @param codeElement 代码块元素
- * @returns 是否应该有折叠按钮，只有包含<body>和</body>的代码块才应该有折叠按钮
- */
-export function shouldHaveCodeToggle(codeElement: HTMLElement): boolean {
-  const extractedText = extractTextFromCode(codeElement);
-  return extractedText.includes('<body') && extractedText.includes('</body>');
 }

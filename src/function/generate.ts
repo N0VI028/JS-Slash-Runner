@@ -53,6 +53,8 @@ import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
 import { Stopwatch, getBase64Async } from '@sillytavern/scripts/utils';
 import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from '@sillytavern/scripts/world-info';
 
+import log from 'loglevel';
+
 interface GenerateConfig {
   user_input?: string;
   image?: File | string;
@@ -372,7 +374,7 @@ class StreamingProcessor {
       }
 
       const seconds = (timestamps[timestamps.length - 1] - timestamps[0]) / 1000;
-      console.warn(
+      log.warn(
         `Stream stats: ${timestamps.length} tokens, ${seconds.toFixed(2)} seconds, rate: ${Number(
           timestamps.length / seconds,
         ).toFixed(2)} TPS`,
@@ -438,7 +440,7 @@ async function iframeGenerate({
         },
         processedUserInput,
       );
-  console.log('[Generate:发送提示词]', generate_data);
+  log.info('[Generate:发送提示词]', generate_data);
   // 4. 根据 stream 参数决定生成方式
   return await generateResponse(generate_data, stream);
 }
@@ -908,14 +910,16 @@ async function convertSystemPromptsToCollection(
 ) {
   const promptCollection = new PromptCollection();
   const examplesCollection = new MessageCollection('dialogue_examples');
-  
+
   const orderArray = promptConfig.order || builtin_prompt_default_order;
-  
+
   const builtinPromptContents = {
     world_info_before: baseData.worldInfo.worldInfoBefore,
-    persona_description: power_user.persona_description && 
-                        power_user.persona_description_position === persona_description_positions.IN_PROMPT
-                        ? baseData.characterInfo.persona : null,
+    persona_description:
+      power_user.persona_description &&
+      power_user.persona_description_position === persona_description_positions.IN_PROMPT
+        ? baseData.characterInfo.persona
+        : null,
     char_description: baseData.characterInfo.description,
     char_personality: baseData.characterInfo.personality,
     scenario: baseData.characterInfo.scenario,
@@ -1207,7 +1211,7 @@ async function populationInjectionPrompts(
           injection_depth: entry.depth,
           injected: true,
         });
-        console.log('injectionPrompts', injectionPrompts);
+        log.info('injectionPrompts', injectionPrompts);
       }
     }
   }
@@ -1287,7 +1291,6 @@ async function generateResponse(generate_data: any, useStream = false): Promise<
       // @ts-ignore
       streamingProcessor.generator = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
       result = (await streamingProcessor.generate()) as string;
-      // console.log("getMessage", getMessage);
       if (originalStreamSetting !== oai_settings.stream_openai) {
         oai_settings.stream_openai = originalStreamSetting;
         saveSettingsDebounced();
@@ -1298,7 +1301,7 @@ async function generateResponse(generate_data: any, useStream = false): Promise<
       result = await handleResponse(response);
     }
   } catch (error) {
-    console.error(error);
+    log.error(error);
   } finally {
     unblockGeneration();
     await clearInjectionPrompts(['INJECTION']);

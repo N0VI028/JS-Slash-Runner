@@ -1,3 +1,8 @@
+import {
+  bindQrEnabledChangeListener,
+  checkQrEnabledStatusAndAddButton,
+  unbindQrEnabledChangeListener,
+} from '@/component/script_repository/button';
 import { purgeEmbeddedScripts, ScriptData } from '@/component/script_repository/data';
 import { scriptEvents, ScriptRepositoryEventType } from '@/component/script_repository/events';
 import { ScriptManager } from '@/component/script_repository/script_controller';
@@ -5,14 +10,12 @@ import { Script, ScriptType } from '@/component/script_repository/types';
 import { UIController } from '@/component/script_repository/ui_controller';
 import { extensionFolderPath } from '@/util/extension_variables';
 
-import {
-  bindQrEnabledChangeListener,
-  checkQrEnabledStatusAndAddButton,
-  unbindQrEnabledChangeListener,
-} from '@/component/script_repository/button';
 import { event_types, eventSource, this_chid } from '@sillytavern/script';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { loadFileToDocument, uuidv4 } from '@sillytavern/scripts/utils';
+
+import log from 'loglevel';
+
 const load_events = [event_types.CHAT_CHANGED] as const;
 const delete_events = [event_types.CHARACTER_DELETED] as const;
 
@@ -73,7 +76,7 @@ export class ScriptRepositoryApp {
       await this.uiManager.initialize();
       this.initialized = true;
     } catch (error) {
-      console.error('[ScriptManager] 初始化失败:', error);
+      log.error('[ScriptManager] 初始化失败:', error);
       this.initialized = false;
     }
   }
@@ -119,7 +122,7 @@ export class ScriptRepositoryApp {
 
     this.scriptManager.refreshCharacterScriptEnabledState();
 
-    console.info('[ScriptManager] 刷新角色脚本库');
+    log.info('[ScriptManager] 刷新角色脚本库');
 
     if (this_chid && characterScripts.length > 0) {
       await this.uiManager.checkEmbeddedScripts(this_chid);
@@ -130,7 +133,7 @@ export class ScriptRepositoryApp {
     );
 
     if (conflictScripts.length > 0) {
-      console.info(`[ScriptManager] 发现${conflictScripts.length}个脚本ID冲突`);
+      log.info(`[ScriptManager] 发现${conflictScripts.length}个脚本ID冲突`);
 
       for (const charScript of conflictScripts) {
         const globalScript = globalScripts.find(gs => gs.id === charScript.id)!;
@@ -151,7 +154,7 @@ export class ScriptRepositoryApp {
           if (globalScript.enabled) {
             await this.scriptManager.stopScript(globalScript, ScriptType.GLOBAL);
             globalScript.enabled = false;
-            console.info(`[ScriptManager] 关闭全局脚本: ${globalScript.name}`);
+            log.info(`[ScriptManager] 关闭全局脚本: ${globalScript.name}`);
             scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
               action: 'script_toggle',
               script: globalScript,
@@ -163,7 +166,7 @@ export class ScriptRepositoryApp {
         } else if (charScript.enabled) {
           charScript.enabled = false;
           await scriptData.saveCharacterScripts(characterScripts);
-          console.info(`[ScriptManager] 关闭局部脚本: ${charScript.name}`);
+          log.info(`[ScriptManager] 关闭局部脚本: ${charScript.name}`);
         }
       }
     }
@@ -188,9 +191,9 @@ export class ScriptRepositoryApp {
       this.uiManager.cleanup();
 
       this.initialized = false;
-      console.info('[ScriptManager] 清理完成');
+      log.info('[ScriptManager] 清理完成');
     } catch (error) {
-      console.error('[ScriptManager] 清理失败:', error);
+      log.error('[ScriptManager] 清理失败:', error);
     }
   }
 }

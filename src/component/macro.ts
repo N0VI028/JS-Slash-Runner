@@ -1,7 +1,8 @@
 import { getCharAvatarPath, getUserAvatarPath } from '@/util/extension_variables';
 
-
 import { MacroFunction, MacrosParser } from '@sillytavern/scripts/macros';
+
+import log from 'loglevel';
 
 const predefinedMacros = new Map<string, string | MacroFunction>([
   ['userAvatarPath', getUserAvatarPath],
@@ -15,7 +16,7 @@ const predefinedMacros = new Map<string, string | MacroFunction>([
  */
 export function registerMacro(key: string, value: string | MacroFunction) {
   MacrosParser.registerMacro(key, value);
-  console.log(`[Macro] 宏 "${key}" 注册成功`);
+  log.info(`[Macro] 宏 "${key}" 注册成功`);
 }
 
 /**
@@ -24,7 +25,7 @@ export function registerMacro(key: string, value: string | MacroFunction) {
 export function registerAllMacros() {
   for (const [key, value] of predefinedMacros.entries()) {
     MacrosParser.registerMacro(key, value);
-    console.log(`[Macro] 宏 "${key}" 注册成功`);
+    log.info(`[Macro] 宏 "${key}" 注册成功`);
   }
 }
 
@@ -34,7 +35,7 @@ export function registerAllMacros() {
  */
 export function unregisterMacro(key: string) {
   MacrosParser.unregisterMacro(key);
-  console.log(`[Macro] 宏 "${key}" 注销成功`);
+  log.info(`[Macro] 宏 "${key}" 注销成功`);
 }
 
 /**
@@ -43,6 +44,6 @@ export function unregisterMacro(key: string) {
 export function unregisterAllMacros() {
   for (const key of predefinedMacros.keys()) {
     MacrosParser.unregisterMacro(key);
-    console.log(`[Macro] 宏 "${key}" 注销成功`);
+    log.info(`[Macro] 宏 "${key}" 注销成功`);
   }
 }

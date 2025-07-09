@@ -11,10 +11,13 @@ import {
 } from '@/component/script_repository/types';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { renderMarkdown } from '@/util/render_markdown';
+
 import { characters } from '@sillytavern/script';
 import { renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { download, getSortableDelay, showFontAwesomePicker, uuidv4 } from '@sillytavern/scripts/utils';
+
+import log from 'loglevel';
 
 export class UIController {
   private static instance: UIController;
@@ -241,7 +244,7 @@ export class UIController {
           await this.refreshScriptList(ScriptType.CHARACTER);
           break;
         default:
-          console.warn(`[ScriptManager] 未处理的UI刷新事件: ${action}`);
+          log.warn(`[ScriptManager] 未处理的UI刷新事件: ${action}`);
       }
     });
 
@@ -714,7 +717,7 @@ export class UIController {
               return false;
             }
           } catch (error) {
-            console.error('[ScriptManager] 拖拽脚本到文件夹失败:', error);
+            log.error('[ScriptManager] 拖拽脚本到文件夹失败:', error);
             toastr.error(`移动脚本失败: ${error instanceof Error ? error.message : String(error)}`);
 
             $folder.removeClass('folder-drag-target');
@@ -777,7 +780,7 @@ export class UIController {
 
       return true;
     } catch (error) {
-      console.error('[ScriptManager] 移动脚本到文件夹失败:', error);
+      log.error('[ScriptManager] 移动脚本到文件夹失败:', error);
       throw error;
     }
   }
@@ -796,7 +799,7 @@ export class UIController {
         type,
       });
     } catch (error) {
-      console.error('[ScriptManager] handleDragStop: 处理拖拽结束失败:', error);
+      log.error('[ScriptManager] handleDragStop: 处理拖拽结束失败:', error);
     }
   }
   /**
@@ -1118,7 +1121,7 @@ export class UIController {
           await this.scriptManager.stopScript(script, type);
           await this.scriptManager.runScript(script, type);
         } catch (error) {
-          console.error(`[ScriptManager] 重启脚本失败: ${script.name}`, error);
+          log.error(`[ScriptManager] 重启脚本失败: ${script.name}`, error);
           toastr.error(`重启脚本失败: ${script.name}`);
         }
       }
@@ -1532,7 +1535,7 @@ export class UIController {
             return null;
         }
       } catch (error) {
-        console.error('[ScriptManager] 导出脚本数据选择对话框出错:', error);
+        log.error('[ScriptManager] 导出脚本数据选择对话框出错:', error);
         return scriptData;
       }
     }
@@ -1657,7 +1660,7 @@ export class UIController {
           template.find('#folder-icon-value').val(selectedIcon);
         }
       } catch (error) {
-        console.error('[ScriptManager] 图标选择失败:', error);
+        log.error('[ScriptManager] 图标选择失败:', error);
       }
     });
 
@@ -1708,7 +1711,7 @@ export class UIController {
         color: folderColor,
       });
     } catch (error) {
-      console.error('[ScriptManager] 创建文件夹失败:', error);
+      log.error('[ScriptManager] 创建文件夹失败:', error);
       toastr.error(`创建文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -1744,7 +1747,7 @@ export class UIController {
             <div class="flex alignItemsCenter">
             <label>选择颜色</label>
             <toolcool-color-picker id="folder-color-picker" color="${currentColorRgba}"></toolcool-color-picker>
-            </div>  
+            </div>
             <div class="flex-container alignItemsCenter">
              <label>选择图标</label>
               <i id="folder-icon-preview" class="fa ${currentIcon} marginRight10" style="cursor: pointer; font-size: 12px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" title="点击选择图标"></i>
@@ -1763,7 +1766,7 @@ export class UIController {
           template.find('#folder-icon-value').val(selectedIcon);
         }
       } catch (error) {
-        console.error('[ScriptManager] 图标选择失败:', error);
+        log.error('[ScriptManager] 图标选择失败:', error);
       }
     });
     template.find('#folder-color-picker').on('change', evt => {
@@ -1857,7 +1860,7 @@ export class UIController {
 
       toastr.success(`文件夹 "${folder.name}" 导出成功`);
     } catch (error) {
-      console.error('[ScriptManager] 导出文件夹失败:', error);
+      log.error('[ScriptManager] 导出文件夹失败:', error);
       toastr.error(`导出文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2204,7 +2207,7 @@ export class UIController {
       this.exitBatchMode(type);
       await this.renderScriptLists();
     } catch (error) {
-      console.error('[ScriptManager] 批量删除失败:', error);
+      log.error('[ScriptManager] 批量删除失败:', error);
       toastr.error(`批量删除失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2310,7 +2313,7 @@ export class UIController {
 
       toastr.success(`成功导出 ${exportedCount} 个项目`);
     } catch (error) {
-      console.error('[ScriptManager] 批量导出失败:', error);
+      log.error('[ScriptManager] 批量导出失败:', error);
       toastr.error(`批量导出失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2377,7 +2380,7 @@ export class UIController {
       this.exitBatchMode(type);
       await this.renderScriptLists();
     } catch (error) {
-      console.error('[ScriptManager] 批量移动失败:', error);
+      log.error('[ScriptManager] 批量移动失败:', error);
       toastr.error(`批量移动失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2394,7 +2397,7 @@ export class UIController {
       await this.renderScriptLists();
       toastr.success(`文件夹 "${name}" 创建成功`);
     } catch (error) {
-      console.error('[ScriptManager] 创建文件夹失败:', error);
+      log.error('[ScriptManager] 创建文件夹失败:', error);
       toastr.error(`创建文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2432,7 +2435,7 @@ export class UIController {
 
       toastr.success(`文件夹更新成功`);
     } catch (error) {
-      console.error('[ScriptManager] 更新文件夹失败:', error);
+      log.error('[ScriptManager] 更新文件夹失败:', error);
       toastr.error(`更新文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -2451,7 +2454,7 @@ export class UIController {
         toastr.success('文件夹删除成功');
       }
     } catch (error) {
-      console.error('[ScriptManager] 删除文件夹失败:', error);
+      log.error('[ScriptManager] 删除文件夹失败:', error);
       if (!skipUIRefresh) {
         toastr.error(`删除文件夹失败: ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -2470,7 +2473,7 @@ export class UIController {
       await this.scriptManager.toggleFolderScripts(folderId, type, enable);
       this.updateFolderAndScriptsUI(folderId, type, enable);
     } catch (error) {
-      console.error('[ScriptManager] 批量切换文件夹脚本状态失败:', error);
+      log.error('[ScriptManager] 批量切换文件夹脚本状态失败:', error);
       toastr.error(`批量切换脚本状态失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }

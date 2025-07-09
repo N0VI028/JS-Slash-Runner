@@ -12,6 +12,8 @@ import {
   system_message_types,
 } from '@sillytavern/script';
 
+import log from 'loglevel';
+
 interface ChatMessage {
   message_id: number;
   name: string;
@@ -105,18 +107,18 @@ export function getChatMessages(
   const process_message = (message_id: number): (ChatMessage | ChatMessageSwiped) | null => {
     const message = chat[message_id];
     if (!message) {
-      console.warn(`没找到第 ${message_id} 楼的消息`);
+      log.warn(`没找到第 ${message_id} 楼的消息`);
       return null;
     }
 
     const message_role = get_role(message);
     if (role !== 'all' && message_role !== role) {
-      console.debug(`筛去了第 ${message_id} 楼的消息因为它的身份不是 ${role}`);
+      log.debug(`筛去了第 ${message_id} 楼的消息因为它的身份不是 ${role}`);
       return null;
     }
 
     if (hide_state !== 'all' && (hide_state === 'hidden') !== message.is_system) {
-      console.debug(`筛去了第 ${message_id} 楼的消息因为它${hide_state === 'hidden' ? `` : `没`} 被隐藏`);
+      log.debug(`筛去了第 ${message_id} 楼的消息因为它${hide_state === 'hidden' ? `` : `没`} 被隐藏`);
       return null;
     }
 
@@ -159,7 +161,7 @@ export function getChatMessages(
     .map(i => process_message(i))
     .filter(chat_message => chat_message !== null);
 
-  console.info(
+  log.info(
     `获取${start == end ? `第 ${start} ` : ` ${start}-${end} `}楼的消息, 选项: ${JSON.stringify({
       role,
       hide_state,
@@ -288,7 +290,7 @@ export async function setChatMessages(
   } else if (refresh === 'affected') {
     await Promise.all(chat_messages.map(message => render(message.message_id)));
   }
-  console.info(
+  log.info(
     `修改第 '${chat_messages.map(message => message.message_id).join(', ')}' 楼的消息, 选项: ${JSON.stringify({
       refresh,
     })}`,
@@ -351,7 +353,7 @@ export async function createChatMessages(
   } else {
     await reloadCurrentChat();
   }
-  console.info(
+  log.info(
     `在${insert_at === 'end' ? '最后' : `第 ${insert_at} 楼前`}创建 ${
       chat_messages.length
     } 条消息, 选项: ${JSON.stringify({
@@ -376,7 +378,7 @@ export async function deleteChatMessages(
   if (refresh === 'all') {
     await reloadCurrentChat();
   }
-  console.info(
+  log.info(
     `删除第 '${message_ids.join(', ')}' 楼的消息, 选项: ${JSON.stringify({
       refresh,
     })}`,
@@ -399,7 +401,7 @@ export async function rotateChatMessages(
   if (refresh === 'all') {
     await reloadCurrentChat();
   }
-  console.info(
+  log.info(
     `旋转第 '[${begin}, ${middle}) [${middle}, ${end})' 楼的消息, 选项: ${JSON.stringify({
       refresh,
     })}`,
@@ -431,7 +433,7 @@ export async function setChatMessage(
 
   const chat_message = chat.at(message_id);
   if (!chat_message) {
-    console.warn(`未找到第 ${message_id} 楼的消息`);
+    log.warn(`未找到第 ${message_id} 楼的消息`);
     return;
   }
 
@@ -521,7 +523,7 @@ export async function setChatMessage(
     await update_partial_html(should_update_swipe);
   }
 
-  console.info(
+  log.info(
     `设置第 ${message_id} 楼消息, 选项: ${JSON.stringify({
       swipe_id,
       refresh,

@@ -1,16 +1,17 @@
+import { ScriptType } from '@/component/script_repository/index';
+import { ScriptManager } from '@/component/script_repository/script_controller';
 import {
   extensionFolderPath,
   getOrSaveSettingValue,
   getSettingValue,
   saveSettingValue,
 } from '@/util/extension_variables';
-import { characters, reloadCurrentChat, saveChatConditional, this_chid } from '@sillytavern/script';
 
+import { characters, reloadCurrentChat, saveChatConditional, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 
+import log from 'loglevel';
 import { io } from 'socket.io-client';
-import { ScriptType } from '../script_repository/index';
-import { ScriptManager } from '../script_repository/script_controller';
 
 const templatePath = `${extensionFolderPath}/src/component/listener`;
 const default_settings = {
@@ -27,7 +28,7 @@ function reset_refresh_duration() {
   refresh_iframe_debounced = _.debounce(refresh_iframe, getSettingValue('listener.duration'));
 }
 async function refresh_iframe(): Promise<void> {
-  console.log(`[Listener] 已将 iframe 刷新为最新版本`);
+  log.info(`[Listener] 已将 iframe 刷新为最新版本`);
 
   // @ts-expect-error
   const character = characters[this_chid];
@@ -68,18 +69,18 @@ function connect_socket(url: string): void {
       if (getSettingValue('listener.enable_echo')) {
         toastr.error(`连接酒馆助手实时监听功能出错, 尝试重连...\n${error.name}: ${error.message}`);
       }
-      console.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
+      log.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
     } else {
       if (getSettingValue('listener.enable_echo')) {
         toastr.error(`连接酒馆助手实时监听功能出错, 请手动连接重试!\n${error.name}: ${error.message}`);
       }
-      console.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
+      log.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
     }
   });
 
   socket.on('connect', () => {
     toggle_status(true);
-    console.log('[Listener] 成功连接至服务器');
+    log.info('[Listener] 成功连接至服务器');
   });
 
   socket.on('iframe_updated', () => {
@@ -91,7 +92,7 @@ function connect_socket(url: string): void {
       toastr.warning(`酒馆助手实时监听器断开连接: ${reason}`);
     }
     toggle_status(false);
-    console.log(`[Listener] 与服务器断开连接: ${reason}\n${details}`);
+    log.info(`[Listener] 与服务器断开连接: ${reason}\n${details}`);
   });
 }
 

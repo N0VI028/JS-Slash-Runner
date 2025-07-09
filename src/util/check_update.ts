@@ -1,9 +1,12 @@
+import { extensionFolderPath, extensionName } from '@/util/extension_variables';
+import { renderMarkdown } from '@/util/render_markdown';
+
 import { getRequestHeaders } from '@sillytavern/script';
 import { extensionTypes } from '@sillytavern/scripts/extensions';
 import { t } from '@sillytavern/scripts/i18n';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
-import { extensionFolderPath, extensionName } from './extension_variables';
-import { renderMarkdown } from './render_markdown';
+
+import log from 'loglevel';
 
 const GITLAB_INSTANCE_URL = 'gitlab.com';
 const GITLAB_PROJECT_PATH = 'novi028/JS-Slash-Runner';
@@ -48,7 +51,7 @@ async function fetchRawFileContentFromGitLab(filePath: string): Promise<string> 
     const content = await response.text();
     return content.trim();
   } catch (error) {
-    console.error('[TavernHelper] 获取 GitLab 文件内容时出错:', error);
+    log.error('[TavernHelper] 获取 GitLab 文件内容时出错:', error);
     throw error;
   }
 }
@@ -69,7 +72,7 @@ export function parseVersionFromFile(content: string): string {
       throw new Error("[TavernHelper] 在 JSON 数据中未找到有效的 'version' 字段 (必须是字符串类型)");
     }
   } catch (error) {
-    console.error('[TavernHelper] 解析版本文件内容时出错:', error);
+    log.error('[TavernHelper] 解析版本文件内容时出错:', error);
 
     if (error instanceof SyntaxError) {
       throw new Error(`[TavernHelper] 无法将文件内容解析为 JSON: ${error.message}`);
@@ -115,7 +118,7 @@ function compareSemVer(versionA: string, versionB: string): number {
     const numB = partsB[i] || 0;
 
     if (isNaN(numA) || isNaN(numB)) {
-      console.warn(`[TavernHelper] 版本号 "${versionA}" 或 "${versionB}" 包含非数字部分，可能导致比较不准确。`);
+      log.warn(`[TavernHelper] 版本号 "${versionA}" 或 "${versionB}" 包含非数字部分，可能导致比较不准确。`);
       return 0;
     }
 
@@ -139,7 +142,7 @@ export async function getFileContentByPath(filePath: string) {
     const content = await response.text();
     return content;
   } catch (error) {
-    console.error(`读取文件 ${filePath} 失败:`, error);
+    log.error(`读取文件 ${filePath} 失败:`, error);
     throw error;
   }
 }
@@ -151,17 +154,17 @@ export async function runCheckWithPath() {
     const comparisonResult = compareSemVer(LATEST_VERSION, CURRENT_VERSION);
 
     if (comparisonResult > 0) {
-      console.info(`[TavernHelper] 需要更新！最新版本 ${LATEST_VERSION} > 当前版本 ${CURRENT_VERSION}`);
+      log.info(`[TavernHelper] 需要更新！最新版本 ${LATEST_VERSION} > 当前版本 ${CURRENT_VERSION}`);
       return true;
     } else if (comparisonResult === 0) {
-      console.info(`[TavernHelper] 当前版本 ${CURRENT_VERSION} 已是最新。`);
+      log.info(`[TavernHelper] 当前版本 ${CURRENT_VERSION} 已是最新。`);
       return false;
     } else {
-      console.warn(`[TavernHelper] 当前版本 ${CURRENT_VERSION} 比远程版本 ${LATEST_VERSION} 还新？`);
+      log.warn(`[TavernHelper] 当前版本 ${CURRENT_VERSION} 比远程版本 ${LATEST_VERSION} 还新？`);
       return false;
     }
   } catch (error) {
-    console.error('[TavernHelper] 版本检查失败:', error);
+    log.error('[TavernHelper] 版本检查失败:', error);
     return false;
   }
 }
@@ -298,16 +301,16 @@ export async function updateTavernHelper() {
   if (!response.ok) {
     const text = await response.text();
     toastr.error(text || response.statusText, t`更新酒馆助手失败`, { timeOut: 5000 });
-    console.error(`更新酒馆助手失败: ${text}`);
+    log.error(`更新酒馆助手失败: ${text}`);
     return false;
   }
 
   const data = await response.json();
   if (data.isUpToDate) {
-    console.info(`酒馆助手已是最新版本, 无需更新`);
+    log.info(`酒馆助手已是最新版本, 无需更新`);
   } else {
     toastr.success(t`成功更新酒馆助手为 ${data.shortCommitHash}, 准备刷新页面以生效...`);
-    console.info(`成功更新酒馆助手为  ${data.shortCommitHash}, 准备刷新页面以生效...`);
+    log.info(`成功更新酒馆助手为  ${data.shortCommitHash}, 准备刷新页面以生效...`);
     setTimeout(() => location.reload(), 3000);
   }
   return true;

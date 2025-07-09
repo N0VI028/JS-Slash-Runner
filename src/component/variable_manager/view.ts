@@ -1,12 +1,14 @@
-import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
-import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
-import { getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
-
 import { VariableCardFactory } from '@/component/variable_manager/card';
 import { IDomUpdater } from '@/component/variable_manager/sync';
 import { VariableDataType, VariableItem, VariableType } from '@/component/variable_manager/types';
 import { VariableManagerUtil } from '@/component/variable_manager/util';
 import { getLastMessageId } from '@/function/util';
+
+import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
+import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
+import { getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
+
+import log from 'loglevel';
 
 export interface IController {
   cleanup(): void;
@@ -786,7 +788,7 @@ export class VariableView implements IDomUpdater {
         this.addAnimation(newCard, 'variable-added', () => {});
       }
     } catch (error) {
-      console.error(`[VariableManager] 添加卡片"${variable.name}"失败:`, error);
+      log.error(`[VariableManager] 添加卡片"${variable.name}"失败:`, error);
     }
   }
 
@@ -797,14 +799,14 @@ export class VariableView implements IDomUpdater {
   public removeVariableCard(variable_id: string): void {
     try {
       if (!variable_id) {
-        console.warn(`[VariableManager] 变量ID为空，无法移除卡片`);
+        log.warn(`[VariableManager] 变量ID为空，无法移除卡片`);
         return;
       }
 
       const $card = this.container.find(`.variable-card[data-variable-id="${variable_id}"]`);
 
       if ($card.length === 0) {
-        console.warn(`[VariableManager] 未找到ID为"${variable_id}"的卡片`);
+        log.warn(`[VariableManager] 未找到ID为"${variable_id}"的卡片`);
         return;
       }
 
@@ -813,7 +815,7 @@ export class VariableView implements IDomUpdater {
         this.checkAndShowEmptyState();
       });
     } catch (error) {
-      console.error(`[VariableManager] 移除卡片失败:`, error);
+      log.error(`[VariableManager] 移除卡片失败:`, error);
     }
   }
 
@@ -838,7 +840,7 @@ export class VariableView implements IDomUpdater {
       const $card = this.container.find(`.variable-card[data-variable-id="${variable.id}"]`);
 
       if ($card.length === 0) {
-        console.warn(`[VariableManager] 未找到ID为"${variable.id}"的卡片`);
+        log.warn(`[VariableManager] 未找到ID为"${variable.id}"的卡片`);
         return;
       }
 
@@ -853,7 +855,7 @@ export class VariableView implements IDomUpdater {
       $card.replaceWith(newCard);
       this.addAnimation(newCard, 'variable-changed', () => {});
     } catch (error) {
-      console.error(`[VariableManager] 更新卡片失败:`, error);
+      log.error(`[VariableManager] 更新卡片失败:`, error);
     }
   }
 

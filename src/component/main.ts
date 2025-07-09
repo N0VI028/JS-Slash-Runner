@@ -1,18 +1,18 @@
 import { registerAllMacros, unregisterAllMacros } from '@/component/macro';
 import { destroyMacroOnExtension, initializeMacroOnExtension, renderAllMacros } from '@/component/macrolike';
 import {
-  renderAllIframes,
-  renderPartialIframes,
-  renderMessageAfterDelete,
-  partialRenderEvents,
-  viewport_adjust_script,
-  tampermonkey_script,
-} from '@/component/message_iframe/render_message';
-import {
+  addCodeToggleButtonsToAllMessages,
   addRenderingHideStyleSettings,
   removeRenderingHideStyleSettings,
-  addCodeToggleButtonsToAllMessages,
 } from '@/component/message_iframe/render_hide_style';
+import {
+  partialRenderEvents,
+  renderAllIframes,
+  renderMessageAfterDelete,
+  renderPartialIframes,
+  tampermonkey_script,
+  viewport_adjust_script,
+} from '@/component/message_iframe/render_message';
 import {
   addRenderingOptimizeSettings,
   removeRenderingOptimizeSettings,
