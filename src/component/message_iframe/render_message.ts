@@ -1,5 +1,5 @@
 import {
-  addToggleButtonsToMessage,
+  addToggleButtonToCodeBlock,
   removeCodeToggleButtonsByMesId,
 } from '@/component/message_iframe/render_hide_style';
 import { extractTextFromCode } from '@/component/message_iframe/utils';
@@ -63,7 +63,10 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
         `.mes[mesid="${messageId}"] .mes_block .mes_reasoning_details, .mes[mesid="${messageId}"] .mes_block .mes_text`,
       );
       $mesTexts.each(function () {
-        addToggleButtonsToMessage($(this));
+        const $codeBlock = $(this).find('pre');
+        if ($codeBlock.length) {
+          addToggleButtonToCodeBlock($codeBlock);
+        }
       });
     }
   }
@@ -84,59 +87,59 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
 
     $codeElements.each(function () {
       let extractedText = extractTextFromCode(this);
+      if (extractedText.includes('<body') && extractedText.includes('</body>')) {
+        const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
+        const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
+        const hasJsVhUsage = /\d+vh/.test(extractedText);
 
-      const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
-      const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
-      const hasJsVhUsage = /\d+vh/.test(extractedText);
+        if (hasMinVh || hasJsVhUsage) {
+          extractedText = processAllVhUnits(extractedText);
+        }
+        const needsVhHandling = hasMinVh || hasJsVhUsage;
 
-      if (hasMinVh || hasJsVhUsage) {
-        extractedText = processAllVhUnits(extractedText);
-      }
-      const needsVhHandling = hasMinVh || hasJsVhUsage;
-
-      let $wrapper = $('<div>').css({
-        position: 'relative',
-        width: '100%',
-      });
-
-      const $iframe = $('<iframe>')
-        .attr({
-          id: `message-iframe-${messageId}-${iframeCounter}`,
-          loading: 'lazy',
-        })
-        .css({
-          margin: '5px auto',
-          border: 'none',
+        let $wrapper = $('<div>').css({
+          position: 'relative',
           width: '100%',
-        }) as JQuery<HTMLIFrameElement>;
+        });
 
-      iframeCounter++;
+        const $iframe = $('<iframe>')
+          .attr({
+            id: `message-iframe-${messageId}-${iframeCounter}`,
+            loading: 'lazy',
+          })
+          .css({
+            margin: '5px auto',
+            border: 'none',
+            width: '100%',
+          }) as JQuery<HTMLIFrameElement>;
 
-      if (needsVhHandling) {
-        $iframe.attr('data-needs-vh', 'true');
-      }
+        iframeCounter++;
 
-      let loadingTimeout: NodeJS.Timeout | null = null;
-      if (!disableLoading) {
-        const $loadingOverlay = $('<div>').addClass('iframe-loading-overlay').html(`
+        if (needsVhHandling) {
+          $iframe.attr('data-needs-vh', 'true');
+        }
+
+        let loadingTimeout: NodeJS.Timeout | null = null;
+        if (!disableLoading) {
+          const $loadingOverlay = $('<div>').addClass('iframe-loading-overlay').html(`
                 <div class="iframe-loading-content">
                   <i class="fa-solid fa-spinner fa-spin"></i>
                   <span class="loading-text">Loading...</span>
                 </div>`);
 
-        loadingTimeout = setTimeout(() => {
-          const $loadingText = $loadingOverlay.find('.loading-text');
-          if ($loadingText.length) {
-            $loadingText.text('如加载时间过长，请检查网络');
-          }
-        }, 10000);
+          loadingTimeout = setTimeout(() => {
+            const $loadingText = $loadingOverlay.find('.loading-text');
+            if ($loadingText.length) {
+              $loadingText.text('如加载时间过长，请检查网络');
+            }
+          }, 10000);
 
-        $wrapper.append($loadingOverlay);
-      }
+          $wrapper.append($loadingOverlay);
+        }
 
-      $wrapper.append($iframe);
+        $wrapper.append($iframe);
 
-      const srcdocContent = `
+        const srcdocContent = `
             <html>
             <head>
               <base href="${window.location.origin}/">
@@ -162,47 +165,50 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
             </html>
           `;
 
-      const blob = new Blob([srcdocContent], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      $iframe.attr('src', url);
+        const blob = new Blob([srcdocContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        $iframe.attr('src', url);
 
-      $iframe.on('load', function () {
-        URL.revokeObjectURL(url);
+        $iframe.on('load', function () {
+          URL.revokeObjectURL(url);
 
-        observeIframeContent(this);
+          observeIframeContent(this);
 
-        $wrapper = $(this).parent();
-        if ($wrapper.length) {
-          const $loadingOverlay = $wrapper.find('.iframe-loading-overlay');
-          if ($loadingOverlay.length) {
-            $loadingOverlay.css('opacity', '0');
-            setTimeout(() => $loadingOverlay.remove(), 300);
+          $wrapper = $(this).parent();
+          if ($wrapper.length) {
+            const $loadingOverlay = $wrapper.find('.iframe-loading-overlay');
+            if ($loadingOverlay.length) {
+              $loadingOverlay.css('opacity', '0');
+              setTimeout(() => $loadingOverlay.remove(), 300);
+            }
           }
-        }
 
-        if ($(this).attr('data-needs-vh') === 'true') {
-          this.contentWindow?.postMessage(
-            {
-              request: 'updateViewportHeight',
-              newHeight: window.innerHeight,
-            },
-            '*',
-          );
-        }
+          if ($(this).attr('data-needs-vh') === 'true') {
+            this.contentWindow?.postMessage(
+              {
+                request: 'updateViewportHeight',
+                newHeight: window.innerHeight,
+              },
+              '*',
+            );
+          }
 
-        eventSource.emitAndWait('message_iframe_render_ended', this.id);
+          eventSource.emitAndWait('message_iframe_render_ended', this.id);
 
-        if (getSettingValue('render.render_hide_style')) {
-          removeCodeToggleButtonsByMesId(messageId);
-        }
+          if (getSettingValue('render.render_hide_style')) {
+            removeCodeToggleButtonsByMesId(messageId);
+          }
 
-        if (loadingTimeout) {
-          clearTimeout(loadingTimeout);
-        }
-      });
+          if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+          }
+        });
 
-      eventSource.emitAndWait('message_iframe_render_started', $iframe.attr('id'));
-      $(this).replaceWith($wrapper);
+        eventSource.emitAndWait('message_iframe_render_started', $iframe.attr('id'));
+        $(this).replaceWith($wrapper);
+      } else {
+        addToggleButtonToCodeBlock($(this));
+      }
     });
   }
 }
@@ -308,7 +314,7 @@ function processAllVhUnits(htmlContent: string) {
   );
 
   processedContent = processedContent.replace(/min-height:\s*([^;]*vh[^;]*);/g, expression => {
-    const processedExpression = expression.replace(/(\d+(?:\.\d+)?)vh/g, (num) => {
+    const processedExpression = expression.replace(/(\d+(?:\.\d+)?)vh/g, num => {
       const numValue = parseFloat(num);
       if (numValue === 100) {
         return `var(--viewport-height, ${viewportHeight}px)`;
@@ -323,7 +329,7 @@ function processAllVhUnits(htmlContent: string) {
     /style\s*=\s*["']([^"']*min-height:\s*[^"']*vh[^"']*?)["']/gi,
     (match, styleContent) => {
       const processedStyleContent = styleContent.replace(/min-height:\s*([^;]*vh[^;]*)/g, (expression: string) => {
-        const processedExpression = expression.replace(/(\d+(?:\.\d+)?)vh/g, (num) => {
+        const processedExpression = expression.replace(/(\d+(?:\.\d+)?)vh/g, num => {
           const numValue = parseFloat(num);
           if (numValue === 100) {
             return `var(--viewport-height, ${viewportHeight}px)`;
@@ -381,7 +387,6 @@ function getSharedResizeObserver(): ResizeObserver {
         }
       }
     });
-
   }
 
   return window._sharedResizeObserver;

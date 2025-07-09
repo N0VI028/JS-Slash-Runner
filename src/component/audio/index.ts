@@ -197,7 +197,7 @@ export async function updateAudioSelect(type = 'bgm') {
 
     selectElement.val(selectedSetting);
   } else {
-    log.error(`[Audio] 暂无可用的 ${type.toUpperCase()} 资源`);
+    log.warn(`[Audio] 暂无可用的 ${type.toUpperCase()} 资源`);
   }
 }
 
