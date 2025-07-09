@@ -52,7 +52,10 @@ function removeCodeBlockHideStyles() {
  * @param $pre 代码块元素
  */
 export function addToggleButtonToCodeBlock($pre: JQuery<HTMLElement>) {
-  // 检查代码块是否已经有折叠按钮
+  if (!getSettingValue('render.render_hide_style')) {
+    return;
+  }
+
   if ($pre.prev('.code-toggle-button').length > 0) {
     return;
   }
@@ -98,7 +101,6 @@ function addToggleButtonsToMessage($mesText: JQuery<HTMLElement>) {
  * 给所有消息添加折叠控件
  */
 export function addCodeToggleButtonsToAllMessages() {
-  // 渲染开启时，控件的添加由渲染函数负责
   if (!getSettingValue('render.render_hide_style') || getSettingValue('render.render_enabled')) {
     return;
   }
@@ -140,9 +142,7 @@ export function removeAllCodeToggleButtons() {
  */
 export function addRenderingHideStyleSettings() {
   injectCodeBlockHideStyles();
-  if (!getSettingValue('render.render_enabled')) {
-    addCodeToggleButtonsToAllMessages();
-  }
+  addCodeToggleButtonsToAllMessages();
 }
 
 /**
