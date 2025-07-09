@@ -93,6 +93,14 @@ function addRenderQuickButton() {
  * 初始化iframe控制面板
  */
 export async function initIframePanel() {
+  // 处理重型前端卡渲染优化
+  isRenderingOptimizeEnabled = getSettingValue('render.render_optimize');
+  if (isRenderingOptimizeEnabled) {
+    await handleRenderingOptimizationToggle(true, false);
+  }
+  $('#render-optimize-toggle')
+    .prop('checked', isRenderingOptimizeEnabled)
+    .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(event.target.checked, true));
   // 处理处理深度设置
   renderDepth = getSettingValue('render.render_depth');
   $('#render-depth')
@@ -116,15 +124,6 @@ export async function initIframePanel() {
   $('#render-enable-toggle')
     .prop('checked', isRenderEnabled)
     .on('click', (event: JQuery.ClickEvent) => handleRenderEnableToggle(event.target.checked, true));
-
-  // 处理重型前端卡渲染优化
-  isRenderingOptimizeEnabled = getSettingValue('render.render_optimize');
-  if (isRenderingOptimizeEnabled) {
-    await handleRenderingOptimizationToggle(true, false);
-  }
-  $('#render-optimize-toggle')
-    .prop('checked', isRenderingOptimizeEnabled)
-    .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(event.target.checked, true));
 
   // 处理代码块折叠设置 - 这个放在渲染设置之后，确保不被reloadCurrentChat清除
   isRenderingHideStyleEnabled = getSettingValue('render.render_hide_style');
