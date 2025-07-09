@@ -245,7 +245,13 @@ export class VariableController {
       return;
     }
 
-    const sameNameVariables = this.model.getVariablesByName(newVariable.name);
+    let sameNameVariables: VariableItem[];
+    if (type === 'message' && message_id !== undefined) {
+      sameNameVariables = this.model.getVariablesByMessageId(message_id).filter(v => v.name === newVariable.name);
+    } else {
+      sameNameVariables = this.model.getVariablesByName(newVariable.name);
+    }
+    
     const otherSameNameVariables = sameNameVariables.filter(v => v.id !== newVariable.id);
     if (otherSameNameVariables.length > 0) {
       toastr.error('变量名重复');
