@@ -1,5 +1,3 @@
-import { findChar } from '@/compatibility';
-
 import {
   characters,
   chat_metadata,
@@ -14,7 +12,7 @@ import {
 } from '@sillytavern/script';
 // @ts-ignore
 import { selected_group } from '@sillytavern/scripts/group-chats';
-import { ensureImageFormatSupported, getCharaFilename } from '@sillytavern/scripts/utils';
+import { ensureImageFormatSupported, findChar, getCharaFilename } from '@sillytavern/scripts/utils';
 import {
   createNewWorldInfo,
   deleteWorldInfo,
@@ -25,6 +23,8 @@ import {
   world_info,
   world_names,
 } from '@sillytavern/scripts/world-info';
+
+import log from 'loglevel';
 
 interface LorebookSettings {
   selected_global_lorebooks: string[];
@@ -206,7 +206,7 @@ interface GetCharLorebooksOption {
 export function getLorebookSettings(): LorebookSettings {
   const lorebook_settings = toLorebookSettings(getWorldInfoSettings());
 
-  console.info(`获取世界书全局设置:\n${JSON.stringify(lorebook_settings)}`);
+  log.info(`获取世界书全局设置:\n${JSON.stringify(lorebook_settings)}`);
   return structuredClone(lorebook_settings);
 }
 
@@ -220,25 +220,25 @@ export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
 
   assignPartialLorebookSettings(settings);
 
-  console.info(`修改世界书全局设置:\n${JSON.stringify(settings)}`);
+  log.info(`修改世界书全局设置:\n${JSON.stringify(settings)}`);
 }
 
 export function getLorebooks(): string[] {
-  console.info(`获取世界书列表: ${JSON.stringify(world_names)}`);
+  log.info(`获取世界书列表: ${JSON.stringify(world_names)}`);
   return structuredClone(world_names);
 }
 
 export async function deleteLorebook(lorebook: string): Promise<boolean> {
   const success = await deleteWorldInfo(lorebook);
 
-  console.info(`移除世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
+  log.info(`移除世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
   return success;
 }
 
 export async function createLorebook(lorebook: string): Promise<boolean> {
   const success = await createNewWorldInfo(lorebook, { interactive: false });
 
-  console.info(`新建世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
+  log.info(`新建世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
   return success;
 }
 
@@ -288,7 +288,7 @@ export function getCharLorebooks({
     }
   }
 
-  console.info(`获取角色卡绑定的世界书, 选项: ${JSON.stringify({ name, type })}, 获取结果: ${JSON.stringify(books)}`);
+  log.info(`获取角色卡绑定的世界书, 选项: ${JSON.stringify({ name, type })}, 获取结果: ${JSON.stringify(books)}`);
   return structuredClone(books);
 }
 
@@ -366,7 +366,7 @@ export async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>)
   saveCharacterDebounced();
   saveSettingsDebounced();
 
-  console.info(
+  log.info(
     `修改角色卡绑定的世界书, 要修改的部分: ${JSON.stringify(lorebooks)}${
       lorebooks.primary === undefined ? ', 主要世界书保持不变' : ''
     }${lorebooks.additional === undefined ? ', 附加世界书保持不变' : ''}`,

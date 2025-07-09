@@ -16,7 +16,6 @@ async function setVariables(
     actual_variables = message_id as Record<string, any>;
   }
   if (typeof actual_message_id !== 'number' || typeof actual_variables !== 'object') {
-    console.error('[Variables][setVariables] 调用出错, 请检查你的参数类型是否正确');
     return;
   }
   return detail.make_iframe_promise({

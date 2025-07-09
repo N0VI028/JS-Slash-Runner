@@ -1,7 +1,7 @@
 import { IframeMessage, getLogPrefix, iframe_handlers } from '@/iframe_server/_impl';
 import { registerIframeVariableHandler } from '@/iframe_server/variables';
 
-import { t } from '@sillytavern/scripts/i18n';
+import log from 'loglevel';
 
 export async function handleIframe(event: MessageEvent<IframeMessage>): Promise<void> {
   if (!event.data) return;
@@ -16,8 +16,8 @@ export async function handleIframe(event: MessageEvent<IframeMessage>): Promise<
     result = await handler(event);
   } catch (err) {
     const error = err as Error;
-    toastr.error(t`${getLogPrefix(event)}${error.name + ': ' + error.message}${error.stack ? error.stack : ''}`);
-    console.error(getLogPrefix(event), error);
+    toastr.error(`${getLogPrefix(event)}${error.name + ': ' + error.message}${error.stack ? error.stack : ''}`);
+    log.error(getLogPrefix(event), error);
   } finally {
     (event.source as MessageEventSource).postMessage(
       {

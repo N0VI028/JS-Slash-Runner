@@ -3,6 +3,8 @@ import { getLogPrefix, IframeMessage, registerIframeHandler } from '@/iframe_ser
 import { chat_metadata, event_types } from '@sillytavern/script';
 import { getContext, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 
+import log from 'loglevel';
+
 interface IframeSetVariables extends IframeMessage {
   request: '[Variables][setVariables]';
   message_id: number;
@@ -23,7 +25,7 @@ export function registerIframeVariableHandler() {
     const latest_message_id = chat_length - 1;
 
     if (message_id !== latest_message_id) {
-      console.info(
+      log.info(
         `因为 ${message_id} 楼不是最新楼层 ${latest_message_id} 楼, 取消设置聊天变量. 原本要设置的变量:\n${JSON.stringify(
           variables,
           undefined,
@@ -71,7 +73,7 @@ export function registerIframeVariableHandler() {
     chat_metadata.variables.tempVariables = tempVariables;
     saveMetadataDebounced();
 
-    console.info(`${getLogPrefix(event)}设置聊天变量, 要设置的变量:\n${JSON.stringify(variables, undefined, 2)} `);
+    log.info(`${getLogPrefix(event)}设置聊天变量, 要设置的变量:\n${JSON.stringify(variables, undefined, 2)} `);
   });
 }
 
@@ -84,7 +86,7 @@ export function clearTempVariables() {
     // @ts-ignore
     Object.keys(chat_metadata.variables.tempVariables).length > 0
   ) {
-    console.log('[Var]Clearing tempVariables.');
+    log.info('[Var]Clearing tempVariables.');
     // @ts-ignore
     chat_metadata.variables.tempVariables = {};
     saveMetadataDebounced();
@@ -103,19 +105,19 @@ export function shouldUpdateVariables(eventMesId: number) {
     return;
   }
   if (eventMesId === latest_set_variables_message_id) {
-    console.log('[Var]MesId matches the latest setVariables, skipping ST variable update.');
+    log.info('[Var]MesId matches the latest setVariables, skipping ST variable update.');
     return;
   } else if (latest_set_variables_message_id !== null && eventMesId > latest_set_variables_message_id) {
-    console.log('[Var]Event mesId is newer than setVariables mesId, updating ST variables.');
+    log.info('[Var]Event mesId is newer than setVariables mesId, updating ST variables.');
     // @ts-ignore
     const newVariables = { ...chat_metadata.variables.tempVariables };
     updateVariables(newVariables);
 
     // @ts-ignore
     chat_metadata.variables.tempVariables = {};
-    console.log('[Var]TempVariables cleared.');
+    log.info('[Var]TempVariables cleared.');
   } else {
-    console.log('[Var]Event mesId is older than setVariables mesId, ignoring.');
+    log.info('[Var]Event mesId is older than setVariables mesId, ignoring.');
   }
 }
 

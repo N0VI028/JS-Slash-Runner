@@ -1,9 +1,11 @@
 import { substituteParamsExtended } from '@sillytavern/script';
 
+import log from 'loglevel';
+
 export function substitudeMacros(text: string): string {
   const text_demacroed = substituteParamsExtended(text);
 
-  console.info(`替换字符串中的宏, 字符串: '${text}', 结果: '${text_demacroed}'`);
+  log.info(`替换字符串中的宏, 字符串: '${text}', 结果: '${text_demacroed}'`);
   return text_demacroed;
 }
 

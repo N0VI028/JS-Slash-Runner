@@ -135,6 +135,11 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         }
         callback();
       },
+      {
+        hljs: 'hljs',
+        lodash: '_',
+        toastr: 'toastr',
+      },
       /^hljs$/i,
       /^(jquery|\$)$/i,
       /^jqueryui$/i,

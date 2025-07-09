@@ -12,6 +12,8 @@ import {
 } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
+import log from 'loglevel';
+
 interface VariableOption {
   type?: 'message' | 'chat' | 'character' | 'script' | 'global';
   message_id?: number | 'latest';
@@ -56,7 +58,7 @@ export function getVariables({ type = 'chat', message_id = 'latest', script_id }
 > {
   const result = getVariablesByType({ type, message_id, script_id });
 
-  console.info(
+  log.info(
     `获取${
       type === 'message'
         ? `'${message_id}' 消息`
@@ -116,7 +118,7 @@ export async function replaceVariables(
       break;
   }
 
-  console.info(
+  log.info(
     `将${
       type === 'message'
         ? `'${message_id}' 消息`
@@ -141,7 +143,7 @@ export async function updateVariablesWith(
 ): Promise<Record<string, any>> {
   let variables = getVariables({ type, message_id, script_id });
   variables = await updater(variables);
-  console.info(
+  log.info(
     `对${
       type === 'message'
         ? `'${message_id}' 消息`

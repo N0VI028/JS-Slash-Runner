@@ -2,7 +2,7 @@ type EventType = IframeEventType | TavernEventType | string;
 
 function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   if (detail.try_get_wrapper(listener, event_type)) {
-    console.warn(
+    log.warn(
       `[Event][eventOn] 函数已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
@@ -10,7 +10,7 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
     return;
   }
   SillyTavern.eventSource.on(event_type, detail.get_or_make_wrapper(listener, event_type, false));
-  console.info(
+  log.info(
     `[Event][eventOn] 函数开始监听 '${event_type}' 事件并将随事件触发\n\n  ${detail.format_function_to_string(
       listener,
     )}`,
@@ -20,7 +20,7 @@ function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]):
 function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const script_id = getScriptId();
   if (detail.try_get_wrapper(listener, event_type)) {
-    console.warn(
+    log.warn(
       `[Event][eventOnButton](id为${String(
         script_id,
       )}) 的脚本已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`,
@@ -32,7 +32,7 @@ function eventOnButton<T extends EventType>(event_type: T, listener: ListenerTyp
     event_type_with_script_id,
     detail.get_or_make_wrapper(listener, event_type_with_script_id, false),
   );
-  console.info(
+  log.info(
     `[Event][eventOnButton](script_id为${String(
       script_id,
     )}) 函数开始监听 '${event_type}' 事件并将随事件触发\n\n  ${detail.format_function_to_string(listener)}`,
@@ -43,13 +43,13 @@ function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerTyp
   const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
   SillyTavern.eventSource.makeLast(event_type, detail.get_or_make_wrapper(listener, event_type, false));
   if (is_listening) {
-    console.info(
+    log.info(
       `[Event][eventMakeLast](${getIframeName()}) 函数调整为监听到 '${event_type}' 事件时最后触发\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
     );
   } else {
-    console.info(
+    log.info(
       `[Event][eventMakeLast](${getIframeName()}) 函数开始监听 '${event_type}' 事件并将随事件最后触发\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
@@ -61,13 +61,13 @@ function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerTy
   const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
   SillyTavern.eventSource.makeFirst(event_type, detail.get_or_make_wrapper(listener, event_type, false));
   if (is_listening) {
-    console.info(
+    log.info(
       `[Event][eventMakeFirst](${getIframeName()}) 函数调整为监听到 '${event_type}' 事件时最先触发\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
     );
   } else {
-    console.info(
+    log.info(
       `[Event][eventMakeFirst](${getIframeName()}) 函数开始监听 '${event_type}' 事件并将随事件最先触发\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
@@ -77,7 +77,7 @@ function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerTy
 
 function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   if (detail.try_get_wrapper(listener, event_type)) {
-    console.warn(
+    log.warn(
       `[Event][eventOnce](${getIframeName()}) 函数已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
@@ -85,7 +85,7 @@ function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]
     return;
   }
   SillyTavern.eventSource.once(event_type, detail.get_or_make_wrapper(listener, event_type, true));
-  console.info(
+  log.info(
     `[Event][eventOnce](${getIframeName()}) 函数开始监听下一次 '${event_type}' 事件并仅在该次事件时触发\n\n  ${detail.format_function_to_string(
       listener,
     )}`,
@@ -111,7 +111,7 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
         resolve(event.data.result);
         detail.waiting_event_map.deleteEntry(entry, uid);
 
-        console.info(
+        log.info(
           `[Event][eventWaitOnce](${getIframeName()}) 等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(
             event.data.result,
           )}\n\n  ${detail.format_function_to_string(listener as ListenerType[T])}`,
@@ -121,7 +121,7 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
     window.addEventListener('message', handleMessage);
     detail.waiting_event_map.put(entry, uid);
 
-    console.info(
+    log.info(
       `[Event][eventWaitOnce](${getIframeName()}) 等待函数被 '${event_type}' 事件触发\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
@@ -131,19 +131,20 @@ async function eventWaitOnce<T extends EventType>(event_type: T, listener?: List
 
 async function eventEmit<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): Promise<void> {
   await SillyTavern.eventSource.emit(event_type, ...data);
-  console.info(`[Event][eventEmit](${getIframeName()}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
+  log.info(`[Event][eventEmit](${getIframeName()}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
 }
-
 
 function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void {
   SillyTavern.eventSource.emitAndWait(event_type, ...data);
-  console.info(`[Event][eventEmitAndWait](${getIframeName()}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
+  log.info(
+    `[Event][eventEmitAndWait](${getIframeName()}) 发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`,
+  );
 }
 
 function eventRemoveListener<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
   const wrapper = detail.try_get_wrapper(listener, event_type);
   if (!wrapper) {
-    console.warn(
+    log.warn(
       `[Event][eventRemoveListener](${getIframeName()}) 函数没有监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(
         listener,
       )}`,
@@ -152,7 +153,7 @@ function eventRemoveListener<T extends EventType>(event_type: T, listener: Liste
   }
   SillyTavern.eventSource.removeListener(event_type, wrapper);
   detail.remove_wrapper(listener, event_type);
-  console.info(
+  log.info(
     `[Event][eventRemoveListener](${getIframeName()}) 函数不再监听 '${event_type}' 事件\n\n  ${detail.format_function_to_string(
       listener,
     )}`,
@@ -168,7 +169,7 @@ function eventClearEvent(event_type: EventType): void {
     }
   });
 
-  console.info(`[Event][eventClearEvent](${getIframeName()})所有函数都不再监听 '${event_type}' 事件`);
+  log.info(`[Event][eventClearEvent](${getIframeName()})所有函数都不再监听 '${event_type}' 事件`);
 }
 
 function eventClearListener(listener: Function): void {
@@ -179,7 +180,7 @@ function eventClearListener(listener: Function): void {
     });
   }
 
-  console.info(
+  log.info(
     `[Event][eventClearListener](${getIframeName()}) 函数不再监听任何事件\n\n  ${detail.format_function_to_string(
       listener,
     )}`,
@@ -194,7 +195,7 @@ function eventClearAll(): void {
   });
   detail.listener_event_wrapper_map.clear();
 
-  console.info(`[Event][eventClearAll](${getIframeName()}) 取消所有函数对所有事件的监听`);
+  log.info(`[Event][eventClearAll](${getIframeName()}) 取消所有函数对所有事件的监听`);
 }
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -442,7 +443,7 @@ namespace detail {
       }
 
       const result = await listener(...args);
-      console.info(
+      log.info(
         `[Event][callback '${event_type}'](${getIframeName()}) 函数因监听到 '${event_type}' 事件而触发\n\n  ${detail.format_function_to_string(
           listener,
         )}`,

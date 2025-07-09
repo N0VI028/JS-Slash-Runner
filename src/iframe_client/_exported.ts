@@ -12,4 +12,6 @@ for (const key in TavernHelper) {
 
 const toastr = (window.parent as unknown as { toastr: any }).toastr;
 
+const log = (window.parent as unknown as { log: any }).log;
+
 const EjsTemplate = (window.parent as unknown as { EjsTemplate: Record<string, any> }).EjsTemplate;

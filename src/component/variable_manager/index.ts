@@ -7,6 +7,8 @@ import { VariableSyncService } from '@/component/variable_manager/sync';
 import { VariableView } from '@/component/variable_manager/view';
 import { extensionFolderPath } from '@/util/extension_variables';
 
+import log from 'loglevel';
+
 const templatePath = `${extensionFolderPath}/src/component/variable_manager/public`;
 
 let variableView: VariableView | null = null;
@@ -35,7 +37,7 @@ export async function openVariableManager() {
   if (variableView) {
     variableView.render();
   } else {
-    console.error('[VariableManager] 变量管理器未初始化');
+    log.error('[VariableManager] 变量管理器未初始化');
   }
 }
 
@@ -54,7 +56,6 @@ function addVariableManagerQuickButton() {
     await openVariableManager();
   });
 }
-
 
 export function initVariableManager() {
   addVariableManagerQuickButton();

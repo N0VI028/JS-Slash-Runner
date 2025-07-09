@@ -1,10 +1,12 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initListener } from '@/component/listener';
+import { renderAllMacros } from '@/component/macrolike';
 import { initExtensionMainPanel } from '@/component/main';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { initReference } from '@/component/reference';
 import { buildScriptRepository } from '@/component/script_repository/index';
 import { defaultScriptSettings } from '@/component/script_repository/types';
+import { initVariableManager } from '@/component/variable_manager';
 import { initTavernHelperObject } from '@/function';
 import { initAudioSlashCommands } from '@/slash_command/audio';
 import { initSlashEventEmit } from '@/slash_command/event';
@@ -18,11 +20,11 @@ import {
 } from '@/util/check_update';
 import { Collapsible } from '@/util/collapsible';
 import { extensionFolderPath, extensionName, extensionSettingName } from '@/util/extension_variables';
-import { initVariableManager } from '@/component/variable_manager';
 
 import { event_types, eventSource, saveSettings } from '@sillytavern/script';
 import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
-import { renderAllMacros } from './component/macrolike';
+
+import log_object from 'loglevel';
 
 const defaultSettings = {
   enabled_extension: true,
@@ -120,6 +122,14 @@ async function handleVersionUpdate() {
   $('#update-extension').on('click', async () => await handleUpdateButton());
 }
 
+declare namespace globalThis {
+  let log: typeof log_object;
+}
+
+function initLogObject() {
+  globalThis.log = log_object;
+}
+
 /**
  * 初始化扩展面板
  */
@@ -135,6 +145,7 @@ jQuery(async () => {
   }
 
   initTavernHelperObject();
+  initLogObject();
 
   // 默认显示主设置界面
   $('#main-settings-title').addClass('title-item-active');

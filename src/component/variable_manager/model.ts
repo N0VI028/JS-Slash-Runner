@@ -1,7 +1,9 @@
 import { TavernVariables, VariableDataType, VariableItem, VariableType } from '@/component/variable_manager/types';
+import { VariableManagerUtil } from '@/component/variable_manager/util';
 import { getVariables, replaceVariables } from '@/function/variables';
 import { uuidv4 } from '@sillytavern/scripts/utils';
-import { VariableManagerUtil } from '@/component/variable_manager/util';
+
+import log from 'loglevel';
 
 export class VariableModel {
   private currentVariables: VariableItem[] | null = null;
@@ -183,7 +185,7 @@ export class VariableModel {
               const floorVariableItems = this.convertTavernVariablesToItems(floorVars, floor);
               this.currentVariables.push(...floorVariableItems);
             } catch (error) {
-              console.warn(`[VariableModel] 加载第${floor}层变量失败:`, error);
+              log.warn(`[VariableModel] 加载第${floor}层变量失败:`, error);
               // 继续加载其他楼层
             }
           }
@@ -195,7 +197,7 @@ export class VariableModel {
 
       return this.currentVariables;
     } catch (error) {
-      console.error(`[VariableManager] 加载${type}变量失败:`, error);
+      log.error(`[VariableManager] 加载${type}变量失败:`, error);
       return [];
     }
   }
@@ -207,7 +209,7 @@ export class VariableModel {
    */
   public async saveAllVariables(type: VariableType, message_id?: number): Promise<void> {
     if (!this.currentVariables) {
-      console.warn('[VariableModel] 当前没有变量数据，跳过保存');
+      log.warn('[VariableModel] 当前没有变量数据，跳过保存');
       return;
     }
 
@@ -215,7 +217,7 @@ export class VariableModel {
       const [minFloor, maxFloor] = this.getFloorRange();
 
       if (minFloor === null || maxFloor === null) {
-        console.warn('[VariableModel] 保存message变量失败: 未设置有效的楼层范围');
+        log.warn('[VariableModel] 保存message变量失败: 未设置有效的楼层范围');
         return;
       }
 
@@ -226,9 +228,9 @@ export class VariableModel {
 
         try {
           await replaceVariables(tavernVariables, { type: 'message', message_id });
-          console.log(`[VariableManager] 成功保存第${message_id}层变量`);
+          log.info(`[VariableManager] 成功保存第${message_id}层变量`);
         } catch (error) {
-          console.error(`[VariableManager] 保存第${message_id}层变量失败:`, error);
+          log.error(`[VariableManager] 保存第${message_id}层变量失败:`, error);
         }
       } else {
         // 对于消息类型，按楼层分组保存变量
@@ -239,7 +241,7 @@ export class VariableModel {
           try {
             await replaceVariables(tavernVariables, { type: 'message', message_id: floor });
           } catch (error) {
-            console.error(`[VariableManager] 保存第${floor}层变量失败:`, error);
+            log.error(`[VariableManager] 保存第${floor}层变量失败:`, error);
           }
         }
       }
@@ -249,7 +251,7 @@ export class VariableModel {
       await replaceVariables(tavernVariables, { type });
     }
 
-    console.log(`[VariableManager] 保存变量成功`);
+    log.info(`[VariableManager] 保存变量成功`);
   }
 
   /**
@@ -304,7 +306,7 @@ export class VariableModel {
       const [minFloor, maxFloor] = this.getFloorRange();
 
       if (minFloor === null || maxFloor === null) {
-        console.warn('[VariableModel] 清除message变量失败: 未设置有效的楼层范围');
+        log.warn('[VariableModel] 清除message变量失败: 未设置有效的楼层范围');
         return;
       }
 
@@ -314,7 +316,7 @@ export class VariableModel {
           const emptyVariables: TavernVariables = {};
           await replaceVariables(emptyVariables, { type: 'message', message_id: floor });
         } catch (error) {
-          console.error(`[VariableModel] 清除第${floor}层变量失败:`, error);
+          log.error(`[VariableModel] 清除第${floor}层变量失败:`, error);
         }
       }
     } else {
@@ -403,7 +405,7 @@ export class VariableModel {
       const variables = getVariables({ type: 'message', message_id: messageId }) as TavernVariables;
       return variables || {};
     } catch (error) {
-      console.error(`获取第${messageId}层变量失败:`, error);
+      log.error(`获取第${messageId}层变量失败:`, error);
       return {};
     }
   }

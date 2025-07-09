@@ -1,9 +1,11 @@
-import { eventSource } from '@sillytavern/script';
-
 import { VariableModel } from '@/component/variable_manager/model';
 import { VariableItem, VariableType } from '@/component/variable_manager/types';
 import { VariableManagerUtil } from '@/component/variable_manager/util';
 import { getVariables } from '@/function/variables';
+
+import { eventSource } from '@sillytavern/script';
+
+import log from 'loglevel';
 
 const VARIABLE_EVENTS: Record<string, string> = {
   GLOBAL: 'settings_updated',
@@ -126,9 +128,9 @@ export class VariableSyncService {
       try {
         eventSource.on(eventName, listenerStatus.handler);
         this._boundListeners[type].bound = true;
-        console.info(`[VariableManager]：开始同步监听${type}变量`);
+        log.info(`[VariableManager]：开始同步监听${type}变量`);
       } catch (error) {
-        console.error(`[VariableManager]：绑定${type}变量事件监听器时出错:`, error);
+        log.error(`[VariableManager]：绑定${type}变量事件监听器时出错:`, error);
         this._boundListeners[type].bound = false;
       }
     }
@@ -150,7 +152,7 @@ export class VariableSyncService {
           eventSource.removeListener(eventName, listenerStatus.handler);
           this._boundListeners[type].bound = false;
         } catch (error) {
-          console.error(`[VariableManager]：解绑${type}变量事件监听器时出错:`, error);
+          log.error(`[VariableManager]：解绑${type}变量事件监听器时出错:`, error);
           this._boundListeners[type].bound = false;
         }
       }
@@ -170,7 +172,7 @@ export class VariableSyncService {
           await this._handleVariableUpdate('chat');
         }, CHAT_POLLING_INTERVAL);
       } catch (error) {
-        console.error('[VariableManager]：启动聊天变量轮询时出错:', error);
+        log.error('[VariableManager]：启动聊天变量轮询时出错:', error);
         this._chatPollingInterval = null;
       }
     }
@@ -186,7 +188,7 @@ export class VariableSyncService {
         window.clearInterval(this._chatPollingInterval);
         this._chatPollingInterval = null;
       } catch (error) {
-        console.error('[VariableManager]：停止聊天变量轮询时出错:', error);
+        log.error('[VariableManager]：停止聊天变量轮询时出错:', error);
       }
     }
   }
@@ -220,7 +222,7 @@ export class VariableSyncService {
 
       this._processDiff(added, removed, updated, newTavernVariables, messageId);
     } catch (error) {
-      console.error(`[VariableManager]：处理${type}变量更新时出错:`, error);
+      log.error(`[VariableManager]：处理${type}变量更新时出错:`, error);
     }
   }
 
@@ -244,10 +246,8 @@ export class VariableSyncService {
         if (variable.message_id === messageId) {
           oldVarsMap.set(variable.name, variable.value);
         }
-      } else {
-        if (variable.message_id === undefined) {
-          oldVarsMap.set(variable.name, variable.value);
-        }
+      } else if (variable.message_id === undefined) {
+        oldVarsMap.set(variable.name, variable.value);
       }
     });
 

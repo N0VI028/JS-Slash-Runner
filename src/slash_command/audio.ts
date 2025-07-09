@@ -1,3 +1,11 @@
+import {
+  list_BGMS,
+  list_ambients,
+  onAudioEnabledClick,
+  playAudio,
+  updateAudio,
+  updateAudioSelect,
+} from '@/component/audio';
 import { saveSettingValue } from '@/util/extension_variables';
 
 import { chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
@@ -12,14 +20,7 @@ import { commonEnumProviders, enumIcons } from '@sillytavern/scripts/slash-comma
 import { SlashCommandEnumValue, enumTypes } from '@sillytavern/scripts/slash-commands/SlashCommandEnumValue';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 
-import {
-  list_BGMS,
-  list_ambients,
-  onAudioEnabledClick,
-  playAudio,
-  updateAudio,
-  updateAudioSelect,
-} from '../component/audio';
+import log from 'loglevel';
 
 interface AudioElement extends HTMLElement {
   pause(): void;
@@ -33,7 +34,7 @@ export async function audioMode(args: { type: string; mode: string }): Promise<v
   const mode = args.mode.toLowerCase();
 
   if (!['bgm', 'ambient'].includes(type) || !['repeat', 'random', 'single', 'stop'].includes(mode)) {
-    console.warn('WARN: Invalid arguments for /audiomode command');
+    log.warn('WARN: Invalid arguments for /audiomode command');
     return '';
   }
 
@@ -71,7 +72,7 @@ export async function audioEnable(args: { type: string; state?: string }): Promi
   const state = (args.state || 'true').toLowerCase();
 
   if (!type) {
-    console.warn('WARN: Missing arguments for /audioenable command');
+    log.warn('WARN: Missing arguments for /audioenable command');
     return '';
   }
 
@@ -104,7 +105,7 @@ export async function audioPlay(args: { type: string; play?: string }): Promise<
   const play = (args.play || 'true').toLowerCase();
 
   if (!type) {
-    console.warn('WARN: Missing arguments for /audioplaypause command');
+    log.warn('WARN: Missing arguments for /audioplaypause command');
     return '';
   }
 
@@ -135,7 +136,7 @@ export async function audioImport(args: { type: string; play?: string }, url: st
   const play = (args.play || 'true').toLowerCase();
 
   if (!type || !url) {
-    console.warn('WARN: Missing arguments for /audioimport command');
+    log.warn('WARN: Missing arguments for /audioimport command');
     return '';
   }
 
@@ -145,7 +146,7 @@ export async function audioImport(args: { type: string; play?: string }, url: st
     .filter((url: string) => url !== '')
     .filter((url: string, index: number, self: string[]) => self.indexOf(url) === index);
   if (urlArray.length === 0) {
-    console.warn('WARN: Invalid or empty URLs provided.');
+    log.warn('WARN: Invalid or empty URLs provided.');
     return '';
   }
 
@@ -187,7 +188,7 @@ export async function audioSelect(args: { type: string }, url: string): Promise<
   const type = args.type.toLowerCase();
 
   if (!url) {
-    console.warn('WARN: Missing URL for /audioselect command');
+    log.warn('WARN: Missing URL for /audioselect command');
     return '';
   }
 

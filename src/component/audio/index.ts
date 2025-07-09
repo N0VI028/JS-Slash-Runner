@@ -7,6 +7,8 @@ import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
 import { getSortableDelay, loadFileToDocument } from '@sillytavern/scripts/utils';
 
+import log from 'loglevel';
+
 let isExtensionEnabled: boolean;
 let isAudioEnabled: boolean;
 export let list_BGMS: string[] = [];
@@ -177,7 +179,7 @@ export async function updateAudioSelect(type = 'bgm') {
   if (audioList && audioList.length > 0) {
     // 检查当前选择的音频是否在列表中，如果不在则选择第一个
     if (!audioList.includes(selectedSetting)) {
-      console.warn(`[Audio] 当前选择的音频 ${selectedSetting} 不在列表中，自动选择列表第一个音频`);
+      log.warn(`[Audio] 当前选择的音频 ${selectedSetting} 不在列表中，自动选择列表第一个音频`);
       selectedSetting = audioList[0];
       if (type === 'bgm') {
         saveSettingValue('audio.bgm_selected', selectedSetting);
@@ -195,7 +197,7 @@ export async function updateAudioSelect(type = 'bgm') {
 
     selectElement.val(selectedSetting);
   } else {
-    console.log(`[Audio] 暂无可用的 ${type.toUpperCase()} 资源`);
+    log.error(`[Audio] 暂无可用的 ${type.toUpperCase()} 资源`);
   }
 }
 
@@ -479,7 +481,7 @@ async function openUrlManagerPopup(typeKey: 'bgmurl' | 'ambienturl') {
         savedAudioUrl.addClass('empty');
       }
     } catch (error) {
-      console.error(`[Audio] Failed to parse ${typeKey}:`, error);
+      log.error(`[Audio] Failed to parse ${typeKey}:`, error);
       return null;
     }
   }
@@ -507,7 +509,7 @@ async function openUrlManagerPopup(typeKey: 'bgmurl' | 'ambienturl') {
       const currentUrl = urlHtml.find('.audio_url_name').attr('data-url');
 
       if (!currentUrl) {
-        console.error('[Audio] No URL found for this element.');
+        log.error('[Audio] No URL found for this element.');
         return;
       }
 
@@ -554,7 +556,7 @@ async function openUrlManagerPopup(typeKey: 'bgmurl' | 'ambienturl') {
     const newUrls = await openUrlImportPopup();
 
     if (!newUrls) {
-      console.debug(`[Audio] ${typeKey} URL导入已取消`);
+      log.debug(`[Audio] ${typeKey} URL导入已取消`);
       return;
     }
 
@@ -683,11 +685,11 @@ export async function playAudio(type: 'bgm' | 'ambient') {
   const playPauseIcon = $(`#audio_${type}_play_pause_icon`);
 
   if (audioElement.error && audioElement.error.code === 4) {
-    console.warn(`The ${type} element has no supported sources. Trying to reload selected audio from dropdown...`);
+    log.warn(`The ${type} element has no supported sources. Trying to reload selected audio from dropdown...`);
 
     const selectedAudio = $(`#audio_${type}_select`).val() as string;
     if (!selectedAudio) {
-      console.error(`No audio selected for ${type}`);
+      log.error(`No audio selected for ${type}`);
       return;
     }
 
@@ -700,7 +702,7 @@ export async function playAudio(type: 'bgm' | 'ambient') {
     playPauseIcon.removeClass('fa-play');
     playPauseIcon.addClass('fa-pause');
   } catch (error) {
-    console.error(`[Audio] 播放 ${type} 音频时出错:`, error);
+    log.error(`[Audio] 播放 ${type} 音频时出错:`, error);
   }
 }
 
@@ -795,7 +797,7 @@ async function openUrlImportPopup(): Promise<string[] | null> {
   const input = (await callGenericPopup('输入要导入的网络音频链接（每行一个）', POPUP_TYPE.INPUT, '')) as string | null;
 
   if (!input) {
-    console.debug('[Audio] URL import cancelled');
+    log.debug('[Audio] URL import cancelled');
     return null;
   }
 
@@ -821,7 +823,7 @@ eventSource.on(event_types.CHAT_CHANGED, async () => {
     $ambientPlayer.pause();
   }
   await refreshAudioResources();
-  console.log('[Audio] 聊天已更改，音频资源刷新完成');
+  log.info('[Audio] 聊天已更改，音频资源刷新完成');
 });
 
 /** 初始化样式
