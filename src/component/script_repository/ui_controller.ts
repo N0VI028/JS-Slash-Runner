@@ -1684,10 +1684,11 @@ export class UIController {
       ? ScriptType.GLOBAL
       : ScriptType.CHARACTER;
 
-    if (!folderName || folderName.trim() === '') {
-      toastr.error('请输入文件夹名称');
-      return;
-    }
+    // 如果名称为空，让 createFolder 方法自动生成默认名称
+    // if (!folderName || folderName.trim() === '') {
+    //   toastr.error('请输入文件夹名称');
+    //   return;
+    // }
 
     try {
       const existingFolders =

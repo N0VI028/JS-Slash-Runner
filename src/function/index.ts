@@ -59,9 +59,13 @@ import {
 import { getTavernHelperVersion, updateTavernHelper } from '@/function/version';
 import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
 import { builtin } from './builtin';
+import { Context } from './Context.js';
 
 function getTavernHelper() {
   return {
+    // prompt
+    Context,
+
     // audio
     audioEnable,
     audioImport,

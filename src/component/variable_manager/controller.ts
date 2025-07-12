@@ -4,6 +4,7 @@ import { VariableSyncService } from '@/component/variable_manager/sync';
 import { VariableDataType, VariableItem, VariableType } from '@/component/variable_manager/types';
 import { VariableManagerUtil } from '@/component/variable_manager/util';
 import { VariableView } from '@/component/variable_manager/view';
+import { getLastMessageId } from '@/function/util';
 
 import log from 'loglevel';
 
@@ -57,6 +58,9 @@ export class VariableController {
     await this.syncService.initCurrentType();
     await this.syncService.setCurrentType('global');
     await this.loadVariables('global');
+    
+    // 初始化时隐藏排序按钮（仅在消息标签页时才显示）
+    this.view.container.find('#sort-icon').hide();
   }
 
   /**
@@ -76,6 +80,26 @@ export class VariableController {
     container.on('input', '#variable-search', this.handleVariableSearch.bind(this));
     container.on('click', '#floor-filter-btn', this.handleFloorRangeFilter.bind(this));
     container.on('nested-card:changed', '.variable-card', this.handleNestedCardChanged.bind(this));
+  
+    container.on('click', '#sort-icon', this.handleSortIconClick.bind(this));
+    container.on('change', '.sort-option input[type="radio"]', this.handleSortOptionChange.bind(this));
+  }
+
+  private handleSortIconClick(): void {
+    const $sortOptions = this.view.container.find('.sort-options');
+    $sortOptions.toggle();
+  }
+
+  /**
+   * 处理排序选项变更
+   * @param event 变更事件
+   */
+  private handleSortOptionChange(event: JQuery.ChangeEvent): void {
+    const $radio = $(event.currentTarget);
+    const sortOption = $radio.val() as string;
+
+    this.model.updateSortOption(sortOption);
+    this.applySorting();
   }
 
   /**
@@ -95,6 +119,7 @@ export class VariableController {
       const [minFloor, maxFloor] = this.model.getFloorRange();
       this.view.updateFloorRangeInputs(minFloor, maxFloor);
     } else {
+      this.view.container.find('#floor-filter-container').hide();
       this.view.container.find('#floor-filter-container').hide();
     }
 
@@ -117,6 +142,12 @@ export class VariableController {
     const currentType = this.model.getActiveVariableType();
 
     if (type === currentType) return;
+
+    if (type === 'message') {
+      this.view.container.find('#sort-icon').show();
+    } else {
+      this.view.container.find('#sort-icon').hide();
+    }
 
     this.view.setActiveTab(type);
 
@@ -232,7 +263,7 @@ export class VariableController {
       }
     }
 
-    let newVariable: VariableItem = {
+    const newVariable: VariableItem = {
       name: this.view.getVariableCardName(card),
       value: this.cardFactory.getVariableFromCard(card)?.value,
       dataType: dataType,
@@ -350,6 +381,59 @@ export class VariableController {
   }
 
   /**
+   * 应用排序
+   */
+  private applySorting(): void {
+    const sortOption = this.model.getSortOption();
+    const type = this.model.getActiveVariableType();
+    
+    // 只有消息类型的变量需要排序
+    if (type === 'message') {
+      const $content = this.view.container.find(`#${type}-content`);
+      const $variableList = $content.find('.variable-list');
+      
+      // 获取所有楼层面板
+      const $floorPanels = $variableList.find('.floor-panel').detach();
+      
+      // 根据排序选项排序楼层面板
+      const sortedPanels = $floorPanels.toArray().sort((a, b) => {
+        const floorA = parseInt($(a).attr('data-floor') || '0', 10);
+        const floorB = parseInt($(b).attr('data-floor') || '0', 10);
+        
+        if (sortOption === 'floor-asc') {
+          return floorA - floorB; // 升序：楼层号从小到大
+        } else {
+          return floorB - floorA; // 降序：楼层号从大到小（最新楼层在上）
+        }
+      });
+      
+      // 重新添加排序后的面板
+      sortedPanels.forEach(panel => {
+        $variableList.append(panel);
+      });
+      
+      // 更新面板的展开状态（最新楼层默认展开）
+      $variableList.find('.floor-panel').each((index, panel) => {
+        const $panel = $(panel);
+        const $icon = $panel.find('.floor-panel-icon');
+        const $body = $panel.find('.floor-panel-body');
+        
+        // 根据排序方式决定哪个面板默认展开
+        const shouldExpand = (sortOption === 'floor-desc' && index === 0) || 
+                           (sortOption === 'floor-asc' && index === sortedPanels.length - 1);
+        
+        if (shouldExpand) {
+          $icon.addClass('expanded');
+          $body.addClass('expanded');
+        } else {
+          $icon.removeClass('expanded');
+          $body.removeClass('expanded');
+        }
+      });
+    }
+  }
+
+  /**
    * 处理楼层范围筛选
    */
   private handleFloorRangeFilter(): void {
@@ -405,6 +489,19 @@ export class VariableController {
       this.model.updateFloorRange(min, max);
       this.view.updateFloorRangeInputs(min, max);
       await this.loadVariables('message');
+      
+      // 新加：通知用户最大楼层信息（仅在消息标签页激活时）
+      const currentType = this.model.getActiveVariableType();
+      if (currentType === 'message') {
+        const actualMaxFloor = getLastMessageId();
+        if (max >= 9999) {
+          toastr.info(`当前最大楼层为: ${actualMaxFloor}，已加载到最大楼层`);
+        } else if (max > actualMaxFloor) {
+          toastr.warning(`设置的楼层范围超出实际楼层，当前最大楼层为: ${actualMaxFloor}`);
+        } else {
+          toastr.success(`已加载楼层 ${min} 到 ${Math.min(max, actualMaxFloor)} 的变量`);
+        }
+      }
     } catch (error: any) {
       log.error(`[VariableManager] 应用楼层范围并重新加载变量失败:`, error);
     }

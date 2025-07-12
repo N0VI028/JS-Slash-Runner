@@ -54,6 +54,7 @@ import { Stopwatch, getBase64Async } from '@sillytavern/scripts/utils';
 import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from '@sillytavern/scripts/world-info';
 
 import log from 'loglevel';
+import { ResponseParser } from './ResponseParser/ResponseParser';
 
 interface GenerateConfig {
   user_input?: string;
@@ -62,6 +63,7 @@ interface GenerateConfig {
   overrides?: Overrides;
   injects?: InjectionPrompt[];
   max_chat_history?: 'all' | number;
+  keep_cot?: boolean;
 }
 
 interface GenerateRawConfig {
@@ -72,6 +74,7 @@ interface GenerateRawConfig {
   injects?: InjectionRawPrompt[];
   ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
   max_chat_history?: 'all' | number;
+  keep_cot?: boolean;
 }
 
 interface RolePrompt {
@@ -200,6 +203,7 @@ function fromGenerateConfig(config: GenerateConfig): detail.GenerateParams {
     overrides: config.overrides !== undefined ? fromOverrides(config.overrides) : undefined,
     inject: config.injects !== undefined ? config.injects.map(fromInjectionPrompt) : undefined,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
+    keep_cot: config.keep_cot,
   };
 }
 
@@ -213,6 +217,7 @@ function fromGenerateRawConfig(config: GenerateRawConfig): detail.GenerateParams
     overrides: config.overrides ? fromOverrides(config.overrides) : undefined,
     inject: config.injects ? config.injects.map(fromInjectionPrompt) : undefined,
     order: config.ordered_prompts,
+    keep_cot: config.keep_cot,
   };
 }
 
@@ -259,6 +264,7 @@ namespace detail {
     max_chat_history?: number;
     inject?: InjectionPrompt[];
     order?: Array<BuiltinPromptEntry | CustomPrompt>;
+    keep_cot?: boolean;
   }
 }
 
@@ -402,7 +408,8 @@ async function iframeGenerate({
   inject = [],
   order = undefined,
   stream = false,
-}: detail.GenerateParams = {}): Promise<string> {
+  keep_cot = false,
+}: detail.GenerateParams = {}): Promise<string | { content: string; cot?: string }> {
   //初始化
   abortController = new AbortController();
 
@@ -442,7 +449,7 @@ async function iframeGenerate({
       );
   log.info('[Generate:发送提示词]', generate_data);
   // 4. 根据 stream 参数决定生成方式
-  return await generateResponse(generate_data, stream);
+  return await generateResponse(generate_data, stream, keep_cot);
 }
 
 async function prepareAndOverrideData(
@@ -1276,8 +1283,8 @@ function getPromptRole(role: number) {
 }
 
 //生成响应
-async function generateResponse(generate_data: any, useStream = false): Promise<string> {
-  let result = '';
+async function generateResponse(generate_data: any, useStream = false, keep_cot = false): Promise<string | { content: string; cot?: string }> {
+  let result: string | { content: string; cot?: string } = '';
   try {
     deactivateSendButtons();
 
@@ -1298,7 +1305,10 @@ async function generateResponse(generate_data: any, useStream = false): Promise<
     } else {
       eventSource.emit('js_generation_started');
       const response = await sendOpenAIRequest(type, generate_data.prompt, abortController.signal);
-      result = await handleResponse(response);
+      const tmp  = await handleResponse(response, keep_cot);
+      if (tmp) {
+        result = tmp;
+      }
     }
   } catch (error) {
     log.error(error);
@@ -1310,7 +1320,10 @@ async function generateResponse(generate_data: any, useStream = false): Promise<
 }
 
 // 处理响应
-async function handleResponse(response: any) {
+async function handleResponse(response: any, keep_cot = false) {
+  console.log('handleResponse called with keep_cot:', keep_cot);
+  console.log('response:', response);
+  
   if (!response) {
     throw Error(`未得到响应`);
   }
@@ -1322,7 +1335,16 @@ async function handleResponse(response: any) {
     }
     throw Error(response?.response);
   }
-  const message: string = extractMessageFromData(response);
+  let message: { content: string; cot: string } | string;
+  if (keep_cot) 
+  {
+    console.log('Calling extractMessageWithCotFromData...');
+    message = ResponseParser.extractMessageWithCotFromData(response) as { content: string; cot: string };
+    console.log('extractMessageWithCotFromData result:', message);
+  }
+  else {
+    message = extractMessageFromData(response);
+  }
   eventSource.emit('js_generation_ended', message);
   return message;
 }
@@ -1343,7 +1365,9 @@ async function clearInjectionPrompts(prefixes: string[]) {
 
   await saveChatConditional();
 }
-function extractMessageFromData(data: any) {
+
+
+function extractMessageFromData(data: any): string {
   if (typeof data === 'string') {
     return data;
   }
@@ -1413,3 +1437,4 @@ $(document).on('click', '#mes_stop', function () {
     unblockGeneration();
   }
 });
+

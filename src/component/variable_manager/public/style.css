@@ -137,7 +137,8 @@
   white-space: nowrap;
 }
 
-.filter-icon {
+.filter-icon,
+.sort-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,6 +147,11 @@
   border-radius: 4px;
   cursor: pointer;
   transition: var(--vm-transition);
+}
+
+.filter-icon:hover,
+.sort-icon:hover {
+  background-color: var(--SmartThemeQuoteColor, #777);
 }
 
 /* 搜索容器 */
@@ -165,7 +171,8 @@ input.floor-input {
 }
 
 /* 过滤选项 */
-.filter-options {
+.filter-options,
+.sort-options {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -175,13 +182,15 @@ input.floor-input {
   margin-bottom: 10px;
 }
 
-.filter-option {
+.filter-option,
+.sort-option {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.filter-checkbox {
+.filter-checkbox,
+.sort-option input[type="radio"] {
   margin: 0;
 }
 

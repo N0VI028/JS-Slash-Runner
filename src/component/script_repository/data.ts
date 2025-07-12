@@ -180,12 +180,19 @@ export class ScriptData {
 
   /**
    * 保存单个脚本到设置中，不存在则添加到末尾，存在则覆盖
+   * - 新增：如果脚本名称为空，则使用默认名称
    * @param script 脚本
    * @param type 脚本类型
    */
   async saveScript(script: Script, type: ScriptType): Promise<void> {
     if (!script.name || script.name.trim() === '') {
-      throw new Error('[ScriptManager] 保存失败，脚本名称为空');
+      // throw new Error('[ScriptManager] 保存失败，脚本名称为空');
+      // 生成唯一的默认名称
+      const typeText = type === ScriptType.GLOBAL ? '全局' : '角色';
+      const baseName = `未命名${typeText}脚本`;
+      const uniqueName = this.generateUniqueScriptName(baseName, type);
+      log.warn(`[ScriptManager] 脚本名称为空，已自动设置为: ${uniqueName}`);
+      script.name = uniqueName;
     }
 
     const rawRepository =
@@ -236,6 +243,27 @@ export class ScriptData {
     }
 
     this.loadScripts();
+  }
+
+  /**
+   * 生成唯一的脚本名称
+   * @param baseName 基础名称
+   * @param type 脚本类型
+   * @returns 唯一的脚本名称
+   */
+  private generateUniqueScriptName(baseName: string, type: ScriptType): string {
+    const scripts = type === ScriptType.GLOBAL ? this.globalScripts : this.characterScripts;
+    const existingNames = new Set(scripts.map(s => s.name));
+    
+    let counter = 1;
+    let uniqueName = baseName;
+    
+    while (existingNames.has(uniqueName)) {
+      uniqueName = `${baseName}${counter}`;
+      counter++;
+    }
+    
+    return uniqueName;
   }
 
   /**
@@ -444,7 +472,20 @@ export class ScriptData {
    */
   async createFolder(name: string, type: ScriptType, icon?: string, color?: string): Promise<string> {
     if (!name || name.trim() === '') {
-      throw new Error('[ScriptManager] 文件夹名称不能为空');
+      // throw new Error('[ScriptManager] 文件夹名称不能为空');
+      const typeText   = type === ScriptType.GLOBAL ? '全局' : '角色';
+      const baseName = `未命名${typeText}文件夹`;
+      const repository = type === ScriptType.GLOBAL ? this.getGlobalRepositoryItems() : this.getCharacterRepositoryItems();
+      const folders = repository.filter(item => item.type === 'folder');
+      const existingNames = new Set(folders.map(f => f.name));
+      let counter = 1;
+      let uniqueName = baseName;
+      while (existingNames.has(uniqueName)) {
+        uniqueName = `${baseName}${counter}`;
+        counter++;
+      }
+      log.warn(`[ScriptManager] 文件夹名称为空，已自动设置为: ${uniqueName}`);
+      name = uniqueName;
     }
 
     const repository =

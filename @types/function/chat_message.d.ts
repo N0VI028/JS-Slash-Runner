@@ -223,7 +223,7 @@ interface RotateChatMessagesOption {
 
 /**
  * 将原本顺序是 `[begin, middle) [middle, end)` 的楼层旋转为 `[middle, end) [begin, middle)`
- *
+ * - 随楼变量会一起移动
  * @param begin 旋转前开头楼层的楼层号
  * @param middle 旋转后将会被放到最开头的楼层号
  * @param end 旋转前结尾楼层的楼层号 + 1
@@ -239,6 +239,12 @@ interface RotateChatMessagesOption {
  *
  * // 将前 3 楼放到最后
  * await rotateChatMessages(0, 3, getLastMessageId() + 1);
+ * 
+ * // 将楼层5-6移到开头
+ * await rotateChatMessages(0, 5, 7);
+ * 
+ * 将楼层8-11移到楼层3之前
+ * await rotateChatMessages(3, 8, 12);
  */
 async function rotateChatMessages(
   begin: number,
