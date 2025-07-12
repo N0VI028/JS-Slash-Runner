@@ -10,6 +10,9 @@
       <div id="filter-icon" class="filter-icon" title="筛选变量类型">
         <i class="fa-solid fa-filter"></i>
       </div>
+      <div id="sort-icon" class="sort-icon" title="排序变量" style="display: none">
+        <i class="fa-solid fa-sort"></i>
+      </div>
       <div class="search-container">
         <input type="text" id="variable-search" class="variable-search" placeholder="搜索变量..." />
       </div>
@@ -45,6 +48,17 @@
     <div class="filter-option">
       <input type="checkbox" id="filter-boolean" class="filter-checkbox" data-type="boolean" checked />
       <label for="filter-boolean">布尔值</label>
+    </div>
+  </div>
+
+  <div id="sort-options" class="sort-options" style="display: none">
+    <div class="sort-option">
+      <input type="radio" id="sort-floor-desc" name="sort-option" value="floor-desc" checked />
+      <label for="sort-floor-desc">楼层降序</label>
+    </div>
+    <div class="sort-option">
+      <input type="radio" id="sort-floor-asc" name="sort-option" value="floor-asc" />
+      <label for="sort-floor-asc">楼层升序</label>
     </div>
   </div>
 

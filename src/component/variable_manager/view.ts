@@ -333,6 +333,35 @@ export class VariableView implements IDomUpdater {
   }
 
   /**
+   * 应用排序
+   * @param sortOption 排序选项
+   */
+  public applySorting(sortOption: string): void {
+    const type = this.getActiveVariableType();
+    
+    // 只有消息类型的变量需要排序
+    if (type === 'message') {
+      // 重新渲染消息变量以应用新的排序
+      const $content = this.container.find(`#${type}-content`);
+      const $variableList = $content.find('.variable-list');
+      
+      // 获取所有变量卡片
+      const variables: VariableItem[] = [];
+      $variableList.find('.variable-card').each(function() {
+        const $card = $(this);
+        const variableData = $card.data('variable');
+        if (variableData) {
+          variables.push(variableData);
+        }
+      });
+      
+      // 清空容器并重新渲染
+      $variableList.empty();
+      this.renderMessageVariablesByFloor($variableList, variables);
+    }
+  }
+
+  /**
    * 更新筛选后的空状态显示
    * @param type 变量类型
    * @param visibleCount 可见卡片数量
@@ -372,12 +401,23 @@ export class VariableView implements IDomUpdater {
       }
     }
 
-    const sortedFloors = Array.from(floorGroups.keys()).sort((a, b) => b - a); // 降序排列，最新楼层在上
+    // 获取当前排序选项（默认为降序）
+    const sortOption = this.controller && 'model' in this.controller ? 
+      (this.controller as any).model.getSortOption() : 'floor-desc';
+    
+    // 根据排序选项排序楼层
+    let sortedFloors: number[];
+    if (sortOption === 'floor-asc') {
+      sortedFloors = Array.from(floorGroups.keys()).sort((a, b) => a - b); // 升序排列
+    } else {
+      sortedFloors = Array.from(floorGroups.keys()).sort((a, b) => b - a); // 降序排列，最新楼层在上
+    }
 
     for (let i = 0; i < sortedFloors.length; i++) {
       const floor = sortedFloors[i];
       const floorVariables = floorGroups.get(floor)!;
-      const isExpanded = i === 0; // 只展开最新一层楼
+      // 如果是降序，第一个是最新楼层；如果是升序，第一个是最早楼层
+      const isExpanded = (sortOption === 'floor-desc' && i === 0) || (sortOption === 'floor-asc' && i === sortedFloors.length - 1);
 
       const $panel = this.createFloorPanel(floor, isExpanded);
       const $panelBody = $panel.find('.floor-panel-body');

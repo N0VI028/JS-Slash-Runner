@@ -1,5 +1,6 @@
 import { TavernVariables, VariableDataType, VariableItem, VariableType } from '@/component/variable_manager/types';
 import { VariableManagerUtil } from '@/component/variable_manager/util';
+import { getLastMessageId } from '@/function/util';
 import { getVariables, replaceVariables } from '@/function/variables';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
@@ -20,6 +21,7 @@ export class VariableModel {
   };
 
   private searchKeyword: string = '';
+  private sortOption: string = 'floor-desc';
 
   private floorMinRange: number | null = null;
   private floorMaxRange: number | null = null;
@@ -175,7 +177,19 @@ export class VariableModel {
         // 确保至少有一个有效的楼层范围
         if (minFloor !== null || maxFloor !== null) {
           const effectiveMinFloor = minFloor ?? 0;
-          const effectiveMaxFloor = maxFloor ?? minFloor ?? 0;
+          let effectiveMaxFloor = maxFloor ?? minFloor ?? 0;
+
+          // 获取实际的最大楼层，避免超出范围
+          try {
+            const actualMaxFloor = getLastMessageId();
+            // 如果设置的最大楼层超出实际楼层，则使用实际楼层
+            if (effectiveMaxFloor > actualMaxFloor) {
+              effectiveMaxFloor = actualMaxFloor;
+            }
+          } catch (error) {
+            log.warn(`[VariableModel] 获取实际最大楼层失败:`, error);
+            // 如果获取失败，使用设置的最大楼层，但会在后续加载时处理异常
+          }
 
           // 遍历每个楼层，加载各自的变量
           for (let floor = effectiveMinFloor; floor <= effectiveMaxFloor; floor++) {
@@ -271,7 +285,7 @@ export class VariableModel {
    */
   public async updateListOrder(type: VariableType, name: string, items: string[], variable_id?: string): Promise<void> {
     if (type === this.activeVariableType && this.currentVariables) {
-      const variable = this.currentVariables.find(variable => variable.name === name);
+      const variable = this.currentVariables.find(v => v.name === name);
       if (variable && Array.isArray(variable.value)) {
         variable.value = items;
 
@@ -357,6 +371,22 @@ export class VariableModel {
    */
   public getSearchKeyword(): string {
     return this.searchKeyword;
+  }
+
+  /**
+   * 更新排序选项
+   * @param sortOption 排序选项
+   */
+  public updateSortOption(sortOption: string): void {
+    this.sortOption = sortOption;
+  }
+
+  /**
+   * 获取排序选项
+   * @returns 排序选项
+   */
+  public getSortOption(): string {
+    return this.sortOption;
   }
 
   /**
