@@ -308,8 +308,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: fixed;
-  z-index: 1000;
   min-width: 300px;
   min-height: 250px;
 }

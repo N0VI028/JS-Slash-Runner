@@ -122,7 +122,6 @@ export class FloatingDialog {
 
     this.content = this.dialog.find('.dialog-content');
 
-    // 设置初始尺寸
     this.dialog.css({
       width: this.options.width,
       height: this.options.height,
@@ -150,16 +149,11 @@ export class FloatingDialog {
    */
   public focus(): void {
     if (this.dialog) {
-      // 获取当前最高的z-index
       const maxZIndex = Math.max(
-        ...Array.from($('.floating-dialog')).map(el => parseInt($(el).css('z-index') || '1000')),
+        ...Array.from($('.floating-dialog')).map(el => parseInt($(el).css('z-index') || '4000')),
       );
 
       this.dialog.css('z-index', maxZIndex + 1);
-
-      // 添加聚焦效果
-      $('.floating-dialog').removeClass('focused');
-      this.dialog.addClass('focused');
     }
   }
 
@@ -227,19 +221,16 @@ export class FloatingDialog {
   private bindEvents(): void {
     if (!this.dialog) return;
 
-    // 关闭按钮
     this.dialog.find('.dialog-close-btn').on('click', () => {
       this.close();
     });
 
-    // 折叠按钮
     if (this.options.collapsible) {
       this.dialog.find('.dialog-toggle-btn').on('click', () => {
         this.toggle();
       });
     }
 
-    // 点击浮窗时聚焦
     this.dialog.on('mousedown', () => {
       this.focus();
     });
@@ -309,7 +300,7 @@ export class FloatingDialog {
       left: `${left}px`,
       top: `${top}px`,
       position: 'fixed',
-      zIndex: 1000,
+      zIndex: 4000,
     });
 
     this.focus();

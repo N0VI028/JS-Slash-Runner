@@ -3,6 +3,7 @@ import { initListener } from '@/component/listener';
 import { renderAllMacros } from '@/component/macrolike';
 import { initExtensionMainPanel } from '@/component/main';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
+import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';
 import { buildScriptRepository } from '@/component/script_repository/index';
 import { defaultScriptSettings } from '@/component/script_repository/types';
@@ -108,14 +109,16 @@ async function initExtensionPanel() {
   $('#script-settings-content').append($script_container);
   const $iframe_container = $(await renderExtensionTemplateAsync(`${templatePath}/message_iframe`, 'index'));
   $('#render-settings-content').append($iframe_container);
-  const $audio_container = $(await renderExtensionTemplateAsync(`${templatePath}/audio`, 'index'));
-  $('#toolbox-settings-content').append($audio_container);
-  const $reference_container = $(await renderExtensionTemplateAsync(`${templatePath}/reference`, 'index'));
-  $('#extension-reference').append($reference_container);
   const $variables_container = $(
     await renderExtensionTemplateAsync(`${templatePath}/variable_manager/public`, 'variable_manager_entry'),
   );
-  $('#toolbox-settings-content').prepend($variables_container);
+  const $prompt_view_container = $(
+    await renderExtensionTemplateAsync(`${templatePath}/prompt_view/public`, 'prompt_view_entry'),
+  );
+  const $audio_container = $(await renderExtensionTemplateAsync(`${templatePath}/audio`, 'index'));
+  $('#toolbox-settings-content').append($variables_container).append($prompt_view_container).append($audio_container);
+  const $reference_container = $(await renderExtensionTemplateAsync(`${templatePath}/reference`, 'index'));
+  $('#extension-reference').append($reference_container);
 }
 
 /**
@@ -201,6 +204,7 @@ jQuery(async () => {
     await initReference();
     await initListener();
     initVariableManager();
+    initPromptView();
   });
 
   // 通用Collapsible折叠功能
