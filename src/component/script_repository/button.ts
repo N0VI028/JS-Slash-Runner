@@ -288,9 +288,6 @@ function checkQrEnabledStatus() {
       sendForm.append('<div class="flex-container flexGap5" id="qr--bar"></div>');
       log.info('[ScriptManager] 创建qr--bar容器（qr未启用或不存在）');
     }
-  } else if (qrBarLength > 1) {
-    $('#send_form #qr--bar').not(':first').remove();
-    log.info('[ScriptManager] 发现多个qr--bar容器，已清理');
   }
 }
 
@@ -302,7 +299,7 @@ function checkQrCombinedStatus() {
   isCombined = qrCombinedElement.length > 0 ? qrCombinedElement.prop('checked') : false;
 
   if (!isQrEnabled) {
-    const $qrBar = $('#send_form #qr--bar');
+    const $qrBar = $('#send_form #qr--bar').first();
     if ($qrBar.length > 0 && isCombined) {
       const isThButtonExist = $qrBar.find('.qr--buttons.qr--color').length > 0;
       if (!isThButtonExist) {
