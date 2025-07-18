@@ -3,10 +3,11 @@ import { IDomUpdater } from '@/component/variable_manager/sync';
 import { VariableDataType, VariableItem, VariableType } from '@/component/variable_manager/types';
 import { VariableManagerUtil } from '@/component/variable_manager/util';
 import { getLastMessageId } from '@/function/util';
+import { FloatingDialog } from '@/util/floating_dialog';
 
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
-import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
 import { getSortableDelay, uuidv4 } from '@sillytavern/scripts/utils';
+import _ from 'lodash';
 
 import log from 'loglevel';
 
@@ -26,6 +27,11 @@ export class VariableView implements IDomUpdater {
   private static readonly MIN_DIALOG_HEIGHT = 250;
 
   /**
+   * 变量管理器浮窗ID
+   */
+  private static readonly DIALOG_ID = 'variable-manager';
+
+  /**
    * UI容器
    */
   public container: JQuery<HTMLElement>;
@@ -36,9 +42,9 @@ export class VariableView implements IDomUpdater {
   public cardFactory: VariableCardFactory;
 
   /**
-   * 浮窗元素
+   * 浮窗实例
    */
-  private dialog: JQuery<HTMLElement> | null = null;
+  private dialog: FloatingDialog | null = null;
 
   /**
    * 控制器引用
@@ -651,53 +657,33 @@ export class VariableView implements IDomUpdater {
 
   /**
    * 渲染变量管理器浮窗
-   * 创建可拖动、可调整大小的浮窗
    */
   public render(): void {
     this.unrender();
 
-    this.dialog = $(`
-      <div class="variable-manager-dialog">
-        <div class="dialog-header">
-          <div class="dialog-title">变量管理器</div>
-          <div class="dialog-controls">
-            <button class="dialog-toggle-btn" title="折叠/展开内容"><i class="fa-solid fa-chevron-up"></i></button>
-            <button class="dialog-close-btn"><i class="fa-solid fa-times"></i></button>
-          </div>
-        </div>
-        <div class="dialog-content"></div>
-        <div class="dialog-resize-handle"></div>
-      </div>
-    `);
+    const existingDialog = FloatingDialog.getInstance(VariableView.DIALOG_ID);
+    if (existingDialog) {
+      existingDialog.focus();
+      return;
+    }
 
-    this.dialog.find('.dialog-content').append(this.container);
-
-    this.dialog.find('.dialog-close-btn').on('click', () => {
-      this.unrender();
+    this.dialog = FloatingDialog.create({
+      id: VariableView.DIALOG_ID,
+      title: '变量管理器',
+      width: 600,
+      height: 500,
+      minWidth: VariableView.MIN_DIALOG_WIDTH,
+      minHeight: VariableView.MIN_DIALOG_HEIGHT,
+      onClose: () => {
+        this.cleanup();
+      },
     });
 
-    this.dialog.find('.dialog-toggle-btn').on('click', () => {
-      const $content = this.dialog!.find('.dialog-content');
-      const $toggleBtn = this.dialog!.find('.dialog-toggle-btn i');
-
-      $content.slideToggle(300, () => {
-        if ($content.is(':visible')) {
-          $toggleBtn.removeClass('fa-chevron-down').addClass('fa-chevron-up');
-          this.dialog!.find('.dialog-resize-handle').show();
-        } else {
-          $toggleBtn.removeClass('fa-chevron-up').addClass('fa-chevron-down');
-          this.dialog!.find('.dialog-resize-handle').hide();
-        }
-      });
-
-      this.dialog!.toggleClass('content-collapsed');
-    });
-
-    $('body').append(this.dialog);
-
-    this.initDraggableDialog();
-    this.centerDialog();
-    this.container.show();
+    if (this.dialog) {
+      const content = this.dialog.render();
+      content.append(this.container);
+      this.container.show();
+    }
   }
 
   /**
@@ -706,70 +692,19 @@ export class VariableView implements IDomUpdater {
   public unrender(): void {
     if (this.dialog) {
       this.container.detach();
-      this.dialog.remove();
+      this.dialog.close();
       this.dialog = null;
-
-      if (this.controller) {
-        this.controller.cleanup();
-      }
     }
   }
 
   /**
-   * 初始化浮窗的拖动和调整大小功能
+   * 清理资源
    */
-  private initDraggableDialog(): void {
-    if (!this.dialog) return;
-
-    const isMobileDevice = isMobile();
-
-    (this.dialog as any).draggable({
-      handle: '.dialog-header',
-      containment: 'window',
-      start: () => {
-        this.dialog?.addClass('dragging');
-      },
-      stop: () => {
-        this.dialog?.removeClass('dragging');
-      },
-    });
-
-    (this.dialog as any).resizable({
-      // 桌面设备用所有边缘，移动设备仅用右下角
-      handles: isMobileDevice ? 'se' : 'n,e,s,w,ne,se,sw,nw',
-      minHeight: VariableView.MIN_DIALOG_HEIGHT,
-      minWidth: VariableView.MIN_DIALOG_WIDTH,
-      start: () => {
-        this.dialog?.addClass('resizing');
-      },
-      stop: () => {
-        this.dialog?.removeClass('resizing');
-      },
-    });
-
-    this.dialog.find('.dialog-resize-handle').toggle(isMobileDevice);
-  }
-
-  /**
-   * 将浮窗居中显示
-   */
-  private centerDialog(): void {
-    if (!this.dialog) return;
-
-    const windowWidth = $(window).width() || 0;
-    const windowHeight = $(window).height() || 0;
-
-    const dialogWidth = this.dialog.outerWidth() || VariableView.MIN_DIALOG_WIDTH;
-    const dialogHeight = this.dialog.outerHeight() || VariableView.MIN_DIALOG_HEIGHT;
-
-    const left = Math.max(0, (windowWidth - dialogWidth) / 2);
-    const top = Math.max(0, (windowHeight - dialogHeight) / 2);
-
-    this.dialog.css({
-      left: `${left}px`,
-      top: `${top}px`,
-      position: 'fixed',
-    });
+  private cleanup(): void {
+    if (this.controller) {
+      this.controller.cleanup();
+    }
+    this.dialog = null;
   }
 
   public addVariableCard(variable: VariableItem): void {
