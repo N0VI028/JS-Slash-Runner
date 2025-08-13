@@ -23,7 +23,7 @@ export async function openPromptViewDialog(): Promise<void> {
   const dialog = FloatingDialog.create({
     id: 'prompt-view-dialog',
     title: '提示词发送情况',
-    width: '20vw',
+    width: '50vw',
     height: '70vh',
     mobileWidth: '80vw',
     mobileHeight: '70vh',
