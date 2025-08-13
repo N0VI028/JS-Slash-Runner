@@ -1,6 +1,7 @@
+import { insertMessageMergeWarning } from '@/component/prompt_view/ui_manager';
 import { Generate, stopGeneration } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
-import { chat_completion_sources } from '@sillytavern/scripts/openai';
+import { chat_completion_sources, oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 
 interface PromptData {
@@ -67,6 +68,7 @@ export function onChatCompletionPromptReady(data: Parameters<ListenerType['chat_
     );
     const totalTokens = await getTokenCountAsync(prompts.map(prompt => prompt.content).join('\n'));
     await promptViewUpdater(prompts, totalTokens);
+    isPostProcessing();
   });
 }
 
@@ -81,4 +83,27 @@ export function refreshPromptView() {
   }
   isRefreshPromptViewCall = true;
   Generate('normal');
+}
+
+/*
+ * 检查是否经过了系统消息压缩或者后处理
+ * 检查两个条件，如果都符合则插入两个警告条幅
+ */
+function isPostProcessing() {
+  const $header = $('.prompt-view-header');
+  if ($header.find('.prompt-view-process-warning').length > 0) {
+    $header.find('.prompt-view-process-warning').remove();
+  }
+  
+  const hasSquashMessages = oai_settings.squash_system_messages === true;
+  
+  const hasCustomPostProcessing = oai_settings.custom_prompt_post_processing != '';
+  
+  if (hasSquashMessages) {
+    insertMessageMergeWarning($header, 'squash');
+  }
+  
+  if (hasCustomPostProcessing) {
+    insertMessageMergeWarning($header, 'post-processing');
+  }
 }
