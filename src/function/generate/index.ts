@@ -142,6 +142,13 @@ async function iframeGenerate({
 
   currentImageProcessingSetup = imageProcessingSetup;
 
+  await eventSource.emit(
+    event_types.GENERATION_AFTER_COMMANDS,
+    'quiet',
+    {},
+    false,
+  );
+
   // 2. 准备过滤后的基础数据
   const baseData = await prepareAndOverrideData(
     {
