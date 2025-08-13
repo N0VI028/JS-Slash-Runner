@@ -202,7 +202,7 @@ declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>
  * );
  *
  * @example
- * // 删除所有名字中包含 `神乐光` 的条目
+ * // 删除所有名字中包含 `'神乐光'` 的条目
  * const worldbook = await getWorldbook("eramgt少女歌剧");
  * _.remove(worldbook, entry => entry.name.includes('神乐光'));
  * await replaceWorldbook("eramgt少女歌剧", worldbook);
@@ -221,8 +221,8 @@ type WorldbookUpdater =
  * @returns 更新后的世界书条目
  *
  * @example
- * // 删除所有名字中包含 `神乐光` 的条目
- * await updateWorldbookWith("eramgt少女歌剧", worldbook => worldbook.filter(entry => entry.name.includes('神乐光')))
+ * // 删除所有名字中包含 `'神乐光'` 的条目
+ * await updateWorldbookWith("eramgt少女歌剧", worldbook => worldbook.filter(entry => entry.name.includes('神乐光')));
  */
 declare function updateWorldbookWith(worldbook_name: string, updater: WorldbookUpdater): Promise<WorldbookEntry[]>;
 
@@ -235,7 +235,7 @@ declare function updateWorldbookWith(worldbook_name: string, updater: WorldbookU
  * @returns 更新后的世界书条目, 以及新增条目补全字段后的结果
  *
  * @example
- * // 创建两个条目, 一个标题叫 "神乐光", 一个留白
+ * // 创建两个条目, 一个标题叫 `'神乐光'`, 一个留白
  * const { worldbook, new_entries } = await createWorldbookEntries('eramgt少女歌剧', [{ name: '神乐光' }, {}]);
  */
 declare function createWorldbookEntries(
@@ -252,7 +252,7 @@ declare function createWorldbookEntries(
  * @returns 更新后的世界书条目, 以及被删除的条目
  *
  * @example
- * // 删除所有名字中包含 `神乐光` 的条目
+ * // 删除所有名字中包含 `'神乐光'` 的条目
  * const { worldbook, deleted_entries } = await deleteWorldbookEntries('eramgt少女歌剧', entry => entry.name.includes('神乐光'));
  */
 declare function deleteWorldbookEntries(
