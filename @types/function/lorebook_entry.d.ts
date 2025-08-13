@@ -63,13 +63,13 @@ declare function setLorebookEntries(
   entries: Array<Pick<LorebookEntry, 'uid'> & Partial<LorebookEntry>>,
 ): Promise<LorebookEntry[]>;
 
-/** @deprecated 请使用 `replaceWorldbook` */
+/** @deprecated 请使用 `createWorldbookEntries` */
 declare function createLorebookEntries(
   lorebook: string,
   entries: Partial<LorebookEntry>[],
 ): Promise<{ entries: LorebookEntry[]; new_uids: number[] }>;
 
-/** @deprecated 请使用 `replaceWorldbook` */
+/** @deprecated 请使用 `deleteWorldbookEntries` */
 declare function deleteLorebookEntries(
   lorebook: string,
   uids: number[],

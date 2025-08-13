@@ -11,6 +11,20 @@
   - 酒馆、酒馆助手宏
   - 角色卡里其他监听提示词发送而进行的脚本
 
+**世界书:**
+
+- 新增 `createWorldbookEntries` 和 `deleteWorldbookEntries` 函数, 便于向世界书新增和删除条目
+
+  ```typescript
+  // 创建两个条目, 一个标题叫 "神乐光", 一个留白
+  const { worldbook, new_entries } = await createWorldbookEntries('eramgt少女歌剧', [{ name: '神乐光' }, {}]);
+  ```
+
+  ```typescript
+   // 删除所有名字中包含 `神乐光` 的条目
+   const { worldbook, deleted_entries } = await deleteWorldbookEntries('eramgt少女歌剧', entry => entry.name.includes('神乐光'));
+  ```
+
 **前端美化**:
 
 - 为前端内置了 [tailwindcss](https://tailwindcss.com/) 库, 现在你可以直接在界面中使用 tailwindcss 的类名了

@@ -260,7 +260,7 @@ function fromWorldbookEntry(
       )[entry?.strategy?.keys_secondary?.logic ?? 'and_any'],
     )
     .set('keysecondary', entry?.strategy?.keys_secondary?.keys?.map(toString) ?? [])
-    .set('scanDepth', entry?.strategy?.scan_depth === 'same_as_global' ? null : entry?.strategy?.scan_depth ?? null)
+    .set('scanDepth', entry?.strategy?.scan_depth === 'same_as_global' ? null : (entry?.strategy?.scan_depth ?? null))
     .set('vectorized', entry?.strategy?.type === 'vectorized')
     .set(
       'position',
@@ -398,4 +398,28 @@ export async function updateWorldbookWith(
 ): Promise<WorldbookEntry[]> {
   await replaceWorldbook(worldbook_name, await updater(await getWorldbook(worldbook_name)));
   return await getWorldbook(worldbook_name);
+}
+
+export async function createWorldbookEntries(
+  worldbook_name: string,
+  new_entries: PartialDeep<WorldbookEntry>[],
+): Promise<{ worldbook: WorldbookEntry[]; new_entries: WorldbookEntry[] }> {
+  let slice_start;
+  const worldbook = await updateWorldbookWith(worldbook_name, data => {
+    slice_start = data.length;
+    return [...data, ...new_entries];
+  });
+  return { worldbook, new_entries: worldbook.slice(slice_start) };
+}
+
+export async function deleteWorldbookEntries(
+  worldbook_name: string,
+  predicate: (entry: WorldbookEntry) => boolean,
+): Promise<{ worldbook: WorldbookEntry[]; deleted_entries: WorldbookEntry[] }> {
+  let deleted_entries: WorldbookEntry[] = [];
+  const worldbook = await updateWorldbookWith(worldbook_name, data => {
+    deleted_entries = _.remove(data, predicate);
+    return data;
+  });
+  return { worldbook, deleted_entries };
 }
