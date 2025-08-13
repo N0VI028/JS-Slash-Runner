@@ -61,21 +61,16 @@ function connect_socket(url: string): void {
     return;
   }
 
-  socket = io(url);
+  socket = io(url, {
+    transports: ['websocket'],
+  });
 
   socket.on('connect_error', (error: Error) => {
     toggle_status(false);
-    if (socket.active) {
-      if (getSettingValue('listener.enable_echo')) {
-        toastr.error(`连接酒馆助手实时监听功能出错, 尝试重连...\n${error.name}: ${error.message}`);
-      }
-      log.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
-    } else {
-      if (getSettingValue('listener.enable_echo')) {
-        toastr.error(`连接酒馆助手实时监听功能出错, 请手动连接重试!\n${error.name}: ${error.message}`);
-      }
-      log.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
+    if (getSettingValue('listener.enable_echo')) {
+      toastr.error(`连接酒馆助手实时监听功能出错, 尝试重连...\n${error.name}: ${error.message}`);
     }
+    log.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
   });
 
   socket.on('connect', () => {
