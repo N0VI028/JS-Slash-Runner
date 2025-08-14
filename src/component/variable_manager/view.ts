@@ -16,15 +16,6 @@ export interface IController {
 }
 
 export class VariableView implements IDomUpdater {
-  /**
-   * 最小浮窗宽度（像素）
-   */
-  private static readonly MIN_DIALOG_WIDTH = 300;
-
-  /**
-   * 最小浮窗高度（像素）
-   */
-  private static readonly MIN_DIALOG_HEIGHT = 250;
 
   /**
    * 变量管理器浮窗ID
@@ -666,14 +657,17 @@ export class VariableView implements IDomUpdater {
       existingDialog.focus();
       return;
     }
-
     this.dialog = FloatingDialog.create({
       id: VariableView.DIALOG_ID,
       title: '变量管理器',
-      width: 600,
-      height: 500,
-      minWidth: VariableView.MIN_DIALOG_WIDTH,
-      minHeight: VariableView.MIN_DIALOG_HEIGHT,
+      width: '50vw',
+      height: '70vh',
+      mobileWidth: '80vw',
+      mobileHeight: '70vh',
+      minWidth: '15vw',
+      minHeight: '30vh',
+      mobileMinWidth: '70vw',
+      mobileMinHeight: '30vh',
       onClose: () => {
         this.cleanup();
       },

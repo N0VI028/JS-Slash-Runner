@@ -1,4 +1,4 @@
-import { insertMessageMergeWarning } from '@/component/prompt_view/ui_manager';
+import { insertMessageMergeWarning } from '@/component/prompt_view/view';
 import { Generate, online_status, stopGeneration } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 import { chat_completion_sources, oai_settings } from '@sillytavern/scripts/openai';

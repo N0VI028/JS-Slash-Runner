@@ -158,11 +158,9 @@
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 5px;
   white-space: nowrap;
   font-size: calc(var(--mainFontSize) * 0.8);
   color: var(--SmartThemeBodyColor);
-  padding: 2px 5px;
   border-radius: 3px;
   pointer-events: all;
 }
@@ -170,6 +168,7 @@
 #prompt-view-content .prompt-search-compact-mode input[type='checkbox'] {
   width: calc(var(--mainFontSize) * 0.8);
   height: calc(var(--mainFontSize) * 0.8);
+  margin-bottom: 0;
 }
 
 #prompt-view-content #prompt-search {

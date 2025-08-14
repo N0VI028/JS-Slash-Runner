@@ -1,5 +1,5 @@
 import { onChatCompletionPromptReady } from '@/component/prompt_view/service';
-import { openPromptViewDialog } from '@/component/prompt_view/ui_manager';
+import { openPromptViewDialog } from '@/component/prompt_view/view';
 import { eventSource, event_types } from '@sillytavern/script';
 
 /**

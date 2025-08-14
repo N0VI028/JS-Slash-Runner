@@ -173,7 +173,7 @@ export async function openPromptViewDialog(): Promise<void> {
    * 优化后的搜索筛选逻辑
    * @param searchValue 搜索值
    * @param isRegex 是否使用正则表达式
-   * @param useCompactMode 是否使用精简模式（仅显示匹配部分前后3行）
+   * @param useCompactMode 是否使用仅显示匹配部分前后3行
    */
   function applySearchWithCompactMode(searchValue: string, isRegex: boolean = false, useCompactMode: boolean = false) {
     const $items = $('.prompt-view-item');
