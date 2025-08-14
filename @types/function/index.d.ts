@@ -105,5 +105,21 @@ interface Window {
     // version
     readonly getTavernHelperVersion: typeof getTavernHelperVersion;
     readonly updateTavernHelper: typeof updateTavernHelper;
+
+    // worldbook
+    readonly getWorldbookNames: typeof getWorldbookNames;
+    readonly getGlobalWorldbookNames: typeof getGlobalWorldbookNames;
+    readonly rebindGlobalWorldbooks: typeof rebindGlobalWorldbooks;
+    readonly getCharWorldbookNames: typeof getCharWorldbookNames;
+    readonly rebindCharWorldbooks: typeof rebindCharWorldbooks;
+    readonly getChatWorldbookName: typeof getChatWorldbookName;
+    readonly rebindChatWorldbook: typeof rebindChatWorldbook;
+    readonly getOrCreateChatWorldbook: typeof getOrCreateChatWorldbook;
+    readonly createWorldbook: typeof createWorldbook;
+    readonly createOrReplaceWorldbook: typeof createOrReplaceWorldbook;
+    readonly deleteWorldbook: typeof deleteWorldbook;
+    readonly getWorldbook: typeof getWorldbook;
+    readonly replaceWorldbook: typeof replaceWorldbook;
+    readonly updateWorldbookWith: typeof updateWorldbookWith;
   };
 }
