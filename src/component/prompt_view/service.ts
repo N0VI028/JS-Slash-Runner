@@ -1,5 +1,5 @@
 import { insertMessageMergeWarning } from '@/component/prompt_view/ui_manager';
-import { Generate, stopGeneration } from '@sillytavern/script';
+import { Generate, online_status, stopGeneration } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 import { chat_completion_sources, oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
@@ -81,6 +81,15 @@ export function refreshPromptView() {
     toastr.error('当前 API 不是聊天补全类型, 无法使用提示词查看器功能', '不支持的 API 类型');
     return;
   }
+
+  // 检查API连接状态，如果未连接则直接更新UI显示连接错误
+  if (online_status === 'no_connection') {
+    if (promptViewUpdater) {
+      promptViewUpdater([], 0);
+    }
+    return;
+  }
+
   isRefreshPromptViewCall = true;
   Generate('normal');
 }
@@ -94,15 +103,15 @@ function isPostProcessing() {
   if ($header.find('.prompt-view-process-warning').length > 0) {
     $header.find('.prompt-view-process-warning').remove();
   }
-  
+
   const hasSquashMessages = oai_settings.squash_system_messages === true;
-  
+
   const hasCustomPostProcessing = oai_settings.custom_prompt_post_processing != '';
-  
+
   if (hasSquashMessages) {
     insertMessageMergeWarning($header, 'squash');
   }
-  
+
   if (hasCustomPostProcessing) {
     insertMessageMergeWarning($header, 'post-processing');
   }
