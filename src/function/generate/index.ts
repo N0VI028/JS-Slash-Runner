@@ -31,6 +31,16 @@ export function stopGenerationById(id: string) {
 }
 
 /**
+ * 中断所有TH-generate的生成任务
+ */
+export function stopAllGeneration() {
+  for (const [id, controller] of generationControllers.entries()) {
+    controller.abort(`Generation stopped by id: ${id}`);
+  }
+  generationControllers.clear();
+}
+
+/**
  * 清理图片处理相关的监听器和Promise
  */
 function cleanupImageProcessing(imageProcessingSetup?: ReturnType<typeof setupImageArrayProcessing>): void {

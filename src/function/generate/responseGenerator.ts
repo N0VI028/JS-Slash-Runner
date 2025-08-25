@@ -67,14 +67,14 @@ class StreamingProcessor {
       }
     }
 
-    eventSource.emit('js_stream_token_received_fully', text, { id: this.generationId });
-    eventSource.emit('js_stream_token_received_incrementally', processedText, { id: this.generationId });
+    eventSource.emit('js_stream_token_received_fully', text, this.generationId);
+    eventSource.emit('js_stream_token_received_incrementally', processedText, this.generationId);
 
     if (isFinal) {
       // 兼容旧版本
       // @ts-ignore
       const fullText = cleanUpMessage(text, false, false, false, this.stoppingStrings);
-      eventSource.emit('js_generation_ended', fullText, { id: this.generationId });
+      eventSource.emit('js_generation_ended', fullText, this.generationId);
     }
   }
 
@@ -152,7 +152,7 @@ async function handleResponse(response: any, generationId: string) {
     throw Error(response?.response);
   }
   const message: string = extractMessageFromData(response);
-  eventSource.emit('js_generation_ended', message, { id: generationId });
+  eventSource.emit('js_generation_ended', message, generationId);
   return message;
 }
 
@@ -220,7 +220,7 @@ export async function generateResponse(
       }
     }
 
-    eventSource.emit('js_generation_started', { id: generationId });
+    eventSource.emit('js_generation_started', generationId);
     if (useStream) {
       const originalStreamSetting = oai_settings.stream_openai;
       if (!originalStreamSetting) {
