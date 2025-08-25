@@ -90,6 +90,7 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
     overrides: config.overrides !== undefined ? fromOverrides(config.overrides) : undefined,
     inject: config.injects !== undefined ? config.injects.map(fromInjectionPrompt) : undefined,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
+    custom_api: config.custom_api,
   };
 }
 
@@ -108,6 +109,7 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
     overrides: config.overrides ? fromOverrides(config.overrides) : undefined,
     inject: config.injects ? config.injects.map(fromInjectionPrompt) : undefined,
     order: config.ordered_prompts,
+    custom_api: config.custom_api,
   };
 }
 
@@ -133,6 +135,7 @@ async function iframeGenerate({
   inject = [],
   order = undefined,
   stream = false,
+  custom_api = undefined,
 }: detail.GenerateParams = {}): Promise<string> {
   abortController = new AbortController();
 
@@ -187,7 +190,7 @@ async function iframeGenerate({
   try {
     // 4. 根据 stream 参数决定生成方式
     log.info('[Generate:发送提示词]', generate_data);
-    const result = await generateResponse(generate_data, stream, imageProcessingSetup, abortController);
+    const result = await generateResponse(generate_data, stream, imageProcessingSetup, abortController, custom_api);
 
     currentImageProcessingSetup = undefined;
 

@@ -350,7 +350,13 @@ export async function createChatMessages(
   await saveChatConditional();
   if (refresh === 'affected' && insert_at === 'end') {
     converted.forEach(message => addOneMessage(message));
-  } else {
+    converted.forEach(async (message, index) => {
+      await eventSource.emit(
+        message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
+        chat.length - converted.length + index,
+      );
+    });
+  } else if (refresh !== 'none') {
     await reloadCurrentChat();
   }
   log.info(

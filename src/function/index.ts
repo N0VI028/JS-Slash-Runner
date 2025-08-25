@@ -16,6 +16,21 @@ import {
   setChatMessages,
 } from '@/function/chat_message';
 import { formatAsDisplayedMessage, retrieveDisplayedMessage } from '@/function/displayed_message';
+import {
+  _eventClearAll,
+  _eventClearEvent,
+  _eventClearListener,
+  _eventEmit,
+  _eventEmitAndWait,
+  _eventMakeFirst,
+  _eventMakeLast,
+  _eventOn,
+  _eventOnButton,
+  _eventOnce,
+  _eventRemoveListener,
+  iframe_events,
+  tavern_events,
+} from '@/function/event';
 import { generate, generateRaw } from '@/function/generate';
 import { builtin_prompt_default_order } from '@/function/generate/types';
 import {
@@ -58,7 +73,12 @@ import {
   setPreset,
   updatePresetWith,
 } from '@/function/preset';
-import { appendInexistentScriptButtons, getScriptButtons, replaceScriptButtons } from '@/function/script_repository';
+import {
+  _appendInexistentScriptButtons,
+  _getButtonEvent,
+  _getScriptButtons,
+  _replaceScriptButtons,
+} from '@/function/script_button';
 import { triggerSlash } from '@/function/slash';
 import {
   formatAsTavernRegexedString,
@@ -67,8 +87,17 @@ import {
   replaceTavernRegexes,
   updateTavernRegexesWith,
 } from '@/function/tavern_regex';
-import { errorCatched, getLastMessageId, substitudeMacros } from '@/function/util';
 import {
+  _getCurrentMessageId,
+  _getIframeName,
+  _getScriptId,
+  errorCatched,
+  getLastMessageId,
+  getMessageId,
+  substitudeMacros,
+} from '@/function/util';
+import {
+  _getAllVariables,
   deleteVariable,
   getVariables,
   insertOrAssignVariables,
@@ -80,7 +109,9 @@ import { getTavernHelperVersion, updateTavernHelper } from '@/function/version';
 import {
   createOrReplaceWorldbook,
   createWorldbook,
+  createWorldbookEntries,
   deleteWorldbook,
+  deleteWorldbookEntries,
   getCharWorldbookNames,
   getChatWorldbookName,
   getGlobalWorldbookNames,
@@ -97,6 +128,35 @@ import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/s
 
 function getTavernHelper() {
   return {
+    _bind: {
+      // event
+      _eventOn,
+      _eventOnButton,
+      _eventMakeLast,
+      _eventMakeFirst,
+      _eventOnce,
+      _eventEmit,
+      _eventEmitAndWait,
+      _eventRemoveListener,
+      _eventClearEvent,
+      _eventClearListener,
+      _eventClearAll,
+
+      // script_button
+      _getButtonEvent,
+      _getScriptButtons,
+      _replaceScriptButtons,
+      _appendInexistentScriptButtons,
+
+      // variables
+      _getAllVariables,
+
+      // util
+      _getIframeName,
+      _getScriptId,
+      _getCurrentMessageId,
+    },
+
     // audio
     audioEnable,
     audioImport,
@@ -125,6 +185,10 @@ function getTavernHelper() {
     // displayed_message
     formatAsDisplayedMessage,
     retrieveDisplayedMessage,
+
+    // event
+    tavern_events,
+    iframe_events,
 
     // generate
     builtin_prompt_default_order,
@@ -189,6 +253,7 @@ function getTavernHelper() {
     substitudeMacros,
     getLastMessageId,
     errorCatched,
+    getMessageId,
 
     // variables
     getVariables,
@@ -197,11 +262,6 @@ function getTavernHelper() {
     insertOrAssignVariables,
     deleteVariable,
     insertVariables,
-
-    // script_repository
-    getScriptButtons,
-    replaceScriptButtons,
-    appendInexistentScriptButtons,
 
     // version
     getTavernHelperVersion,
@@ -224,6 +284,8 @@ function getTavernHelper() {
     getWorldbook,
     replaceWorldbook,
     updateWorldbookWith,
+    createWorldbookEntries,
+    deleteWorldbookEntries,
   };
 }
 

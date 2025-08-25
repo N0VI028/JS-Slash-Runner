@@ -64,7 +64,7 @@ type Preset = {
 
   /** 额外字段, 用于为预设绑定额外数据 */
   extensions: Record<string, any>;
-}
+};
 
 type PresetPrompt = {
   /**
@@ -77,15 +77,15 @@ type PresetPrompt = {
     | 'main'
     | 'nsfw'
     | 'jailbreak'
-    | 'enhance_definitions'
-    | 'world_info_before'
-    | 'persona_description'
-    | 'char_description'
-    | 'char_personality'
+    | 'enhanceDefinitions'
+    | 'worldInfoBefore'
+    | 'personaDescription'
+    | 'charDescription'
+    | 'charPersonality'
     | 'scenario'
-    | 'world_info_after'
-    | 'dialogue_examples'
-    | 'chat_history',
+    | 'worldInfoAfter'
+    | 'dialogueExamples'
+    | 'chatHistory',
     string
   >;
   name: string;
@@ -94,9 +94,15 @@ type PresetPrompt = {
   /**
    * 插入位置, 仅用于普通和占位符提示词
    *   - `'relative'`: 按提示词相对位置插入
-   *   - `number`: 插入到聊天记录的对应深度
+   *   - `'in_chat'`: 插入到聊天记录的对应深度, 需要设置对应的深度 `depth` 和顺序 `order`
    */
-  position?: 'relative' | number;
+  position:
+    | {
+        type: 'relative';
+        depth?: never;
+        order?: never;
+      }
+    | { type: 'in_chat'; depth: number; order: number };
   role: 'system' | 'user' | 'assistant';
   /** 仅用于普通和系统提示词 */
   content?: string;
@@ -106,20 +112,20 @@ type PresetPrompt = {
 };
 type PresetNormalPrompt = SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
 type PresetSystemPrompt = SetRequired<
-  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhance_definitions' } & Omit<PresetPrompt, 'id'>,
+  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id'>,
   'content'
 >;
 type PresetPlaceholderPrompt = SetRequired<
   {
     id:
-      | 'world_info_before'
-      | 'persona_description'
-      | 'char_description'
-      | 'char_personality'
+      | 'worldInfoBefore'
+      | 'personaDescription'
+      | 'charDescription'
+      | 'charPersonality'
       | 'scenario'
-      | 'world_info_after'
-      | 'dialogue_examples'
-      | 'chat_history';
+      | 'worldInfoAfter'
+      | 'dialogueExamples'
+      | 'chatHistory';
   } & Omit<PresetPrompt, 'id'>,
   'position'
 >;
@@ -170,10 +176,16 @@ declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: P
  *
  * @param preset_name 预设名称
  * @param preset 预设内容; 不填则使用默认内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
-declare function createOrReplacePreset(preset_name: LiteralUnion<'in_use', string>, preset?: Preset): Promise<boolean>;
+declare function createOrReplacePreset(
+  preset_name: LiteralUnion<'in_use', string>,
+  preset?: Preset,
+  { render }?: ReplacePresetOptions,
+): Promise<boolean>;
 
 /**
  * 删除 `preset_name` 预设
@@ -203,11 +215,17 @@ declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: 
  */
 declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
 
+type ReplacePresetOptions = {
+  /** 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */
+  render?: 'debounced' | 'immediate';
+};
 /**
  * 完全替换 `preset_name` 预设的内容为 `preset`
  *
  * @param preset_name 预设名称
  * @param preset 预设内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输
@@ -222,7 +240,11 @@ declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
  * preset_b.prompts = [...preset_a.prompts, ...preset_b.prompts];
  * await replacePreset('预设B', preset_b);
  */
-declare function replacePreset(preset_name: LiteralUnion<'in_use', string>, preset: Preset): Promise<void>;
+declare function replacePreset(
+  preset_name: LiteralUnion<'in_use', string>,
+  preset: Preset,
+  { render }?: ReplacePresetOptions,
+): Promise<void>;
 
 type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise<Preset>);
 /**
@@ -230,6 +252,8 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  *
  * @param preset_name 预设名称
  * @param updater 用于更新预设的函数. 它应该接收预设内容作为参数, 并返回更新后的预设内容.
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
  *
@@ -248,13 +272,19 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  *   return preset;
  * });
  */
-declare function updatePresetWith(preset_name: LiteralUnion<'in_use', string>, updater: PresetUpdater): Promise<Preset>;
+declare function updatePresetWith(
+  preset_name: LiteralUnion<'in_use', string>,
+  updater: PresetUpdater,
+  { render }?: ReplacePresetOptions,
+): Promise<Preset>;
 
 /**
  * 将预设内容修改回预设中, 如果某个内容不存在, 则该内容将会采用原来的值
  *
  * @param preset_name 预设名称
  * @param preset 预设内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
  *
@@ -268,4 +298,8 @@ declare function updatePresetWith(preset_name: LiteralUnion<'in_use', string>, u
  *   prompts: [...getPreset('预设A').prompts, ...getPreset('预设B').prompts],
  * });
  */
-declare function setPreset(preset_name: LiteralUnion<'in_use', string>, preset: PartialDeep<Preset>): Promise<Preset>;
+declare function setPreset(
+  preset_name: LiteralUnion<'in_use', string>,
+  preset: PartialDeep<Preset>,
+  { render }?: ReplacePresetOptions,
+): Promise<Preset>;

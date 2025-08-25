@@ -33,23 +33,19 @@ export const DEFAULT_SCRIPT_CONFIGS: Record<string, ScriptConfig> = {
   },
   世界书强制用推荐的全局设置: {
     name: '世界书强制用推荐的全局设置',
-    content: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制用推荐的全局设置/index.js',
+    content:
+      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制用推荐的全局设置/index.js',
     info: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制用推荐的全局设置/README.md',
+  },
+  预设条目更多按钮: {
+    name: '预设条目更多按钮: 一键新增预设条目',
+    content: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设条目更多按钮/index.js',
+    info: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设条目更多按钮/README.md',
   },
   自动开启角色卡局部正则: {
     name: '自动开启角色卡局部正则',
     content: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/自动开启角色卡局部正则/index.js',
     info: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/自动开启角色卡局部正则/README.md',
-  },
-  样式加载: {
-    name: '样式加载: 像酒馆主题自定义 css 一样编写角色卡 css',
-    content: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/样式加载/index.js',
-    info: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/样式加载/README.md',
-  },
-  资源预载: {
-    name: '资源预载: 提前缓存角色卡的插图',
-    content: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/资源预载/index.js',
-    info: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/资源预载/README.md',
   },
 };
 

@@ -100,7 +100,7 @@ class ScriptExecutor {
             };
           })(jQuery);
         </script>
-        <script src="${script_url.get('iframe_client')}"></script>
+        <script src="${script_url.get('iframe')}"></script>
       </head>
       <body>
         <script type="module">

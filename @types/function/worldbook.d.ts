@@ -155,12 +155,15 @@ declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEn
  *
  * @param worldbook_name 世界书名称
  * @param worldbook 世界书内容; 不填则没有任何条目
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
 declare function createOrReplaceWorldbook(
   worldbook_name: string,
   worldbook?: PartialDeep<WorldbookEntry>[],
+  { render }?: ReplaceWorldbookOptions,
 ): Promise<boolean>;
 
 /**
@@ -184,11 +187,17 @@ declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
  */
 declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
 
+interface ReplaceWorldbookOptions {
+  /** 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */
+  render?: 'debounced' | 'immediate';
+}
 /**
  * 完全替换 `worldbook_name` 世界书的内容为 `worldbook`
  *
  * @param worldbook_name 世界书名称
  * @param worldbook 世界书内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @example
  * // 禁止所有条目递归, 保持其他设置不变
@@ -207,7 +216,11 @@ declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>
  * _.remove(worldbook, entry => entry.name.includes('神乐光'));
  * await replaceWorldbook("eramgt少女歌剧", worldbook);
  */
-declare function replaceWorldbook(worldbook_name: string, worldbook: PartialDeep<WorldbookEntry>[]): Promise<void>;
+declare function replaceWorldbook(
+  worldbook_name: string,
+  worldbook: PartialDeep<WorldbookEntry>[],
+  { render }?: ReplaceWorldbookOptions,
+): Promise<void>;
 
 type WorldbookUpdater =
   | ((worldbook: WorldbookEntry[]) => PartialDeep<WorldbookEntry>[])
@@ -216,7 +229,9 @@ type WorldbookUpdater =
  * 用 `updater` 函数更新世界书 `worldbook_name`
  *
  * @param worldbook_name 世界书名称
- * @param updater 用于更新世界书的函数. 它应该接收世界书条目作为参数, 并返回更新后的世界书条目.
+ * @param updater 用于更新世界书的函数. 它应该接收世界书条目作为参数, 并返回更新后的世界书条目
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目
  *
@@ -224,13 +239,19 @@ type WorldbookUpdater =
  * // 删除所有名字中包含 `'神乐光'` 的条目
  * await updateWorldbookWith("eramgt少女歌剧", worldbook => worldbook.filter(entry => entry.name.includes('神乐光')));
  */
-declare function updateWorldbookWith(worldbook_name: string, updater: WorldbookUpdater): Promise<WorldbookEntry[]>;
+declare function updateWorldbookWith(
+  worldbook_name: string,
+  updater: WorldbookUpdater,
+  { render }?: ReplaceWorldbookOptions,
+): Promise<WorldbookEntry[]>;
 
 /**
  * 向世界书中新增条目
  *
  * @param worldbook_name 世界书名称
  * @param new_entries 要新增的条目, 对于不设置的字段将会采用酒馆给的默认值
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目, 以及新增条目补全字段后的结果
  *
@@ -241,6 +262,7 @@ declare function updateWorldbookWith(worldbook_name: string, updater: WorldbookU
 declare function createWorldbookEntries(
   worldbook_name: string,
   new_entries: PartialDeep<WorldbookEntry>[],
+  { render }?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; new_entries: WorldbookEntry[] }>;
 
 /**
@@ -248,6 +270,8 @@ declare function createWorldbookEntries(
  *
  * @param worldbook_name 世界书名称
  * @param predicate 判断函数, 如果返回 `true` 则删除该条目
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目, 以及被删除的条目
  *
@@ -258,4 +282,5 @@ declare function createWorldbookEntries(
 declare function deleteWorldbookEntries(
   worldbook_name: string,
   predicate: (entry: WorldbookEntry) => boolean,
+  { render }?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; deleted_entries: WorldbookEntry[] }>;

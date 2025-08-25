@@ -3,6 +3,7 @@ import {
   countOccurrences,
   deactivateSendButtons,
   eventSource,
+  event_types,
   isOdd,
   saveChatConditional,
   saveSettingsDebounced,
@@ -16,7 +17,13 @@ import log from 'loglevel';
 // @ts-ignore
 declare const toastr: any;
 
-import { clearInjectionPrompts, extractMessageFromData, setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
+import { CustomApiConfig } from '@/function/generate/types';
+import {
+  clearInjectionPrompts,
+  extractMessageFromData,
+  setupImageArrayProcessing,
+  unblockGeneration,
+} from '@/function/generate/utils';
 
 const type = 'quiet';
 
@@ -153,6 +160,7 @@ async function handleResponse(response: any) {
  * @param useStream 是否使用流式传输
  * @param imageProcessingSetup 图片数组处理设置，包含Promise和解析器
  * @param abortController 中止控制器
+ * @param customApi 自定义API配置
  * @returns 生成的响应文本
  */
 export async function generateResponse(
@@ -160,10 +168,41 @@ export async function generateResponse(
   useStream = false,
   imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined,
   abortController: AbortController,
+  customApi?: CustomApiConfig,
 ): Promise<string> {
   let result = '';
+  let customApiEventHandler: ((data: any) => void) | null = null;
+
   try {
     deactivateSendButtons();
+
+    // 如果有自定义API配置，设置单次事件拦截
+    if (customApi?.apiurl) {
+      customApiEventHandler = (data: any) => {
+        data.chat_completion_source = customApi.source || 'openai';
+        data.reverse_proxy = customApi.apiurl;
+        data.proxy_password = customApi.key;
+
+        if (customApi.model) {
+          data.model = customApi.model;
+        } else {
+          toastr.error('[Generate] 自定义API未指定模型');
+          log.error('[Generate] 自定义API未指定模型');
+          throw new Error('[Generate] 自定义API未指定模型');
+        }
+
+        log.info('[Generate] API配置修改完成', {
+          newSource: data.chat_completion_source,
+          newProxy: data.reverse_proxy,
+          newModel: data.model,
+          hasKey: data.proxy_password,
+        });
+
+        return data;
+      };
+
+      eventSource.once(event_types.CHAT_COMPLETION_SETTINGS_READY, customApiEventHandler);
+    }
 
     // 如果有图片处理，等待图片处理完成
     if (imageProcessingSetup) {
@@ -177,6 +216,7 @@ export async function generateResponse(
       }
     }
 
+    eventSource.emit('js_generation_started');
     if (useStream) {
       const originalStreamSetting = oai_settings.stream_openai;
       if (!originalStreamSetting) {
@@ -192,7 +232,6 @@ export async function generateResponse(
         saveSettingsDebounced();
       }
     } else {
-      eventSource.emit('js_generation_started');
       const response = await sendOpenAIRequest(type, generate_data.prompt, abortController.signal);
       result = await handleResponse(response);
     }
@@ -204,6 +243,12 @@ export async function generateResponse(
     log.error(error);
     throw error;
   } finally {
+    // 清理自定义API事件监听器
+    if (customApiEventHandler) {
+      eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, customApiEventHandler);
+      log.debug('[Generate:自定义API] 已清理事件监听器');
+    }
+
     unblockGeneration();
     await clearInjectionPrompts(['INJECTION']);
   }

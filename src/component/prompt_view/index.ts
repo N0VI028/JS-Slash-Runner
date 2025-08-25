@@ -37,6 +37,6 @@ export async function initPromptView(): Promise<void> {
 /**
  * 页面卸载时清理所有事件监听器
  */
-$(window).on('unload', () => {
+$(window).on('pagehide', () => {
   eventSource.removeListener(event_types.CHAT_COMPLETION_PROMPT_READY, onChatCompletionPromptReady);
 });

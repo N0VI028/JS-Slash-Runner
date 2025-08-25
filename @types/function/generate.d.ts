@@ -1,3 +1,17 @@
+/**
+ * 自定义API配置
+ */
+type CustomApiConfig = {
+  /** 自定义API地址 */
+  apiurl?: string;
+  /** API密钥 */
+  key?: string;
+  /** 模型名称 */
+  model?: string;
+  /** API源，默认为 'openai' */
+  source?: string;
+};
+
 type GenerateConfig = {
   /** 用户输入 */
   user_input?: string;
@@ -33,6 +47,9 @@ type GenerateConfig = {
 
   /** 最多使用多少条聊天历史; 默认为 'all' */
   max_chat_history?: 'all' | number;
+
+  /** 自定义API配置 */
+  custom_api?: CustomApiConfig;
 };
 
 type GenerateRawConfig = {
@@ -81,6 +98,9 @@ type GenerateRawConfig = {
 
   /** 最多使用多少条聊天历史; 默认为 'all' */
   max_chat_history?: 'all' | number;
+
+  /** 自定义API配置 */
+  custom_api?: CustomApiConfig;
 };
 
 type RolePrompt = {
@@ -192,6 +212,18 @@ type BuiltinPrompt =
  *     }
  *   }
  * });
+ *
+ * @example
+ * // 使用自定义API
+ * const result = await generate({
+ *   user_input: '你好',
+ *   custom_api: {
+ *     apiurl: 'https://your-proxy-url.com',
+ *     key: 'your-api-key',
+ *     model: 'gpt-4',
+ *     source: 'openai'
+ *   }
+ * });
  */
 declare function generate(config: GenerateConfig): Promise<string>;
 
@@ -221,6 +253,23 @@ declare function generate(config: GenerateConfig): Promise<string>;
  *   ordered_prompts: [
  *     'char_description',
  *     { role: 'system', content: '系统提示' },
+ *     'chat_history',
+ *     'user_input',
+ *   ]
+ * })
+ *
+ * @example
+ * // 使用自定义API和自定义提示词顺序
+ * const result = await generateRaw({
+ *   user_input: '你好',
+ *   custom_api: {
+ *     apiurl: 'https://your-proxy-url.com',
+ *     key: 'your-api-key',
+ *     model: 'gpt-4',
+ *     source: 'openai'
+ *   },
+ *   ordered_prompts: [
+ *     'char_description',
  *     'chat_history',
  *     'user_input',
  *   ]

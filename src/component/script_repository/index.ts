@@ -37,6 +37,7 @@ export class ScriptRepositoryApp {
 
     this.registerEvents();
     this.setupSendFormObserver();
+    this.setupQrCombinedObserver();
   }
 
   /**
@@ -96,13 +97,6 @@ export class ScriptRepositoryApp {
             }
           });
         }
-
-        if (mutation.type === 'attributes' && mutation.target instanceof Element) {
-          const element = mutation.target as Element;
-          if (element.id === 'qr--isEnabled' || element.id === 'qr--isCombined') {
-            shouldUpdateButtons = true;
-          }
-        }
       });
 
       if (shouldUpdateButtons) {
@@ -116,6 +110,24 @@ export class ScriptRepositoryApp {
     }) as ExtendedMutationObserver;
 
     this.startObservingSendForm();
+  }
+
+  /**
+   * 设置 #qr--isCombined 复选框的观察器
+   */
+  private setupQrCombinedObserver(): void {
+    this.startObservingQrCombined();
+  }
+
+  /**
+   * 开始观察 #qr--isCombined 复选框
+   */
+  private startObservingQrCombined(): void {
+    $(document).off('change.qrCombined', '#qr--isCombined');
+
+    $(document).on('change.qrCombined', '#qr--isCombined', () => {
+      this.handleSendFormChange();
+    });
   }
 
   /**
@@ -287,6 +299,8 @@ export class ScriptRepositoryApp {
         }
         this.sendFormObserver = null;
       }
+
+      $(document).off('change.qrCombined', '#qr--isCombined');
 
       this.isUpdatingButtons = false;
 

@@ -63,7 +63,11 @@
             <div class="major-divider-line"></div>
           </div>
           <div class="extension-content-item box-container collapsible flexFlowColumn" style="align-items: flex-start">
-            <div id="extension-listener-header" class="flex-container spaceBetween alignItemsCenter width100p" style="flex: 0.9; flex-wrap: nowrap;">
+            <div
+              id="extension-listener-header"
+              class="flex-container spaceBetween alignItemsCenter width100p"
+              style="flex: 0.9; flex-wrap: nowrap"
+            >
               <div class="flex flexFlowColumn">
                 <div class="settings-title-text">实时监听</div>
                 <div class="settings-title-description">连接 VSCode/Cursor，将代码修改实时同步到酒馆</div>
@@ -80,6 +84,20 @@
               </div>
             </div>
             <div id="extension-reference" class="flex-container collapsible-content width100p"></div>
+          </div>
+          <div class="extension-content-item box-container">
+            <div class="flex flexFlowColumn">
+              <div class="settings-title-text">禁用酒馆助手宏</div>
+              <div class="settings-title-description">
+                编写变量角色卡而非测试/游玩角色卡时，请打开此开关，避免 {{get_message_variable::变量}} 等宏被替换
+              </div>
+            </div>
+            <div class="toggle-switch">
+              <input type="checkbox" id="macro-replace-disable-toggle" class="toggle-input" />
+              <label for="macro-replace-disable-toggle" class="toggle-label">
+                <span class="toggle-handle"></span>
+              </label>
+            </div>
           </div>
           <div class="extension-content-item box-container">
             <div class="flex flexFlowColumn">
@@ -106,7 +124,10 @@
               <div>脚本可能存在风险，请确保安全后再运行</div>
             </div>
             <div class="flex-container alignItemsCenter" style="gap: 12px">
-              <a href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/关于酒馆助手/常见问题/安装与更新问题.html" target="_blank">
+              <a
+                href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/关于酒馆助手/常见问题/安装与更新问题.html"
+                target="_blank"
+              >
                 <i class="fa-solid fa-book"></i>
               </a>
               <a href="https://github.com/N0VI028/JS-Slash-Runner" target="_blank">

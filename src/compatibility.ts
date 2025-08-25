@@ -16,41 +16,152 @@ export function reloadEditor(file: string, load_if_not_selected: boolean = false
 export const reloadEditorDebounced = _.debounce(reloadEditor, 1000);
 
 export const settingsToUpdate = {
-  max_context_unlocked: ['#oai_max_context_unlocked', 'max_context_unlocked', true, false],
-  openai_max_context: ['#openai_max_context', 'openai_max_context', false, false],
-  openai_max_tokens: ['#openai_max_tokens', 'openai_max_tokens', false, false],
-  n: ['#n_openai', 'n', false, false],
+  max_context_unlocked: {
+    selector: '#oai_max_context_unlocked',
+    oai_setting: 'max_context_unlocked',
+    type: 'checkbox',
+  },
+  openai_max_context: {
+    selector: '#openai_max_context',
+    oai_setting: 'openai_max_context',
+    type: 'input',
+  },
+  openai_max_tokens: {
+    selector: '#openai_max_tokens',
+    oai_setting: 'openai_max_tokens',
+    type: 'input',
+  },
+  n: {
+    selector: '#n_openai',
+    oai_setting: 'n',
+    type: 'input',
+  },
 
-  stream_openai: ['#stream_toggle', 'stream_openai', true, false],
+  stream_openai: {
+    selector: '#stream_toggle',
+    oai_setting: 'stream_openai',
+    type: 'checkbox',
+  },
 
-  temperature: ['#temp_openai', 'temp_openai', false, false],
-  frequency_penalty: ['#freq_pen_openai', 'freq_pen_openai', false, false],
-  presence_penalty: ['#pres_pen_openai', 'pres_pen_openai', false, false],
-  top_p: ['#top_p_openai', 'top_p_openai', false, false],
-  repetition_penalty: ['#repetition_penalty_openai', 'repetition_penalty_openai', false, false],
-  min_p: ['#min_p_openai', 'min_p_openai', false, false],
-  top_k: ['#top_k_openai', 'top_k_openai', false, false],
-  top_a: ['#top_a_openai', 'top_a_openai', false, false],
+  temperature: {
+    selector: '#temp_openai',
+    oai_setting: 'temp_openai',
+    type: 'input',
+  },
+  frequency_penalty: {
+    selector: '#freq_pen_openai',
+    oai_setting: 'freq_pen_openai',
+    type: 'input',
+  },
+  presence_penalty: {
+    selector: '#pres_pen_openai',
+    oai_setting: 'pres_pen_openai',
+    type: 'input',
+  },
+  top_p: {
+    selector: '#top_p_openai',
+    oai_setting: 'top_p_openai',
+    type: 'input',
+  },
+  repetition_penalty: {
+    selector: '#repetition_penalty_openai',
+    oai_setting: 'repetition_penalty_openai',
+    type: 'input',
+  },
+  min_p: {
+    selector: '#min_p_openai',
+    oai_setting: 'min_p_openai',
+    type: 'input',
+  },
+  top_k: {
+    selector: '#top_k_openai',
+    oai_setting: 'top_k_openai',
+    type: 'input',
+  },
+  top_a: {
+    selector: '#top_a_openai',
+    oai_setting: 'top_a_openai',
+    type: 'input',
+  },
 
-  seed: ['#seed_openai', 'seed', false, false],
+  seed: {
+    selector: '#seed_openai',
+    oai_setting: 'seed',
+    type: 'input',
+  },
 
-  squash_system_messages: ['#squash_system_messages', 'squash_system_messages', true, false],
+  squash_system_messages: {
+    selector: '#squash_system_messages',
+    oai_setting: 'squash_system_messages',
+    type: 'checkbox',
+  },
 
-  reasoning_effort: ['#openai_reasoning_effort', 'reasoning_effort', false, false],
-  show_thoughts: ['#openai_show_thoughts', 'show_thoughts', true, false],
-  request_images: ['#openai_request_images', 'request_images', true, false],
-  function_calling: ['#openai_function_calling', 'function_calling', true, false],
-  enable_web_search: ['#openai_enable_web_search', 'enable_web_search', true, false],
+  reasoning_effort: {
+    selector: '#openai_reasoning_effort',
+    oai_setting: 'reasoning_effort',
+    type: 'input',
+  },
+  show_thoughts: {
+    selector: '#openai_show_thoughts',
+    oai_setting: 'show_thoughts',
+    type: 'checkbox',
+  },
+  request_images: {
+    selector: '#openai_request_images',
+    oai_setting: 'request_images',
+    type: 'checkbox',
+  },
+  function_calling: {
+    selector: '#openai_function_calling',
+    oai_setting: 'function_calling',
+    type: 'checkbox',
+  },
+  enable_web_search: {
+    selector: '#openai_enable_web_search',
+    oai_setting: 'enable_web_search',
+    type: 'checkbox',
+  },
+  image_inlining: {
+    selector: '#openai_image_inlining',
+    oai_setting: 'image_inlining',
+    type: 'checkbox',
+  },
+  inline_image_quality: {
+    selector: '#openai_inline_image_quality',
+    oai_setting: 'inline_image_quality',
+    type: 'input',
+  },
+  video_inlining: {
+    selector: '#openai_video_inlining',
+    oai_setting: 'video_inlining',
+    type: 'checkbox',
+  },
 
-  image_inlining: ['#openai_image_inlining', 'image_inlining', true, false],
-  inline_image_quality: ['#openai_inline_image_quality', 'inline_image_quality', false, false],
-  video_inlining: ['#openai_video_inlining', 'video_inlining', true, false],
+  names_behavior: {
+    selector: '#names_behavior',
+    oai_setting: 'names_behavior',
+    type: 'input',
+  },
+  wrap_in_quotes: {
+    selector: '#wrap_in_quotes',
+    oai_setting: 'wrap_in_quotes',
+    type: 'checkbox',
+  },
 
-  names_behavior: ['#names_behavior', 'names_behavior', false, false],
-  wrap_in_quotes: ['#wrap_in_quotes', 'wrap_in_quotes', true, false],
+  prompts: {
+    selector: '#prompts',
+    oai_setting: 'prompts',
+    type: 'none',
+  },
+  prompt_order: {
+    selector: '#prompt_order',
+    oai_setting: 'prompt_order',
+    type: 'none',
+  },
 
-  prompts: ['', 'prompts', false, false],
-  prompt_order: ['', 'prompt_order', false, false],
-
-  extensions: ['#NULL_SELECTOR', 'extensions', false, false],
-};
+  extensions: {
+    selector: '#extensions',
+    oai_setting: 'extensions',
+    type: 'none',
+  },
+} as const;

@@ -8,6 +8,16 @@ export const extension_prompt_roles = {
 } as const;
 
 /**
+ * 自定义API配置接口
+ */
+export type CustomApiConfig = {
+  apiurl?: string;
+  key?: string;
+  model?: string;
+  source?: string;
+};
+
+/**
  * 生成配置接口（使用预设）
  */
 export type GenerateConfig = {
@@ -17,6 +27,7 @@ export type GenerateConfig = {
   overrides?: Overrides;
   injects?: InjectionPrompt[];
   max_chat_history?: 'all' | number;
+  custom_api?: CustomApiConfig;
 };
 
 /**
@@ -30,6 +41,7 @@ export type GenerateRawConfig = {
   injects?: InjectionRawPrompt[];
   ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
   max_chat_history?: 'all' | number;
+  custom_api?: CustomApiConfig;
 };
 
 /**
@@ -182,6 +194,7 @@ export namespace detail {
     max_chat_history?: number;
     inject?: InjectionPrompt[];
     order?: Array<BuiltinPromptEntry | CustomPrompt>;
+    custom_api?: CustomApiConfig;
   };
 }
 

@@ -5,7 +5,6 @@ import {
 import {
   clearAllIframes,
   clearAndRenderAllIframes,
-  handleTampermonkeyCompatibilityChange,
   renderAllIframes,
   setupIframeRemovalListener,
   updateIframeViewportHeight,
@@ -20,7 +19,6 @@ import { reloadCurrentChat, this_chid } from '@sillytavern/script';
 
 export const defaultIframeSettings = {
   render_enabled: true,
-  tampermonkey_compatibility: false,
   render_depth: 0,
   render_optimize: false,
   render_hide_style: false,
@@ -90,10 +88,12 @@ export function addRenderQuickButton() {
   if ($('#tavern-helper-render-container').length === 0) {
     $('#extensionsMenu').append(buttonHtml);
   }
-  $('#tavern-helper-render-container').off('click').on('click', async function () {
-    const isRenderEnabled = getSettingValue('render.render_enabled') ?? defaultIframeSettings.render_enabled;
-    await handleRenderEnableToggle(!isRenderEnabled, true);
-  });
+  $('#tavern-helper-render-container')
+    .off('click')
+    .on('click', async function () {
+      const isRenderEnabled = getSettingValue('render.render_enabled') ?? defaultIframeSettings.render_enabled;
+      await handleRenderEnableToggle(!isRenderEnabled, true);
+    });
 }
 
 /**
@@ -115,16 +115,6 @@ export async function initIframePanel() {
     .on('blur', function (event) {
       onDepthInput((event.target as HTMLInputElement).value);
     });
-
-  // 处理油猴兼容性设置
-  const isTampermonkeyEnabled =
-    getSettingValue('render.tampermonkey_compatibility') ?? defaultIframeSettings.tampermonkey_compatibility;
-  if (isTampermonkeyEnabled) {
-    handleTampermonkeyCompatibilityChange(true, false);
-  }
-  $('#tampermonkey-compatibility-toggle')
-    .prop('checked', isTampermonkeyEnabled)
-    .on('click', (event: JQuery.ClickEvent) => handleTampermonkeyCompatibilityChange(event.target.checked, true));
 
   // 首先处理前端渲染设置 - 这个必须先执行，因为它可能会调用reloadCurrentChat
   const isRenderEnabled = getSettingValue('render.render_enabled') ?? defaultIframeSettings.render_enabled;

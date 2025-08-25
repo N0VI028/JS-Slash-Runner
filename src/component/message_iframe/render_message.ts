@@ -10,8 +10,6 @@ import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue
 import { eventSource, event_types, reloadCurrentChat, this_chid, updateMessageBlock } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 
-let tampermonkeyMessageListener: ((event: MessageEvent) => void) | null = null;
-
 const RENDER_MODES = {
   FULL: 'FULL',
   PARTIAL: 'PARTIAL',
@@ -147,17 +145,11 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
               .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
               </style>
               ${third_party}
-              <script src="${script_url.get('iframe_client')}"></script>
+              <script src="${script_url.get('iframe')}"></script>
             </head>
             <body>
               ${extractedText}
               ${needsVhHandling ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
-
-              ${
-                getSettingValue('render.tampermonkey_compatibility')
-                  ? `<script src="${script_url.get('tampermonkey_script')}"></script>`
-                  : ``
-              }
             </body>
             </html>
           `;
@@ -215,68 +207,6 @@ $(window).on("message", function (event) {
         const newHeight = event.originalEvent.data.newHeight;
         $("html").css("--viewport-height", newHeight + "px");
     }
-});
-`;
-
-/**
- * 油猴脚本
- */
-export const tampermonkey_script = `
-class AudioManager {
-  constructor() {
-    this.currentlyPlaying = null;
-  }
-  handlePlay(audio) {
-    if (this.currentlyPlaying && this.currentlyPlaying !== audio) {
-      this.currentlyPlaying.pause();
-    }
-    window.parent.postMessage({
-      type: 'audioPlay',
-      iframeId: window.frameElement.id
-    }, '*');
-
-    this.currentlyPlaying = audio;
-  }
-  stopAll() {
-    if (this.currentlyPlaying) {
-      this.currentlyPlaying.pause();
-      this.currentlyPlaying = null;
-    }
-  }
-}
-const audioManager = new AudioManager();
-$('.qr-button').on('click', function() {
-  const buttonName = $(this).text().trim();
-  window.parent.postMessage({ type: 'buttonClick', name: buttonName }, '*');
-});
-$('.st-text').each(function() {
-  $(this).on('input', function() {
-    window.parent.postMessage({ type: 'textInput', text: $(this).val() }, '*');
-  });
-  $(this).on('change', function() {
-    window.parent.postMessage({ type: 'textInput', text: $(this).val() }, '*');
-  });
-  const textarea = this;
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
-        window.parent.postMessage({ type: 'textInput', text: $(textarea).val() }, '*');
-      }
-    });
-  });
-  observer.observe(textarea, { attributes: true });
-});
-$('.st-send-button').on('click', function() {
-  window.parent.postMessage({ type: 'sendClick' }, '*');
-});
-$('.st-audio').on('play', function() {
-  audioManager.handlePlay(this);
-});
-$(window).on('message', function(event) {
-  if (event.originalEvent.data.type === 'stopAudio' &&
-    event.originalEvent.data.iframeId !== window.frameElement.id) {
-    audioManager.stopAll();
-  }
 });
 `;
 
@@ -451,87 +381,6 @@ function observeIframeContent(iframe: HTMLIFrameElement) {
   }
 }
 
-/**
- * 处理油猴脚本兼容模式传来的消息
- * @param event 消息事件
- */
-function handleTampermonkeyMessages(event: MessageEvent): void {
-  if (event.data.type === 'buttonClick') {
-    const buttonName = event.data.name;
-    $('.qr--button.menu_button').each(function () {
-      if ($(this).find('.qr--button-label').text().trim() === buttonName) {
-        $(this).trigger('click');
-      }
-    });
-  } else if (event.data.type === 'textInput') {
-    const $sendTextarea = jQuery('#send_textarea');
-    if ($sendTextarea.length) {
-      $sendTextarea.val(event.data.text).trigger('input').trigger('change');
-    }
-  } else if (event.data.type === 'sendClick') {
-    const $sendButton = jQuery('#send_but');
-    if ($sendButton.length) {
-      $sendButton.trigger('click');
-    }
-  }
-}
-
-/**
- * 油猴兼容模式-创建全局音频管理器
- */
-function createGlobalAudioManager() {
-  let currentPlayingIframeId: string | null = null;
-
-  window.addEventListener('message', function (event) {
-    if (event.data.type === 'audioPlay') {
-      const newIframeId = event.data.iframeId;
-
-      if (currentPlayingIframeId && currentPlayingIframeId !== newIframeId) {
-        $('iframe').each(function () {
-          const iframe = this as HTMLIFrameElement;
-          if (iframe.contentWindow) {
-            iframe.contentWindow.postMessage(
-              {
-                type: 'stopAudio',
-                iframeId: newIframeId,
-              },
-              '*',
-            );
-          }
-        });
-      }
-
-      currentPlayingIframeId = newIframeId;
-    }
-  });
-}
-
-/**
- * 处理油猴兼容性设置改变
- */
-export async function handleTampermonkeyCompatibilityChange(enable: boolean, userInput: boolean = true) {
-  if (userInput) {
-    saveSettingValue('render.tampermonkey_compatibility', enable);
-  }
-
-  if (!getSettingValue('enabled_extension')) {
-    return;
-  }
-
-  if (enable) {
-    if (!tampermonkeyMessageListener) {
-      tampermonkeyMessageListener = handleTampermonkeyMessages;
-      window.addEventListener('message', tampermonkeyMessageListener);
-      createGlobalAudioManager();
-    }
-  } else if (tampermonkeyMessageListener) {
-    window.removeEventListener('message', tampermonkeyMessageListener);
-    tampermonkeyMessageListener = null;
-  }
-
-  await clearAndRenderAllIframes();
-}
-
 // 扩展Window接口定义
 declare global {
   interface Window {
@@ -619,7 +468,7 @@ export function destroyIframe(iframe: HTMLIFrameElement): void {
     }
   }
 
-  $iframe.trigger('unload').remove();
+  $iframe.remove();
 
   if (window._observedElements?.size === 0 && window._sharedResizeObserver) {
     window._sharedResizeObserver.disconnect();

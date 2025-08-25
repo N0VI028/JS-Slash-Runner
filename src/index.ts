@@ -1,7 +1,7 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initExtensionMainPanel } from '@/component/index';
 import { initListener } from '@/component/listener';
-import { renderAllMacros } from '@/component/macrolike';
+import { derenderAllMacros, destroyMacroOnExtension, initializeMacroOnExtension, renderAllMacros } from '@/component/macrolike';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';
@@ -46,6 +46,9 @@ const defaultSettings = {
   },
   audio: {
     ...defaultAudioSettings,
+  },
+  macro: {
+    replace: true,
   },
   debug: {
     enabled: false,
@@ -149,23 +152,46 @@ function initThirdPartyObject() {
   globalThis.z = z_object;
 }
 
-async function initDebugMode() {
-  const debugEnabled = await getOrSaveSettingValue('debug.enabled', defaultSettings.debug.enabled);
-  $('#debug-mode-toggle')
-    .prop('checked', debugEnabled)
-    .on('click', (event: JQuery.ClickEvent) => {
-      const isDebugMode = event.target.checked;
-      saveSettingValue('debug.enabled', isDebugMode);
-      if (isDebugMode) {
-        log.enableAll();
+// TODO: 拆入 component 中
+async function initMacroReplace() {
+  const macro_replace_enabled = await getOrSaveSettingValue('macro.replace', defaultSettings.macro.replace);
+  $('#macro-replace-disable-toggle')
+    .prop('checked', !macro_replace_enabled)
+    .on('click', function () {
+      const should_disable = $(this).prop('checked');
+      saveSettingValue('macro.replace', !should_disable);
+      if (should_disable) {
+        destroyMacroOnExtension();
       } else {
-        log.setLevel('warn');
+        initializeMacroOnExtension();
       }
     });
-  if (debugEnabled) {
-    log.enableAll();
+  // TODO: 随 initExtensionMainPanel 初始化, 现在这样即便酒馆助手关闭依旧生效
+  if (macro_replace_enabled) {
+    initializeMacroOnExtension();
+  }
+}
+
+// TODO: 拆入 component 中
+async function initDebugMode() {
+  const debug_enabled = await getOrSaveSettingValue('debug.enabled', defaultSettings.debug.enabled);
+  $('#debug-mode-toggle')
+    .prop('checked', debug_enabled)
+    .on('click', function () {
+      const should_debug = $(this).prop('checked');
+      saveSettingValue('debug.enabled', should_debug);
+      if (should_debug) {
+        log_object.enableAll();
+      } else {
+        log_object.setLevel('warn');
+      }
+    });
+
+  // TODO: 随 initExtensionMainPanel 初始化?
+  if (debug_enabled) {
+    log_object.enableAll();
   } else {
-    log.setLevel('warn');
+    log_object.setLevel('warn');
   }
 }
 
@@ -181,12 +207,19 @@ jQuery(async () => {
     _.unset(extension_settings, extensionName);
     showNewFeature();
     await saveSettings();
+  } else {
+    // 清理弃用的油猴配置项
+    //@ts-ignore
+    const extensionConfig = extension_settings[extensionSettingName];
+    if (_.has(extensionConfig, 'render.tampermonkey_compatibility')) {
+      _.unset(extensionConfig, 'render.tampermonkey_compatibility');
+      await saveSettings();
+    }
   }
 
   disableIncompatibleOption();
   initThirdPartyObject();
   initTavernHelperObject();
-  await initDebugMode();
   // 默认显示主设置界面
   $('#main-settings-title').addClass('title-item-active');
   $('#main-settings-content').show();
@@ -201,6 +234,8 @@ jQuery(async () => {
   $('#toolbox-settings-title').on('click', (event: JQuery.ClickEvent) => handleSettingPageChange(event));
 
   eventSource.once(event_types.APP_READY, async () => {
+    await initMacroReplace();
+    await initDebugMode();
     initExtensionMainPanel();
     await handleVersionUpdate();
     await initAudioComponents();
@@ -208,7 +243,6 @@ jQuery(async () => {
     initSlashEventEmit();
     await buildScriptRepository();
     await initIframePanel();
-    renderAllMacros();
     await initReference();
     await initListener();
     initVariableManager();

@@ -118,6 +118,8 @@ function toLorebookSettings(world_info_settings: ReturnType<typeof getWorldInfoS
 }
 
 function assignPartialLorebookSettings(settings: Partial<LorebookSettings>): void {
+  const $inputs = $();
+  const $changes = $();
   const for_eachs = {
     selected_global_lorebooks: (value: LorebookSettings['selected_global_lorebooks']) => {
       $('#world_info').find('option[value!=""]').remove();
@@ -131,47 +133,47 @@ function assignPartialLorebookSettings(settings: Partial<LorebookSettings>): voi
     },
 
     scan_depth: (value: LorebookSettings['scan_depth']) => {
-      $('#world_info_depth').val(value).trigger('input');
+      $inputs.add($('#world_info_depth').val(value));
     },
     context_percentage: (value: LorebookSettings['context_percentage']) => {
-      $('#world_info_budget').val(value).trigger('input');
+      $inputs.add($('#world_info_budget').val(value));
     },
     budget_cap: (value: LorebookSettings['budget_cap']) => {
-      $('#world_info_budget_cap').val(value).trigger('input');
+      $inputs.add($('#world_info_budget_cap').val(value));
     },
     min_activations: (value: LorebookSettings['min_activations']) => {
-      $('#world_info_min_activations').val(value).trigger('input');
+      $inputs.add($('#world_info_min_activations').val(value));
     },
     max_depth: (value: LorebookSettings['max_depth']) => {
-      $('#world_info_min_activations_depth_max').val(value).trigger('input');
+      $inputs.add($('#world_info_min_activations_depth_max').val(value));
     },
     max_recursion_steps: (value: LorebookSettings['max_recursion_steps']) => {
-      $('#world_info_max_recursion_steps').val(value).trigger('input');
+      $inputs.add($('#world_info_max_recursion_steps').val(value));
     },
 
     insertion_strategy: (value: LorebookSettings['insertion_strategy']) => {
       const converted_value = { evenly: 0, character_first: 1, global_first: 2 }[value];
       $(`#world_info_character_strategy option[value='${converted_value}']`).prop('selected', true);
-      $('#world_info_character_strategy').val(converted_value).trigger('change');
+      $changes.add($('#world_info_character_strategy').val(converted_value));
     },
 
     include_names: (value: LorebookSettings['include_names']) => {
-      $('#world_info_include_names').prop('checked', value).trigger('input');
+      $inputs.add($('#world_info_include_names').prop('checked', value));
     },
     recursive: (value: LorebookSettings['recursive']) => {
-      $('#world_info_recursive').prop('checked', value).trigger('input');
+      $inputs.add($('#world_info_recursive').prop('checked', value));
     },
     case_sensitive: (value: LorebookSettings['case_sensitive']) => {
-      $('#world_info_case_sensitive').prop('checked', value).trigger('input');
+      $inputs.add($('#world_info_case_sensitive').prop('checked', value));
     },
     match_whole_words: (value: LorebookSettings['match_whole_words']) => {
-      $('#world_info_match_whole_words').prop('checked', value).trigger('input');
+      $inputs.add($('#world_info_match_whole_words').prop('checked', value));
     },
     use_group_scoring: (value: LorebookSettings['use_group_scoring']) => {
-      $('#world_info_use_group_scoring').prop('checked', value).trigger('change');
+      $changes.add($('#world_info_use_group_scoring').prop('checked', value));
     },
     overflow_alert: (value: LorebookSettings['overflow_alert']) => {
-      $('#world_info_overflow_alert').prop('checked', value).trigger('change');
+      $changes.add($('#world_info_overflow_alert').prop('checked', value));
     },
   };
 
@@ -181,6 +183,8 @@ function assignPartialLorebookSettings(settings: Partial<LorebookSettings>): voi
       // @ts-ignore
       for_eachs[field]?.(value);
     });
+  $inputs.trigger('input');
+  $changes.trigger('change');
 }
 
 type GetCharLorebooksOption = {

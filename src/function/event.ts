@@ -1,167 +1,114 @@
+import { _getButtonEvent } from '@/function/script_button';
+import { get_or_set } from '@/util/map_util';
+
+import { eventSource } from '@sillytavern/script';
+
+const iframe_event_listeners_map: Map<string, Map<string, Set<Function>>> = new Map();
+
+function register_listener(this: Window, event: string, listener: Function): void {
+  const iframe_id = this.frameElement?.id;
+  if (!iframe_id) {
+    return;
+  }
+
+  const event_listeners_map = get_or_set(iframe_event_listeners_map, iframe_id, () => new Map<string, Set<Function>>());
+  const listeners = get_or_set(event_listeners_map, event, () => new Set());
+
+  listeners.add(listener);
+}
+
+function get_map(this: Window): Map<string, Set<Function>> {
+  const iframe_id = this.frameElement?.id;
+  if (!iframe_id) {
+    return new Map();
+  }
+  return get_or_set(iframe_event_listeners_map, iframe_id, () => new Map<string, Set<Function>>());
+}
+
+export function _eventOn<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+  register_listener.call(this, event_type, listener);
+  eventSource.on(event_type, listener);
+}
+
+/** @deprecated */
+export function _eventOnButton<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+  _eventOn.call(this, _getButtonEvent.call(this, event_type), listener);
+}
+
+export function _eventMakeLast<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+  register_listener.call(this, event_type, listener);
+  eventSource.makeLast(event_type, listener);
+}
+
+export function _eventMakeFirst<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+  register_listener.call(this, event_type, listener);
+  eventSource.makeFirst(event_type, listener);
+}
+
+export function _eventOnce<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+  // 酒馆自己也支持重复 once, 因此此处不考虑重复的情况
+  const once = (...args: any[]) => {
+    get_map.call(this).get(event_type)?.delete(once);
+    return listener(...args);
+  };
+  register_listener.call(this, event_type, once);
+  eventSource.once(event_type, once);
+}
+
+export async function _eventEmit<T extends EventType>(
+  this: Window,
+  event_type: T,
+  ...data: Parameters<ListenerType[T]>
+): Promise<void> {
+  await eventSource.emit(event_type, ...data);
+}
+
+export function _eventEmitAndWait<T extends EventType>(
+  this: Window,
+  event_type: T,
+  ...data: Parameters<ListenerType[T]>
+): void {
+  eventSource.emitAndWait(event_type, ...data);
+}
+
+export function _eventRemoveListener<T extends EventType>(
+  this: Window,
+  event_type: T,
+  listener: ListenerType[T],
+): void {
+  get_map.call(this).get(event_type)?.delete(listener);
+  eventSource.removeListener(event_type, listener);
+}
+
+export function _eventClearEvent(this: Window, event_type: EventType): void {
+  const event_listeners_map = get_map.call(this);
+  event_listeners_map.get(event_type)?.forEach(listener => {
+    eventSource.removeListener(event_type, listener);
+  });
+  event_listeners_map.delete(event_type);
+}
+
+export function _eventClearListener(this: Window, listener: Function): void {
+  get_map.call(this).forEach((listeners, event_type) => {
+    eventSource.removeListener(event_type, listener);
+    listeners.delete(listener);
+  });
+}
+
+export function _eventClearAll(this: Window): void {
+  get_map.call(this).forEach((listeners, event_type) => {
+    listeners.forEach(listener => {
+      eventSource.removeListener(event_type, listener);
+    });
+  });
+  iframe_event_listeners_map.delete(this.frameElement?.id ?? 'unknown_iframe');
+}
+
 type EventType = IframeEventType | TavernEventType | string;
 
-function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  if (detail.try_get_wrapper(listener, event_type)) {
-    log.warn(
-      `[Event][eventOn] 函数已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(
-        listener,
-      )}`,
-    );
-    return;
-  }
-  SillyTavern.eventSource.on(event_type, detail.get_or_make_wrapper(listener, event_type, false));
-  log.info(
-    `[Event][eventOn] 函数开始监听 '${event_type}' 事件并将随事件触发\n\n  ${detail.format_function_to_string(
-      listener,
-    )}`,
-  );
-}
-
-function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  const script_id = getScriptId();
-  if (detail.try_get_wrapper(listener, event_type)) {
-    log.warn(
-      `[Event][eventOnButton](id为${String(
-        script_id,
-      )}) 的脚本已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`,
-    );
-    return;
-  }
-  const event_type_with_script_id = `${String(script_id)}_${event_type}`;
-  SillyTavern.eventSource.on(
-    event_type_with_script_id,
-    detail.get_or_make_wrapper(listener, event_type_with_script_id, false),
-  );
-  log.info(
-    `[Event][eventOnButton](script_id为${String(
-      script_id,
-    )}) 函数开始监听 '${event_type}' 事件并将随事件触发\n\n  ${detail.format_function_to_string(listener)}`,
-  );
-}
-
-function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
-  SillyTavern.eventSource.makeLast(event_type, detail.get_or_make_wrapper(listener, event_type, false));
-  if (is_listening) {
-    log.info(`函数调整为监听到 '${event_type}' 事件时最后触发\n\n  ${detail.format_function_to_string(listener)}`);
-  } else {
-    log.info(`函数开始监听 '${event_type}' 事件并将随事件最后触发\n\n  ${detail.format_function_to_string(listener)}`);
-  }
-}
-
-function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  const is_listening = detail.try_get_wrapper(listener, event_type) !== undefined;
-  SillyTavern.eventSource.makeFirst(event_type, detail.get_or_make_wrapper(listener, event_type, false));
-  if (is_listening) {
-    log.info(`函数调整为监听到 '${event_type}' 事件时最先触发\n\n  ${detail.format_function_to_string(listener)}`);
-  } else {
-    log.info(`函数开始监听 '${event_type}' 事件并将随事件最先触发\n\n  ${detail.format_function_to_string(listener)}`);
-  }
-}
-
-function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  if (detail.try_get_wrapper(listener, event_type)) {
-    log.warn(`函数已经在监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
-    return;
-  }
-  SillyTavern.eventSource.once(event_type, detail.get_or_make_wrapper(listener, event_type, true));
-  log.info(
-    `函数开始监听下一次 '${event_type}' 事件并仅在该次事件时触发\n\n  ${detail.format_function_to_string(listener)}`,
-  );
-}
-
-async function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
-async function eventWaitOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<any | undefined>;
-async function eventWaitOnce<T extends EventType>(event_type: T, listener?: ListenerType[T]): Promise<any | undefined> {
-  if (!listener) {
-    const do_nothing = () => {};
-    eventOnce(event_type, do_nothing);
-    return await eventWaitOnce(event_type, do_nothing);
-  }
-
-  const entry = `${event_type}#${listener.toString()}`;
-  return new Promise((resolve, _) => {
-    const uid = Date.now() + Math.random();
-
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.request === 'iframe_event_wait_callback' && event.data.uid == uid) {
-        window.removeEventListener('message', handleMessage);
-        resolve(event.data.result);
-        detail.waiting_event_map.deleteEntry(entry, uid);
-
-        log.info(
-          `等待到函数因 '${event_type}' 事件触发后的执行结果: ${JSON.stringify(
-            event.data.result,
-          )}\n\n  ${detail.format_function_to_string(listener as ListenerType[T])}`,
-        );
-      }
-    }
-    window.addEventListener('message', handleMessage);
-    detail.waiting_event_map.put(entry, uid);
-
-    log.info(`等待函数被 '${event_type}' 事件触发\n\n  ${detail.format_function_to_string(listener)}`);
-  });
-}
-
-async function eventEmit<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): Promise<void> {
-  await SillyTavern.eventSource.emit(event_type, ...data);
-  log.info(`发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
-}
-
-function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void {
-  SillyTavern.eventSource.emitAndWait(event_type, ...data);
-  log.info(`发送 '${event_type}' 事件, 携带数据: ${JSON.stringify(data)}`);
-}
-
-function eventRemoveListener<T extends EventType>(event_type: T, listener: ListenerType[T]): void {
-  const wrapper = detail.try_get_wrapper(listener, event_type);
-  if (!wrapper) {
-    log.warn(`函数没有监听 '${event_type}' 事件, 调用无效\n\n  ${detail.format_function_to_string(listener)}`);
-    return;
-  }
-  SillyTavern.eventSource.removeListener(event_type, wrapper);
-  detail.remove_wrapper(listener, event_type);
-  log.info(`函数不再监听 '${event_type}' 事件\n\n  ${detail.format_function_to_string(listener)}`);
-}
-
-function eventClearEvent(event_type: EventType): void {
-  detail.listener_event_wrapper_map.forEach((event_wrapper_map, _) => {
-    const wrapper = event_wrapper_map.get(event_type);
-    if (wrapper) {
-      SillyTavern.eventSource.removeListener(event_type, wrapper);
-      event_wrapper_map.delete(event_type);
-    }
-  });
-
-  log.info(`所有函数都不再监听 '${event_type}' 事件`);
-}
-
-function eventClearListener(listener: Function): void {
-  const event_callback_map = detail.extract(detail.listener_event_wrapper_map, listener);
-  if (event_callback_map) {
-    event_callback_map.forEach((callback, event_type) => {
-      SillyTavern.eventSource.removeListener(event_type, callback);
-    });
-  }
-
-  log.info(`函数不再监听任何事件\n\n  ${detail.format_function_to_string(listener)}`);
-}
-
-function eventClearAll(): void {
-  detail.listener_event_wrapper_map.forEach((event_wrapper_map, _) => {
-    event_wrapper_map.forEach((wrapper, event_type) => {
-      SillyTavern.eventSource.removeListener(event_type, wrapper);
-    });
-  });
-  detail.listener_event_wrapper_map.clear();
-
-  log.info(`取消所有函数对所有事件的监听`);
-}
-
-//------------------------------------------------------------------------------------------------------------------------
 type IframeEventType = (typeof iframe_events)[keyof typeof iframe_events];
 
-const iframe_events = {
+export const iframe_events = {
   MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
   MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
   GENERATION_STARTED: 'js_generation_started',
@@ -172,7 +119,7 @@ const iframe_events = {
 
 type TavernEventType = (typeof tavern_events)[keyof typeof tavern_events];
 
-const tavern_events = {
+export const tavern_events = {
   APP_READY: 'app_ready',
   EXTRAS_CONNECTED: 'extras_connected',
   MESSAGE_SWIPED: 'message_swiped',
@@ -238,7 +185,7 @@ const tavern_events = {
   TOOL_CALLS_RENDERED: 'tool_calls_rendered',
 } as const;
 
-type ListenerType = {
+export type ListenerType = {
   [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
   [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
   [iframe_events.GENERATION_STARTED]: () => void;
@@ -376,57 +323,3 @@ type ListenerType = {
   [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: Object[]) => void;
   [custom_event: string]: (...args: any) => any;
 };
-
-//------------------------------------------------------------------------------------------------------------------------
-// @ts-expect-error
-namespace detail {
-  export const listener_event_wrapper_map: Map<Function, Map<EventType, Function>> = new Map();
-
-  export function try_get_wrapper<T extends EventType>(listener: ListenerType[T], event_type: T): Function | undefined {
-    return listener_event_wrapper_map.get(listener)?.get(event_type);
-  }
-
-  export function remove_wrapper<T extends EventType>(listener: ListenerType[T], event_type: T): void {
-    listener_event_wrapper_map.get(listener)?.delete(event_type);
-  }
-
-  export function get_or_make_wrapper<T extends EventType>(
-    listener: ListenerType[T],
-    event_type: T,
-    once: boolean,
-  ): ListenerType[T] {
-    const default_wrapper = async (
-      ...args: Parameters<ListenerType[T]>
-    ): Promise<Awaited<ReturnType<ListenerType[T]>>> => {
-      if (once) {
-        remove_wrapper(listener, event_type);
-      }
-
-      const result = await listener(...args);
-      log.info(`函数因监听到 '${event_type}' 事件而触发\n\n  ${detail.format_function_to_string(listener)}`);
-
-      const uid = detail.waiting_event_map.get(`${event_type}#${listener.toString()}`)[0];
-      if (uid) {
-        window.postMessage(
-          {
-            request: 'iframe_event_wait_callback',
-            uid: uid,
-            result: result,
-          },
-          '*',
-        );
-      }
-
-      return result;
-    };
-    const default_event_wrapper_map = new Map([[event_type, default_wrapper]]);
-
-    const event_wrapper = detail.get_or_set(listener_event_wrapper_map, listener, () => default_event_wrapper_map);
-    const wrapper = detail.get_or_set(event_wrapper, event_type, () => default_wrapper);
-    return wrapper as ListenerType[T];
-  }
-
-  export const waiting_event_map: ArrayMultimap<string, number> = new ArrayMultimap();
-
-  $(window).on('unload', eventClearAll);
-}

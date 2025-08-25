@@ -1,3 +1,154 @@
+## 3.4.13
+
+### 💻界面
+
+- 让脚本库中关闭的脚本像正则那样名字带有删除线
+
+### ⏫功能
+
+- 为 `getScriptButtons` 等脚本按钮函数移除 `script_id` 参数, 现在你可以在脚本中直接调用它们而无需传入 `getScriptId()` 参数 (以前的代码依旧有效):
+
+  ```typescript
+  // 以前
+  const buttons = getScriptButtons(getScriptId());
+
+  // 现在
+  const buttons = getScriptButtons();
+  ```
+
+### 🐛修复
+
+- 为流式 `generate` 函数补充 `iframe_events.GENERATION_STARTED` 事件
+
+## 3.4.12
+
+### 💻界面
+
+- 调整`酒馆助手设置-编写参考`的显示
+- 移除`酒馆助手设置-实时监听-监听地址`, 避免有人跳着看教程而填错
+
+### ⏫功能
+
+- 为前端界面添加 tailwindcss cdn 版支持. 其提供了很多预定义样式, 例如 `class="items-center"` 表示居中对齐.
+- 更新 `font-awesome` 图标库为 `@fortawesome/fontawesome-free` 版本
+
+### 🐛修复
+
+- 取消预设函数隐式将酒馆系统提示词 (Main Prompt、Auxiliary Prompt、Post-Instruction Prompt、Enhance Definition) 转换为一般提示词的功能, 因为这似乎会导致酒馆清空这几个条目.
+
+  但酒馆系统提示词与一般提示词相比并无优势, 甚至缺少更改插入位置为聊天中的功能, 因此并不建议你使用.
+
+- 修复 `createChatMessages` 对 `refresh: none` 的处理
+- 修复 `createChatMessages` 在尾部插入消息时不会处理酒馆助手渲染的问题
+- 清理 `getWorldbook` 获取的 `recursion.delay_until`、`effect.sticky`、`effect.cooldown`、`effect.delay` 等字段, 将 `0` 等无效值转换为 `null`
+- 修复 `getPreset` 提取出的老预设存在的类型错误
+
+## 3.4.11
+
+### ⏫功能
+
+- ~~趁没人用~~调整预设提示词条目的插入字段 (`prompt.position`), 添加新酒馆的插入顺序字段 (`prompt.injection_order`).
+- 将预设占位符提示词的 id 从 `snake_case` 改为 `camelCase`, 便于与酒馆界面交互.
+
+### 🐛修复
+
+- 修复了提示词查看器搜索功能的问题
+- 修复预设文件中可能不存在 `marker` 字段而导致预设函数不可用的问题
+
+## 3.4.10
+
+### 💻界面
+
+- 在`酒馆助手设置-主设置-开发工具`中新增`禁用酒馆助手宏`功能, 方便使用写卡预设/世界书时, 将人设模板中的 `{{get_message_variable::变量}}` 等酒馆助手宏直接发给 AI 而不进行替换. 也就是说:
+  - 使用写卡预设时: 开启"酒馆助手"的`禁用酒馆助手宏`和关闭"提示词模板", 以便发送人设模板让 AI 给你输出人设
+  - 游玩/测试角色卡时: 关闭"酒馆助手"的`禁用酒馆助手宏`和关闭"提示词模板", 从而让酒馆助手宏和提示词模板 EJS 得到替换和执行处理,让动态提示词生效
+
+## 3.4.9
+
+### 🐛修复
+
+- 让酒馆助手的加载不再依赖于任何网络文件, 避免 `failed to load: [object Event]`
+
+## 3.4.8
+
+### 💻界面
+
+- 让变量管理器更紧凑
+
+### ⏫功能
+
+- **`generate`函数和 `generateRaw` 函数现在支持自定义 api 了**
+
+  ```typescript
+  const result = await generate({
+    user_input: '你好',
+    custom_api: {
+      apiurl: 'https://your-proxy-url.com',
+      key: 'your-api-key',
+      model: 'gpt-4',
+      source: 'openai'
+    }
+  });
+  ```
+
+- 新增 `getButtonEvent` 来获取脚本按钮对应的事件
+- 弃用 `eventOnButton`, 请使用 `eventOn(getButtonEvent('按钮名称'), 函数)` 代替
+- `generate` 和 `generateRaw` 现在可以自定义请求的API了
+
+### 🐛修复
+
+- `createWorldbookEntries` 和 `deleteWorldbookEntries` 不可用的问题
+- 修改变量管理器嵌套卡片的排版，扩大文本显示范围
+
+## 3.4.7
+
+### ⏫功能
+
+- 优化事件监听的性能
+
+### 🐛修复
+
+- 尝试修复切换角色卡时事件监听没能正确卸载的问题
+
+## 3.4.6
+
+### 🐛修复
+
+- 移除不常使用的油猴兼容性设置，想要使用相关功能请直接安装原作者的[油猴脚本](https://greasyfork.org/zh-CN/scripts/503174-sillytavern-st%E9%85%92%E9%A6%86-html%E4%BB%A3%E7%A0%81%E6%B3%A8%E5%85%A5%E5%99%A8)
+- 修复在 QR 启用但没有显示任何 QR 组，并且启用了复数个拥有按钮的脚本时，按钮无法正确显示的问题
+
+## 3.4.5
+
+### ⏫功能
+
+- 优化 `replacePreset` 和 `updatePresetWith` 的性能
+
+## 3.4.4
+
+### 📚脚本库
+
+**内置库:**
+
+- 添加`预设条目更多按钮`脚本, 可以一键新建/复制条目到某条目附近
+- 移除了不太常用的[`样式加载`](https://discord.com/channels/1291925535324110879/1354783717910122496)和容易被误用的[`资源预载`](https://discord.com/channels/1291925535324110879/1354791063935520898)脚本, 需要请查看脚本原帖
+
+### 🐛修复
+
+- `replacePreset` 不能正确处理预设提示词 id 冲突的问题
+
+## 3.4.3
+
+### ⏫功能
+
+- 为预设和世界书操作新增可选选项 `render:'debounced'|'immediate'`, 用于控制是否防抖渲染. 默认使用防抖渲染, 因为大多数情况下不需要立即渲染.
+- 将酒馆的 `PromptManager` 导出到 `builtin` 中, 并额外提供 `builtin.renderPromptManager` 和 `builtin.renderPromptManagerDebounced` 函数, 用于刷新预设提示词的渲染.
+
+## 3.4.2
+
+### 🐛修复
+
+- `replareWorldbook` 不能正确处理关键字的问题
+
 ## 3.4.1
 
 ### ⏫功能
@@ -28,10 +179,6 @@
    // 删除所有名字中包含 `神乐光` 的条目
    const { worldbook, deleted_entries } = await deleteWorldbookEntries('eramgt少女歌剧', entry => entry.name.includes('神乐光'));
   ```
-
-**前端美化**:
-
-- 为前端内置了 [tailwindcss](https://tailwindcss.com/) 库, 现在你可以直接在界面中使用 tailwindcss 的类名了
 
 ### 🐛修复
 

@@ -7,6 +7,9 @@ import { event_types, eventSource, online_status } from '@sillytavern/script';
 
 import { renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 import log from 'loglevel';
+import Mark from 'mark.js';
+
+
 
 export const templatePath = `${extensionFolderPath}/src/component/prompt_view/public`;
 
@@ -30,9 +33,7 @@ interface SearchResult {
   indices?: Array<{ start: number; end: number; text: string }>; // 普通搜索的位置信息
 }
 
-// 全局原始内容映射，避免在DOM上重复存储
-let originalContentMap = new Map<number, string>();
-let currentPromptData: PromptData[] = [];
+const originalContentMap = new Map<number, string>();
 
 /**
  * 获取元素的原始内容
@@ -73,7 +74,6 @@ export async function openPromptViewDialog(): Promise<void> {
       setPromptViewUpdater(null);
       $(`style#prompt-view-style`).remove();
       originalContentMap.clear();
-      currentPromptData = [];
     },
   });
 
@@ -136,33 +136,19 @@ export async function openPromptViewDialog(): Promise<void> {
    */
   function performCompleteSearch(text: string, searchValue: string, isRegex: boolean): SearchResult {
     try {
+      let positions: RegExpMatchArray[] = [];
       if (isRegex) {
         const regex = new RegExp(searchValue, 'gi');
-        const positions = [...text.matchAll(regex)];
-        return {
-          matches: positions.length > 0,
-          positions: positions,
-        };
+        positions = [...text.matchAll(regex)];
       } else {
-        const lowerText = text.toLowerCase();
-        const lowerSearch = searchValue.toLowerCase();
-        const indices: Array<{ start: number; end: number; text: string }> = [];
-        let index = lowerText.indexOf(lowerSearch);
-
-        while (index !== -1) {
-          indices.push({
-            start: index,
-            end: index + searchValue.length,
-            text: text.substring(index, index + searchValue.length),
-          });
-          index = lowerText.indexOf(lowerSearch, index + 1);
-        }
-
-        return {
-          matches: indices.length > 0,
-          indices: indices,
-        };
+        const escapedSearchValue = escapeRegExp(searchValue);
+        const regex = new RegExp(escapedSearchValue, 'gi');
+        positions = [...text.matchAll(regex)];
       }
+      return {
+        matches: positions.length > 0,
+        positions: positions,
+      };
     } catch (error) {
       log.warn('搜索处理错误:', error);
       return { matches: false };
@@ -173,7 +159,7 @@ export async function openPromptViewDialog(): Promise<void> {
    * 优化后的搜索筛选逻辑
    * @param searchValue 搜索值
    * @param isRegex 是否使用正则表达式
-   * @param useCompactMode 是否使用仅显示匹配部分前后3行
+   * @param useCompactMode 是否使用仅显示匹配部分前后1行
    */
   function applySearchWithCompactMode(searchValue: string, isRegex: boolean = false, useCompactMode: boolean = false) {
     const $items = $('.prompt-view-item');
@@ -197,17 +183,63 @@ export async function openPromptViewDialog(): Promise<void> {
         if (useCompactMode) {
           const contextResults = findWithContextFromMatches(itemContent, searchResult);
           if (contextResults.length > 0) {
-            applyContextViewOptimized(contentElement, contextResults, searchValue, 3);
+            applyContextViewOptimized(contentElement, contextResults, searchValue, 1);
           } else {
-            highlightSearchResultsFromMatches(contentElement, searchResult);
+            applyDirectHighlight(contentElement, searchValue, isRegex);
           }
         } else {
-          highlightSearchResultsFromMatches(contentElement, searchResult);
+          applyDirectHighlight(contentElement, searchValue, isRegex);
         }
       }
 
       $item.attr('data-search-visible', searchResult.matches ? 'true' : 'false');
     });
+  }
+
+  /**
+   * 进行高亮，支持正则表达式和普通搜索
+   * @param contentElement 内容元素
+   * @param searchValue 搜索关键词
+   * @param isRegex 是否为正则表达式
+   */
+  function applyDirectHighlight(contentElement: JQuery<HTMLElement>, searchValue: string, isRegex: boolean) {
+    if (!contentElement[0] || !searchValue) return;
+
+    contentElement.addClass('search-highlighted');
+    
+    const originalText = getOriginalContent(contentElement);
+    
+    try {
+      const markInstance = new Mark(contentElement[0]);
+      
+      markInstance.unmark();
+      
+      contentElement.html($('<div>').text(originalText).html());
+      
+      if (isRegex) {
+        try {
+          const regex = new RegExp(searchValue, 'gi');
+          markInstance.markRegExp(regex, {
+            className: 'search-highlight'
+          });
+        } catch (regexError) {
+          log.warn('正则表达式错误:', regexError);
+          markInstance.mark(searchValue, {
+            className: 'search-highlight',
+            caseSensitive: false
+          });
+        }
+      } else {
+        markInstance.mark(searchValue, {
+          className: 'search-highlight',
+          caseSensitive: false
+        });
+      }
+
+    } catch (error) {
+      log.warn('高亮关键词时发生错误', error);
+      contentElement.html($('<div>').text(originalText).html());
+    }
   }
 
   /**
@@ -217,6 +249,11 @@ export async function openPromptViewDialog(): Promise<void> {
   function restoreToOriginalState(contentElement: JQuery<HTMLElement>) {
     contentElement.removeClass('context-view-mode search-highlighted');
 
+    if (contentElement[0]) {
+      const markInstance = new Mark(contentElement[0]);
+      markInstance.unmark();
+    }
+
     const originalContent = getOriginalContent(contentElement);
     if (originalContent) {
       contentElement.html($('<div>').text(originalContent).html());
@@ -225,57 +262,11 @@ export async function openPromptViewDialog(): Promise<void> {
     contentElement.off('click.contextExpand click.contextCollapse');
   }
 
-  /**
-   * 基于已有匹配结果进行高亮，避免重复搜索
-   * @param contentElement 内容元素
-   * @param searchResult 搜索结果
-   */
-  function highlightSearchResultsFromMatches(contentElement: JQuery<HTMLElement>, searchResult: SearchResult) {
-    if (!searchResult.matches) return;
-
-    contentElement.addClass('search-highlighted');
-
-    let content = contentElement.html();
-    const originalText = getOriginalContent(contentElement);
-
-    try {
-      if (searchResult.positions) {
-        const sortedPositions = [...searchResult.positions].sort((a, b) => (b.index || 0) - (a.index || 0));
-        sortedPositions.forEach(match => {
-          if (match.index !== undefined) {
-            const matchText = originalText.substring(match.index, match.index + match[0].length);
-            const escapedMatch = $('<div>').text(matchText).html();
-            const regex = new RegExp(escapeRegExp(escapedMatch), 'g');
-            let matchCount = 0;
-            content = content.replace(regex, matched => {
-              matchCount++;
-              return `<span class="search-highlight">${matched}</span>`;
-            });
-          }
-        });
-      } else if (searchResult.indices) {
-        const sortedIndices = [...searchResult.indices].sort((a, b) => b.start - a.start);
-        sortedIndices.forEach(match => {
-          const matchText = originalText.substring(match.start, match.end);
-          const escapedMatch = $('<div>').text(matchText).html();
-          const index = content.indexOf(escapedMatch);
-          if (index !== -1) {
-            content =
-              content.substring(0, index) +
-              `<span class="search-highlight">${escapedMatch}</span>` +
-              content.substring(index + escapedMatch.length);
-          }
-        });
-      }
-
-      contentElement.html(content);
-    } catch (error) {
-      log.warn('高亮关键词时发生错误', error);
-    }
-  }
 
   /**
    * 转义正则表达式特殊字符
+   * @param string 需要转义的字符串
+   * @returns 转义后的字符串
    */
   function escapeRegExp(string: string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -293,7 +284,7 @@ export async function openPromptViewDialog(): Promise<void> {
     text: string,
     contextResults: FindWithContextResult[],
     keyword: string,
-    contextLines: number = 3,
+    contextLines: number = 1,
   ): string {
     if (!keyword || contextResults.length === 0) return text;
 
@@ -446,7 +437,7 @@ export async function openPromptViewDialog(): Promise<void> {
     contentElement: JQuery<HTMLElement>,
     contextResults: FindWithContextResult[],
     keyword: string,
-    contextLines: number = 3,
+    contextLines: number = 1,
   ) {
     if (!keyword || contextResults.length === 0) return;
 
@@ -649,7 +640,6 @@ export async function openPromptViewDialog(): Promise<void> {
         $empty.text('暂无提示词数据').show();
       }
       originalContentMap.clear();
-      currentPromptData = [];
       return;
     }
 
@@ -658,7 +648,6 @@ export async function openPromptViewDialog(): Promise<void> {
 
     $list.empty();
 
-    currentPromptData = prompts;
     originalContentMap.clear();
 
     prompts.forEach((item, index) => {
@@ -757,17 +746,4 @@ function findWithContextFromMatches(
       matches: matches,
     };
   });
-}
-
-/**
- * 在顶部插入系统消息压缩/后处理的警告
- */
-export function insertMessageMergeWarning(scope: JQuery<HTMLElement>, type: 'squash' | 'post-processing') {
-  const $warning = $('<div class="prompt-view-process-warning">');
-  if (type === 'squash') {
-    $warning.text('⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理');
-  } else if (type === 'post-processing') {
-    $warning.text('⚠️ 本次提示词发送经过了API中的“提示词后处理”合并处理');
-  }
-  scope.prepend($warning);
 }

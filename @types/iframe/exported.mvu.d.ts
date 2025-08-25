@@ -41,7 +41,7 @@ declare const Mvu: {
      *
      * @example
      * // 检测络络好感度突破 30
-     * eventOn('mag_variable_updated', (stat_data, path, old_value, new_value) => {
+     * eventOn(Mvu.events.SINGLE_VARIABLE_UPDATED, (stat_data, path, old_value, new_value) => {
      *   // 如果被更新的变量不是 'stat_data.角色.络络.好感度', 则什么都不做直接返回 (return)
      *   if (path === '角色.络络.好感度') {
      *     return;
@@ -60,7 +60,7 @@ declare const Mvu: {
      *
      * @example
      * // 保持好感度不低于 0
-     * eventOn('mag_variable_update_ended', (variables) => {
+     * eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, (variables) => {
      *   if (_.get(variables, 'stat_data.角色.络络.好感度') < 0) {
      *     _.set(variables, 'stat_data.角色.络络.好感度', 0);
      *   }

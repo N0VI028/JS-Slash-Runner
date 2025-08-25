@@ -9,6 +9,7 @@
   margin-top: 5px;
   font-size: calc(var(--mainFontSize) * 0.8);
   color: var(--SmartThemeBodyColor);
+  gap: 5px;
 }
 
 .extension-reference-button a {

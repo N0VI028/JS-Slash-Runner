@@ -1,4 +1,4 @@
-import { reloadEditorDebounced } from '@/compatibility';
+import { reloadEditor, reloadEditorDebounced } from '@/compatibility';
 import {
   getCharLorebooks,
   getChatLorebook,
@@ -221,11 +221,14 @@ function toWorldbookEntry(entry: _OriginalWorldbookEntry & _ImplicitKeys): World
 
     .set('recursion.prevent_incoming', entry.excludeRecursion)
     .set('recursion.prevent_outgoing', entry.preventRecursion)
-    .set('recursion.delay_until', typeof entry.delayUntilRecursion === 'number' ? entry.delayUntilRecursion : null)
+    .set(
+      'recursion.delay_until',
+      typeof entry.delayUntilRecursion === 'number' && entry.delayUntilRecursion > 0 ? entry.delayUntilRecursion : null,
+    )
 
-    .set('effect.sticky', typeof entry.sticky === 'number' ? entry.sticky : null)
-    .set('effect.cooldown', typeof entry.cooldown === 'number' ? entry.cooldown : null)
-    .set('effect.delay', typeof entry.delay === 'number' ? entry.delay : null);
+    .set('effect.sticky', typeof entry.sticky === 'number' && entry.sticky > 0 ? entry.sticky : null)
+    .set('effect.cooldown', typeof entry.cooldown === 'number' && entry.cooldown > 0 ? entry.cooldown : null)
+    .set('effect.delay', typeof entry.delay === 'number' && entry.delay > 0 ? entry.delay : null);
 
   if (entry.extra) {
     result = result.set('extra', entry.extra);
@@ -247,7 +250,7 @@ function fromWorldbookEntry(
 
     .set('constant', entry?.strategy?.type ? entry?.strategy?.type === 'constant' : true)
     .set('selective', entry?.strategy?.type === 'selective')
-    .set('key', entry?.strategy?.keys?.map(toString) ?? [])
+    .set('key', entry?.strategy?.keys?.map(_.toString) ?? [])
     .set(
       'selectiveLogic',
       (
@@ -259,7 +262,7 @@ function fromWorldbookEntry(
         } as const
       )[entry?.strategy?.keys_secondary?.logic ?? 'and_any'],
     )
-    .set('keysecondary', entry?.strategy?.keys_secondary?.keys?.map(toString) ?? [])
+    .set('keysecondary', entry?.strategy?.keys_secondary?.keys?.map(_.toString) ?? [])
     .set('scanDepth', entry?.strategy?.scan_depth === 'same_as_global' ? null : (entry?.strategy?.scan_depth ?? null))
     .set('vectorized', entry?.strategy?.type === 'vectorized')
     .set(
@@ -333,9 +336,13 @@ export async function createWorldbook(worldbook_name: string, worldbook: Worldbo
   return await createOrReplaceWorldbook(worldbook_name, worldbook);
 }
 
+interface ReplaceWorldbookOptions {
+  render?: 'debounced' | 'immediate';
+}
 export async function createOrReplaceWorldbook(
   worldbook_name: string,
   worldbook: PartialDeep<WorldbookEntry>[] = [],
+  { render = 'debounced' }: ReplaceWorldbookOptions = {},
 ): Promise<boolean> {
   const is_existing = getWorldbookNames().includes(worldbook_name);
   if (!getWorldbookNames().includes(worldbook_name)) {
@@ -354,7 +361,11 @@ export async function createOrReplaceWorldbook(
           .value(),
       ),
     });
-    reloadEditorDebounced(worldbook_name);
+    if (render === 'debounced') {
+      reloadEditorDebounced(worldbook_name);
+    } else {
+      reloadEditor(worldbook_name);
+    }
   }
   return !is_existing;
 }
@@ -382,11 +393,12 @@ export async function getWorldbook(worldbook_name: string): Promise<WorldbookEnt
 export async function replaceWorldbook(
   worldbook_name: string,
   worldbook: PartialDeep<WorldbookEntry>[],
+  options?: ReplaceWorldbookOptions,
 ): Promise<void> {
   if (!getWorldbookNames().includes(worldbook_name)) {
     throw Error(`未能找到世界书 '${worldbook_name}'`);
   }
-  await createOrReplaceWorldbook(worldbook_name, worldbook);
+  await createOrReplaceWorldbook(worldbook_name, worldbook, options);
 }
 
 type WorldbookUpdater =
@@ -395,31 +407,42 @@ type WorldbookUpdater =
 export async function updateWorldbookWith(
   worldbook_name: string,
   updater: WorldbookUpdater,
+  options?: ReplaceWorldbookOptions,
 ): Promise<WorldbookEntry[]> {
-  await replaceWorldbook(worldbook_name, await updater(await getWorldbook(worldbook_name)));
+  await replaceWorldbook(worldbook_name, await updater(await getWorldbook(worldbook_name)), options);
   return await getWorldbook(worldbook_name);
 }
 
 export async function createWorldbookEntries(
   worldbook_name: string,
   new_entries: PartialDeep<WorldbookEntry>[],
+  options?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; new_entries: WorldbookEntry[] }> {
   let slice_start;
-  const worldbook = await updateWorldbookWith(worldbook_name, data => {
-    slice_start = data.length;
-    return [...data, ...new_entries];
-  });
+  const worldbook = await updateWorldbookWith(
+    worldbook_name,
+    data => {
+      slice_start = data.length;
+      return [...data, ...new_entries];
+    },
+    options,
+  );
   return { worldbook, new_entries: worldbook.slice(slice_start) };
 }
 
 export async function deleteWorldbookEntries(
   worldbook_name: string,
   predicate: (entry: WorldbookEntry) => boolean,
+  options?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; deleted_entries: WorldbookEntry[] }> {
   let deleted_entries: WorldbookEntry[] = [];
-  const worldbook = await updateWorldbookWith(worldbook_name, data => {
-    deleted_entries = _.remove(data, predicate);
-    return data;
-  });
+  const worldbook = await updateWorldbookWith(
+    worldbook_name,
+    data => {
+      deleted_entries = _.remove(data, predicate);
+      return data;
+    },
+    options,
+  );
   return { worldbook, deleted_entries };
 }

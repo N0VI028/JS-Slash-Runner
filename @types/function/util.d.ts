@@ -31,3 +31,11 @@ declare function getLastMessageId(): number;
  * errorCatched(test)();
  */
 declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U;
+
+/**
+ * 从消息楼层 iframe 的 `iframe_name` 获取它所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
+ *
+ * @param iframe_name 消息楼层 iframe 的名称
+ * @returns 楼层 id
+ */
+declare function getMessageId(iframe_name: string): number;

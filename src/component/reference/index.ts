@@ -4,6 +4,12 @@ import {
 } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 
+import * as Popper from '@popperjs/core';
+
+/**
+ * 格式化酒馆 STScript 命令列表
+ * @returns 格式化后的酒馆 STScript 命令列表
+ */
 function formatSlashCommands(): string {
   const cmdList = Object.keys(SlashCommandParser.commands)
     .filter(key => SlashCommandParser.commands[key].name === key) // exclude aliases
@@ -67,6 +73,19 @@ function formatSlashCommands(): string {
 }
 
 export async function initReference() {
+  const popper_instance = Popper.createPopper(
+    $('#download_tavern_helper_types_button')[0],
+    $('#download_tavern_helper_types_popup')[0],
+    {
+      placement: 'right-end',
+    },
+  );
+  $('#download_tavern_helper_types_button').on('click', function () {
+    const $popup = $('#download_tavern_helper_types_popup');
+    $popup.css('display', $popup.css('display') === 'none' ? 'block' : 'none');
+    popper_instance.update();
+  });
+
   $('#download_slash_commands').on('click', function () {
     const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
     $(this).attr('href', url);

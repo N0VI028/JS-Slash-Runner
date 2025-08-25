@@ -195,7 +195,7 @@ export class ButtonManager {
     }
 
     if (isCombined) {
-      const $combinedContainer = $qrBar.find('.qr--buttons.qr--color').first();
+      const $combinedContainer = $qrBar.find('.qr--buttons').first();
       if ($combinedContainer.length > 0) {
         $combinedContainer.append(containerHtml);
         log.info(`[ScriptManager] 按钮添加到combined容器: ${scriptId}`);
@@ -301,10 +301,10 @@ function checkQrCombinedStatus() {
   if (!isQrEnabled) {
     const $qrBar = $('#send_form #qr--bar').first();
     if ($qrBar.length > 0 && isCombined) {
-      const isThButtonExist = $qrBar.find('.qr--buttons.qr--color').length > 0;
+      const isThButtonExist = $qrBar.find('.qr--buttons').length > 0;
       if (!isThButtonExist) {
-        if (!$qrBar.find('.qr--buttons.qr--color').length) {
-          $qrBar.append('<div class="qr--buttons qr--color"></div>');
+        if (!$qrBar.find('.qr--buttons').length) {
+          $qrBar.append('<div class="qr--buttons"></div>');
           log.info('[ScriptManager] 创建combined按钮容器');
         }
       }

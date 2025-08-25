@@ -1,5 +1,6 @@
 import { ScriptManager } from '@/component/script_repository/script_controller';
 import { getChatMessages, setChatMessages } from '@/function/chat_message';
+import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
 
 import {
   characters,
@@ -11,6 +12,7 @@ import {
   this_chid,
 } from '@sillytavern/script';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
+import _ from 'lodash';
 
 import log from 'loglevel';
 
@@ -69,15 +71,39 @@ export function getVariables({ type = 'chat', message_id = 'latest', script_id }
       type === 'message'
         ? `'${message_id}' 消息`
         : type === 'chat'
-        ? '聊天'
-        : type === 'character'
-        ? '角色'
-        : type === 'script'
-        ? `'${script_id}' 脚本`
-        : '全局'
+          ? '聊天'
+          : type === 'character'
+            ? '角色'
+            : type === 'script'
+              ? `'${script_id}' 脚本`
+              : '全局'
     }变量表:\n${JSON.stringify(result)}`,
   );
   return structuredClone(result);
+}
+
+export function _getAllVariables(this: Window): Record<string, any> {
+  const is_message_iframe = _getIframeName.call(this).startsWith('message-iframe');
+
+  let data = _.merge(
+    {},
+    extension_settings.variables.global,
+    // @ts-expect-error
+    characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables,
+  );
+  if (!is_message_iframe) {
+    data = _.merge(data, getVariables({ type: 'script', script_id: _getScriptId.call(this) }));
+  }
+  data = _.merge(data, (chat_metadata as { variables: Record<string, any> | undefined }).variables);
+  if (is_message_iframe) {
+    data = _.merge(
+      data,
+      ...chat
+        .slice(0, _getCurrentMessageId.call(this))
+        .map((chat_message: any) => chat_message?.variables?.[chat_message?.swipe_id ?? 0]),
+    );
+  }
+  return structuredClone(data);
 }
 
 export async function replaceVariables(
@@ -129,12 +155,12 @@ export async function replaceVariables(
       type === 'message'
         ? `'${message_id}' 消息`
         : type === 'chat'
-        ? '聊天'
-        : type === 'character'
-        ? '角色'
-        : type === 'script'
-        ? `'${script_id}' 脚本`
-        : '全局'
+          ? '聊天'
+          : type === 'character'
+            ? '角色'
+            : type === 'script'
+              ? `'${script_id}' 脚本`
+              : '全局'
     }变量表替换为:\n${JSON.stringify(variables)}`,
   );
 }
@@ -154,12 +180,12 @@ export async function updateVariablesWith(
       type === 'message'
         ? `'${message_id}' 消息`
         : type === 'chat'
-        ? '聊天'
-        : type === 'character'
-        ? '角色'
-        : type === 'script'
-        ? `'${script_id}' 脚本`
-        : '全局'
+          ? '聊天'
+          : type === 'character'
+            ? '角色'
+            : type === 'script'
+              ? `'${script_id}' 脚本`
+              : '全局'
     }变量表进行更新`,
   );
   await replaceVariables(variables, { type, message_id, script_id });

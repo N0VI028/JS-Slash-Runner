@@ -50,21 +50,27 @@ type PresetPrompt = {
     | 'main'
     | 'nsfw'
     | 'jailbreak'
-    | 'enhance_definitions'
-    | 'world_info_before'
-    | 'persona_description'
-    | 'char_description'
-    | 'char_personality'
+    | 'enhanceDefinitions'
+    | 'worldInfoBefore'
+    | 'personaDescription'
+    | 'charDescription'
+    | 'charPersonality'
     | 'scenario'
-    | 'world_info_after'
-    | 'dialogue_examples'
-    | 'chat_history',
+    | 'worldInfoAfter'
+    | 'dialogueExamples'
+    | 'chatHistory',
     string
   >;
   name: string;
   enabled: boolean;
 
-  position?: 'relative' | number;
+  position:
+    | {
+        type: 'relative';
+        depth?: never;
+        order?: never;
+      }
+    | { type: 'in_chat'; depth: number; order: number };
 
   role: 'system' | 'user' | 'assistant';
   content?: string;
@@ -73,20 +79,20 @@ type PresetPrompt = {
 };
 type PresetNormalPrompt = SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
 type PresetSystemPrompt = SetRequired<
-  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhance_definitions' } & Omit<PresetPrompt, 'id'>,
+  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id'>,
   'content'
 >;
 type PresetPlaceholderPrompt = SetRequired<
   {
     id:
-      | 'world_info_before'
-      | 'persona_description'
-      | 'char_description'
-      | 'char_personality'
+      | 'worldInfoBefore'
+      | 'personaDescription'
+      | 'charDescription'
+      | 'charPersonality'
       | 'scenario'
-      | 'world_info_after'
-      | 'dialogue_examples'
-      | 'chat_history';
+      | 'worldInfoAfter'
+      | 'dialogueExamples'
+      | 'chatHistory';
   } & Omit<PresetPrompt, 'id'>,
   'position'
 >;
@@ -94,18 +100,18 @@ export function isPresetNormalPrompt(prompt: PresetPrompt): prompt is PresetNorm
   return !isPresetSystemPrompt(prompt) && !isPresetPlaceholderPrompt(prompt);
 }
 export function isPresetSystemPrompt(prompt: PresetPrompt): prompt is PresetSystemPrompt {
-  return ['main', 'nsfw', 'jailbreak', 'enhance_definitions'].includes(prompt.id);
+  return ['main', 'nsfw', 'jailbreak', 'enhanceDefinitions'].includes(prompt.id);
 }
 export function isPresetPlaceholderPrompt(prompt: PresetPrompt): prompt is PresetPlaceholderPrompt {
   return [
-    'world_info_before',
-    'persona_description',
-    'char_description',
-    'char_personality',
+    'worldInfoBefore',
+    'personaDescription',
+    'charDescription',
+    'charPersonality',
     'scenario',
-    'world_info_after',
-    'dialogue_examples',
-    'chat_history',
+    'worldInfoAfter',
+    'dialogueExamples',
+    'chatHistory',
   ].includes(prompt.id);
 }
 
@@ -143,14 +149,32 @@ export const default_preset: Preset = {
     wrap_user_messages_in_quotes: false,
   },
   prompts: [
-    { id: 'world_info_before', name: 'World Info (before)', enabled: true, position: 'relative', role: 'system' },
-    { id: 'persona_description', name: 'Persona Description', enabled: true, position: 'relative', role: 'system' },
-    { id: 'char_description', name: 'Char Description', enabled: true, position: 'relative', role: 'system' },
-    { id: 'char_personality', name: 'Char Personality', enabled: true, position: 'relative', role: 'system' },
-    { id: 'scenario', name: 'Scenario', enabled: true, position: 'relative', role: 'system' },
-    { id: 'world_info_after', name: 'World Info (after)', enabled: true, position: 'relative', role: 'system' },
-    { id: 'dialogue_examples', name: 'Chat Examples', enabled: true, position: 'relative', role: 'system' },
-    { id: 'chat_history', name: 'Chat History', enabled: true, position: 'relative', role: 'system' },
+    {
+      id: 'worldInfoBefore',
+      name: 'World Info (before)',
+      enabled: true,
+      position: { type: 'relative' },
+      role: 'system',
+    },
+    {
+      id: 'personaDescription',
+      name: 'Persona Description',
+      enabled: true,
+      position: { type: 'relative' },
+      role: 'system',
+    },
+    { id: 'charDescription', name: 'Char Description', enabled: true, position: { type: 'relative' }, role: 'system' },
+    { id: 'charPersonality', name: 'Char Personality', enabled: true, position: { type: 'relative' }, role: 'system' },
+    { id: 'scenario', name: 'Scenario', enabled: true, position: { type: 'relative' }, role: 'system' },
+    {
+      id: 'worldInfoAfter',
+      name: 'World Info (after)',
+      enabled: true,
+      position: { type: 'relative' },
+      role: 'system',
+    },
+    { id: 'dialogueExamples', name: 'Chat Examples', enabled: true, position: { type: 'relative' }, role: 'system' },
+    { id: 'chatHistory', name: 'Chat History', enabled: true, position: { type: 'relative' }, role: 'system' },
   ],
   prompts_unused: [],
   extensions: {},
@@ -230,12 +254,13 @@ type _OriginalNormalPrompt = {
 
   injection_position: 0 | 1;
   injection_depth: number;
+  injection_order: number;
 
   role: 'system' | 'user' | 'assistant';
   content: string;
 
   system_prompt: false;
-  marker: false;
+  marker?: false;
 
   extra?: Record<string, any>;
 
@@ -250,7 +275,7 @@ type _OriginalSystemPrompt = {
   content: string;
 
   system_prompt: true;
-  marker: false;
+  marker?: false;
 
   extra?: Record<string, any>;
 
@@ -271,51 +296,35 @@ type _OriginalPlaceholderPrompt = {
 
   injection_position: 0 | 1;
   injection_depth: number;
+  injection_order: number;
 
   role: 'system' | 'user' | 'assistant';
+  content?: never;
 
   system_prompt: true;
-  marker: true;
+  marker?: true;
 
   extra?: Record<string, any>;
 };
-const identifier_to_id_map = {
-  enhanceDefinitions: 'enhance_definitions',
-  worldInfoBefore: 'world_info_before',
-  personaDescription: 'persona_description',
-  charDescription: 'char_description',
-  charPersonality: 'char_personality',
-  scenario: 'scenario',
-  worldInfoAfter: 'world_info_after',
-  dialogueExamples: 'dialogue_examples',
-  chatHistory: 'chat_history',
-} as const;
 function toPresetPrompt(prompt: _OriginalPrompt, prompt_order: _OriginalPromptOrder[]): PresetPrompt {
-  const is_normal_prompt = prompt.system_prompt === false && prompt.marker === false;
-  const is_system_prompt = prompt.system_prompt === true && prompt.marker === false;
+  const is_normal_prompt = prompt.system_prompt === false && (prompt.marker === undefined || prompt.marker === false);
+  const is_system_prompt = prompt.system_prompt === true && (prompt.marker === undefined || prompt.marker === false);
   const is_placeholder_prompt = prompt.marker === true;
 
   let result = _({})
-    .set('id', _.get(identifier_to_id_map, prompt.identifier, prompt.identifier) ?? uuidv4())
+    .set('id', prompt.identifier ?? uuidv4())
     .set('name', prompt.name ?? 'unnamed')
     .set(
       'enabled',
-      prompt_order.find(order => order.identifier === prompt.identifier)
-        ?.enabled ??
-        prompt.enabled ??
-        true,
+      prompt_order.find(order => order.identifier === prompt.identifier)?.enabled ?? prompt.enabled ?? true,
     );
 
   if (is_normal_prompt || is_placeholder_prompt) {
-    result = result.set(
-      'position',
-      (
-        {
-          0: 'relative',
-          1: prompt.injection_depth ?? 4,
-        } as const
-      )[prompt.injection_position ?? 0],
-    );
+    result = result.set('position.type', { 0: 'relative', 1: 'in_chat' }[prompt.injection_position ?? 0]);
+    if (prompt.injection_position === 1) {
+      result = result.set('position.depth', prompt.injection_depth ?? 4);
+      result = result.set('position.order', prompt.injection_order ?? 100);
+    }
   }
   result = result.set('role', prompt.role ?? 'system');
 
@@ -334,32 +343,13 @@ function fromPresetPrompt(prompt: PresetPrompt): _OriginalPrompt {
   const is_system_prompt = isPresetSystemPrompt(prompt);
   const is_placeholder_prompt = isPresetPlaceholderPrompt(prompt);
 
-  let result = _({})
-    .set(
-      'identifier',
-      _.get(
-        {
-          enhance_definitions: 'enhanceDefinitions',
-          world_info_before: 'worldInfoBefore',
-          persona_description: 'personaDescription',
-          char_description: 'charDescription',
-          char_personality: 'charPersonality',
-          scenario: 'scenario',
-          world_info_after: 'worldInfoAfter',
-          dialogue_examples: 'dialogueExamples',
-          chat_history: 'chatHistory',
-        } as const,
-        prompt.id,
-        prompt.id,
-      ),
-    )
-    .set('name', prompt.name)
-    .set('enabled', prompt.enabled);
+  let result = _({}).set('identifier', prompt.id).set('name', prompt.name).set('enabled', prompt.enabled);
 
-  if ((is_normal_prompt || is_placeholder_prompt) && !['dialogue_examples', 'chat_history'].includes(prompt.id)) {
+  if ((is_normal_prompt || is_placeholder_prompt) && !['dialogueExamples', 'chatHistory'].includes(prompt.id)) {
     result = result
-      .set('injection_position', prompt.position === 'relative' ? 0 : 1)
-      .set('injection_depth', prompt.position === 'relative' ? 4 : prompt.position);
+      .set('injection_position', prompt.position.type === 'relative' ? 0 : 1)
+      .set('injection_depth', prompt.position.depth ?? 4)
+      .set('injection_order', prompt.position.order ?? 100);
   }
 
   result = result.set('role', prompt.role);
@@ -367,7 +357,7 @@ function fromPresetPrompt(prompt: PresetPrompt): _OriginalPrompt {
     result = result.set('content', prompt.content);
   }
 
-  result = result.set('system_prompt', is_system_prompt && is_placeholder_prompt).set('marker', is_placeholder_prompt);
+  result = result.set('system_prompt', is_system_prompt || is_placeholder_prompt).set('marker', is_placeholder_prompt);
 
   if (prompt.extra) {
     result = result.set('extra', prompt.extra);
@@ -382,9 +372,7 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
   const prompt_order = preset.prompt_order.find(order => order.character_id === 100001)?.order ?? [];
   const prompts_all = preset.prompts.map(prompt => toPresetPrompt(prompt, prompt_order));
 
-  const prompt_order_identifiers = prompt_order.map(order =>
-    _.get(identifier_to_id_map, order.identifier, order.identifier),
-  );
+  const prompt_order_identifiers = prompt_order.map(order => order.identifier);
   const [prompts_used, prompts_unused] = _.partition(prompts_all, prompt =>
     prompt_order_identifiers.includes(prompt.id),
   );
@@ -392,33 +380,36 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
 
   return {
     settings: {
-      max_context: preset.openai_max_context,
-      max_completion_tokens: preset.openai_max_tokens,
-      reply_count: preset.n,
+      max_context: Number(preset.openai_max_context),
+      max_completion_tokens: Number(preset.openai_max_tokens),
+      reply_count: Number(preset.n),
 
-      should_stream: preset.stream_openai,
+      should_stream: Boolean(preset.stream_openai),
 
-      temperature: in_use ? preset.temp_openai : preset.temperature,
-      frequency_penalty: in_use ? preset.freq_pen_openai : preset.frequency_penalty,
-      presence_penalty: in_use ? preset.pres_pen_openai : preset.presence_penalty,
-      top_p: in_use ? preset.top_p_openai : preset.top_p,
-      repetition_penalty: in_use ? preset.repetition_penalty_openai : preset.repetition_penalty,
-      min_p: in_use ? preset.min_p_openai : preset.min_p,
-      top_k: in_use ? preset.top_k_openai : preset.top_k,
-      top_a: in_use ? preset.top_a_openai : preset.top_a,
+      temperature: Number(in_use ? preset.temp_openai : preset.temperature),
+      frequency_penalty: Number(in_use ? preset.freq_pen_openai : preset.frequency_penalty),
+      presence_penalty: Number(in_use ? preset.pres_pen_openai : preset.presence_penalty),
+      top_p: Number(in_use ? preset.top_p_openai : preset.top_p),
+      repetition_penalty: Number(in_use ? preset.repetition_penalty_openai : preset.repetition_penalty),
+      min_p: Number(in_use ? preset.min_p_openai : preset.min_p),
+      top_k: Number(in_use ? preset.top_k_openai : preset.top_k),
+      top_a: Number(in_use ? preset.top_a_openai : preset.top_a),
 
-      seed: preset.seed,
+      seed: Number(preset.seed),
 
-      squash_system_messages: preset.squash_system_messages,
+      squash_system_messages: Boolean(preset.squash_system_messages),
 
-      reasoning_effort: preset.reasoning_effort,
-      request_thoughts: preset.show_thoughts,
-      request_images: preset.request_images,
-      enable_function_calling: preset.function_calling,
-      enable_web_search: preset.enable_web_search,
+      reasoning_effort: String(preset.reasoning_effort) as 'auto' | 'min' | 'low' | 'medium' | 'high' | 'max',
+      request_thoughts: Boolean(preset.show_thoughts),
+      request_images: Boolean(preset.request_images),
+      enable_function_calling: Boolean(preset.function_calling),
+      enable_web_search: Boolean(preset.enable_web_search),
 
-      allow_sending_images: preset.image_inlining === false ? 'disabled' : preset.inline_image_quality,
-      allow_sending_videos: preset.video_inlining,
+      allow_sending_images:
+        Boolean(preset.image_inlining) === false
+          ? 'disabled'
+          : (String(preset.inline_image_quality) as 'auto' | 'low' | 'high'),
+      allow_sending_videos: Boolean(preset.video_inlining),
 
       character_name_prefix: (
         {
@@ -427,8 +418,8 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
           [2]: 'content',
           [1]: 'completion',
         } as const
-      )[preset.names_behavior],
-      wrap_user_messages_in_quotes: preset.wrap_in_quotes,
+      )[Number(preset.names_behavior) as -1 | 0 | 2 | 1],
+      wrap_user_messages_in_quotes: Boolean(preset.wrap_in_quotes),
     },
 
     prompts,
@@ -451,7 +442,17 @@ function fromPreset(preset: Preset): _OriginalPreset {
     id_set.add(new_id);
     return new_id;
   };
-  preset.prompts.forEach(prompt => (prompt.id = handle_id_collision(prompt.id, isPresetNormalPrompt(prompt))));
+  const make_uncollision_prompts = (prompts: PresetPrompt[]) => {
+    return prompts.map(prompt => {
+      const new_id = handle_id_collision(prompt.id, isPresetNormalPrompt(prompt));
+      return {
+        ...prompt,
+        id: new_id,
+      };
+    });
+  };
+  preset.prompts = make_uncollision_prompts(preset.prompts);
+  preset.prompts_unused = make_uncollision_prompts(preset.prompts_unused);
 
   const prompt_used = preset.prompts.map(prompt => fromPresetPrompt(prompt));
   const prompt_unused = preset.prompts_unused.map(prompt => fromPresetPrompt(prompt));
@@ -553,43 +554,52 @@ export async function createPreset(
 function updateOriginalPresetData(
   data: Record<string, any>,
   updates: _OriginalPreset,
-  { in_use }: { in_use: boolean },
+  { in_use, render }: { in_use: boolean; render?: 'immediate' | 'debounced' },
 ): void {
-  (Object.entries(settingsToUpdate) as [keyof _OriginalPreset, [string, string, boolean, boolean]][]).forEach(
-    ([key, [selector, setting, is_checkbox, is_connection]]) => {
-      if (is_connection) {
-        return;
-      }
+  let lodash_data = _(data);
+  Object.entries(settingsToUpdate).forEach(([key, { oai_setting }]) => {
+    lodash_data = lodash_data.set(
+      in_use ? oai_setting : _.get(in_use_map, oai_setting, oai_setting),
+      updates[key as keyof _OriginalPreset],
+    );
+  });
+  lodash_data.value();
 
-      _.set(data, in_use ? setting : _.get(in_use_map, setting, setting), updates[key]);
+  if (!in_use) {
+    return;
+  }
 
-      if (!in_use) {
-        return;
-      }
+  const checkboxes = $();
+  const inputs = $();
+  Object.entries(settingsToUpdate).forEach(([key, { selector, type }]) => {
+    switch (type) {
+      case 'checkbox':
+        $(selector).prop('checked', updates[key as keyof _OriginalPreset]);
+        checkboxes.add(selector);
+        break;
+      case 'input':
+        $(selector).val(updates[key as keyof _OriginalPreset] as number | string);
+        inputs.add(selector);
+        break;
+    }
+  });
 
-      if (['extensions', 'prompts', 'prompt_order'].includes(key)) {
-        return;
-      }
-      if (is_checkbox) {
-        $(selector)
-          .prop('checked', updates[key] as boolean)
-          .trigger('input', { source: 'preset' });
-      } else {
-        $(selector)
-          .val(updates[key] as string | number)
-          .trigger('input', { source: 'preset' });
-      }
-    },
-  );
-
-  if (in_use) {
-    saveSettingsDebounced();
+  $(checkboxes).trigger('input', { source: 'preset' });
+  $(inputs).trigger('input', { source: 'preset' });
+  saveSettingsDebounced();
+  if (render === 'debounced') {
     promptManager.renderDebounced();
+  } else {
+    promptManager.render(false);
   }
 }
+type ReplacePresetOptions = {
+  render?: 'debounced' | 'immediate';
+};
 export async function createOrReplacePreset(
   preset_name: LiteralUnion<'in_use', string>,
   preset: Preset = default_preset,
+  { render = 'debounced' }: ReplacePresetOptions = {},
 ): Promise<boolean> {
   const original_preset = fromPreset(preset);
 
@@ -607,6 +617,7 @@ export async function createOrReplacePreset(
       original_preset,
       {
         in_use: preset_name === 'in_use',
+        render,
       },
     );
   }
@@ -642,11 +653,15 @@ export function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset {
   return structuredClone(toPreset(original_preset, { in_use: preset_name === 'in_use' }));
 }
 
-export async function replacePreset(preset_name: LiteralUnion<'in_use', string>, preset: Preset): Promise<void> {
+export async function replacePreset(
+  preset_name: LiteralUnion<'in_use', string>,
+  preset: Preset,
+  options: ReplacePresetOptions = {},
+): Promise<void> {
   if (!getPresetNames().includes(preset_name)) {
     throw Error(`预设 '${preset_name}' 不存在`);
   }
-  await createOrReplacePreset(preset_name, preset);
+  await createOrReplacePreset(preset_name, preset, options);
 }
 
 type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise<Preset>);
@@ -654,25 +669,31 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
 export async function updatePresetWith(
   preset_name: LiteralUnion<'in_use', string>,
   updater: PresetUpdater,
+  options: ReplacePresetOptions = {},
 ): Promise<Preset> {
   if (!getPresetNames().includes(preset_name)) {
     throw Error(`预设 '${preset_name}' 不存在`);
   }
   const preset = await updater(getPreset(preset_name)!);
-  await replacePreset(preset_name, preset);
+  await replacePreset(preset_name, preset, options);
   return preset;
 }
 
 export async function setPreset(
   preset_name: LiteralUnion<'in_use', string>,
   preset: PartialDeep<Preset>,
+  options: ReplacePresetOptions = {},
 ): Promise<Preset> {
-  return await updatePresetWith(preset_name, old_preset => {
-    return {
-      settings: _.defaultsDeep(preset.settings, old_preset.settings),
-      prompts: preset.prompts ?? old_preset.prompts,
-      prompts_unused: preset.prompts_unused ?? old_preset.prompts_unused,
-      extensions: _.defaultsDeep(preset.extensions, old_preset.extensions),
-    };
-  });
+  return await updatePresetWith(
+    preset_name,
+    old_preset => {
+      return {
+        settings: _.defaultsDeep(preset.settings, old_preset.settings),
+        prompts: preset.prompts ?? old_preset.prompts,
+        prompts_unused: preset.prompts_unused ?? old_preset.prompts_unused,
+        extensions: _.defaultsDeep(preset.extensions, old_preset.extensions),
+      };
+    },
+    options,
+  );
 }

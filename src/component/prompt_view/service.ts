@@ -1,4 +1,3 @@
-import { insertMessageMergeWarning } from '@/component/prompt_view/view';
 import { Generate, online_status, stopGeneration } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 import { chat_completion_sources, oai_settings } from '@sillytavern/scripts/openai';
@@ -37,7 +36,10 @@ function isChatCompletion() {
  * 更新提示词查看器
  * @param data 聊天数据
  */
-export function onChatCompletionPromptReady(data: Parameters<ListenerType['chat_completion_prompt_ready']>[0]) {
+export function onChatCompletionPromptReady(data: {
+  chat: { role: string; content: string }[];
+  dryRun: boolean;
+}) {
   if (data.dryRun) {
     return;
   }
@@ -115,4 +117,17 @@ function isPostProcessing() {
   if (hasCustomPostProcessing) {
     insertMessageMergeWarning($header, 'post-processing');
   }
+}
+
+/**
+ * 在顶部插入系统消息压缩/后处理的警告
+ */
+export function insertMessageMergeWarning(scope: JQuery<HTMLElement>, type: 'squash' | 'post-processing') {
+  const $warning = $('<div class="prompt-view-process-warning">');
+  if (type === 'squash') {
+    $warning.text('⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理');
+  } else if (type === 'post-processing') {
+    $warning.text('⚠️ 本次提示词发送经过了API中的“提示词后处理”合并处理');
+  }
+  scope.prepend($warning);
 }

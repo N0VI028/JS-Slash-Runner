@@ -24,7 +24,7 @@
   width: 100%;
   height: 100%;
   max-height: 100%;
-  padding-top: 10px;
+  padding: 0 10px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -233,6 +233,10 @@ input.floor-input {
   position: relative;
 }
 
+.variable-card[data-type='object'] {
+  padding: 5px;
+}
+
 .variable-card-header {
   display: flex;
   justify-content: space-between;
@@ -282,7 +286,7 @@ input.variable-title,
 input.variable-content-input,
 input.list-item-input {
   width: 100%;
-  height: 30px;
+  height: calc(var(--mainFontSize) * 2.2);
   padding: 5px 10px;
   background-color: var(--vm-bg-tertiary) !important;
   color: #fff;
@@ -290,7 +294,11 @@ input.list-item-input {
   border-radius: var(--vm-border-radius);
   resize: vertical;
   overflow: hidden;
-  font-size: var(--vm-font-small);
+}
+
+textarea.variable-content-input {
+  height: calc(var(--mainFontSize) * 2);
+  line-height: calc(var(--mainFontSize) * 1.34);
 }
 
 .variable-content-input:focus,
@@ -306,9 +314,9 @@ input.list-item-input {
   margin-bottom: 10px;
 }
 
-.list-item {
+#variable-manager-container .list-item {
   display: flex;
-  gap: 10px;
+  gap: 5px;
   align-items: center;
 }
 
@@ -429,7 +437,6 @@ input.list-item-input {
   height: 30px;
   padding: 5px 10px;
   border-radius: var(--vm-border-radius);
-  font-size: var(--vm-font-small);
 }
 
 .yaml-input {
@@ -511,15 +518,6 @@ input.list-item-input {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.dialog-content {
-  flex: 1;
-  overflow: hidden;
-  padding: 0 10px;
-  display: flex;
-  flex-direction: column;
-  transition: max-height 0.3s ease-in-out;
 }
 
 .variable-manager-dialog.content-collapsed {
@@ -764,7 +762,6 @@ input.list-item-input {
 .nested-cards-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
   width: 100%;
   padding-right: 0 !important;
   margin-right: 0 !important;
@@ -846,19 +843,19 @@ input.list-item-input {
 }
 
 .nested-cards-container .variable-card[data-type='string'] {
-  border-left: 3px solid var(--vm-type-string) !important;
+  border-left: 2px solid var(--vm-type-string) !important;
 }
 .nested-cards-container .variable-card[data-type='number'] {
-  border-left: 3px solid var(--vm-type-number) !important;
+  border-left: 2px solid var(--vm-type-number) !important;
 }
 .nested-cards-container .variable-card[data-type='boolean'] {
-  border-left: 3px solid var(--vm-type-boolean) !important;
+  border-left: 2px solid var(--vm-type-boolean) !important;
 }
 .nested-cards-container .variable-card[data-type='array'] {
-  border-left: 3px solid var(--vm-type-array) !important;
+  border-left: 2px solid var(--vm-type-array) !important;
 }
 .nested-cards-container .variable-card[data-type='object'] {
-  border-left: 3px solid var(--vm-type-object) !important;
+  border-left: 2px solid var(--vm-type-object) !important;
 }
 
 /* 动画效果 */
@@ -991,7 +988,6 @@ input.list-item-input {
 
 .boolean-input-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 10px;
 }

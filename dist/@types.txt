@@ -51,6 +51,10 @@ declare const builtin: {
   reloadEditor: (file: string, load_if_not_selected?: boolean) => void;
   /** 刷新世界书编辑器的显示 (防抖) */
   reloadEditorDebounced: (file: string, load_if_not_selected?: boolean) => void;
+  /** 刷新预设提示词列表 */
+  renderPromptManager: (after_try_generate?: boolean) => void;
+  /** 刷新预设提示词列表 (防抖) */
+  renderPromptManagerDebounced: (after_try_generate?: boolean) => void;
 };
 /**
  * 角色卡管理类
@@ -483,6 +487,20 @@ declare function formatAsDisplayedMessage(text: string, { message_id }?: FormatA
  * retrieveDisplayedMessage(0).append(formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}"));
  */
 declare function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement>;
+/**
+ * 自定义API配置
+ */
+type CustomApiConfig = {
+  /** 自定义API地址 */
+  apiurl?: string;
+  /** API密钥 */
+  key?: string;
+  /** 模型名称 */
+  model?: string;
+  /** API源，默认为 'openai' */
+  source?: string;
+};
+
 type GenerateConfig = {
   /** 用户输入 */
   user_input?: string;
@@ -518,6 +536,9 @@ type GenerateConfig = {
 
   /** 最多使用多少条聊天历史; 默认为 'all' */
   max_chat_history?: 'all' | number;
+
+  /** 自定义API配置 */
+  custom_api?: CustomApiConfig;
 };
 
 type GenerateRawConfig = {
@@ -566,6 +587,9 @@ type GenerateRawConfig = {
 
   /** 最多使用多少条聊天历史; 默认为 'all' */
   max_chat_history?: 'all' | number;
+
+  /** 自定义API配置 */
+  custom_api?: CustomApiConfig;
 };
 
 type RolePrompt = {
@@ -677,6 +701,18 @@ type BuiltinPrompt =
  *     }
  *   }
  * });
+ *
+ * @example
+ * // 使用自定义API
+ * const result = await generate({
+ *   user_input: '你好',
+ *   custom_api: {
+ *     apiurl: 'https://your-proxy-url.com',
+ *     key: 'your-api-key',
+ *     model: 'gpt-4',
+ *     source: 'openai'
+ *   }
+ * });
  */
 declare function generate(config: GenerateConfig): Promise<string>;
 
@@ -706,6 +742,23 @@ declare function generate(config: GenerateConfig): Promise<string>;
  *   ordered_prompts: [
  *     'char_description',
  *     { role: 'system', content: '系统提示' },
+ *     'chat_history',
+ *     'user_input',
+ *   ]
+ * })
+ *
+ * @example
+ * // 使用自定义API和自定义提示词顺序
+ * const result = await generateRaw({
+ *   user_input: '你好',
+ *   custom_api: {
+ *     apiurl: 'https://your-proxy-url.com',
+ *     key: 'your-api-key',
+ *     model: 'gpt-4',
+ *     source: 'openai'
+ *   },
+ *   ordered_prompts: [
+ *     'char_description',
  *     'chat_history',
  *     'user_input',
  *   ]
@@ -1065,7 +1118,7 @@ type Preset = {
 
   /** 额外字段, 用于为预设绑定额外数据 */
   extensions: Record<string, any>;
-}
+};
 
 type PresetPrompt = {
   /**
@@ -1078,15 +1131,15 @@ type PresetPrompt = {
     | 'main'
     | 'nsfw'
     | 'jailbreak'
-    | 'enhance_definitions'
-    | 'world_info_before'
-    | 'persona_description'
-    | 'char_description'
-    | 'char_personality'
+    | 'enhanceDefinitions'
+    | 'worldInfoBefore'
+    | 'personaDescription'
+    | 'charDescription'
+    | 'charPersonality'
     | 'scenario'
-    | 'world_info_after'
-    | 'dialogue_examples'
-    | 'chat_history',
+    | 'worldInfoAfter'
+    | 'dialogueExamples'
+    | 'chatHistory',
     string
   >;
   name: string;
@@ -1095,9 +1148,15 @@ type PresetPrompt = {
   /**
    * 插入位置, 仅用于普通和占位符提示词
    *   - `'relative'`: 按提示词相对位置插入
-   *   - `number`: 插入到聊天记录的对应深度
+   *   - `'in_chat'`: 插入到聊天记录的对应深度, 需要设置对应的深度 `depth` 和顺序 `order`
    */
-  position?: 'relative' | number;
+  position:
+    | {
+        type: 'relative';
+        depth?: never;
+        order?: never;
+      }
+    | { type: 'in_chat'; depth: number; order: number };
   role: 'system' | 'user' | 'assistant';
   /** 仅用于普通和系统提示词 */
   content?: string;
@@ -1107,20 +1166,20 @@ type PresetPrompt = {
 };
 type PresetNormalPrompt = SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
 type PresetSystemPrompt = SetRequired<
-  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhance_definitions' } & Omit<PresetPrompt, 'id'>,
+  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id'>,
   'content'
 >;
 type PresetPlaceholderPrompt = SetRequired<
   {
     id:
-      | 'world_info_before'
-      | 'persona_description'
-      | 'char_description'
-      | 'char_personality'
+      | 'worldInfoBefore'
+      | 'personaDescription'
+      | 'charDescription'
+      | 'charPersonality'
       | 'scenario'
-      | 'world_info_after'
-      | 'dialogue_examples'
-      | 'chat_history';
+      | 'worldInfoAfter'
+      | 'dialogueExamples'
+      | 'chatHistory';
   } & Omit<PresetPrompt, 'id'>,
   'position'
 >;
@@ -1171,10 +1230,16 @@ declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: P
  *
  * @param preset_name 预设名称
  * @param preset 预设内容; 不填则使用默认内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
-declare function createOrReplacePreset(preset_name: LiteralUnion<'in_use', string>, preset?: Preset): Promise<boolean>;
+declare function createOrReplacePreset(
+  preset_name: LiteralUnion<'in_use', string>,
+  preset?: Preset,
+  { render }?: ReplacePresetOptions,
+): Promise<boolean>;
 
 /**
  * 删除 `preset_name` 预设
@@ -1204,11 +1269,17 @@ declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: 
  */
 declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
 
+type ReplacePresetOptions = {
+  /** 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */
+  render?: 'debounced' | 'immediate';
+};
 /**
  * 完全替换 `preset_name` 预设的内容为 `preset`
  *
  * @param preset_name 预设名称
  * @param preset 预设内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输
@@ -1223,7 +1294,11 @@ declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
  * preset_b.prompts = [...preset_a.prompts, ...preset_b.prompts];
  * await replacePreset('预设B', preset_b);
  */
-declare function replacePreset(preset_name: LiteralUnion<'in_use', string>, preset: Preset): Promise<void>;
+declare function replacePreset(
+  preset_name: LiteralUnion<'in_use', string>,
+  preset: Preset,
+  { render }?: ReplacePresetOptions,
+): Promise<void>;
 
 type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise<Preset>);
 /**
@@ -1231,6 +1306,8 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  *
  * @param preset_name 预设名称
  * @param updater 用于更新预设的函数. 它应该接收预设内容作为参数, 并返回更新后的预设内容.
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
  *
@@ -1249,13 +1326,19 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  *   return preset;
  * });
  */
-declare function updatePresetWith(preset_name: LiteralUnion<'in_use', string>, updater: PresetUpdater): Promise<Preset>;
+declare function updatePresetWith(
+  preset_name: LiteralUnion<'in_use', string>,
+  updater: PresetUpdater,
+  { render }?: ReplacePresetOptions,
+): Promise<Preset>;
 
 /**
  * 将预设内容修改回预设中, 如果某个内容不存在, 则该内容将会采用原来的值
  *
  * @param preset_name 预设名称
  * @param preset 预设内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
  *
@@ -1269,53 +1352,11 @@ declare function updatePresetWith(preset_name: LiteralUnion<'in_use', string>, u
  *   prompts: [...getPreset('预设A').prompts, ...getPreset('预设B').prompts],
  * });
  */
-declare function setPreset(preset_name: LiteralUnion<'in_use', string>, preset: PartialDeep<Preset>): Promise<Preset>;
-type ScriptButton = {
-  name: string;
-  visible: boolean;
-}
-
-/**
- * 获取指定脚本 `script_id` 的按钮
- *
- * @param script_id 脚本 id
- * @returns 按钮数组
- *
- * @example
- * // 在脚本内获取当前脚本的按钮设置
- * const buttons = getScriptButtons(getScriptId());
- */
-declare function getScriptButtons(script_id: string): ScriptButton[];
-
-/**
- * 替换指定脚本 `script_id` 的按钮
- *
- * @param script_id 脚本 id
- * @param buttons 按钮数组
- *
- * @example
- * // 在脚本内设置脚本按钮为一个"开始游戏"按钮
- * replaceScriptButtons(getScriptId(), [{name: '开始游戏', visible: true}])
- *
- * @example
- * // 点击"前往地点"按钮后，切换为地点选项按钮
- * eventOnButton("前往地点" () => {
- *   replaceScriptButtons(getScriptId(), [{name: '学校', visible: true}, {name: '商店', visible: true}])
- * })
- */
-declare function replaceScriptButtons(script_id: string, buttons: ScriptButton[]): void;
-
-/**
- * 如果指定脚本 `script_id` 没有 `buttons`, 为脚本新增它们到现有按钮末尾
- *
- * @param script_id 脚本 id
- * @param buttons
- *
- * @exmaple
- * // 新增 "重新开始" 按钮
- * appendInexistentScriptButtons(getScriptId(), [{name: '重新开始', visible: true}]);
- */
-declare function appendInexistentScriptButtons(script_id: string, buttons: ScriptButton[]): void;
+declare function setPreset(
+  preset_name: LiteralUnion<'in_use', string>,
+  preset: PartialDeep<Preset>,
+  { render }?: ReplacePresetOptions,
+): Promise<Preset>;
 /**
  * 运行 Slash 命令, 注意如果命令写错了将不会有任何反馈
  *
@@ -1483,6 +1524,14 @@ declare function getLastMessageId(): number;
  * errorCatched(test)();
  */
 declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U;
+
+/**
+ * 从消息楼层 iframe 的 `iframe_name` 获取它所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
+ *
+ * @param iframe_name 消息楼层 iframe 的名称
+ * @returns 楼层 id
+ */
+declare function getMessageId(iframe_name: string): number;
 type VariableOption = {
   /**
    * 对某一楼层的聊天变量 (`message`)、聊天变量 (`'chat'`)、角色卡变量 (`'character'`)、聊天变量 (`'script'`) 或全局变量 (`'global'`) 进行操作, 默认为 `'chat'`
@@ -1827,12 +1876,15 @@ declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEn
  *
  * @param worldbook_name 世界书名称
  * @param worldbook 世界书内容; 不填则没有任何条目
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
 declare function createOrReplaceWorldbook(
   worldbook_name: string,
   worldbook?: PartialDeep<WorldbookEntry>[],
+  { render }?: ReplaceWorldbookOptions,
 ): Promise<boolean>;
 
 /**
@@ -1856,11 +1908,17 @@ declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
  */
 declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
 
+interface ReplaceWorldbookOptions {
+  /** 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */
+  render?: 'debounced' | 'immediate';
+}
 /**
  * 完全替换 `worldbook_name` 世界书的内容为 `worldbook`
  *
  * @param worldbook_name 世界书名称
  * @param worldbook 世界书内容
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @example
  * // 禁止所有条目递归, 保持其他设置不变
@@ -1879,7 +1937,11 @@ declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>
  * _.remove(worldbook, entry => entry.name.includes('神乐光'));
  * await replaceWorldbook("eramgt少女歌剧", worldbook);
  */
-declare function replaceWorldbook(worldbook_name: string, worldbook: PartialDeep<WorldbookEntry>[]): Promise<void>;
+declare function replaceWorldbook(
+  worldbook_name: string,
+  worldbook: PartialDeep<WorldbookEntry>[],
+  { render }?: ReplaceWorldbookOptions,
+): Promise<void>;
 
 type WorldbookUpdater =
   | ((worldbook: WorldbookEntry[]) => PartialDeep<WorldbookEntry>[])
@@ -1888,7 +1950,9 @@ type WorldbookUpdater =
  * 用 `updater` 函数更新世界书 `worldbook_name`
  *
  * @param worldbook_name 世界书名称
- * @param updater 用于更新世界书的函数. 它应该接收世界书条目作为参数, 并返回更新后的世界书条目.
+ * @param updater 用于更新世界书的函数. 它应该接收世界书条目作为参数, 并返回更新后的世界书条目
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目
  *
@@ -1896,13 +1960,19 @@ type WorldbookUpdater =
  * // 删除所有名字中包含 `'神乐光'` 的条目
  * await updateWorldbookWith("eramgt少女歌剧", worldbook => worldbook.filter(entry => entry.name.includes('神乐光')));
  */
-declare function updateWorldbookWith(worldbook_name: string, updater: WorldbookUpdater): Promise<WorldbookEntry[]>;
+declare function updateWorldbookWith(
+  worldbook_name: string,
+  updater: WorldbookUpdater,
+  { render }?: ReplaceWorldbookOptions,
+): Promise<WorldbookEntry[]>;
 
 /**
  * 向世界书中新增条目
  *
  * @param worldbook_name 世界书名称
  * @param new_entries 要新增的条目, 对于不设置的字段将会采用酒馆给的默认值
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目, 以及新增条目补全字段后的结果
  *
@@ -1913,6 +1983,7 @@ declare function updateWorldbookWith(worldbook_name: string, updater: WorldbookU
 declare function createWorldbookEntries(
   worldbook_name: string,
   new_entries: PartialDeep<WorldbookEntry>[],
+  { render }?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; new_entries: WorldbookEntry[] }>;
 
 /**
@@ -1920,6 +1991,8 @@ declare function createWorldbookEntries(
  *
  * @param worldbook_name 世界书名称
  * @param predicate 判断函数, 如果返回 `true` 则删除该条目
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目, 以及被删除的条目
  *
@@ -1930,6 +2003,7 @@ declare function createWorldbookEntries(
 declare function deleteWorldbookEntries(
   worldbook_name: string,
   predicate: (entry: WorldbookEntry) => boolean,
+  { render }?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; deleted_entries: WorldbookEntry[] }>;
 /**
  * 事件可以是
@@ -1940,9 +2014,10 @@ declare function deleteWorldbookEntries(
 type EventType = IframeEventType | TavernEventType | string;
 
 /**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动运行 `listener`.
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
+ * 当 `eventOn` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册的函数
@@ -1961,24 +2036,14 @@ type EventType = IframeEventType | TavernEventType | string;
  */
 declare function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
-/**
- * 让 `listener` 监听 `event_type`, 按下脚本库中附加了按钮的脚本时自动运行 `listener`.
- *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
- *
- * @param event_type 要监听的事件
- * @param listener 要注册的函数
- *
- * @example
- * function hello() { alert("hello"); }
- * eventOnButton(对应的按钮名称, hello);
- */
+/** @deprecated 请使用 `eventOn(getButtonEvent('按钮名称'), 函数)` 代替 */
 declare function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
 /**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`.
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
+ * 当 `eventMakeLast` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册/调整到最后运行的函数
@@ -1989,9 +2054,10 @@ declare function eventOnButton<T extends EventType>(event_type: T, listener: Lis
 declare function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
 /**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动在最先运行 `listener`.
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动在最先运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
+ * 当 `eventMakeFirst` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册/调整为最先运行的函数
@@ -2002,9 +2068,10 @@ declare function eventMakeLast<T extends EventType>(event_type: T, listener: Lis
 declare function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
 /**
- * 让 `listener` 仅监听下一次 `event_type`, 当该次事件发生时运行 `listener`, 此后取消监听.
+ * 让 `listener` 仅监听下一次 `event_type`, 当该次事件发生时运行 `listener`, 此后取消监听;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
+ * 当 `eventOnce` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册的函数
@@ -2013,32 +2080,6 @@ declare function eventMakeFirst<T extends EventType>(event_type: T, listener: Li
  * eventOnce(要监听的事件, 要注册的函数);
  */
 declare function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
-
-/**
- * 等待一次 `event_type` 事件
- *
- * @param event_type 要等待的事件
- *
- * @example
- * await eventWaitOnce(tavern_events.MESSAGE_DELETED);
- */
-declare function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
-
-/**
- * 等待 `listener` 监听到一次 `event_type` 且执行完成, 返回 `listener` 的执行结果
- *
- * 如果填入 `listener`, 则在调用本函数前 `listener` 必须已经在监听 `event_type`
- *
- * @param event_type `listener` 在监听的事件
- * @param listener 已经在监听 `event_type` 的函数
- *
- * @returns  `listener` 得到的结果
- *
- * @example
- * eventOnce("存档", save);
- * await eventWaitOnce("存档", save);
- */
-declare function eventWaitOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<any | undefined>;
 
 /**
  * 发送 `event_type` 事件, 同时可以发送一些数据 `data`.
@@ -2071,9 +2112,9 @@ declare function eventEmit<T extends EventType>(event_type: T, ...data: Paramete
 declare function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void;
 
 /**
- * 让 `listener` 取消对 `event_type` 的监听.
+ * 让 `listener` 取消对 `event_type` 的监听; 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * - 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventRemoveListener` 来移除.
  *
  * @param event_type 要监听的事件
  * @param listener 要取消注册的函数
@@ -2086,6 +2127,8 @@ declare function eventRemoveListener<T extends EventType>(event_type: T, listene
 /**
  * 取消本 iframe 中对 `event_type` 的所有监听
  *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearEvent` 来移除.
+ *
  * @param event_type 要取消监听的事件
  */
 declare function eventClearEvent(event_type: EventType): void;
@@ -2093,12 +2136,16 @@ declare function eventClearEvent(event_type: EventType): void;
 /**
  * 取消本 iframe 中 `listener` 的的所有监听
  *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearListener` 来移除.
+ *
  * @param listener 要取消注册的函数
  */
 declare function eventClearListener(listener: Function): void;
 
 /**
  * 取消本 iframe 中对所有事件的所有监听
+ *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearAll` 来移除.
  */
 declare function eventClearAll(): void;
 
@@ -2459,7 +2506,7 @@ declare const Mvu: {
      *
      * @example
      * // 检测络络好感度突破 30
-     * eventOn('mag_variable_updated', (stat_data, path, old_value, new_value) => {
+     * eventOn(Mvu.events.SINGLE_VARIABLE_UPDATED, (stat_data, path, old_value, new_value) => {
      *   // 如果被更新的变量不是 'stat_data.角色.络络.好感度', 则什么都不做直接返回 (return)
      *   if (path === '角色.络络.好感度') {
      *     return;
@@ -2478,7 +2525,7 @@ declare const Mvu: {
      *
      * @example
      * // 保持好感度不低于 0
-     * eventOn('mag_variable_update_ended', (variables) => {
+     * eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, (variables) => {
      *   if (_.get(variables, 'stat_data.角色.络络.好感度') < 0) {
      *     _.set(variables, 'stat_data.角色.络络.好感度', 0);
      *   }
@@ -2991,11 +3038,33 @@ declare const SillyTavern: {
   readonly tokenizers: any;
   readonly getTextTokens: (tokenizer_type: number, string: string) => Promise<number>;
   readonly getTokenCountAsync: (string: string, padding?: number | undefined) => Promise<number>;
-  readonly extensionPrompts: any;
+  /**  `/inject`、`setExtensionPrompt` 等注入的所有额外提示词 */
+  readonly extensionPrompts: Record<
+    string,
+    {
+      value: string;
+      position: number;
+      depth: number;
+      scan: boolean;
+      role: number;
+      filter: () => Promise<boolean> | boolean;
+    }
+  >;
+  /**
+   * 注入一段额外的提示词
+   *
+   * @param prompt_id id, 重复则会替换原本的内容
+   * @param content 内容
+   * @param position 位置. -1 为不注入 (配合 scan=true 来仅用于激活绿灯), 1 为插入到聊天中
+   * @param depth 深度
+   * @param scan 是否作为欲扫描文本, 加入世界书绿灯条目扫描文本中
+   * @param role 消息角色. 0 为 system, 1 为 user, 2 为 assistant
+   * @param filter 提示词在什么情况下有效
+   */
   readonly setExtensionPrompt: (
-    key: string,
-    value: string,
-    position: number,
+    prompt_id: string,
+    content: string,
+    position: -1 | 1,
     depth: number,
     scan?: boolean,
     role?: number,
@@ -3104,7 +3173,15 @@ declare const SillyTavern: {
       type: number,
       inputValue?: string,
       popupOptions?: SillyTavern.PopupOptions,
-    ): { show: () => Promise<void> };
+    ): {
+      dlg: HTMLDialogElement;
+
+      show: () => Promise<void>;
+      complete: (result: number) => Promise<void>;
+      completeAffirmative: () => Promise<void>;
+      completeNegative: () => Promise<void>;
+      completeCancelled: () => Promise<void>;
+    };
   };
   readonly POPUP_TYPE: {
     TEXT: number;
@@ -3199,6 +3276,63 @@ declare const SillyTavern: {
  */
 declare const TavernHelper: typeof window.TavernHelper;
 /**
+ * 获取按钮对应的事件类型, **只能在脚本中使用**
+ *
+ * @param button_name 按钮名
+ * @returns 事件类型
+ *
+ * @example
+ * const event_type = getButtonEvent('按钮名');
+ * eventOn(event_type, () => {
+ *   console.log('按钮被点击了');
+ * });
+ */
+declare function getButtonEvent(button_name: string): string;
+
+type ScriptButton = {
+  name: string;
+  visible: boolean;
+};
+
+/**
+ * 获取指定脚本 `script_id` 的按钮, **只能在脚本中使用**
+ *
+ * @returns 按钮数组
+ *
+ * @example
+ * // 在脚本内获取当前脚本的按钮设置
+ * const buttons = getScriptButtons();
+ */
+declare function getScriptButtons(): ScriptButton[];
+
+/**
+ * 替换指定脚本 `script_id` 的按钮, **只能在脚本中使用**
+ *
+ * @param buttons 按钮数组
+ *
+ * @example
+ * // 在脚本内设置脚本按钮为一个"开始游戏"按钮
+ * replaceScriptButtons([{name: '开始游戏', visible: true}])
+ *
+ * @example
+ * // 点击"前往地点"按钮后，切换为地点选项按钮
+ * eventOnButton("前往地点" () => {
+ *   replaceScriptButtons([{name: '学校', visible: true}, {name: '商店', visible: true}])
+ * })
+ */
+declare function replaceScriptButtons(buttons: ScriptButton[]): void;
+
+/**
+ * 如果指定脚本 `script_id` 没有 `buttons`, 为脚本新增它们到现有按钮末尾, **只能在脚本中使用**
+ *
+ * @param buttons
+ *
+ * @exmaple
+ * // 新增 "重新开始" 按钮
+ * appendInexistentScriptButtons([{name: '重新开始', visible: true}]);
+ */
+declare function appendInexistentScriptButtons(buttons: ScriptButton[]): void;
+/**
  * 获取 iframe 的名称
  *
  * @returns 对于楼层消息是 `message-iframe-楼层id-是该楼层第几个iframe`; 对于全局脚本是 `script-iframe-脚本名称`; 对于脚本库是 `tavern-helper-script-脚本名称`
@@ -3218,14 +3352,6 @@ declare function getScriptId(): string;
  * @returns 楼层 id
  */
 declare function getCurrentMessageId(): number;
-
-/**
- * 从消息楼层 iframe 的 `iframe_name` 获取它所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
- *
- * @param iframe_name 消息楼层 iframe 的名称
- * @returns 楼层 id
- */
-declare function getMessageId(iframe_name: string): number;
 /**
  * 获取合并后的变量表
  * - 如果在消息楼层 iframe 中调用本函数, 则获取 全局→角色卡→聊天→0号消息楼层→中间所有消息楼层→当前消息楼层 的合并结果

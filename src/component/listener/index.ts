@@ -113,14 +113,6 @@ export async function initListener() {
     });
 
   $listener_container
-    .find('#iframe_update_listener_url')
-    .val(await getOrSaveSettingValue('listener.url', default_settings.url))
-    .on('input', async function (this: HTMLInputElement) {
-      const url = saveSettingValue('listener.url', String($(this).val()));
-      connect_socket(url);
-    });
-
-  $listener_container
     .find('#iframe_update_listener_duration')
     .val(await getOrSaveSettingValue('listener.duration', default_settings.duration))
     .on('input', async function (this: HTMLInputElement) {
@@ -131,5 +123,5 @@ export async function initListener() {
   $('#extension-listener').append($listener_container);
 
   reset_refresh_duration();
-  connect_socket(getSettingValue('listener.url'));
+  connect_socket(await getOrSaveSettingValue('listener.url', default_settings.url));
 }

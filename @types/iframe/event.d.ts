@@ -7,9 +7,10 @@
 type EventType = IframeEventType | TavernEventType | string;
 
 /**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动运行 `listener`.
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
+ * 当 `eventOn` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册的函数
@@ -28,24 +29,14 @@ type EventType = IframeEventType | TavernEventType | string;
  */
 declare function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
-/**
- * 让 `listener` 监听 `event_type`, 按下脚本库中附加了按钮的脚本时自动运行 `listener`.
- *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
- *
- * @param event_type 要监听的事件
- * @param listener 要注册的函数
- *
- * @example
- * function hello() { alert("hello"); }
- * eventOnButton(对应的按钮名称, hello);
- */
+/** @deprecated 请使用 `eventOn(getButtonEvent('按钮名称'), 函数)` 代替 */
 declare function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
 /**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`.
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最后运行.
+ * 当 `eventMakeLast` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册/调整到最后运行的函数
@@ -56,9 +47,10 @@ declare function eventOnButton<T extends EventType>(event_type: T, listener: Lis
 declare function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
 /**
- * 让 `listener` 监听 `event_type`, 当事件发生时自动在最先运行 `listener`.
+ * 让 `listener` 监听 `event_type`, 当事件发生时自动在最先运行 `listener`;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数会将 `listener` 调整为最先运行.
+ * 当 `eventMakeFirst` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册/调整为最先运行的函数
@@ -69,9 +61,10 @@ declare function eventMakeLast<T extends EventType>(event_type: T, listener: Lis
 declare function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
 /**
- * 让 `listener` 仅监听下一次 `event_type`, 当该次事件发生时运行 `listener`, 此后取消监听.
+ * 让 `listener` 仅监听下一次 `event_type`, 当该次事件发生时运行 `listener`, 此后取消监听;
+ * 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * - 如果 `listener` 已经在监听 `event_type`, 则调用本函数不会有任何效果.
+ * 当 `eventOnce` 所在的前端界面/脚本关闭时, 监听将会自动卸载.
  *
  * @param event_type 要监听的事件
  * @param listener 要注册的函数
@@ -80,32 +73,6 @@ declare function eventMakeFirst<T extends EventType>(event_type: T, listener: Li
  * eventOnce(要监听的事件, 要注册的函数);
  */
 declare function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
-
-/**
- * 等待一次 `event_type` 事件
- *
- * @param event_type 要等待的事件
- *
- * @example
- * await eventWaitOnce(tavern_events.MESSAGE_DELETED);
- */
-declare function eventWaitOnce(event_type: EventType): Promise<any | undefined>;
-
-/**
- * 等待 `listener` 监听到一次 `event_type` 且执行完成, 返回 `listener` 的执行结果
- *
- * 如果填入 `listener`, 则在调用本函数前 `listener` 必须已经在监听 `event_type`
- *
- * @param event_type `listener` 在监听的事件
- * @param listener 已经在监听 `event_type` 的函数
- *
- * @returns  `listener` 得到的结果
- *
- * @example
- * eventOnce("存档", save);
- * await eventWaitOnce("存档", save);
- */
-declare function eventWaitOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): Promise<any | undefined>;
 
 /**
  * 发送 `event_type` 事件, 同时可以发送一些数据 `data`.
@@ -138,9 +105,9 @@ declare function eventEmit<T extends EventType>(event_type: T, ...data: Paramete
 declare function eventEmitAndWait<T extends EventType>(event_type: T, ...data: Parameters<ListenerType[T]>): void;
 
 /**
- * 让 `listener` 取消对 `event_type` 的监听.
+ * 让 `listener` 取消对 `event_type` 的监听; 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
  *
- * - 如果 `listener` 没有监听 `event_type`, 则调用本函数不会有任何效果.
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventRemoveListener` 来移除.
  *
  * @param event_type 要监听的事件
  * @param listener 要取消注册的函数
@@ -153,6 +120,8 @@ declare function eventRemoveListener<T extends EventType>(event_type: T, listene
 /**
  * 取消本 iframe 中对 `event_type` 的所有监听
  *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearEvent` 来移除.
+ *
  * @param event_type 要取消监听的事件
  */
 declare function eventClearEvent(event_type: EventType): void;
@@ -160,12 +129,16 @@ declare function eventClearEvent(event_type: EventType): void;
 /**
  * 取消本 iframe 中 `listener` 的的所有监听
  *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearListener` 来移除.
+ *
  * @param listener 要取消注册的函数
  */
 declare function eventClearListener(listener: Function): void;
 
 /**
  * 取消本 iframe 中对所有事件的所有监听
+ *
+ * 前端界面/脚本关闭时会自动卸载所有的事件监听, 你不必手动调用 `eventClearAll` 来移除.
  */
 declare function eventClearAll(): void;
 

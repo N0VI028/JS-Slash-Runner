@@ -1,4 +1,6 @@
-import { chat, chat_metadata, event_types, eventSource } from '@sillytavern/script';
+import { ListenerType } from '@/function/event';
+
+import { chat, chat_metadata, event_types, eventSource, reloadCurrentChat, saveChatConditional } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
 interface MacroLike {
@@ -89,13 +91,20 @@ function demacroOnRender(message_id: string) {
     .text((_index, text) => replace_html(text));
 }
 
-export function renderAllMacros() {
+function renderAllMacros() {
   $('div.mes').each((_index, node) => {
     demacroOnRender($(node).attr('mesid')!);
   });
 }
 
+async function derenderAllMacros() {
+  await saveChatConditional();
+  await reloadCurrentChat();
+}
+
 export function initializeMacroOnExtension() {
+  renderAllMacros();
+  eventSource.on(event_types.CHAT_CHANGED, renderAllMacros);
   eventSource.on(event_types.CHAT_COMPLETION_PROMPT_READY, demacroOnPrompt);
   eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.on(event_types.USER_MESSAGE_RENDERED, demacroOnRender);
@@ -104,6 +113,8 @@ export function initializeMacroOnExtension() {
 }
 
 export function destroyMacroOnExtension() {
+  derenderAllMacros();
+  eventSource.removeListener(event_types.CHAT_CHANGED, renderAllMacros);
   eventSource.removeListener(event_types.CHAT_COMPLETION_PROMPT_READY, demacroOnPrompt);
   eventSource.removeListener(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.removeListener(event_types.USER_MESSAGE_RENDERED, demacroOnRender);

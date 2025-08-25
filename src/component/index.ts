@@ -1,5 +1,5 @@
 import { registerAllMacros, unregisterAllMacros } from '@/component/macro';
-import { destroyMacroOnExtension, initializeMacroOnExtension, renderAllMacros } from '@/component/macrolike';
+import { addRenderQuickButton } from '@/component/message_iframe/index';
 import {
   addCodeToggleButtonsToAllMessages,
   addRenderingHideStyleSettings,
@@ -10,34 +10,28 @@ import {
   renderAllIframes,
   renderMessageAfterDelete,
   renderPartialIframes,
-  tampermonkey_script,
   viewport_adjust_script,
 } from '@/component/message_iframe/render_message';
-import { addRenderQuickButton } from '@/component/message_iframe/index';
 import {
   addRenderingOptimizeSettings,
   removeRenderingOptimizeSettings,
 } from '@/component/message_iframe/render_optimize';
+import { addPromptViewQuickButton } from '@/component/prompt_view';
 import { destroyCharacterLevelOnExtension, initializeCharacterLevelOnExtension } from '@/component/script_iframe';
 import {
   buildScriptRepositoryOnExtension,
   destroyScriptRepositoryOnExtension,
 } from '@/component/script_repository/index';
 import { initializeToastr } from '@/component/toastr';
-import { iframe_client } from '@/iframe_client/index';
+import { addVariableManagerQuickButton } from '@/component/variable_manager';
+import iframe from '@/iframe?raw';
 import { script_url } from '@/script_url';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, this_chid } from '@sillytavern/script';
-import { addPromptViewQuickButton } from '@/component/prompt_view';
-import { addVariableManagerQuickButton } from '@/component/variable_manager';
 
 const handleChatLoaded = async () => {
   await renderAllIframes();
   addCodeToggleButtonsToAllMessages();
-};
-
-const handleChatChanged = async () => {
-  renderAllMacros();
 };
 
 const handlePartialRender = (mesId: string) => {
@@ -97,13 +91,11 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     // 指示器样式
     $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
 
-    script_url.set('iframe_client', iframe_client);
+    script_url.set('iframe', iframe);
     script_url.set('viewport_adjust_script', viewport_adjust_script);
-    script_url.set('tampermonkey_script', tampermonkey_script);
 
     registerAllMacros();
     initializeToastr();
-    initializeMacroOnExtension();
     initializeCharacterLevelOnExtension();
     buildScriptRepositoryOnExtension();
 
@@ -117,7 +109,6 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
       addRenderingHideStyleSettings();
     }
 
-    eventSource.on(event_types.CHAT_CHANGED, handleChatChanged);
     eventSource.on('chatLoaded', handleChatLoaded);
 
     partialRenderEvents.forEach(eventType => {
@@ -132,12 +123,10 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     // 指示器样式
     $('#extension-status-icon').css('color', 'red').next().text('扩展已禁用');
 
-    script_url.delete('iframe_client');
+    script_url.delete('iframe');
     script_url.delete('viewport_adjust_script');
-    script_url.delete('tampermonkey_script');
 
     unregisterAllMacros();
-    destroyMacroOnExtension();
     destroyCharacterLevelOnExtension();
     destroyScriptRepositoryOnExtension();
 
@@ -151,7 +140,6 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
       removeRenderingHideStyleSettings();
     }
 
-    eventSource.removeListener(event_types.CHAT_CHANGED, handleChatChanged);
     eventSource.removeListener('chatLoaded', handleChatLoaded);
     partialRenderEvents.forEach(eventType => {
       eventSource.removeListener(eventType, handlePartialRender);
