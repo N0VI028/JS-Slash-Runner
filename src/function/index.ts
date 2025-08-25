@@ -31,7 +31,8 @@ import {
   iframe_events,
   tavern_events,
 } from '@/function/event';
-import { generate, generateRaw } from '@/function/generate';
+import { generate, generateRaw, stopGenerationById } from '@/function/generate';
+
 import { builtin_prompt_default_order } from '@/function/generate/types';
 import {
   createLorebook,
@@ -194,6 +195,7 @@ function getTavernHelper() {
     builtin_prompt_default_order,
     generate,
     generateRaw,
+    stopGenerationById,
 
     // lorebook_entry
     getLorebookEntries,

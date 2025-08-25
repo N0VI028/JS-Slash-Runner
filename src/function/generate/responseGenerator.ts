@@ -39,14 +39,16 @@ class StreamingProcessor {
   public isFinished: boolean;
   public abortController: AbortController;
   private messageBuffer: string;
+  private generationId: string;
 
-  constructor() {
+  constructor(generationId: string, abortController: AbortController) {
     this.result = '';
     this.messageBuffer = '';
     this.isStopped = false;
     this.isFinished = false;
     this.generator = this.nullStreamingGeneration;
-    this.abortController = new AbortController();
+    this.abortController = abortController;
+    this.generationId = generationId;
   }
 
   onProgressStreaming(text: string, isFinal: boolean) {
@@ -65,14 +67,14 @@ class StreamingProcessor {
       }
     }
 
-    eventSource.emit('js_stream_token_received_fully', text);
-    eventSource.emit('js_stream_token_received_incrementally', processedText);
+    eventSource.emit('js_stream_token_received_fully', text, { id: this.generationId });
+    eventSource.emit('js_stream_token_received_incrementally', processedText, { id: this.generationId });
 
     if (isFinal) {
       // 兼容旧版本
       // @ts-ignore
       const fullText = cleanUpMessage(text, false, false, false, this.stoppingStrings);
-      eventSource.emit('js_generation_ended', fullText);
+      eventSource.emit('js_generation_ended', fullText, { id: this.generationId });
     }
   }
 
@@ -137,7 +139,7 @@ class StreamingProcessor {
  * @param response API响应对象
  * @returns 提取的消息文本
  */
-async function handleResponse(response: any) {
+async function handleResponse(response: any, generationId: string) {
   if (!response) {
     throw Error(`未得到响应`);
   }
@@ -150,7 +152,7 @@ async function handleResponse(response: any) {
     throw Error(response?.response);
   }
   const message: string = extractMessageFromData(response);
-  eventSource.emit('js_generation_ended', message);
+  eventSource.emit('js_generation_ended', message, { id: generationId });
   return message;
 }
 
@@ -158,6 +160,7 @@ async function handleResponse(response: any) {
  * 生成响应
  * @param generate_data 生成数据
  * @param useStream 是否使用流式传输
+ * @param generationId 生成ID
  * @param imageProcessingSetup 图片数组处理设置，包含Promise和解析器
  * @param abortController 中止控制器
  * @param customApi 自定义API配置
@@ -166,6 +169,7 @@ async function handleResponse(response: any) {
 export async function generateResponse(
   generate_data: any,
   useStream = false,
+  generationId: string,
   imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined,
   abortController: AbortController,
   customApi?: CustomApiConfig,
@@ -216,14 +220,14 @@ export async function generateResponse(
       }
     }
 
-    eventSource.emit('js_generation_started');
+    eventSource.emit('js_generation_started', { id: generationId });
     if (useStream) {
       const originalStreamSetting = oai_settings.stream_openai;
       if (!originalStreamSetting) {
         oai_settings.stream_openai = true;
         saveSettingsDebounced();
       }
-      const streamingProcessor = new StreamingProcessor();
+      const streamingProcessor = new StreamingProcessor(generationId, abortController);
       // @ts-ignore
       streamingProcessor.generator = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
       result = (await streamingProcessor.generate()) as string;
@@ -233,7 +237,7 @@ export async function generateResponse(
       }
     } else {
       const response = await sendOpenAIRequest(type, generate_data.prompt, abortController.signal);
-      result = await handleResponse(response);
+      result = await handleResponse(response, generationId);
     }
   } catch (error) {
     // 如果有图片处理设置但生成失败，确保拒绝Promise
@@ -249,8 +253,10 @@ export async function generateResponse(
       log.debug('[Generate:自定义API] 已清理事件监听器');
     }
 
-    unblockGeneration();
+    //unblockGeneration();
     await clearInjectionPrompts(['INJECTION']);
   }
   return result;
 }
+
+
