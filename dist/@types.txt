@@ -539,6 +539,13 @@ type GenerateConfig = {
 
   /** 自定义API配置 */
   custom_api?: CustomApiConfig;
+
+  /**
+   * 唯一id
+   *
+   * 可以并发生成，并可以通过stopGenerateById停止特定生成，不设置默认生成uuid
+   */
+  id?: string;
 };
 
 type GenerateRawConfig = {
@@ -590,6 +597,13 @@ type GenerateRawConfig = {
 
   /** 自定义API配置 */
   custom_api?: CustomApiConfig;
+
+  /**
+   * 唯一id
+   *
+   * 可以并发生成，并可以通过stopGenerateById停止特定生成，不设置默认生成uuid
+   */
+  id?: string;
 };
 
 type RolePrompt = {
