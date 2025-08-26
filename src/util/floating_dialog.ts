@@ -1,4 +1,5 @@
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
+import log from 'loglevel';
 
 export interface FloatingDialogOptions {
   /** 浮窗标题 */
@@ -45,6 +46,8 @@ export class FloatingDialog {
   private static readonly MOBILE_DEFAULT_WIDTH = 200;
   private static readonly MOBILE_DEFAULT_HEIGHT = 100;
 
+  private static readonly STORAGE_KEY_PREFIX = 'TH_floating_dialog_size_';
+
   /** 全局浮窗实例管理器 */
   private static instances: Map<string, FloatingDialog> = new Map();
 
@@ -59,19 +62,30 @@ export class FloatingDialog {
   constructor(options: FloatingDialogOptions) {
     const isCurrentlyMobile = isMobile();
 
-    // 计算最终的尺寸值
+    const savedSize = FloatingDialog.loadWindowSize(options.id, isCurrentlyMobile);
+
     const finalMinWidth = isCurrentlyMobile
       ? options.mobileMinWidth ?? FloatingDialog.MOBILE_DEFAULT_MIN_WIDTH
       : options.minWidth ?? FloatingDialog.DEFAULT_MIN_WIDTH;
     const finalMinHeight = isCurrentlyMobile
       ? options.mobileMinHeight ?? FloatingDialog.MOBILE_DEFAULT_MIN_HEIGHT
       : options.minHeight ?? FloatingDialog.DEFAULT_MIN_HEIGHT;
-    const finalWidth = isCurrentlyMobile
-      ? options.mobileWidth ?? FloatingDialog.MOBILE_DEFAULT_WIDTH
-      : options.width ?? FloatingDialog.DEFAULT_WIDTH;
-    const finalHeight = isCurrentlyMobile
-      ? options.mobileHeight ?? FloatingDialog.MOBILE_DEFAULT_HEIGHT
-      : options.height ?? FloatingDialog.DEFAULT_HEIGHT;
+    
+    // 如果有保存的大小，使用保存的大小；否则使用选项中的大小或默认大小
+    let finalWidth: number | string;
+    let finalHeight: number | string;
+    
+    if (savedSize) {
+      finalWidth = savedSize.width;
+      finalHeight = savedSize.height;
+    } else {
+      finalWidth = isCurrentlyMobile
+        ? options.mobileWidth ?? FloatingDialog.MOBILE_DEFAULT_WIDTH
+        : options.width ?? FloatingDialog.DEFAULT_WIDTH;
+      finalHeight = isCurrentlyMobile
+        ? options.mobileHeight ?? FloatingDialog.MOBILE_DEFAULT_HEIGHT
+        : options.height ?? FloatingDialog.DEFAULT_HEIGHT;
+    }
 
     this.options = {
       ...options, // 先展开原始选项
@@ -130,6 +144,52 @@ export class FloatingDialog {
       return true;
     }
     return false;
+  }
+
+  /**
+   * 保存窗口大小到localStorage
+   * @param id 浮窗ID
+   * @param width 宽度
+   * @param height 高度
+   * @param isMobileDevice 是否为移动端
+   */
+  private static saveWindowSize(id: string, width: number, height: number, isMobileDevice: boolean): void {
+    try {
+      const key = `${FloatingDialog.STORAGE_KEY_PREFIX}${id}`;
+      const sizeData = {
+        width,
+        height,
+        isMobile: isMobileDevice,
+      };
+      localStorage.setItem(key, JSON.stringify(sizeData));
+    } catch (error) {
+      log.warn('保存窗口大小失败:', error);
+    }
+  }
+
+  /**
+   * 从localStorage加载窗口大小
+   * @param id 浮窗ID
+   * @param isMobileDevice 当前是否为移动端
+   * @returns 保存的窗口大小或null
+   */
+  private static loadWindowSize(id: string, isMobileDevice: boolean): { width: number; height: number } | null {
+    try {
+      const key = `${FloatingDialog.STORAGE_KEY_PREFIX}${id}`;
+      const stored = localStorage.getItem(key);
+      if (!stored) return null;
+
+      const sizeData = JSON.parse(stored);
+      if (sizeData.isMobile === isMobileDevice && sizeData.width && sizeData.height) {
+        return {
+          width: sizeData.width,
+          height: sizeData.height,
+        };
+      }
+    } catch (error) {
+      log.warn('加载窗口大小失败:', error);
+    }
+    return null;
   }
 
   /**
@@ -395,6 +455,11 @@ export class FloatingDialog {
         },
         stop: () => {
           this.dialog?.removeClass('resizing');
+          if (this.dialog) {
+            const width = this.dialog.outerWidth() || 0;
+            const height = this.dialog.outerHeight() || 0;
+            FloatingDialog.saveWindowSize(this.options.id, width, height, isMobileDevice);
+          }
         },
       });
     }
