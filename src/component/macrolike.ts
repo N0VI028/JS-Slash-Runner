@@ -1,6 +1,6 @@
 import { ListenerType } from '@/function/event';
 
-import { chat, chat_metadata, event_types, eventSource, reloadCurrentChat, saveChatConditional } from '@sillytavern/script';
+import { chat, chat_metadata, event_types, eventSource, GenerateOptions, reloadCurrentChat, saveChatConditional } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
 interface MacroLike {
@@ -50,12 +50,17 @@ export function registerMacroLike(
   macros.push({ regex, replace });
 }
 
-function demacroOnPrompt(event_data: Parameters<ListenerType['chat_completion_prompt_ready']>[0]) {
-  if (event_data.dryRun) {
+let is_dry_run = false;
+function checkDryRun(_type: string, _data: GenerateOptions, dry_run: boolean) {
+  is_dry_run = dry_run;
+}
+
+function demacroOnPrompt(event_data: Parameters<ListenerType['GENERATE_AFTER_DATA']>[0]) {
+  if (is_dry_run) {
     return;
   }
 
-  for (const message of event_data.chat) {
+  for (const message of event_data.prompt) {
     for (const macro of macros) {
       message.content = message.content.replace(macro.regex, (substring: string, ...args: any[]) =>
         macro.replace({ role: message.role as 'user' | 'assistant' | 'system' }, substring, ...args),
@@ -105,7 +110,8 @@ async function derenderAllMacros() {
 export function initializeMacroOnExtension() {
   renderAllMacros();
   eventSource.on(event_types.CHAT_CHANGED, renderAllMacros);
-  eventSource.on(event_types.CHAT_COMPLETION_PROMPT_READY, demacroOnPrompt);
+  eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
+  eventSource.on(event_types.GENERATE_AFTER_DATA, demacroOnPrompt);
   eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.on(event_types.USER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.on(event_types.MESSAGE_UPDATED, demacroOnRender);
@@ -115,7 +121,8 @@ export function initializeMacroOnExtension() {
 export function destroyMacroOnExtension() {
   derenderAllMacros();
   eventSource.removeListener(event_types.CHAT_CHANGED, renderAllMacros);
-  eventSource.removeListener(event_types.CHAT_COMPLETION_PROMPT_READY, demacroOnPrompt);
+  eventSource.removeListener(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
+  eventSource.removeListener(event_types.GENERATE_AFTER_DATA, demacroOnPrompt);
   eventSource.removeListener(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.removeListener(event_types.USER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.removeListener(event_types.MESSAGE_UPDATED, demacroOnRender);

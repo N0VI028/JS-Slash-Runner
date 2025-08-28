@@ -27,6 +27,11 @@
   filter: grayscale(0.5);
 }
 
+.script-folder:has(.folder-script-toggle:not(.enabled)) .folder-name {
+  text-decoration: line-through;
+  filter: grayscale(0.5);
+}
+
 .title_restorable label {
   display: inline-block;
   margin: 5px 0;

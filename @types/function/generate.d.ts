@@ -43,7 +43,7 @@ type GenerateConfig = {
   overrides?: Overrides;
 
   /** 要额外注入的提示词 */
-  injects?: InjectionPrompt[];
+  injects?: Omit<InjectionPrompt, 'id'>[];
 
   /** 最多使用多少条聊天历史; 默认为 'all' */
   max_chat_history?: 'all' | number;
@@ -93,7 +93,7 @@ type GenerateRawConfig = {
    */
   overrides?: Overrides;
 
-  injects?: InjectionRawPrompt[];
+  injects?: Omit<InjectionPrompt, 'id'>[];
 
   /**
    * 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设. 该数组允许存放两种类型:
@@ -121,32 +121,6 @@ type RolePrompt = {
   role: 'system' | 'assistant' | 'user';
   content: string;
   image?: File | string | (File | string)[];
-};
-
-type InjectionPrompt = {
-  role: 'system' | 'assistant' | 'user';
-  content: string;
-
-  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
-  position: 'before_prompt' | 'in_chat' | 'after_prompt' | 'none';
-
-  depth: number;
-
-  /** 是否要加入世界书扫描中 */
-  should_scan: boolean;
-};
-
-type InjectionRawPrompt = {
-  role: 'system' | 'assistant' | 'user';
-  content: string;
-
-  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
-  position: 'in_chat' | 'none';
-
-  depth: number;
-
-  /** 是否要加入世界书扫描中 */
-  should_scan: boolean;
 };
 
 type Overrides = {
@@ -201,7 +175,7 @@ type BuiltinPrompt =
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
  *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
- *   - `injects?:InjectionPrompt[]`: 要额外注入的提示词
+ *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
  * @returns 生成的最终文本
  *
@@ -255,7 +229,7 @@ declare function generate(config: GenerateConfig): Promise<string>;
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
  *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
- *   - `injects?:InjectionPrompt[]`: 要额外注入的提示词
+ *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
  *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设
  * @returns 生成的最终文本

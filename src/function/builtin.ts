@@ -5,9 +5,9 @@ import { promptManager } from '@sillytavern/scripts/openai';
 export const builtin = {
   addOneMessage,
   saveSettings,
+  promptManager,
   reloadEditor,
   reloadEditorDebounced,
-  promptManager,
   renderPromptManager: promptManager.render,
   renderPromptManagerDebounced: promptManager.renderDebounced,
 };

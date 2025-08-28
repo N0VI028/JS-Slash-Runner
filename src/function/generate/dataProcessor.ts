@@ -1,9 +1,18 @@
+import { detail, RolePrompt } from '@/function/generate/types';
+import {
+  addTemporaryUserMessage,
+  clearInjectionPrompts,
+  isPromptFiltered,
+  parseMesExamples,
+  removeTemporaryUserMessage,
+} from '@/function/generate/utils';
+import { injectPrompts } from '@/function/inject';
+
 import {
   baseChatReplace,
   characters,
   chat,
   chat_metadata,
-  extension_prompt_roles,
   extension_prompt_types,
   getBiasStrings,
   getCharacterCardFields,
@@ -19,16 +28,8 @@ import { extension_settings, getContext } from '@sillytavern/scripts/extensions'
 import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
 import { setOpenAIMessageExamples, setOpenAIMessages } from '@sillytavern/scripts/openai';
 import { persona_description_positions, power_user } from '@sillytavern/scripts/power-user';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from '@sillytavern/scripts/world-info';
-
-import { detail, RolePrompt, roleTypes } from '@/function/generate/types';
-import {
-  addTemporaryUserMessage,
-  clearInjectionPrompts,
-  isPromptFiltered,
-  parseMesExamples,
-  removeTemporaryUserMessage,
-} from '@/function/generate/utils';
 
 /**
  * 准备并覆盖数据的核心函数
@@ -88,21 +89,21 @@ export async function prepareAndOverrideData(
   // 判断是否被过滤,如果被过滤返回空字符串,否则返回override的值或原始值
   const description = isPromptFiltered('char_description', config)
     ? ''
-    : getOverrideContent('char_description') ?? rawDescription;
+    : (getOverrideContent('char_description') ?? rawDescription);
 
   const personality = isPromptFiltered('char_personality', config)
     ? ''
-    : getOverrideContent('char_personality') ?? rawPersonality;
+    : (getOverrideContent('char_personality') ?? rawPersonality);
 
   const persona = isPromptFiltered('persona_description', config)
     ? ''
-    : getOverrideContent('persona_description') ?? rawPersona;
+    : (getOverrideContent('persona_description') ?? rawPersona);
 
-  const scenario = isPromptFiltered('scenario', config) ? '' : getOverrideContent('scenario') ?? rawScenario;
+  const scenario = isPromptFiltered('scenario', config) ? '' : (getOverrideContent('scenario') ?? rawScenario);
 
   const mesExamples = isPromptFiltered('dialogue_examples', config)
     ? ''
-    : (getOverrideContent('dialogue_examples') as string) ?? rawMesExamples;
+    : ((getOverrideContent('dialogue_examples') as string) ?? rawMesExamples);
 
   let mesExamplesArray = parseMesExamples(mesExamples);
   let oaiMessageExamples = [];
@@ -266,35 +267,10 @@ function setPersonaDescriptionExtensionPrompt() {
  */
 async function handleInjectedPrompts(promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>) {
   if (!promptConfig || !Array.isArray(promptConfig.inject)) return;
-
-  const injects = promptConfig.inject;
-
-  const position_map = {
-    before_prompt: extension_prompt_types.BEFORE_PROMPT,
-    in_chat: extension_prompt_types.IN_CHAT,
-    after_prompt: extension_prompt_types.IN_PROMPT,
-    none: extension_prompt_types.NONE,
-  } as const;
-
-  for (const inject of injects) {
-    const validatedInject = {
-      role: roleTypes[inject.role] ?? extension_prompt_roles.SYSTEM,
-      content: inject.content || '',
-      depth: Number(inject.depth) || 0,
-      should_scan: Boolean(inject.should_scan) || true,
-      position: position_map[inject.position as keyof typeof position_map] ?? extension_prompt_types.IN_CHAT,
-    };
-
-    // 设置用户自定义注入提示词
-    setExtensionPrompt(
-      `INJECTION-${inject.depth}-${inject.role}`,
-      validatedInject.content,
-      validatedInject.position,
-      validatedInject.depth,
-      validatedInject.should_scan,
-      validatedInject.role,
-    );
-  }
+  injectPrompts(
+    promptConfig.inject.map(prompt => ({ id: uuidv4(), ...prompt })),
+    { once: true },
+  );
 }
 
 /**
@@ -369,14 +345,14 @@ async function processWorldInfo(
   const finalWorldInfoBefore = isPromptFiltered('world_info_before', config)
     ? null
     : config.overrides?.world_info_before !== undefined
-    ? config.overrides.world_info_before
-    : worldInfoBefore;
+      ? config.overrides.world_info_before
+      : worldInfoBefore;
 
   const finalWorldInfoAfter = isPromptFiltered('world_info_after', config)
     ? null
     : config.overrides?.world_info_after !== undefined
-    ? config.overrides.world_info_after
-    : worldInfoAfter;
+      ? config.overrides.world_info_after
+      : worldInfoAfter;
 
   return {
     worldInfoString,

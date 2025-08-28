@@ -203,6 +203,16 @@ type ReplaceTavernRegexesOption = {
   scope?: 'all' | 'global' | 'character'; // 要替换的酒馆正则部分
 };
 
+export async function render_tavern_regexes() {
+  await saveSettings();
+  // @ts-ignore
+  if (characters[this_chid]) {
+    await saveChatConditional();
+  }
+  await reloadCurrentChat();
+}
+export const render_tavern_regexes_debounced = _.debounce(render_tavern_regexes, 1000);
+
 export async function replaceTavernRegexes(
   regexes: TavernRegex[],
   { scope = 'all' }: ReplaceTavernRegexesOption,
@@ -233,11 +243,7 @@ export async function replaceTavernRegexes(
       await writeExtensionField(this_chid, 'regex_scripts', character_regexes);
     }
   }
-  await saveSettings();
-  if (character) {
-    await saveChatConditional();
-  }
-  await reloadCurrentChat();
+  render_tavern_regexes_debounced();
 
   log.info(`替换酒馆正则\
 ${scope === 'all' || scope === 'global' ? `, 全局正则:\n${JSON.stringify(global_regexes)}` : ``}\

@@ -23,6 +23,40 @@ declare const builtin: {
     },
   ) => void;
   saveSettings: () => Promise<void>;
+  promptManager: {
+    messages: Array<{
+      collection: Array<{
+        identifier: string;
+        role: 'user' | 'assistant' | 'system';
+        content: string;
+        tokens: number;
+      }>;
+      identifier: string;
+    }>;
+    getPromptCollection: () => {
+      collection: Array<{
+        identifier: string;
+        name: string;
+        enabled?: boolean;
+
+        injection_position: 0 | 1;
+        injection_depth: number;
+        injection_order: number;
+
+        role: 'user' | 'assistant' | 'system';
+        content: string;
+
+        system_prompt: boolean;
+        marker?: boolean;
+
+        extra?: Record<string, any>;
+
+        forbid_overrides?: boolean;
+      }>;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
   /** 刷新世界书编辑器的显示 */
   reloadEditor: (file: string, load_if_not_selected?: boolean) => void;
   /** 刷新世界书编辑器的显示 (防抖) */

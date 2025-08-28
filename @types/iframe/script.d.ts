@@ -55,3 +55,13 @@ declare function replaceScriptButtons(buttons: ScriptButton[]): void;
  * appendInexistentScriptButtons([{name: '重新开始', visible: true}]);
  */
 declare function appendInexistentScriptButtons(buttons: ScriptButton[]): void;
+
+/** 获取脚本作者注释 */
+declare function getScriptInfo(): string;
+
+/**
+ * 替换脚本作者注释
+ *
+ * @param info 新的作者注释
+ */
+declare function replaceScriptInfo(info: string): void;

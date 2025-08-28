@@ -1,3 +1,31 @@
+## 3.4.16
+
+### ⏫功能
+
+- 新增导入酒馆角色卡、预设、世界书、酒馆正则功能 (`importRawCharacter` 等接口), 你可以直接从酒馆界面导出角色卡、预设、世界书、酒馆正则，而使用这些函数导入它们, 由此便于有人希望利用 gitlab、github 制作**自动更新角色卡、预设、世界书酒馆正则功能**, 具体见于[类型文件](https://github.com/N0VI028/JS-Slash-Runner/blob/main/%40types/function/import_raw.d.ts)
+
+### 🐛修复
+
+- 修复 `setChatMessage` 在一些情况下渲染出错的问题
+- 修复某些框架不使用酒馆助手模板而依赖了有问题的代码, 在新版本不可用的问题
+
+## 3.4.15
+
+### ⏫功能
+
+- 新增 `injectPrompts` 和 `uninjectPrompts` 函数, 便于注入和移除提示词
+
+### 🐛修复
+
+- 修复 `replaceVariables` 在一些情况下不能正确保存对脚本变量的修改的问题
+
+## 3.4.14
+
+### ⏫功能
+
+- 新增 `getScriptInfo` 和 `replaceScriptInfo` 函数, 便于获取和替换脚本作者注释
+- 对酒馆用于注册函数调用的函数 `SillyTavern.registerFunctionTool` 添加类型定义, 具体见于[类型文件](https://github.com/N0VI028/JS-Slash-Runner/blob/main/%40types/iframe/exported.sillytavern.d.ts)
+
 ## 3.4.13
 
 ### 💻界面
@@ -20,6 +48,7 @@
 ### 🐛修复
 
 - 为流式 `generate` 函数补充 `iframe_events.GENERATION_STARTED` 事件
+- 修复 `createChatMessages` 对 `system` 消息的处理
 
 ## 3.4.12
 

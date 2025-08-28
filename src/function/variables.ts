@@ -1,3 +1,4 @@
+import { scriptEvents, ScriptRepositoryEventType } from '@/component/script_repository/events';
 import { ScriptManager } from '@/component/script_repository/script_controller';
 import { getChatMessages, setChatMessages } from '@/function/chat_message';
 import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
@@ -12,7 +13,6 @@ import {
   this_chid,
 } from '@sillytavern/script';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
-import _ from 'lodash';
 
 import log from 'loglevel';
 
@@ -144,8 +144,13 @@ export async function replaceVariables(
         if (!script) {
           throw Error(`保存变量失败, '${script_id}' 脚本不存在`);
         }
+        script.data = variables;
         const script_type = script_manager['scriptData'].getScriptType(script);
-        await script_manager.updateScriptVariables(script_id, variables, script_type);
+        scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
+          action: 'script_update',
+          script,
+          type: script_type,
+        });
       }
       break;
   }

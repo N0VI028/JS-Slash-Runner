@@ -3,55 +3,34 @@ import { handlePresetPath } from '@/function/generate/generate';
 import { handleCustomPath } from '@/function/generate/generateRaw';
 import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
-import { detail, GenerateConfig, GenerateRawConfig, InjectionPrompt, Overrides } from '@/function/generate/types';
+import { detail, GenerateConfig, GenerateRawConfig, Overrides } from '@/function/generate/types';
 import { setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
 
 import { event_types, eventSource, stopGeneration } from '@sillytavern/script';
-import { uuidv4 } from '@sillytavern/scripts/utils';
 
 import log from 'loglevel';
 
 declare const $: any;
 
-const generationControllers = new Map<string, AbortController>();
+let abortController = new AbortController();
 
-/**
- * 中断指定的生成请求
- * @param id 生成ID
- */
-export function stopGenerationById(id: string) {
-  if (generationControllers.has(id)) {
-    const controller = generationControllers.get(id);
-    controller?.abort(`Generation stopped by id: ${id}`);
-    generationControllers.delete(id);
-    log.info(`[Generate:停止] 已中断生成任务: ${id}`);
-    return true;
-  }
-  return false;
-}
-
-/**
- * 中断所有TH-generate的生成任务
- */
-export function stopAllGeneration() {
-  for (const [id, controller] of generationControllers.entries()) {
-    controller.abort(`Generation stopped by id: ${id}`);
-  }
-  generationControllers.clear();
-}
+let currentImageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined;
 
 /**
  * 清理图片处理相关的监听器和Promise
  */
-function cleanupImageProcessing(imageProcessingSetup?: ReturnType<typeof setupImageArrayProcessing>): void {
-  if (imageProcessingSetup) {
+function cleanupImageProcessing(): void {
+  if (currentImageProcessingSetup) {
     try {
-      imageProcessingSetup.cleanup();
-      imageProcessingSetup.rejectImageProcessing(new Error('Generation stopped'));
+      currentImageProcessingSetup.cleanup();
+
+      currentImageProcessingSetup.rejectImageProcessing(new Error('Generation stopped by user'));
+
       log.info('[Generate:停止] 已清理图片处理相关逻辑');
     } catch (error) {
       log.warn('[Generate:停止] 清理图片处理时出错:', error);
     }
+    currentImageProcessingSetup = undefined;
   }
 }
 
@@ -77,40 +56,18 @@ export function fromOverrides(overrides: Overrides): detail.OverrideConfig {
 }
 
 /**
- * 从InjectionPrompt转换为InjectionPrompt
- * @param inject 注入提示词
- * @returns InjectionPrompt
- */
-export function fromInjectionPrompt(inject: InjectionPrompt): InjectionPrompt {
-  const position_map = {
-    before_prompt: 'before_prompt',
-    in_chat: 'in_chat',
-    after_prompt: 'after_prompt',
-    none: 'none',
-  } as const;
-  return {
-    role: inject.role,
-    content: inject.content,
-    position: position_map[inject.position] as 'before_prompt' | 'in_chat' | 'after_prompt' | 'none',
-    depth: inject.depth,
-    should_scan: inject.should_scan,
-  };
-}
-
-/**
  * 从GenerateConfig转换为detail.GenerateParams
  * @param config 生成配置
  * @returns detail.GenerateParams
  */
 export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParams {
   return {
-    id: config.id,
     user_input: config.user_input,
     use_preset: true,
     image: config.image,
     stream: config.should_stream ?? false,
     overrides: config.overrides !== undefined ? fromOverrides(config.overrides) : undefined,
-    inject: config.injects !== undefined ? config.injects.map(fromInjectionPrompt) : undefined,
+    inject: config.injects,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
     custom_api: config.custom_api,
   };
@@ -123,14 +80,13 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
  */
 export function fromGenerateRawConfig(config: GenerateRawConfig): detail.GenerateParams {
   return {
-    id: config.id,
     user_input: config.user_input,
     use_preset: false,
     image: config.image,
     stream: config.should_stream ?? false,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
     overrides: config.overrides ? fromOverrides(config.overrides) : undefined,
-    inject: config.injects ? config.injects.map(fromInjectionPrompt) : undefined,
+    inject: config.injects,
     order: config.ordered_prompts,
     custom_api: config.custom_api,
   };
@@ -150,7 +106,6 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
  * @returns Promise<string> 生成的响应文本
  */
 async function iframeGenerate({
-  id,
   user_input = '',
   use_preset = true,
   image = undefined,
@@ -161,78 +116,67 @@ async function iframeGenerate({
   stream = false,
   custom_api = undefined,
 }: detail.GenerateParams = {}): Promise<string> {
-  const generationId = id || uuidv4();
-  const abortController = new AbortController();
-  generationControllers.set(generationId, abortController);
-  let imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined;
+  abortController = new AbortController();
 
-  try {
-    // 1. 处理用户输入和图片（正则，宏，图片数组）
-    const inputResult = await processUserInputWithImages(user_input, use_preset, image);
-    const { processedUserInput, processedImageArray } = inputResult;
-    imageProcessingSetup = inputResult.imageProcessingSetup;
+  // 1. 处理用户输入和图片（正则，宏，图片数组）
+  const inputResult = await processUserInputWithImages(user_input, use_preset, image);
+  const { processedUserInput, imageProcessingSetup, processedImageArray } = inputResult;
 
-    await eventSource.emit(event_types.GENERATION_AFTER_COMMANDS, 'quiet', {}, false);
+  currentImageProcessingSetup = imageProcessingSetup;
 
-    // 2. 准备过滤后的基础数据
-    const baseData = await prepareAndOverrideData(
-      {
+  await eventSource.emit(event_types.GENERATION_AFTER_COMMANDS, 'quiet', {}, false);
+
+  // 2. 准备过滤后的基础数据
+  const baseData = await prepareAndOverrideData(
+    {
+      overrides,
+      max_chat_history,
+      inject,
+      order,
+    },
+    processedUserInput,
+  );
+
+  // 3. 根据 use_preset 分流处理
+  const generate_data = use_preset
+    ? await handlePresetPath(baseData, processedUserInput, {
+        image,
         overrides,
         max_chat_history,
         inject,
         order,
-      },
-      processedUserInput,
-    );
-
-    // 3. 根据 use_preset 分流处理
-    const generate_data = use_preset
-      ? await handlePresetPath(baseData, processedUserInput, {
+      })
+    : await handleCustomPath(
+        baseData,
+        {
           image,
           overrides,
           max_chat_history,
           inject,
           order,
-        })
-      : await handleCustomPath(
-          baseData,
-          {
-            image,
-            overrides,
-            max_chat_history,
-            inject,
-            order,
-            processedImageArray,
-          },
-          processedUserInput,
-        );
+          processedImageArray,
+        },
+        processedUserInput,
+      );
 
-    await eventSource.emit(event_types.GENERATE_AFTER_DATA, generate_data);
+  await eventSource.emit(event_types.GENERATE_AFTER_DATA, generate_data);
+
+  try {
     // 4. 根据 stream 参数决定生成方式
-    log.info(`[Generate:发送提示词] (id: ${generationId})`, generate_data);
-    const result = await generateResponse(
-      generate_data,
-      stream,
-      generationId,
-      imageProcessingSetup,
-      abortController,
-      custom_api,
-    );
+    log.info('[Generate:发送提示词]', generate_data);
+    const result = await generateResponse(generate_data, stream, imageProcessingSetup, abortController, custom_api);
+
+    currentImageProcessingSetup = undefined;
 
     return result;
   } catch (error) {
     if (imageProcessingSetup) {
       imageProcessingSetup.rejectImageProcessing(error);
     }
+
+    currentImageProcessingSetup = undefined;
+
     throw error;
-  } finally {
-    // 清理
-    cleanupImageProcessing(imageProcessingSetup);
-    generationControllers.delete(generationId);
-    // 如果所有生成都已结束，则解锁UI
-    if (generationControllers.size === 0) {
-      unblockGeneration();
-    }
   }
 }
 
@@ -252,12 +196,12 @@ export async function generateRaw(config: GenerateRawConfig) {
 $(document).on('click', '#mes_stop', function () {
   const wasStopped = stopGeneration();
   if (wasStopped) {
-    log.info(`[Generate:停止] 正在中断所有 ${generationControllers.size} 个生成任务...`);
-    for (const [id, controller] of generationControllers.entries()) {
-      controller.abort('Clicked stop button');
-      log.info(`[Generate:停止] > 已发送中断信号给 ${id}`);
+    if (abortController) {
+      abortController.abort('Clicked stop button');
     }
-    generationControllers.clear();
-    unblockGeneration(); 
+
+    cleanupImageProcessing();
+
+    unblockGeneration();
   }
 });

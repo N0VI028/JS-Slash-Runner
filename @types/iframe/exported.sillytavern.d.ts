@@ -393,7 +393,7 @@ declare const SillyTavern: {
    * @param depth 深度
    * @param scan 是否作为欲扫描文本, 加入世界书绿灯条目扫描文本中
    * @param role 消息角色. 0 为 system, 1 为 user, 2 为 assistant
-   * @param filter 提示词在什么情况下有效
+   * @param filter 提示词在什么情况下启用
    */
   readonly setExtensionPrompt: (
     prompt_id: string,
@@ -447,7 +447,25 @@ declare const SillyTavern: {
   readonly timestampToMoment: (timestamp: string | number) => any;
   readonly registerMacro: (key: string, value: string | ((text: string) => string), description?: string) => void;
   readonly unregisterMacro: (key: string) => void;
-  readonly registerFunctionTool: (options: any, ...args: any[]) => void;
+  readonly registerFunctionTool: (tool: {
+    /** 工具名称 */
+    name: string;
+    /** 工具显示名称 */
+    displayName: string;
+    /** 工具描述 */
+    description: string;
+    /** 对函数参数的 JSON schema 定义, 可以通过 zod 的 z.toJSONSchema 来得到 */
+    parameters: Record<string, any>;
+    /** 要注册的函数调用工具 */
+    action: ((args: Record<string, any>) => string) | ((args: Record<string, any>) => Promise<string>);
+
+    /** 要如何格式化函数调用结果消息; 默认不进行任何操作, 显示为 `'Invoking tool: 工具显示名称'` */
+    formatMessage?: (args: Record<string, any>) => string;
+    /** 在下次聊天补全请求时是否注册本工具; 默认为始终注册 */
+    shouldRegister?: (() => boolean) | (() => Promise<boolean>);
+    /** 是否不在楼层中用一层楼显示函数调用结果, `true` 则不显示且将不会触发生成; 默认为 false */
+    stealth?: boolean;
+  }) => void;
   readonly unregisterFunctionTool: (name: string) => void;
   readonly isToolCallingSupported: () => boolean;
   readonly canPerformToolCalls: (type: string) => boolean;

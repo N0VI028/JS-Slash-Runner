@@ -1,3 +1,14 @@
+import {
+  BaseData,
+  RolePrompt,
+  builtin_prompt_default_order,
+  character_names_behavior,
+  default_order,
+  detail,
+} from '@/function/generate/types';
+import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
+import { InjectionPrompt, injectPrompts } from '@/function/inject';
+
 import { MAX_INJECTION_DEPTH, getExtensionPromptByName, substituteParams } from '@sillytavern/script';
 import { NOTE_MODULE_NAME } from '@sillytavern/scripts/authors-note';
 import { getContext } from '@sillytavern/scripts/extensions';
@@ -11,20 +22,9 @@ import {
 } from '@sillytavern/scripts/openai';
 import { persona_description_positions, power_user } from '@sillytavern/scripts/power-user';
 import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
 import log from 'loglevel';
-
-import {
-  BaseData,
-  InjectionPrompt,
-  RolePrompt,
-  builtin_prompt_default_order,
-  character_names_behavior,
-  default_order,
-  detail,
-} from '@/function/generate/types';
-
-import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
 
 /**
  * @fileoverview 原始生成路径处理模块 - 不使用预设的生成逻辑
@@ -281,7 +281,7 @@ async function processChatHistoryAndInject(
 async function populationInjectionPrompts(
   baseData: BaseData,
   messages: RolePrompt[],
-  customInjects: InjectionPrompt[] = [],
+  customInjects: Omit<InjectionPrompt, 'id'>[] = [],
   config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
 ) {
   const processedMessages = [...messages];
@@ -331,15 +331,10 @@ async function populationInjectionPrompts(
 
   // 处理自定义注入
   if (Array.isArray(customInjects)) {
-    for (const inject of customInjects) {
-      injectionPrompts.push({
-        identifier: `INJECTION-${inject.role}-${inject.depth}`,
-        role: inject.role,
-        content: inject.content,
-        injection_depth: inject.depth || 0,
-        injected: true,
-      });
-    }
+    injectPrompts(
+      customInjects.map(inject => ({ id: uuidv4(), ...inject })),
+      { once: true },
+    );
   }
 
   for (let i = 0; i <= MAX_INJECTION_DEPTH; i++) {

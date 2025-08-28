@@ -47,6 +47,40 @@ declare const builtin: {
     },
   ) => void;
   saveSettings: () => Promise<void>;
+  promptManager: {
+    messages: Array<{
+      collection: Array<{
+        identifier: string;
+        role: 'user' | 'assistant' | 'system';
+        content: string;
+        tokens: number;
+      }>;
+      identifier: string;
+    }>;
+    getPromptCollection: () => {
+      collection: Array<{
+        identifier: string;
+        name: string;
+        enabled?: boolean;
+
+        injection_position: 0 | 1;
+        injection_depth: number;
+        injection_order: number;
+
+        role: 'user' | 'assistant' | 'system';
+        content: string;
+
+        system_prompt: boolean;
+        marker?: boolean;
+
+        extra?: Record<string, any>;
+
+        forbid_overrides?: boolean;
+      }>;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
   /** 刷新世界书编辑器的显示 */
   reloadEditor: (file: string, load_if_not_selected?: boolean) => void;
   /** 刷新世界书编辑器的显示 (防抖) */
@@ -532,7 +566,7 @@ type GenerateConfig = {
   overrides?: Overrides;
 
   /** 要额外注入的提示词 */
-  injects?: InjectionPrompt[];
+  injects?: Omit<InjectionPrompt, 'id'>[];
 
   /** 最多使用多少条聊天历史; 默认为 'all' */
   max_chat_history?: 'all' | number;
@@ -582,7 +616,7 @@ type GenerateRawConfig = {
    */
   overrides?: Overrides;
 
-  injects?: InjectionRawPrompt[];
+  injects?: Omit<InjectionPrompt, 'id'>[];
 
   /**
    * 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设. 该数组允许存放两种类型:
@@ -610,32 +644,6 @@ type RolePrompt = {
   role: 'system' | 'assistant' | 'user';
   content: string;
   image?: File | string | (File | string)[];
-};
-
-type InjectionPrompt = {
-  role: 'system' | 'assistant' | 'user';
-  content: string;
-
-  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
-  position: 'before_prompt' | 'in_chat' | 'after_prompt' | 'none';
-
-  depth: number;
-
-  /** 是否要加入世界书扫描中 */
-  should_scan: boolean;
-};
-
-type InjectionRawPrompt = {
-  role: 'system' | 'assistant' | 'user';
-  content: string;
-
-  /** 要注入的位置. 'none' 不会发给 ai, 但能用来激活世界书条目. */
-  position: 'in_chat' | 'none';
-
-  depth: number;
-
-  /** 是否要加入世界书扫描中 */
-  should_scan: boolean;
 };
 
 type Overrides = {
@@ -690,7 +698,7 @@ type BuiltinPrompt =
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
  *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
- *   - `injects?:InjectionPrompt[]`: 要额外注入的提示词
+ *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
  * @returns 生成的最终文本
  *
@@ -744,7 +752,7 @@ declare function generate(config: GenerateConfig): Promise<string>;
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
  *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
- *   - `injects?:InjectionPrompt[]`: 要额外注入的提示词
+ *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
  *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设
  * @returns 生成的最终文本
@@ -779,6 +787,37 @@ declare function generate(config: GenerateConfig): Promise<string>;
  * })
  */
 declare function generateRaw(config: GenerateRawConfig): Promise<string>;
+/**
+ * 像酒馆界面里那样导入角色卡
+ *
+ * @param filename 角色卡名
+ * @param content 角色卡文件内容
+ */
+declare function importRawCharacter(filename: string, content: Blob): Promise<Response>;
+
+/**
+ * 像酒馆界面里那样导入预设
+ *
+ * @param filename 预设名
+ * @param content 预设文件内容
+ */
+declare function importRawPreset(filename: string, content: string): Promise<Response>;
+
+/**
+ * 像酒馆界面里那样导入世界书
+ *
+ * @param filename 世界书名
+ * @param content 世界书文件内容
+ */
+declare function importRawWorldbook(filename: string, content: string): Promise<Response>;
+
+/**
+ * 像酒馆界面里那样导入酒馆正则
+ *
+ * @param filename 酒馆正则名
+ * @param content 酒馆正则文件内容
+ */
+declare function importRawTavernRegex(filename: string, content: string): boolean;
 interface Window {
   /**
    * 酒馆助手提供的额外功能, 具体内容见于 https://n0vi028.github.io/JS-Slash-Runner-Doc
@@ -812,6 +851,16 @@ interface Window {
     // displayed_message
     readonly formatAsDisplayedMessage: typeof formatAsDisplayedMessage;
     readonly retrieveDisplayedMessage: typeof retrieveDisplayedMessage;
+
+    // import_raw
+    readonly importRawCharacter: typeof importRawCharacter;
+    readonly importRawPreset: typeof importRawPreset;
+    readonly importRawWorldbook: typeof importRawWorldbook;
+    readonly importRawTavernRegex: typeof importRawTavernRegex;
+
+    // inject
+    readonly injectPrompts: typeof injectPrompts;
+    readonly uninjectPrompts: typeof uninjectPrompts;
 
     // generate
     readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
@@ -904,6 +953,49 @@ interface Window {
     readonly updateWorldbookWith: typeof updateWorldbookWith;
   };
 }
+type InjectionPrompt = {
+  id: string;
+  /**
+   * 要注入的位置
+   * - 'in_chat': 插入到聊天中
+   * - 'none': 不会发给 AI, 但能用来激活世界书条目.
+   */
+  position: 'in_chat' | 'none';
+  depth: number;
+
+  role: 'system' | 'assistant' | 'user';
+  content: string;
+
+  /** 提示词在什么情况下启用; 默认为始终 */
+  filter?: (() => boolean) | (() => Promise<boolean>);
+  /** 是否作为欲扫描文本, 加入世界书绿灯条目扫描文本中; 默认为任意 */
+  should_scan?: boolean;
+};
+
+type injectPromptsOptions = {
+  /** 是否只在下一次请求生成中有效; 默认为 false */
+  once?: boolean;
+};
+
+/**
+ * 注入提示词
+ *
+ * 这样注入的提示词仅在当前聊天文件中有效,
+ * - 如果需要跨聊天文件注入或在新开聊天时重新注入, 你可以监听 `tavern_events.CHAT_CHANGED` 事件.
+ * - 或者, 可以监听 `tavern_events.GENERATION_AFTER_COMMANDS` 事件, 在生成前注入.
+ *
+ * @param prompts 要注入的提示词
+ * @param options 可选选项
+ *   - `once:boolean`: 是否只在下一次请求生成中有效; 默认为 false
+ */
+declare function injectPrompts(prompts: InjectionPrompt[], options?: injectPromptsOptions): void;
+
+/**
+ * 移除注入的提示词
+ *
+ * @param ids 要移除的提示词的 id 列表
+ */
+declare function uninjectPrompts(ids: string[]): void;
 /** @deprecated 请使用内置库 "世界书强制用推荐的全局设置" */
 type LorebookSettings = {
   selected_global_lorebooks: string[];
@@ -2339,12 +2431,14 @@ interface ListenerType {
   [tavern_events.GROUP_CHAT_CREATED]: () => void;
   [tavern_events.GENERATE_BEFORE_COMBINE_PROMPTS]: () => void;
   [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
-  [tavern_events.GENERATE_AFTER_DATA]: (generate_data: Object) => void;
+  [tavern_events.GENERATE_AFTER_DATA]: (generate_data: {
+    prompt: { role: 'user' | 'assistant' | 'system'; content: string }[];
+  }) => void;
   [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
   [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
   [tavern_events.CHAT_COMPLETION_SETTINGS_READY]: (generate_data: {
-    messages: { role: string; content: string }[];
+    messages: { role: 'user' | 'assistant' | 'system'; content: string }[];
     model: string;
     temprature: number;
     frequency_penalty: number;
@@ -3073,7 +3167,7 @@ declare const SillyTavern: {
    * @param depth 深度
    * @param scan 是否作为欲扫描文本, 加入世界书绿灯条目扫描文本中
    * @param role 消息角色. 0 为 system, 1 为 user, 2 为 assistant
-   * @param filter 提示词在什么情况下有效
+   * @param filter 提示词在什么情况下启用
    */
   readonly setExtensionPrompt: (
     prompt_id: string,
@@ -3127,7 +3221,25 @@ declare const SillyTavern: {
   readonly timestampToMoment: (timestamp: string | number) => any;
   readonly registerMacro: (key: string, value: string | ((text: string) => string), description?: string) => void;
   readonly unregisterMacro: (key: string) => void;
-  readonly registerFunctionTool: (options: any, ...args: any[]) => void;
+  readonly registerFunctionTool: (tool: {
+    /** 工具名称 */
+    name: string;
+    /** 工具显示名称 */
+    displayName: string;
+    /** 工具描述 */
+    description: string;
+    /** 对函数参数的 JSON schema 定义, 可以通过 zod 的 z.toJSONSchema 来得到 */
+    parameters: Record<string, any>;
+    /** 要注册的函数调用工具 */
+    action: ((args: Record<string, any>) => string) | ((args: Record<string, any>) => Promise<string>);
+
+    /** 要如何格式化函数调用结果消息; 默认不进行任何操作, 显示为 `'Invoking tool: 工具显示名称'` */
+    formatMessage?: (args: Record<string, any>) => string;
+    /** 在下次聊天补全请求时是否注册本工具; 默认为始终注册 */
+    shouldRegister?: (() => boolean) | (() => Promise<boolean>);
+    /** 是否不在楼层中用一层楼显示函数调用结果, `true` 则不显示且将不会触发生成; 默认为 false */
+    stealth?: boolean;
+  }) => void;
   readonly unregisterFunctionTool: (name: string) => void;
   readonly isToolCallingSupported: () => boolean;
   readonly canPerformToolCalls: (type: string) => boolean;
@@ -3346,6 +3458,16 @@ declare function replaceScriptButtons(buttons: ScriptButton[]): void;
  * appendInexistentScriptButtons([{name: '重新开始', visible: true}]);
  */
 declare function appendInexistentScriptButtons(buttons: ScriptButton[]): void;
+
+/** 获取脚本作者注释 */
+declare function getScriptInfo(): string;
+
+/**
+ * 替换脚本作者注释
+ *
+ * @param info 新的作者注释
+ */
+declare function replaceScriptInfo(info: string): void;
 /**
  * 获取 iframe 的名称
  *

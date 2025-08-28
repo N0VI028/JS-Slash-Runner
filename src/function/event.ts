@@ -1,4 +1,4 @@
-import { _getButtonEvent } from '@/function/script_button';
+import { _getButtonEvent } from '@/function/script';
 import { get_or_set } from '@/util/map_util';
 
 import { eventSource } from '@sillytavern/script';
@@ -273,7 +273,7 @@ export type ListenerType = {
   [tavern_events.GROUP_CHAT_CREATED]: () => void;
   [tavern_events.GENERATE_BEFORE_COMBINE_PROMPTS]: () => void;
   [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
-  [tavern_events.GENERATE_AFTER_DATA]: (generate_data: Object) => void;
+  [tavern_events.GENERATE_AFTER_DATA]: (generate_data: { prompt: { role: string; content: string }[] }) => void;
   [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
   [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;

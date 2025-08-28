@@ -34,6 +34,8 @@ import {
 import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
 
 import { builtin_prompt_default_order } from '@/function/generate/types';
+import { importRawCharacter, importRawPreset, importRawTavernRegex, importRawWorldbook } from '@/function/import_raw';
+import { injectPrompts, uninjectPrompts } from '@/function/inject';
 import {
   createLorebook,
   deleteLorebook,
@@ -78,8 +80,10 @@ import {
   _appendInexistentScriptButtons,
   _getButtonEvent,
   _getScriptButtons,
+  _getScriptInfo,
   _replaceScriptButtons,
-} from '@/function/script_button';
+  _replaceScriptInfo,
+} from '@/function/script';
 import { triggerSlash } from '@/function/slash';
 import {
   formatAsTavernRegexedString,
@@ -143,11 +147,13 @@ function getTavernHelper() {
       _eventClearListener,
       _eventClearAll,
 
-      // script_button
+      // script
       _getButtonEvent,
       _getScriptButtons,
       _replaceScriptButtons,
       _appendInexistentScriptButtons,
+      _getScriptInfo,
+      _replaceScriptInfo,
 
       // variables
       _getAllVariables,
@@ -190,6 +196,16 @@ function getTavernHelper() {
     // event
     tavern_events,
     iframe_events,
+
+    // import_raw
+    importRawCharacter,
+    importRawPreset,
+    importRawWorldbook,
+    importRawTavernRegex,
+
+    // inject
+    injectPrompts,
+    uninjectPrompts,
 
     // generate
     builtin_prompt_default_order,

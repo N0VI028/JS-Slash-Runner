@@ -48,3 +48,25 @@ export function _appendInexistentScriptButtons(
 
   _replaceScriptButtons.call(this, [...script_buttons, ...inexistent_buttons]);
 }
+
+export function _getScriptInfo(this: Window): string {
+  const script_id = _getScriptId.call(this);
+  const script = ScriptManager.getInstance().getScriptById(script_id);
+  if (!script) {
+    throw new Error(`脚本不存在: ${script_id}`);
+  }
+  return script.info;
+}
+
+export function _replaceScriptInfo(this: Window, info: string): void {
+  const script = ScriptManager.getInstance().getScriptById(_getScriptId.call(this));
+
+  if (!script) {
+    throw new Error(`脚本不存在: ${_getScriptId.call(this)}`);
+  }
+
+  const type = ScriptData.getInstance().getScriptType(script);
+
+  script.info = info;
+  ScriptManager.getInstance().updateScript(script, type);
+}
