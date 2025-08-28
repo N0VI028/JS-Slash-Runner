@@ -59,6 +59,8 @@
     "mark.js": "^8.11.1",
     "socket.io-client": "^4.8.1",
     "type-fest": "^4.41.0",
+    "vue": "^3.5.20",
+    "vue-loader": "^17.4.2",
     "zod": "^4.1.4"
   }
 }
