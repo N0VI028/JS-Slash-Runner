@@ -10,6 +10,8 @@ import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue
 import { eventSource, event_types, reloadCurrentChat, this_chid, updateMessageBlock } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 
+import log from 'loglevel';
+
 const RENDER_MODES = {
   FULL: 'FULL',
   PARTIAL: 'PARTIAL',
