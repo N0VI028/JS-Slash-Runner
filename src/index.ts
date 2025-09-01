@@ -1,7 +1,7 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initExtensionMainPanel } from '@/component/index';
 import { initListener } from '@/component/listener';
-import { derenderAllMacros, destroyMacroOnExtension, initializeMacroOnExtension, renderAllMacros } from '@/component/macrolike';
+import { destroyMacroOnExtension, initializeMacroOnExtension } from '@/component/macrolike';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';

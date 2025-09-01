@@ -1,3 +1,4 @@
+import { getButtonId } from '@/component/script_repository/button';
 import { ScriptData } from '@/component/script_repository/data';
 import { ScriptManager } from '@/component/script_repository/script_controller';
 import { _getScriptId } from '@/function/util';
@@ -8,7 +9,7 @@ type ScriptButton = {
 };
 
 export function _getButtonEvent(this: Window, button_name: string): string {
-  return `${String(_getScriptId.call(this))}_${button_name}`;
+  return getButtonId(String(_getScriptId.call(this)), button_name);
 }
 
 export function _getScriptButtons(this: Window): ScriptButton[] {

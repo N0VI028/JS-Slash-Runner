@@ -111,7 +111,7 @@ type SetChatMessagesOption = {
    * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 事件
    */
   refresh?: 'none' | 'affected' | 'all';
-}
+};
 
 /**
  * 修改聊天消息的数据
@@ -146,7 +146,7 @@ type SetChatMessagesOption = {
 declare function setChatMessages(
   chat_messages: Array<{ message_id: number } & (Partial<ChatMessage> | Partial<ChatMessageSwiped>)>,
   { refresh }?: SetChatMessagesOption,
-);
+): Promise<void>;
 
 type ChatMessageCreating = {
   name?: string;
@@ -154,7 +154,7 @@ type ChatMessageCreating = {
   is_hidden?: boolean;
   message: string;
   data?: Record<string, any>;
-}
+};
 
 type CreateChatMessagesOption = {
   /** 插入到指定楼层前或末尾; 默认为末尾 */
@@ -167,7 +167,7 @@ type CreateChatMessagesOption = {
    * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 事件
    */
   refresh?: 'none' | 'affected' | 'all';
-}
+};
 
 /**
  * 创建聊天消息
@@ -197,7 +197,7 @@ type DeleteChatMessagesOption = {
    * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 事件
    */
   refresh?: 'none' | 'all';
-}
+};
 
 /**
  * 删除聊天消息
@@ -223,7 +223,7 @@ type RotateChatMessagesOption = {
    * - `'all'`: 重新载入整个聊天消息, 将会触发 `tavern_events.CHAT_CHANGED` 事件
    */
   refresh?: 'none' | 'all';
-}
+};
 
 /**
  * 将原本顺序是 `[begin, middle) [middle, end)` 的楼层旋转为 `[middle, end) [begin, middle)`

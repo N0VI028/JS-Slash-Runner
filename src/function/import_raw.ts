@@ -1,8 +1,8 @@
 import { getRequestHeaders } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 import { uuidv4 } from '@sillytavern/scripts/utils';
-import { updateWorldInfoList } from '@sillytavern/scripts/world-info';
 import { render_tavern_regexes_debounced } from './tavern_regex';
+import { updateWorldInfoList } from '@/compatibility';
 
 export async function importRawCharacter(filename: string, content: Blob): Promise<Response> {
   const file = new File([content], filename, { type: 'image/png' });

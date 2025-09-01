@@ -1,4 +1,29 @@
-import { world_names } from '@sillytavern/scripts/world-info';
+import { getRequestHeaders } from '@sillytavern/script';
+import { selected_world_info, world_names } from '@sillytavern/scripts/world-info';
+
+export async function updateWorldInfoList() {
+  const result = await fetch('/api/settings/get', {
+    method: 'POST',
+    headers: getRequestHeaders(),
+    body: JSON.stringify({}),
+  });
+
+  if (result.ok) {
+    const data = await result.json();
+
+    world_names.length = 0;
+    world_names.push(...(data.world_names?.length ? data.world_names : []));
+    $('#world_info').find('option[value!=""]').remove();
+    $('#world_editor_select').find('option[value!=""]').remove();
+
+    world_names.forEach((item, i) => {
+      $('#world_info').append(
+        `<option value='${i}'${selected_world_info.includes(item) ? ' selected' : ''}>${item}</option>`,
+      );
+      $('#world_editor_select').append(`<option value='${i}'>${item}</option>`);
+    });
+  }
+}
 
 /**
  * Reloads the editor with the specified world info file

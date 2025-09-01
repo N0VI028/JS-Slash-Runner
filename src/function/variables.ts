@@ -99,7 +99,7 @@ export function _getAllVariables(this: Window): Record<string, any> {
     data = _.merge(
       data,
       ...chat
-        .slice(0, _getCurrentMessageId.call(this))
+        .slice(0, _getCurrentMessageId.call(this) + 1)
         .map((chat_message: any) => chat_message?.variables?.[chat_message?.swipe_id ?? 0]),
     );
   }
@@ -151,6 +151,7 @@ export async function replaceVariables(
           script,
           type: script_type,
         });
+        await script_manager.updateScriptVariables(script_id, variables, script_type);
       }
       break;
   }

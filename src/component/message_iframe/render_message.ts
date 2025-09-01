@@ -2,7 +2,6 @@ import {
   addToggleButtonToCodeBlock,
   removeCodeToggleButtonsByMesId,
 } from '@/component/message_iframe/render_hide_style';
-import { extractTextFromCode } from '@/component/message_iframe/utils';
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue } from '@/util/extension_variables';
@@ -84,9 +83,10 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     let iframeCounter = 1;
 
     $codeElements.each(function () {
-      let extractedText = extractTextFromCode(this);
+      let extractedText = $(this).text();
       if (extractedText.includes('<body') && extractedText.includes('</body>')) {
         const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
+        const enableBlobUrlRendering = /<!--\s*enable-blob-url-render\s*-->/.test(extractedText);
         const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
         const hasJsVhUsage = /\d+vh/.test(extractedText);
 
@@ -136,8 +136,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
         }
 
         $wrapper.append($iframe);
-
-        const srcdocContent = `
+        const srcContent = `
             <html>
             <head>
               <style>
@@ -146,6 +145,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
               .user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
               .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
               </style>
+              ${enableBlobUrlRendering ? `<base href="${window.location.origin}/">` : ``}
               ${third_party}
               <script src="${script_url.get('iframe')}"></script>
             </head>
@@ -156,8 +156,13 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
             </html>
           `;
 
-        $iframe.attr('srcdoc', srcdocContent);
-
+        if (enableBlobUrlRendering) {
+          const blob = new Blob([srcContent], { type: 'text/html' });
+          const blobUrl = URL.createObjectURL(blob);
+          $iframe.attr('src', blobUrl);
+        } else {
+          $iframe.attr('srcdoc', srcContent);
+        }
         $iframe.on('load', function () {
           observeIframeContent(this);
 

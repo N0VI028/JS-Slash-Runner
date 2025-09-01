@@ -1,8 +1,14 @@
 import { ScriptManager } from '@/component/script_repository/script_controller';
 import { Script } from '@/component/script_repository/types';
+
 import { eventSource } from '@sillytavern/script';
+import { getStringHash } from '@sillytavern/scripts/utils';
 
 import log from 'loglevel';
+
+export function getButtonId(scriptId: string, name: string): string {
+  return `${scriptId}_${getStringHash(name)}`;
+}
 
 let isQrEnabled = false;
 let isCombined = false;
@@ -13,7 +19,7 @@ export abstract class Button {
   scriptId: string;
 
   constructor(name: string, scriptId: string, visible: boolean = true) {
-    this.id = `${scriptId}_${name}`;
+    this.id = getButtonId(scriptId, name);
     this.name = name;
     this.scriptId = scriptId;
     this.visible = visible;
@@ -41,6 +47,9 @@ export class ScriptButton extends Button {
     $(`#${this.id}`).on('click', () => {
       eventSource.emit(this.id);
       log.info(`[ScriptManager] 点击按钮：${this.id}`);
+    });
+    $(`#${this.id}`).on('pointerdown', function (event) {
+      event.originalEvent?.preventDefault();
     });
   }
 }
