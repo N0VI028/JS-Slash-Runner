@@ -11,7 +11,7 @@ import {
 import { t } from '@sillytavern/scripts/i18n';
 import { oai_settings, sendOpenAIRequest } from '@sillytavern/scripts/openai';
 import { power_user } from '@sillytavern/scripts/power-user';
-import { Stopwatch } from '@sillytavern/scripts/utils';
+import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
 
 import log from 'loglevel';
 // @ts-ignore
@@ -169,7 +169,7 @@ async function handleResponse(response: any, generationId: string) {
 export async function generateResponse(
   generate_data: any,
   useStream = false,
-  generationId: string,
+  generationId: string | undefined = undefined,
   imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined,
   abortController: AbortController,
   customApi?: CustomApiConfig,
@@ -219,7 +219,9 @@ export async function generateResponse(
         throw new Error(`图片处理失败: ${imageError?.message || '未知错误'}`);
       }
     }
-
+    if (generationId === undefined || generationId === '') {
+      generationId = uuidv4();
+    }
     eventSource.emit('js_generation_started', generationId);
     if (useStream) {
       const originalStreamSetting = oai_settings.stream_openai;
@@ -258,5 +260,3 @@ export async function generateResponse(
   }
   return result;
 }
-
-

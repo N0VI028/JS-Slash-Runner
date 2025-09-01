@@ -9,7 +9,7 @@ import {
 import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
 import { InjectionPrompt, injectPrompts } from '@/function/inject';
 
-import { MAX_INJECTION_DEPTH, getExtensionPromptByName, substituteParams } from '@sillytavern/script';
+import { MAX_INJECTION_DEPTH, event_types, eventSource, getExtensionPromptByName, substituteParams } from '@sillytavern/script';
 import { NOTE_MODULE_NAME } from '@sillytavern/scripts/authors-note';
 import { getContext } from '@sillytavern/scripts/extensions';
 import {
@@ -447,5 +447,6 @@ export async function handleCustomPath(
     await chatCompletion.squashSystemMessages();
   }
   const prompt = chatCompletion.getChat();
+  eventSource.emit(event_types.CHAT_COMPLETION_PROMPT_READY, {chat:prompt,dryRun:false});
   return { prompt };
 }

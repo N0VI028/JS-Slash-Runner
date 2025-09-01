@@ -5,7 +5,6 @@ import path from 'node:path';
 import url from 'node:url';
 import TerserPlugin from 'terser-webpack-plugin';
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin';
-import { VueLoaderPlugin } from 'vue-loader';
 import webpack from 'webpack';
 
 const __filename = url.fileURLToPath(import.meta.url);
@@ -36,6 +35,7 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         type: 'module',
       },
     },
+    // plugins: [new eslintWebpackPlugin({ extensions: ['ts', 'js', 'tsx', '.jsx'] })],
     resolve: {
       extensions: ['.ts', '.js', '.tsx', '.jsx'],
       plugins: [
@@ -49,11 +49,6 @@ const config = (_env: any, argv: any): webpack.Configuration => {
     },
     module: {
       rules: [
-        {
-          test: /\.vue$/,
-          use: 'vue-loader',
-          exclude: /node_modules/,
-        },
         {
           oneOf: [
             {
@@ -91,10 +86,6 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         },
       ],
     },
-    plugins: [
-      // new eslintWebpackPlugin({ extensions: ['ts', 'js', 'tsx', '.jsx'] }),
-      new VueLoaderPlugin(),
-    ],
     optimization: {
       minimize: true,
       minimizer: [new TerserPlugin({ extractComments: false })],

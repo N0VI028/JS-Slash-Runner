@@ -54,9 +54,9 @@ type GenerateConfig = {
   /**
    * 唯一id
    *
-   * 可以并发生成，并可以通过stopGenerateById停止特定生成，不设置默认生成uuid
+   * 可以并发生成，并可以通过stopGenerateById停止特定生成，不设置默认生成uuid，在发送的事件中也会返回该id
    */
-  id?: string;
+  generation_id?: string;
 };
 
 type GenerateRawConfig = {
@@ -112,9 +112,9 @@ type GenerateRawConfig = {
   /**
    * 唯一id
    *
-   * 可以并发生成，并可以通过stopGenerateById停止特定生成，不设置默认生成uuid
+   * 可以并发生成，并可以通过stopGenerateById停止特定生成，不设置默认生成uuid，在发送的事件中也会返回该id
    */
-  id?: string;
+  generation_id?: string;
 };
 
 type RolePrompt = {
@@ -264,3 +264,18 @@ declare function generate(config: GenerateConfig): Promise<string>;
  * })
  */
 declare function generateRaw(config: GenerateRawConfig): Promise<string>;
+
+/**
+ * 根据生成ID停止特定的生成过程
+ *
+ * @param generationId 生成ID，用于标识要停止的生成过程
+ * @returns Promise<boolean> 返回是否成功停止生成
+ */
+declare function stopGenerationById(generationId: string): Promise<boolean>;
+
+/**
+ * 停止所有正在进行的生成过程
+ *
+ * @returns Promise<boolean> 返回是否成功停止所有生成
+ */
+declare function stopAllGeneration(): Promise<boolean>;
