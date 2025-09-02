@@ -3,6 +3,7 @@
 ### ⏫功能
 
 - 为脚本和前端界面加入 `jquery-ui-touch-punch` 库, 让手机也能正常使用 jQuery UI 组件
+- `generate`和`generateRaw`现在支持通过 `generation_id` 参数自定义生成ID，达到同时运行多个生成任务的效果，并支持通过 `stopGenerationById` 停止特定生成，`stopAllGeneration` 停止所有通过酒馆助手请求的生成（不包括酒馆自身请求）
 
 ### 🐛修复
 
