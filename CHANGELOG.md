@@ -4,6 +4,11 @@
 
 - 为脚本和前端界面加入 `jquery-ui-touch-punch` 库, 让手机也能正常使用 jQuery UI 组件
 
+### 🐛修复
+
+- 避免 `createChatMessages` 在未要求未设置 `data` 时设置 `data` 为空对象, 导致 `{{get_message_variable}}` 不可用的问题
+- 修复酒馆助手宏在代码块内对含 `<user>` 文本的渲染问题
+
 ## 3.4.19
 
 ### 🐛修复

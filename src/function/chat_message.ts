@@ -347,7 +347,9 @@ export async function createChatMessages(
     }
     result = result.set('is_system', chat_message.is_hidden ?? false);
     result = result.set('mes', chat_message.message);
-    result = result.set(['variables', 0], chat_message.data ?? {});
+    if (chat_message.data) {
+      result = result.set(['variables', 0], chat_message.data);
+    }
     return result.value();
   };
 
