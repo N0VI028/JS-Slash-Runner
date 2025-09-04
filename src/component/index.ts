@@ -19,7 +19,7 @@ import {
 import { addPromptViewQuickButton } from '@/component/prompt_view';
 import { destroyCharacterLevelOnExtension, initializeCharacterLevelOnExtension } from '@/component/script_iframe';
 import {
-  buildScriptRepositoryOnExtension,
+  //buildScriptRepositoryOnExtension,
   destroyScriptRepositoryOnExtension,
 } from '@/component/script_repository/index';
 import { initializeToastr } from '@/component/toastr';
@@ -28,6 +28,7 @@ import iframe from '@/iframe?raw';
 import { script_url } from '@/script_url';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, this_chid } from '@sillytavern/script';
+import { initializeVueScriptRepository } from '@/index';
 
 const handleChatLoaded = async () => {
   await renderAllIframes();
@@ -97,7 +98,8 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     registerAllMacros();
     initializeToastr();
     initializeCharacterLevelOnExtension();
-    buildScriptRepositoryOnExtension();
+    //buildScriptRepositoryOnExtension();
+    initializeVueScriptRepository();
 
     addAllShortcut();
 

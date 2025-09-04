@@ -20,7 +20,6 @@ export class Script {
   }
 }
 
-
 export interface ScriptRepositoryItem {
   type: 'folder' | 'script';
   id?: string;
@@ -33,6 +32,7 @@ export interface ScriptRepositoryItem {
 export enum ScriptType {
   GLOBAL = 'global',
   CHARACTER = 'character',
+  PRESET = 'preset',
 }
 
 export const defaultScriptSettings = {

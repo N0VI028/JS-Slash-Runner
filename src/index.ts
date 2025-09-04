@@ -3,10 +3,11 @@ import { initExtensionMainPanel } from '@/component/index';
 import { initListener } from '@/component/listener';
 import { destroyMacroOnExtension, initializeMacroOnExtension } from '@/component/macrolike';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
+import { initPresetBundles } from '@/component/preset_manager/index';
 import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';
-import { buildScriptRepository } from '@/component/script_repository/index';
 import { defaultScriptSettings } from '@/component/script_repository/types';
+import { VueAppManager } from '@/component/script_repository/v2/mount';
 import { initVariableManager } from '@/component/variable_manager';
 import { disableIncompatibleOption } from '@/disable_incompatible_option';
 import { initTavernHelperObject } from '@/function';
@@ -111,8 +112,16 @@ async function initExtensionPanel() {
   const getContainer = () => $('#extensions_settings');
   const windowHtml = await renderExtensionTemplateAsync(`${extensionFolderPath}`, 'index');
   getContainer().append(windowHtml);
-  const $script_container = $(await renderExtensionTemplateAsync(`${templatePath}/script_repository/public`, 'index'));
+
+  // 直接创建空的脚本仓库容器，让Vue UI接管
+  const $script_container = $('<div id="script-repository-content" class="flex-container flexFlowColumn"></div>');
   $('#script-settings-content').append($script_container);
+
+  console.log('[initExtensionPanel] 创建script-repository-content容器:', $script_container.length, '个元素被添加');
+  console.log(
+    '[initExtensionPanel] script-settings-content内容:',
+    $('#script-settings-content').html().substring(0, 200) + '...',
+  );
   const $iframe_container = $(await renderExtensionTemplateAsync(`${templatePath}/message_iframe`, 'index'));
   $('#render-settings-content').append($iframe_container);
   const $variables_container = $(
@@ -150,6 +159,44 @@ function initThirdPartyObject() {
   globalThis.log = log_object;
   globalThis.YAML = YAML_object;
   globalThis.z = z_object;
+}
+
+/**
+ * 初始化Vue版本的脚本库
+ */
+export async function initializeVueScriptRepository(): Promise<void> {
+  try {
+    console.log('[initializeVueScriptRepository] 开始初始化Vue版本的脚本库');
+
+    // 确保script-repository-content容器存在
+    const container = document.getElementById('script-repository-content');
+    if (!container) {
+      console.error('[initializeVueScriptRepository] 找不到script-repository-content容器');
+      return;
+    }
+
+    console.log('[initializeVueScriptRepository] 找到容器，准备创建Vue容器');
+
+    // 创建Vue容器
+    const vueContainer = document.createElement('div');
+    vueContainer.id = 'vue-script-repository';
+    vueContainer.style.width = '100%';
+    vueContainer.style.height = '100%';
+
+    // 清空容器并添加Vue容器
+    container.innerHTML = '';
+    container.appendChild(vueContainer);
+
+    console.log('[initializeVueScriptRepository] Vue容器创建完成，准备挂载Vue应用');
+
+    // 获取VueAppManager实例并挂载
+    const vueAppManager = VueAppManager.getInstance();
+    await vueAppManager.mount('vue-script-repository');
+
+    console.log('[initializeVueScriptRepository] Vue应用挂载完成:', vueAppManager.isMounted());
+  } catch (error) {
+    console.error('[initializeVueScriptRepository] 初始化Vue脚本库失败:', error);
+  }
 }
 
 // TODO: 拆入 component 中
@@ -241,12 +288,14 @@ jQuery(async () => {
     await initAudioComponents();
     initAudioSlashCommands();
     initSlashEventEmit();
-    await buildScriptRepository();
+    // 直接初始化Vue版本的脚本库
+    await initializeVueScriptRepository();
     await initIframePanel();
     await initReference();
     await initListener();
     initVariableManager();
     initPromptView();
+    await initPresetBundles();
   });
 
   // 通用Collapsible折叠功能

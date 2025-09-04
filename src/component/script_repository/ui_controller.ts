@@ -10,6 +10,7 @@ import {
   ScriptRepositoryItem,
   ScriptType,
 } from '@/component/script_repository/types';
+import { VueAppManager } from '@/component/script_repository/v2/mount';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { renderMarkdown } from '@/util/render_markdown';
 
@@ -26,6 +27,7 @@ export class UIController {
 
   private scriptManager: ScriptManager;
   private buttonManager: ButtonManager;
+  private vueAppManager: VueAppManager;
 
   private templatePath: string;
   private baseTemplate: JQuery<HTMLElement> | null = null;
@@ -38,6 +40,7 @@ export class UIController {
   private constructor() {
     this.scriptManager = ScriptManager.getInstance();
     this.buttonManager = new ButtonManager();
+    this.vueAppManager = VueAppManager.getInstance();
     this.templatePath = `${extensionFolderPath}/src/component/script_repository/public`;
   }
 
@@ -66,6 +69,7 @@ export class UIController {
    */
   public cleanup(): void {
     this.buttonManager.clearButtons();
+    this.vueAppManager.unmount();
     this.baseTemplate = null;
     this.defaultScriptTemplate = null;
     this.folderTemplate = null;
@@ -81,11 +85,62 @@ export class UIController {
 
     this.registerEventListeners();
 
-    await this.renderScriptLists();
+    // 初始化Vue UI
+    await this.initializeVueUI();
 
     initScriptButton();
 
     scriptEvents.emit(ScriptRepositoryEventType.UI_LOADED);
+  }
+
+  /**
+   * 初始化Vue UI
+   */
+  private async initializeVueUI(): Promise<void> {
+    try {
+      log.info('[UIController] 开始初始化Vue UI');
+
+      // 查找脚本仓库容器
+      const scriptRepositoryContent = document.getElementById('script-repository-content');
+      log.info('[UIController] 查找script-repository-content元素:', scriptRepositoryContent);
+
+      if (!scriptRepositoryContent) {
+        log.error('[UIController] 找不到脚本仓库容器元素，检查DOM结构...');
+
+        // 调试：打印所有可能的容器
+        const allContainers = document.querySelectorAll('[id*="script"]');
+        log.info(
+          '[UIController] 找到的script相关元素:',
+          Array.from(allContainers).map(el => ({ id: el.id, tagName: el.tagName, className: el.className })),
+        );
+
+        throw new Error('找不到脚本仓库容器元素');
+      }
+
+      log.info(
+        '[UIController] 找到script-repository-content容器，内容:',
+        scriptRepositoryContent.innerHTML.substring(0, 200) + '...',
+      );
+
+      const vueContainer = document.createElement('div');
+      vueContainer.id = 'vue-script-repository';
+      vueContainer.style.width = '100%';
+      vueContainer.style.height = '100%';
+
+      // 清空容器并添加Vue容器
+      scriptRepositoryContent.innerHTML = '';
+      scriptRepositoryContent.appendChild(vueContainer);
+
+      log.info('[UIController] 创建Vue容器，准备挂载Vue应用');
+
+      // 挂载Vue应用
+      await this.vueAppManager.mount('vue-script-repository');
+
+      log.info('[UIController] Vue UI 初始化完成，检查挂载状态:', this.vueAppManager.isMounted());
+    } catch (error) {
+      log.error('[UIController] 初始化Vue UI失败:', error);
+      throw error;
+    }
   }
 
   /**
@@ -122,168 +177,16 @@ export class UIController {
    * 初始化脚本库界面事件
    */
   private setupScriptRepositoryEvents(): void {
-    $('#global-script-enable-toggle')
-      .prop('checked', this.scriptManager.isGlobalScriptEnabled)
-      .on('click', (event: JQuery.ClickEvent) => {
-        scriptEvents.emit(ScriptRepositoryEventType.TYPE_TOGGLE, {
-          type: ScriptType.GLOBAL,
-          enable: event.target.checked,
-          userInput: true,
-        });
-      });
-
-    $('#character-script-enable-toggle')
-      .prop('checked', this.scriptManager.isCharacterScriptEnabled)
-      .on('click', (event: JQuery.ClickEvent) => {
-        scriptEvents.emit(ScriptRepositoryEventType.TYPE_TOGGLE, {
-          type: ScriptType.CHARACTER,
-          enable: event.target.checked,
-          userInput: true,
-        });
-      });
-
-    $('#create-script').on('click', async () => {
-      await this.showCreateScriptDialog();
-    });
-
-    $('#import-script-file').on('change', async function () {
-      let target = 'global';
-      const template = $(
-        await renderExtensionTemplateAsync(
-          `${extensionFolderPath}/src/component/script_repository/public`,
-          'script_target_selector',
-          {
-            title: '导入到:',
-            prefix: 'script-import',
-            globalLabel: '全局脚本',
-            characterLabel: '局部脚本',
-          },
-        ),
-      );
-      template.find('#script-import-target-global').on('input', () => (target = 'global'));
-      template.find('#script-import-target-character').on('input', () => (target = 'character'));
-      const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', {
-        okButton: '确认',
-        cancelButton: '取消',
-      });
-
-      if (result) {
-        const inputElement = this instanceof HTMLInputElement && this;
-        if (inputElement && inputElement.files) {
-          for (const file of inputElement.files) {
-            scriptEvents.emit(ScriptRepositoryEventType.SCRIPT_IMPORT, {
-              file,
-              type: target === 'global' ? ScriptType.GLOBAL : ScriptType.CHARACTER,
-            });
-          }
-          inputElement.value = '';
-        }
-      }
-    });
-
-    $('#import-script').on('click', function () {
-      $('#import-script-file').trigger('click');
-    });
-
-    $('#create-folder').on('click', () => {
-      this.showCreateFolderDialog();
-    });
-
-    $('#default-script').on('click', () => {
-      scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, { action: 'load_default_scripts' });
-    });
-
-    $('#extensions_settings').css('min-width', '0');
-
-    this.setupSearchEvents();
-
-    this.setupBatchOperationEvents();
+    // 由于现在默认使用新UI，这里不再设置旧UI事件
+    // 所有事件处理都通过Vue UI完成
   }
 
   /**
    * 注册事件监听器
    */
   private registerEventListeners(): void {
-    scriptEvents.on(ScriptRepositoryEventType.UI_REFRESH, async data => {
-      const { action } = data;
-
-      switch (action) {
-        case 'script_toggle':
-          await this.refreshScriptState(data.script, data.enable);
-          this.updateParentFolderToggle(data.script.id, data.type);
-          break;
-        case 'type_toggle':
-          await this.refreshTypeState(data.type, data.enable);
-          break;
-        case 'script_import':
-          await this.addScriptToContainer(data.script, data.type);
-          break;
-        case 'script_create':
-          await this.addScriptToContainer(data.script, data.type);
-          break;
-        case 'script_update':
-          this.updateScriptUI(data.script, data.type);
-          break;
-        case 'script_delete':
-          this.removeScriptElement(data.scriptId);
-          break;
-        case 'script_move':
-          this.handleScriptMoved(data.script, data.fromType, data.targetType);
-          break;
-        case 'folder_move':
-          await this.renderScriptLists();
-          break;
-        case 'folder_scripts_toggle':
-          this.updateFolderAndScriptsUI(data.folderId, data.type, data.enable);
-          break;
-        case 'load_default_scripts':
-          await this.loadDefaultScriptsRepository();
-          break;
-        case 'refresh_global_scripts':
-          await this.refreshScriptList(ScriptType.GLOBAL);
-          break;
-        case 'refresh_charact_scripts':
-          await this.refreshScriptList(ScriptType.CHARACTER);
-          break;
-        default:
-          log.warn(`[ScriptManager] 未处理的UI刷新事件: ${action}`);
-      }
-    });
-
-    scriptEvents.on(ScriptRepositoryEventType.BUTTON_ADD, data => {
-      const { script } = data;
-      this.addButton(script);
-    });
-
-    scriptEvents.on(ScriptRepositoryEventType.BUTTON_REMOVE, data => {
-      const { scriptId } = data;
-      this.buttonManager.removeButtonsByScriptId(scriptId);
-    });
-
-    scriptEvents.on(ScriptRepositoryEventType.SCRIPT_EDIT, async data => {
-      const { type, scriptId } = data;
-      await this.openScriptEditor(type, scriptId);
-    });
-
-    scriptEvents.on(ScriptRepositoryEventType.FOLDER_CREATE, async data => {
-      const { name, type, icon, color } = data;
-      await this.handleFolderCreate(name, type, icon, color);
-    });
-
-    scriptEvents.on(ScriptRepositoryEventType.FOLDER_EDIT, async data => {
-      const { folderId, newName, type, newIcon, newColor } = data;
-      await this.handleFolderEdit(folderId, newName, type, newIcon, newColor);
-    });
-
-    scriptEvents.on(ScriptRepositoryEventType.FOLDER_DELETE, async data => {
-      const { folderId, type } = data;
-      await this.handleFolderDelete(folderId, type);
-    });
-
-    scriptEvents.on(ScriptRepositoryEventType.FOLDER_SCRIPTS_TOGGLE, async data => {
-      const { folderId, type, enable } = data;
-      await this.handleFolderScriptsToggle(folderId, type, enable);
-    });
+    // 由于现在默认使用新UI，这里不再设置旧UI事件监听器
+    // 所有事件处理都通过Vue UI完成
   }
 
   /**
@@ -890,6 +793,7 @@ export class UIController {
           prefix: 'script-add',
           globalLabel: '全局脚本库',
           characterLabel: '角色脚本库',
+          presetLabel: '预设脚本库',
         }),
       );
       template.find('#script-add-target-global').on('input', () => (target = ScriptType.GLOBAL));
@@ -1620,17 +1524,35 @@ export class UIController {
    * 显示新建脚本对话框
    */
   private async showCreateScriptDialog(): Promise<void> {
-    let target: ScriptType = ScriptType.GLOBAL;
+    let targetType: ScriptType = ScriptType.GLOBAL;
+
+    // 获取当前预设名称
+    const currentPresetName = await this.getCurrentPresetName();
+
     const template = $(
       await renderExtensionTemplateAsync(this.templatePath, 'script_target_selector', {
         title: '新建脚本到:',
         prefix: 'script-create',
         globalLabel: '全局脚本库',
         characterLabel: '角色脚本库',
+        presetLabel: '预设脚本库',
+        showPresetOption: !!currentPresetName,
+        currentPresetName: currentPresetName,
       }),
     );
-    template.find('#script-create-target-global').on('input', () => (target = ScriptType.GLOBAL));
-    template.find('#script-create-target-character').on('input', () => (target = ScriptType.CHARACTER));
+
+    // 设置事件监听器
+    template.find('#script-create-target-global').on('input', () => {
+      targetType = ScriptType.GLOBAL;
+    });
+
+    template.find('#script-create-target-character').on('input', () => {
+      targetType = ScriptType.CHARACTER;
+    });
+
+    template.find('#script-create-target-preset').on('input', () => {
+      targetType = ScriptType.PRESET;
+    });
 
     const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', {
       okButton: '确认',
@@ -1639,7 +1561,7 @@ export class UIController {
 
     if (result) {
       scriptEvents.emit(ScriptRepositoryEventType.SCRIPT_EDIT, {
-        type: target,
+        type: targetType,
       });
     }
   }
@@ -2476,6 +2398,55 @@ export class UIController {
     } catch (error) {
       log.error('[ScriptManager] 批量切换文件夹脚本状态失败:', error);
       toastr.error(`批量切换脚本状态失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  }
+
+  /**
+   * 获取当前正在使用的预设名称
+   */
+  public async getCurrentPresetName(): Promise<string | null> {
+    try {
+      const { getLoadedPresetName } = await import('../../function/preset');
+      const presetName = getLoadedPresetName();
+      // 如果是 'in_use' 或空字符串，返回 null
+      return presetName && presetName !== 'in_use' ? presetName : null;
+    } catch (error) {
+      log.error('[ScriptManager] 获取当前预设名称失败:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 绑定脚本到预设
+   * @param scriptId 脚本ID
+   * @param presetName 预设名称
+   */
+  private async bindScriptToPreset(scriptId: string, presetName: string): Promise<void> {
+    try {
+      // 动态导入预设管理器store
+      const { usePresetBundlesStore } = await import('../preset_manager/store/presetBundles.store');
+      const { getGlobalPinia } = await import('../preset_manager/index');
+
+      const pinia = getGlobalPinia();
+      if (!pinia) {
+        throw new Error('Pinia实例未初始化');
+      }
+
+      const store = usePresetBundlesStore(pinia);
+
+      // 获取当前预设的绑定
+      const currentBinding = store.getBinding(presetName);
+      const currentScripts = currentBinding?.scripts || [];
+
+      // 如果脚本还未绑定，则添加到绑定列表
+      if (!currentScripts.includes(scriptId)) {
+        const updatedScripts = [...currentScripts, scriptId];
+        store.bindScripts(presetName, updatedScripts);
+        log.info(`[ScriptManager] 脚本 ${scriptId} 已绑定到预设 ${presetName}`);
+      }
+    } catch (error) {
+      log.error('[ScriptManager] 绑定脚本到预设失败:', error);
+      throw error;
     }
   }
 }
