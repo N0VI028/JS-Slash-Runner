@@ -457,10 +457,10 @@ declare const SillyTavern: {
     /** 对函数参数的 JSON schema 定义, 可以通过 zod 的 z.toJSONSchema 来得到 */
     parameters: Record<string, any>;
     /** 要注册的函数调用工具 */
-    action: ((args: Record<string, any>) => string) | ((args: Record<string, any>) => Promise<string>);
+    action: ((args: any) => string) | ((args: any) => Promise<string>);
 
     /** 要如何格式化函数调用结果消息; 默认不进行任何操作, 显示为 `'Invoking tool: 工具显示名称'` */
-    formatMessage?: (args: Record<string, any>) => string;
+    formatMessage?: (args: any) => string;
     /** 在下次聊天补全请求时是否注册本工具; 默认为始终注册 */
     shouldRegister?: (() => boolean) | (() => Promise<boolean>);
     /** 是否不在楼层中用一层楼显示函数调用结果, `true` 则不显示且将不会触发生成; 默认为 false */

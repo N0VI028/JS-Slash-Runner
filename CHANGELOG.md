@@ -9,6 +9,7 @@
 
 - 避免 `createChatMessages` 在未要求未设置 `data` 时设置 `data` 为空对象, 导致 `{{get_message_variable}}` 不可用的问题
 - 修复酒馆助手宏在代码块内对含 `<user>` 文本的渲染问题
+- 修复 `importRawPreset` 在酒馆新版本不能正确导入预设的问题
 
 ## 3.4.19
 

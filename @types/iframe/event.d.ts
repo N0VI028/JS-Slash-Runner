@@ -342,6 +342,12 @@ interface ListenerType {
     group_names: string[];
     include_reasoning: boolean;
     reasoning_effort: string;
+    json_schema: {
+      name: string;
+      value: Record<string, any>;
+      description?: string;
+      strict?: boolean;
+    }
     [others: string]: any;
   }) => void;
   [tavern_events.CHAT_COMPLETION_PROMPT_READY]: (event_data: {

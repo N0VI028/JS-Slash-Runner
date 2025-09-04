@@ -1,23 +1,25 @@
+import { updateWorldInfoList } from '@/compatibility';
+import { render_tavern_regexes_debounced } from '@/function/tavern_regex';
+
 import { getRequestHeaders } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
+import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { uuidv4 } from '@sillytavern/scripts/utils';
-import { render_tavern_regexes_debounced } from './tavern_regex';
-import { updateWorldInfoList } from '@/compatibility';
 
 export async function importRawCharacter(filename: string, content: Blob): Promise<Response> {
   const file = new File([content], filename, { type: 'image/png' });
 
-  const from_data = new FormData();
-  from_data.append('avatar', file);
-  from_data.append('file_type', 'png');
-  from_data.append('preserved_name', file.name);
+  const form_data = new FormData();
+  form_data.append('avatar', file);
+  form_data.append('file_type', 'png');
+  form_data.append('preserved_name', file.name);
 
   const headers = getRequestHeaders();
   _.unset(headers, 'Content-Type');
   return fetch('/api/characters/import', {
     method: 'POST',
     headers: headers,
-    body: from_data,
+    body: form_data,
     cache: 'no-cache',
   }).then(result => {
     $('#character_search_bar').val('').trigger('input');
@@ -25,15 +27,13 @@ export async function importRawCharacter(filename: string, content: Blob): Promi
   });
 }
 
-export async function importRawPreset(filename: string, content: string): Promise<Response> {
-  return fetch(`/api/presets/save-openai?name=${filename.replace(/\.[^/.]+$/, '')}`, {
-    method: 'POST',
-    headers: getRequestHeaders(),
-    body: content,
-  }).then(result => {
-    $('#settings_preset_openai')[0].dispatchEvent(new Event('change'));
-    return result;
-  });
+export async function importRawPreset(filename: string, content: string): Promise<boolean> {
+  try {
+    await getPresetManager('openai').savePreset(filename, JSON.parse(content));
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function importRawWorldbook(filename: string, content: string): Promise<Response> {
