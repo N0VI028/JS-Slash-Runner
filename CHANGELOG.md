@@ -1,3 +1,9 @@
+## 3.4.21
+
+### ⏫功能
+
+- 使用`stopGenerationById`和`stopAllGeneration`时, 会发送`tavern_events.GENERATION_STOPPED`事件, 并携带停止的生成ID
+
 ## 3.4.20
 
 ### ⏫功能
@@ -10,6 +16,7 @@
 - 避免 `createChatMessages` 在未要求未设置 `data` 时设置 `data` 为空对象, 导致 `{{get_message_variable}}` 不可用的问题
 - 修复酒馆助手宏在代码块内对含 `<user>` 文本的渲染问题
 - 修复 `importRawPreset` 在酒馆新版本不能正确导入预设的问题
+- 修复开关酒馆助手宏过快可能导致意外的问题
 
 ## 3.4.19
 

@@ -1,7 +1,7 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initExtensionMainPanel } from '@/component/index';
 import { initListener } from '@/component/listener';
-import { destroyMacroOnExtension, initializeMacroOnExtension } from '@/component/macrolike';
+import { derenderAllMacrosDebounced, registerMacroOnExtension, renderAllMacrosDebounced, unregisterMacroOnExtension } from '@/component/macrolike';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { initPresetBundles } from '@/component/preset_manager/index';
 import { initPromptView } from '@/component/prompt_view';
@@ -159,15 +159,18 @@ async function initMacroReplace() {
     .on('click', function () {
       const should_disable = $(this).prop('checked');
       saveSettingValue('macro.replace', !should_disable);
-      if (should_disable) {
-        destroyMacroOnExtension();
+      unregisterMacroOnExtension();
+      if (!should_disable) {
+        renderAllMacrosDebounced();
+        registerMacroOnExtension();
       } else {
-        initializeMacroOnExtension();
+        derenderAllMacrosDebounced();
       }
     });
   // TODO: 随 initExtensionMainPanel 初始化, 现在这样即便酒馆助手关闭依旧生效
   if (macro_replace_enabled) {
-    initializeMacroOnExtension();
+    registerMacroOnExtension();
+    renderAllMacrosDebounced();
   }
 }
 

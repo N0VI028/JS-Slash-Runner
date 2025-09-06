@@ -1,6 +1,6 @@
 {
   "name": "JS-Slash-Runner",
-  "version": "3.4.19",
+  "version": "3.4.20",
   "main": "./dist/index.js",
   "scripts": {
     "build:dev": "webpack --mode development",

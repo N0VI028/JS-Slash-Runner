@@ -24,6 +24,7 @@ export function stopGenerationById(id: string) {
     const controller = generationControllers.get(id);
     controller?.abort(`Generation stopped by id: ${id}`);
     generationControllers.delete(id);
+    eventSource.emit(event_types.GENERATION_STOPPED, id);
     log.info(`[Generate:停止] 已中断生成任务: ${id}`);
     return true;
   }
@@ -37,6 +38,7 @@ export function stopAllGeneration() {
   try {
     for (const [id, controller] of generationControllers.entries()) {
       controller.abort(`Generation stopped by id: ${id}`);
+      eventSource.emit(event_types.GENERATION_STOPPED, id);
     }
     generationControllers.clear();
     log.info(`[Generate:停止] 已中断所有生成任务`);
