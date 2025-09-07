@@ -5,10 +5,17 @@ import { z } from 'zod';
  */
 export const CreateScriptPayloadSchema = z.object({
   name: z.string().min(1, '脚本名称不能为空').max(100, '脚本名称不能超过100个字符'),
-  folderId: z.string().nullable(), // null 表示放在根目录
-  content: z.string().optional(),
-  info: z.string().optional(),
+  content: z.string().default(''),
+  info: z.string().default(''),
+  buttons: z.array(
+    z.object({
+      name: z.string(),
+      visible: z.boolean(),
+    }),
+  ).default([]),
+  data: z.record(z.string(), z.any()).default({}),
   enabled: z.boolean().default(false),
+  folderId: z.string().nullable().default(null), // null 表示放置在根目录
 });
 
 /**
@@ -118,7 +125,7 @@ export const ExportScriptPayloadSchema = z.object({
 /**
  * TypeScript 类型推断
  */
-export type CreateScriptPayload = z.infer<typeof CreateScriptPayloadSchema>;
+export type CreateScriptPayload = z.input<typeof CreateScriptPayloadSchema>;
 export type UpdateScriptPayload = z.infer<typeof UpdateScriptPayloadSchema>;
 export type MoveScriptPayload = z.infer<typeof MoveScriptPayloadSchema>;
 export type CreateFolderPayload = z.infer<typeof CreateFolderPayloadSchema>;

@@ -84,7 +84,7 @@ const config = (_env: any, argv: any): webpack.Configuration => {
             },
             {
               test: /\.(sa|sc|c)ss$/,
-              use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader'],
+              use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],
               exclude: /node_modules/,
             },
           ],

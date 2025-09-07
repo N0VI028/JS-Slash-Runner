@@ -35,17 +35,15 @@ export function useRepositorySelectors() {
   /**
    * 当前选中的脚本
    */
-  const selectedScript = computed(() => scriptRepoStore.selectedScript);
 
   /**
    * 选中的脚本ID
    */
-  const selectedScriptId = computed(() => scriptRepoStore.selectedScriptId);
 
   /**
    * 启用的脚本数量
    */
-  const enabledScriptCount = computed(() => allScripts.value.filter(script => script.enabled).length);
+  const enabledScriptCount = computed(() => allScripts.value.filter((script: Script) => script.enabled).length);
 
   /**
    * 脚本总数
@@ -87,7 +85,7 @@ export function useRepositorySelectors() {
    * 获取指定文件夹的信息
    */
   const getFolderById = (id: string): Folder | undefined => {
-    return allFolders.value.find(folder => folder.id === id);
+    return allFolders.value.find((folder: Folder) => folder.id === id);
   };
 
   /**
@@ -97,13 +95,13 @@ export function useRepositorySelectors() {
     const folder = getFolderById(folderId);
     if (!folder) return [];
 
-    return allScripts.value.filter(script => folder.scripts.includes(script.id));
+    return allScripts.value.filter((script: Script) => folder.scripts.includes(script.id));
   };
 
   /**
    * 获取根目录的脚本列表
    */
-  const rootScripts = computed(() => allScripts.value.filter(script => rootItems.value.includes(script.id)));
+  const rootScripts = computed(() => allScripts.value.filter((script: Script) => rootItems.value.includes(script.id)));
 
   // ===== 搜索和过滤相关选择器 =====
 
@@ -186,15 +184,6 @@ export function useRepositorySelectors() {
    */
   const toastMessages = computed(() => uiStore.toasts);
 
-  /**
-   * 是否有对话框
-   */
-  const hasDialogs = computed(() => uiStore.hasDialogs);
-
-  /**
-   * 当前对话框
-   */
-  const currentDialog = computed(() => uiStore.currentDialog);
 
   // ===== 计算属性和派生状态 =====
 
@@ -260,7 +249,7 @@ export function useRepositorySelectors() {
    * 根据ID获取脚本
    */
   const getScriptById = (id: string): Script | undefined => {
-    return allScripts.value.find(script => script.id === id);
+    return allScripts.value.find((script: Script) => script.id === id);
   };
 
   /**
@@ -289,8 +278,6 @@ export function useRepositorySelectors() {
     allScripts,
     filteredScripts,
     displayScripts,
-    selectedScript,
-    selectedScriptId,
     enabledScriptCount,
     totalScriptCount,
     scriptStats,
@@ -322,8 +309,6 @@ export function useRepositorySelectors() {
     currentError,
     hasToasts,
     toastMessages,
-    hasDialogs,
-    currentDialog,
 
     // 计算属性
     appStatus,

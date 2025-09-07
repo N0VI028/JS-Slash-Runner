@@ -12,6 +12,7 @@ import type {
 import { repositoryService } from '../services/repository.service';
 import { useScriptRepoStore } from '../stores/scriptRepo.store';
 import { useUiStore } from '../stores/ui.store';
+import { usePopups } from './usePopups';
 
 /**
  * 脚本仓库命令层
@@ -22,6 +23,7 @@ import { useUiStore } from '../stores/ui.store';
 export function useScriptRepoCommands() {
   const scriptRepoStore = useScriptRepoStore();
   const uiStore = useUiStore();
+  const popups = usePopups();
 
   // ===== 脚本操作命令 =====
 
@@ -29,9 +31,6 @@ export function useScriptRepoCommands() {
    * 创建脚本命令
    */
   const createScript = async (payload: CreateScriptPayload): Promise<string> => {
-    const loadingId = `create-script-${Date.now()}`;
-    uiStore.beginLoading(loadingId, '正在创建脚本...');
-
     try {
       const scriptId = await scriptRepoStore.createScript(payload);
       uiStore.showSuccess('创建成功', `脚本 "${payload.name}" 已创建`);
@@ -40,8 +39,6 @@ export function useScriptRepoCommands() {
       const message = error instanceof Error ? error.message : '创建脚本失败';
       uiStore.showError('创建失败', message);
       throw error;
-    } finally {
-      uiStore.endLoading(loadingId);
     }
   };
 
@@ -215,12 +212,6 @@ export function useScriptRepoCommands() {
 
   // ===== 选择和导航命令 =====
 
-  /**
-   * 选择脚本命令
-   */
-  const selectScript = (id: string | null): void => {
-    scriptRepoStore.selectScript(id);
-  };
 
   /**
    * 切换文件夹展开状态命令
@@ -295,21 +286,138 @@ export function useScriptRepoCommands() {
   };
 
   /**
-   * 刷新仓库命令
+   * 打开内置库命令
    */
-  const refreshRepository = async (): Promise<void> => {
-    const loadingId = `refresh-repo-${Date.now()}`;
-    uiStore.beginLoading(loadingId, '正在刷新...');
-
+  const openBuiltinLibrary = async (): Promise<void> => {
     try {
-      await scriptRepoStore.init();
-      uiStore.showSuccess('刷新成功', '仓库数据已更新');
+      const result = await popups.showBuiltinLibrary();
+      
+      if (result.confirmed && result.data) {
+        // 处理选择的脚本
+        for (const scriptId of result.data) {
+          try {
+            await createScript({
+              name: `内置脚本-${scriptId}`,
+              folderId: null,
+              enabled: false,
+            });
+          } catch (error) {
+            console.error('添加内置脚本失败:', error);
+          }
+        }
+        
+        if (result.data.length > 0) {
+          uiStore.showSuccess('成功', `已添加 ${result.data.length} 个脚本到仓库`);
+        }
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : '刷新失败';
-      uiStore.showError('刷新失败', message);
+      const message = error instanceof Error ? error.message : '打开内置库失败';
+      uiStore.showError('打开失败', message);
       throw error;
-    } finally {
-      uiStore.endLoading(loadingId);
+    }
+  };
+
+
+  // ===== UI 命令 =====
+
+  /**
+   * 显示脚本信息
+   */
+  const showScriptInfo = async (scriptId: string): Promise<void> => {
+    const script = scriptRepoStore.scripts.get(scriptId);
+    if (script) {
+      await popups.showScriptInfo(script);
+    } else {
+      uiStore.showError('脚本不存在', '找不到指定的脚本');
+    }
+  };
+
+  /**
+   * 编辑脚本
+   */
+  const editScript = async (scriptId: string): Promise<void> => {
+    const script = scriptRepoStore.scripts.get(scriptId);
+    const result = await popups.openScriptEditor(script);
+    
+    if (result.confirmed && result.data) {
+      try {
+        if (script) {
+          // 更新现有脚本
+          await updateScript({
+            id: scriptId,
+            ...result.data,
+          });
+        } else {
+          // 创建新脚本
+          await createScript({
+            ...result.data,
+            folderId: null, // 新脚本默认放在根目录
+          });
+        }
+      } catch (error) {
+        console.error('保存脚本失败:', error);
+      }
+    }
+  };
+
+  /**
+   * 创建新脚本（带UI）
+   */
+  const createScriptWithUI = async (): Promise<void> => {
+    await editScript(''); // 空ID表示新建
+  };
+
+  /**
+   * 创建文件夹（带UI）
+   */
+  const createFolderWithUI = async (parentId?: string): Promise<void> => {
+    const result = await popups.createFolder(parentId);
+    
+    if (result.confirmed && result.data) {
+      try {
+        await createFolder({
+          name: result.data.name,
+          parentId: result.data.parentId || null,
+          icon: result.data.icon,
+          color: result.data.color,
+        });
+      } catch (error) {
+        console.error('创建文件夹失败:', error);
+      }
+    }
+  };
+
+  /**
+   * 确认删除脚本
+   */
+  const confirmDeleteScript = async (scriptId: string): Promise<void> => {
+    const script = scriptRepoStore.scripts.get(scriptId);
+    if (!script) {
+      uiStore.showError('脚本不存在', '找不到指定的脚本');
+      return;
+    }
+
+    const confirmed = await popups.confirmDelete(`确定要删除脚本 "${script.name}" 吗？此操作不可撤销。`);
+    
+    if (confirmed) {
+      await deleteScript(scriptId);
+    }
+  };
+
+  /**
+   * 确认删除文件夹
+   */
+  const confirmDeleteFolder = async (folderId: string): Promise<void> => {
+    const folder = scriptRepoStore.folders.get(folderId);
+    if (!folder) {
+      uiStore.showError('文件夹不存在', '找不到指定的文件夹');
+      return;
+    }
+
+    const confirmed = await popups.confirmDelete(`确定要删除文件夹 "${folder.name}" 及其中的所有内容吗？此操作不可撤销。`);
+    
+    if (confirmed) {
+      await deleteFolder(folderId);
     }
   };
 
@@ -335,7 +443,6 @@ export function useScriptRepoCommands() {
     setSortOptions,
 
     // 选择和导航
-    selectScript,
     toggleFolderExpand,
 
     // 批量操作
@@ -344,6 +451,14 @@ export function useScriptRepoCommands() {
 
     // 系统操作
     initRepository,
-    refreshRepository,
+    openBuiltinLibrary,
+
+    // UI 命令
+    showScriptInfo,
+    editScript,
+    createScriptWithUI,
+    createFolderWithUI,
+    confirmDeleteScript,
+    confirmDeleteFolder,
   };
 }

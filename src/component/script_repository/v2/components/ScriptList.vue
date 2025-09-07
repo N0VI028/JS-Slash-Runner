@@ -1,7 +1,7 @@
 <template>
   <div class="script-list-container">
     <!-- 空状态 -->
-    <div v-if="displayScripts.length === 0" class="empty-state">
+    <div v-if="allItems.length === 0" class="empty-state">
       <div v-if="isSearching" class="empty-search">
         <i class="fa-solid fa-search"></i>
         <h3>未找到匹配的脚本</h3>
@@ -10,143 +10,181 @@
       </div>
       <div v-else class="empty-repository">
         <i class="fa-solid fa-scroll"></i>
-        <h3>脚本库为空</h3>
-        <p>开始创建你的第一个脚本吧</p>
-        <button
-          @click="$emit('create-script', { name: '我的第一个脚本', folderId: null, enabled: false })"
-          class="TavernHelper-button"
-        >
-          <i class="fa-solid fa-plus"></i>
-          创建脚本
-        </button>
+        <p>脚本库为空</p>
       </div>
     </div>
 
-    <!-- 脚本列表 -->
+    <!-- 脚本和文件夹列表 -->
     <div v-else class="script-list" ref="listContainer">
-      <script-list-item
-        v-for="script in displayScripts"
-        :key="script.id"
-        :script="script"
-        :is-selected="selectedScriptId === script.id"
-        @select="$emit('select-script', script.id)"
-        @toggle="$emit('toggle-script', script.id)"
-        @run="$emit('run-script', script.id)"
-        @menu="handleMenu"
-      />
+      <template v-for="item in allItems" :key="`${item.type}-${item.id}`">
+        <!-- 文件夹 -->
+        <folder-item
+          v-if="item.type === 'folder'"
+          :folder="item.data as Folder"
+          :is-expanded="expandedFolders.has(item.id)"
+          :folder-scripts="getFolderScripts(item.id)"
+          @toggle-expand="$emit('toggle-folder-expand', $event)"
+          @toggle-folder-scripts="$emit('toggle-folder-scripts', $event)"
+          @edit-folder="$emit('edit-folder', $event)"
+          @export-folder="$emit('export-folder', $event)"
+          @move-folder="$emit('move-folder', $event)"
+          @delete-folder="$emit('delete-folder', $event)"
+        >
+          <!-- 文件夹内的脚本 -->
+          <script-item
+            v-for="script in getFolderScripts(item.id)"
+            :key="script.id"
+            :script="script"
+            @toggle-script="$emit('toggle-script', $event)"
+            @show-info="$emit('show-info', $event)"
+            @edit-script="$emit('edit-script', $event)"
+            @move-script="$emit('move-script', $event)"
+            @export-script="$emit('export-script', $event)"
+            @delete-script="$emit('delete-script', $event)"
+          />
+        </folder-item>
+
+        <!-- 根级脚本 -->
+        <script-item
+          v-else-if="item.type === 'script'"
+          :script="item.data as Script"
+          @toggle-script="$emit('toggle-script', $event)"
+          @show-info="$emit('show-info', $event)"
+          @edit-script="$emit('edit-script', $event)"
+          @move-script="$emit('move-script', $event)"
+          @export-script="$emit('export-script', $event)"
+          @delete-script="$emit('delete-script', $event)"
+        />
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import ScriptListItem from '@/component/script_repository/v2/components/ScriptListItem.vue';
 import { computed, ref } from 'vue';
-import type { Script } from '../schemas/script.schema';
-
-// 导入 emit 函数
-const $emit = defineEmits<Emits>();
+import type { Folder, Script } from '../schemas/script.schema';
+import FolderItem from './FolderItem.vue';
+import ScriptItem from './ScriptItem.vue';
 
 // Props
 interface Props {
   scripts: Script[];
-  selectedScriptId: string | null;
+  folders?: Folder[];
+  expandedFolders?: Set<string>;
   isSearching: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  folders: () => [],
+  expandedFolders: () => new Set(),
+});
 
 // Emits
-interface Emits {
+defineEmits<{
   'clear-search': [];
-  'create-script': [payload: { name: string; folderId: string | null; enabled: boolean }];
-  'select-script': [id: string];
+  'create-script': [];
   'toggle-script': [id: string];
-  'run-script': [id: string];
-  'script-menu': [payload: { script: Script; event: Event }];
-}
+  'show-info': [id: string];
+  'edit-script': [id: string];
+  'move-script': [id: string];
+  'export-script': [id: string];
+  'delete-script': [id: string];
+  'toggle-folder-expand': [id: string];
+  'toggle-folder-scripts': [id: string];
+  'edit-folder': [id: string];
+  'export-folder': [id: string];
+  'move-folder': [id: string];
+  'delete-folder': [id: string];
+}>();
 
-// Refs
+// Template refs
 const listContainer = ref<HTMLElement>();
 
-// Computed
-const displayScripts = computed(() => props.scripts);
+// 计算属性：合并文件夹和根级脚本
+const allItems = computed(() => {
+  const items: Array<{ type: 'folder' | 'script'; id: string; data: Folder | Script }> = [];
 
-// Methods
-/**
- * 处理脚本菜单事件
- */
-const handleMenu = (script: Script, event: Event) => {
-  $emit('script-menu', { script, event });
+  // 添加文件夹
+  props.folders.forEach(folder => {
+    items.push({ type: 'folder', id: folder.id, data: folder });
+  });
+
+  // 添加根级脚本（folderId 为 null 的脚本）
+  props.scripts
+    .filter(script => !script.folderId)
+    .forEach(script => {
+      items.push({ type: 'script', id: script.id, data: script });
+    });
+
+  return items;
+});
+
+// 获取指定文件夹内的脚本
+const getFolderScripts = (folderId: string): Script[] => {
+  return props.scripts.filter(script => script.folderId === folderId);
 };
-
-// TODO: 虚拟滚动实现
-// 当脚本数量很大时（>1000），可以考虑实现虚拟滚动
-// 目前使用简单的渲染方式
 </script>
 
 <style scoped>
 .script-list-container {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.script-list {
   flex: 1;
   overflow-y: auto;
-  padding-right: 4px; /* 为滚动条留空间 */
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .empty-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  min-height: 200px;
-}
-
-.empty-search,
-.empty-repository {
   text-align: center;
-  color: var(--SmartThemeBodyColor);
+  padding: 20px;
 }
 
 .empty-search i,
 .empty-repository i {
-  font-size: 48px;
-  margin-bottom: 15px;
+  font-size: 3rem;
+  margin-bottom: 1rem;
   opacity: 0.5;
 }
 
 .empty-search h3,
 .empty-repository h3 {
-  margin: 10px 0;
-  color: var(--SmartThemeEmColor);
+  margin-bottom: 0.5rem;
+  color: var(--SmartThemeBodyColor);
 }
 
 .empty-search p,
 .empty-repository p {
-  margin-bottom: 15px;
-  opacity: 0.8;
+  margin-bottom: 1rem;
+  opacity: 0.7;
 }
 
-.script-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 4px 0;
+.TavernHelper-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 16px;
+  background-color: var(--SmartThemeBlurTintColor);
+  border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 5px;
+  color: var(--SmartThemeBodyColor);
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-/* 滚动条样式 */
-.script-list-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.script-list-container::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-.script-list-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-
-.script-list-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+.TavernHelper-button:hover {
+  background-color: var(--SmartThemeQuoteColor);
 }
 </style>

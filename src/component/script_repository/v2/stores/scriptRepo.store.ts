@@ -30,10 +30,6 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
    */
   const rootItems = ref<string[]>([]);
 
-  /**
-   * 当前选中的脚本ID
-   */
-  const selectedScriptId = ref<string | null>(null);
 
   /**
    * 当前展开的文件夹ID集合
@@ -75,10 +71,6 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
    */
   const allFolders = computed(() => Array.from(folders.value.values()));
 
-  /**
-   * 获取当前选中的脚本
-   */
-  const selectedScript = computed(() => (selectedScriptId.value ? scripts.value.get(selectedScriptId.value) : null));
 
   /**
    * 根据过滤条件获取筛选后的脚本列表
@@ -209,32 +201,12 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
    */
   async function createScript(payload: CreateScriptPayload): Promise<string> {
     try {
-      // TODO: 调用 repository.service 保存
-      const scriptId = crypto.randomUUID();
-      const script: Script = {
-        id: scriptId,
-        name: payload.name,
-        content: payload.content || '',
-        info: payload.info || '',
-        enabled: payload.enabled,
-        buttons: [],
-        data: {},
-      };
+      // 使用 repository service 创建脚本，它会处理 Zod 验证和默认值
+      const scriptId = await repositoryService.createScript(payload);
 
-      scripts.value.set(scriptId, script);
+      // 重新加载数据以确保同步
+      await init();
 
-      // 添加到指定文件夹或根目录
-      if (payload.folderId) {
-        const folder = folders.value.get(payload.folderId);
-        if (folder) {
-          folder.scripts.push(scriptId);
-        }
-      } else {
-        rootItems.value.push(scriptId);
-      }
-
-      // 选中新创建的脚本
-      selectedScriptId.value = scriptId;
 
       return scriptId;
     } catch (err) {
@@ -292,9 +264,6 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
       }
 
       // 如果删除的是当前选中的脚本，清除选择
-      if (selectedScriptId.value === id) {
-        selectedScriptId.value = null;
-      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '删除失败';
       throw err;
@@ -342,12 +311,6 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
     }
   }
 
-  /**
-   * 选择脚本
-   */
-  function selectScript(id: string | null): void {
-    selectedScriptId.value = id;
-  }
 
   /**
    * 切换脚本启用状态
@@ -466,7 +429,6 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
     scripts: scripts.value,
     folders: folders.value,
     rootItems: rootItems.value,
-    selectedScriptId,
     expandedFolders,
     filters,
     sortOptions,
@@ -476,7 +438,6 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
     // Getters
     allScripts,
     allFolders,
-    selectedScript,
     filteredScripts,
     sortedScripts,
     folderTree,
@@ -487,7 +448,6 @@ export const useScriptRepoStore = defineStore('scriptRepo', () => {
     updateScript,
     deleteScript,
     moveScript,
-    selectScript,
     toggleScriptEnabled,
     setFilters,
     setSortOptions,

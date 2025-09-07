@@ -1,500 +1,321 @@
 <template>
-  <div class="repository-page flex flexFlowColumn height100p gap10px">
-    <!-- 工具栏区域 -->
-    <div class="repository-toolbar flexShrink">
-      <div class="flex-container flex gap5px flexWrap">
-        <button
-          @click="commands.createScript({ name: '新脚本', folderId: null, enabled: false })"
-          class="menu_button menu_button_icon interactable"
-          :disabled="!selectors.canPerformActions.value"
-        >
-          <i class="fa-solid fa-scroll"></i>
-          <small>+ 脚本</small>
+  <div class="repository-page">
+    <!-- 顶部工具栏 -->
+    <div class="toolbar">
+      <!-- 搜索框 -->
+      <div class="search-container">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="搜索脚本..."
+          class="search-input"
+          @input="handleSearch"
+        />
+        <i v-if="searchQuery" class="fa-solid fa-times clear-search" @click="handleClearSearch"></i>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="toolbar-actions">
+        <!-- 创建脚本 -->
+        <button class="toolbar-button" @click="handleCreateScript" title="创建新脚本">
+          <i class="fa-solid fa-plus"></i>
         </button>
 
-        <button
-          @click="commands.createFolder({ name: '新文件夹', parentId: null })"
-          class="menu_button menu_button_icon interactable"
-          :disabled="!selectors.canPerformActions.value"
-        >
-          <i class="fa-solid fa-folder-plus"></i>
-          <small>+ 文件夹</small>
-        </button>
-
-        <button
-          @click="handleImportClick"
-          class="menu_button menu_button_icon interactable"
-          :disabled="!selectors.canPerformActions.value"
-        >
+        <!-- 导入 -->
+        <button class="toolbar-button" @click="handleImportClick" title="导入脚本">
           <i class="fa-solid fa-file-import"></i>
-          <small>导入</small>
         </button>
-        <input ref="importFileInput" multiple accept="*.json,*.zip" hidden type="file" @change="handleFileImport" />
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".json,.js,.txt"
+          multiple
+          style="display: none"
+          @change="handleFileImport"
+        />
 
-        <button
-          @click="commands.refreshRepository()"
-          class="menu_button menu_button_icon interactable"
-          :disabled="selectors.isLoading.value"
-        >
-          <i class="fa-solid fa-refresh" :class="{ 'fa-spin': selectors.isLoading }"></i>
-          <small>刷新</small>
+        <!-- 内置脚本库 -->
+        <button class="toolbar-button" @click="handleBuiltinLibraryClick" title="内置脚本库">
+          <i class="fa-solid fa-book"></i>
         </button>
       </div>
     </div>
 
-    <!-- 搜索栏 -->
-    <div class="script-search-container flex flexShrink">
-      <input v-model="searchKeyword" @input="handleSearch" type="text" placeholder="搜索脚本..." class="text_pole" />
-      <button
-        v-if="selectors.isSearching"
-        @click="handleClearSearch"
-        class="clear-search-btn no-border padding5 margin0"
-        title="清除搜索"
-      >
-        <i class="fa-solid fa-times"></i>
-      </button>
-    </div>
-    <i class="fa-solid fa-search script-search-icon"></i>
-    <!-- 主要内容区域 -->
-    <div class="repository-content flex1 flex flexFlowColumn overflowHidden">
-      <!-- 统计信息 -->
-      <div v-if="!selectors.isLoading" class="repository-stats flex gap10h5v paddingTopBot5 marginBot10 fontsize90p">
-        <span class="stats-item padding5"> 脚本总数: {{ scriptStats.total }} </span>
-        <span class="stats-item padding5"> 已启用: {{ scriptStats.enabled }} </span>
-        <span v-if="selectors.isSearching" class="stats-item search-stats padding5">
-          搜索结果: {{ searchResultCount }}
-        </span>
-      </div>
-
-      <!-- 视图切换 -->
-      <div class="view-toggle flex gap5px padding5 alignItemsCenter">
-        <button
-          :class="[
-            'view-btn flex alignItemsCenter gap5px padding10 no-border fontsize80p',
-            { active: currentView === 'list' },
-          ]"
-          @click="currentView = 'list'"
-          title="列表视图"
-        >
-          <i class="fa-solid fa-list"></i>
-          列表
-        </button>
-        <button
-          :class="[
-            'view-btn flex alignItemsCenter gap5px padding10 no-border fontsize80p',
-            { active: currentView === 'tree' },
-          ]"
-          @click="currentView = 'tree'"
-          title="树形视图"
-        >
-          <i class="fa-solid fa-sitemap"></i>
-          文件夹
-        </button>
-      </div>
-
-      <!-- 内容区域 -->
-      <div class="content-area flex1 flex flexFlowColumn overflowHidden">
-        <!-- 主分割面板 -->
-        <div class="main-panel flex1 flex overflowHidden">
-          <!-- 左侧：列表/树形视图 -->
-          <div class="left-panel flex1 flex flexFlowColumn overflowHidden">
-            <!-- 列表视图 -->
-            <script-list
-              v-if="currentView === 'list'"
-              :scripts="displayScripts"
-              :selected-script-id="selectedScriptId"
-              :is-searching="selectors.isSearching.value"
-              @clear-search="handleClearSearch"
-              @create-script="handleCreateScript"
-              @select-script="handleSelectScript"
-              @toggle-script="handleToggleScript"
-              @run-script="handleRunScript"
-              @script-menu="handleScriptMenu"
-            />
-
-            <!-- 树形视图 -->
-            <div v-else-if="currentView === 'tree'" class="tree-view flex1 overflowYAuto padding10">
-              <folder-tree
-                :folder-tree="selectors.folderTree.value"
-                :root-scripts="selectors.rootScripts.value"
-                :expanded-folders="selectors.expandedFolders.value"
-                :selected-script-id="selectedScriptId"
-                :get-scripts-in-folder="selectors.getScriptsInFolder"
-                @expand-folder="handleExpandFolder"
-                @select-script="handleSelectScript"
-                @toggle-script="handleToggleScript"
-                @folder-menu="handleFolderMenu"
-                @script-menu="handleTreeScriptMenu"
-              />
-            </div>
-          </div>
-
-          <!-- 分割线 -->
-          <div class="panel-divider" @mousedown="startResize"></div>
-
-          <!-- 右侧：编辑器面板 -->
-          <div class="right-panel flex flexFlowColumn overflowHidden" :style="{ width: rightPanelWidth + 'px' }">
-            <script-editor />
-          </div>
-        </div>
-      </div>
+    <!-- 脚本列表区域 -->
+    <div class="content-area">
+      <script-list
+        :scripts="displayScripts"
+        :folders="selectors.allFolders.value"
+        :expanded-folders="selectors.expandedFolders.value"
+        :is-searching="selectors.isSearching.value"
+        @clear-search="handleClearSearch"
+        @create-script="handleCreateScript"
+        @toggle-script="handleToggleScript"
+        @show-info="handleShowScriptInfo"
+        @edit-script="handleEditScript"
+        @move-script="handleMoveScript"
+        @export-script="handleExportScript"
+        @delete-script="handleDeleteScript"
+        @toggle-folder-expand="handleToggleFolderExpand"
+        @toggle-folder-scripts="handleToggleFolderScripts"
+        @edit-folder="handleEditFolder"
+        @export-folder="handleExportFolder"
+        @move-folder="handleMoveFolder"
+        @delete-folder="handleDeleteFolder"
+      />
     </div>
 
     <!-- Toast 通知 -->
     <toast-container />
-
-    <!-- 对话框 -->
-    <dialog-container />
   </div>
 </template>
 
 <script setup lang="ts">
 import { debounce } from 'lodash';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRepositorySelectors } from '../composables/useRepositorySelectors';
 import { useScriptRepoCommands } from '../composables/useScriptRepoCommands';
-import type { Folder, Script } from '../schemas/script.schema';
-import DialogContainer from './DialogContainer.vue';
-import FolderTree from './FolderTree.vue';
-import ScriptEditor from './ScriptEditor.vue';
+import { useUiStore } from '../stores/ui.store';
 import ScriptList from './ScriptList.vue';
 import ToastContainer from './ToastContainer.vue';
 
 // Composables
-const commands = useScriptRepoCommands();
 const selectors = useRepositorySelectors();
+const commands = useScriptRepoCommands();
+const uiStore = useUiStore();
 
-// 响应式状态
-const searchKeyword = ref('');
-const importFileInput = ref<HTMLInputElement>();
-const currentView = ref<'list' | 'tree'>('list'); // 当前视图模式
-const rightPanelWidth = ref(400); // 右侧面板宽度
-const isResizing = ref(false); // 是否正在调整大小
+// 本地状态
+const searchQuery = ref('');
+const fileInput = ref<HTMLInputElement>();
 
-// 本地计算属性（解决模板类型问题）
-const scriptStats = computed(() => selectors.scriptStats.value);
-const searchResultCount = computed(() => selectors.searchResultCount.value);
+// 本地计算属性
 const displayScripts = computed(() => selectors.displayScripts.value);
-const selectedScriptId = computed(() => selectors.selectedScriptId.value);
-
-// 计算属性和事件处理
 
 /**
  * 搜索处理（防抖）
  */
 const handleSearch = debounce(() => {
-  commands.search(searchKeyword.value);
+  commands.setFilters({ keyword: searchQuery.value });
 }, 300);
 
-/**
- * 清除搜索
- */
 const handleClearSearch = () => {
-  searchKeyword.value = '';
+  searchQuery.value = '';
   commands.clearSearch();
 };
 
 /**
- * 导入点击处理
+ * 导入处理
  */
 const handleImportClick = () => {
-  importFileInput.value?.click();
+  fileInput.value?.click();
 };
 
-/**
- * 文件导入处理
- */
 const handleFileImport = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const files = target.files;
-
-  if (!files || files.length === 0) {
-    return;
-  }
+  
+  if (!files?.length) return;
 
   try {
+    const importedScripts = [];
+    
     for (const file of Array.from(files)) {
       const content = await readFileAsText(file);
-      const data = JSON.parse(content);
-
-      // TODO: 验证导入数据格式
-      if (data.scripts && Array.isArray(data.scripts)) {
-        await commands.importScripts({
-          scripts: data.scripts,
-          folderId: null,
-          overwrite: false,
+      
+      try {
+        // 尝试解析JSON格式
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+          importedScripts.push(...parsed);
+        } else if (parsed.name) {
+          importedScripts.push(parsed);
+        }
+      } catch {
+        // 如果不是JSON，作为纯文本脚本处理
+        importedScripts.push({
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          content: content,
+          info: `从文件 ${file.name} 导入`
         });
       }
     }
-  } catch (error) {
-    console.error('导入文件失败:', error);
-  }
 
+    if (importedScripts.length > 0) {
+      await commands.importScripts({
+        scripts: importedScripts,
+        folderId: null,
+        overwrite: false
+      });
+      
+      uiStore.showSuccess('导入成功', `已导入 ${importedScripts.length} 个脚本`);
+    }
+  } catch (error) {
+    console.error('导入失败:', error);
+    uiStore.showError('导入失败', error instanceof Error ? error.message : '未知错误');
+  }
+  
   // 清空文件输入
   target.value = '';
 };
 
-/**
- * 读取文件为文本
- */
 const readFileAsText = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
+    reader.onload = e => resolve(e.target?.result as string);
     reader.onerror = () => reject(reader.error);
     reader.readAsText(file);
   });
 };
 
 /**
- * 脚本菜单处理 (用于 ScriptList)
+ * 内置脚本库
  */
-const handleScriptMenu = (payload: { script: Script; event: Event }) => {
-  const { script, event } = payload;
-  handleScriptMenuAction(script, event);
+const handleBuiltinLibraryClick = () => {
+  commands.openBuiltinLibrary();
 };
 
 /**
- * 树形脚本菜单处理 (用于 FolderTree)
+ * 脚本操作处理
  */
-const handleTreeScriptMenu = (script: Script, event: Event) => {
-  handleScriptMenuAction(script, event);
-};
-
-/**
- * 统一的脚本菜单处理逻辑
- */
-const handleScriptMenuAction = (script: Script, event: Event) => {
-  // TODO: 显示上下文菜单
-  console.log('显示脚本菜单:', script.name, event);
-
-  // 使用UI store显示删除确认对话框
-  const { useUiStore } = require('../stores/ui.store');
-  const uiStore = useUiStore();
-
-  uiStore.showConfirm(
-    '确认删除',
-    `确定要删除脚本 "${script.name}" 吗？此操作不可撤销。`,
-    () => {
-      commands.deleteScript(script.id, script.name);
-    },
-    () => {
-      console.log('取消删除:', script.name);
-    },
-  );
-};
-
-/**
- * 处理新组件的事件
- */
-const handleCreateScript = (payload: { name: string; folderId: string | null; enabled: boolean }) => {
-  commands.createScript(payload);
-};
-
-const handleSelectScript = (id: string) => {
-  commands.selectScript(id);
+const handleCreateScript = () => {
+  commands.createScriptWithUI();
 };
 
 const handleToggleScript = (id: string) => {
   commands.toggleScriptEnabled(id);
 };
 
-const handleRunScript = (id: string) => {
-  commands.runScript(id);
+const handleShowScriptInfo = (id: string) => {
+  commands.showScriptInfo(id);
 };
 
-const handleExpandFolder = (folderId: string) => {
-  commands.toggleFolderExpand(folderId);
+const handleEditScript = (id: string) => {
+  commands.editScript(id);
 };
 
-const handleFolderMenu = (folder: Folder, event: Event) => {
-  // TODO: 显示文件夹菜单
-  console.log('显示文件夹菜单:', folder.name, event);
+const handleMoveScript = (id: string) => {
+  commands.moveScript({ id, toFolderId: null });
+};
+
+const handleExportScript = (id: string) => {
+  commands.exportScripts({ scriptIds: [id], format: 'json', includeData: true });
+};
+
+const handleDeleteScript = (id: string) => {
+  commands.confirmDeleteScript(id);
 };
 
 /**
- * 开始调整面板大小
+ * 文件夹操作处理
  */
-const startResize = (_e: MouseEvent) => {
-  isResizing.value = true;
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizing.value) return;
-
-    const containerRect = (e.target as HTMLElement).closest('.content-area')?.getBoundingClientRect();
-    if (!containerRect) return;
-
-    const newWidth = containerRect.right - e.clientX;
-    rightPanelWidth.value = Math.max(300, Math.min(800, newWidth));
-  };
-
-  const handleMouseUp = () => {
-    isResizing.value = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
+const handleToggleFolderExpand = (id: string) => {
+  commands.toggleFolderExpand(id);
 };
 
-// 生命周期
-onMounted(async () => {
-  // 初始化仓库数据
-  await commands.initRepository();
-});
+const handleToggleFolderScripts = (id: string) => {
+  // TODO: 实现批量切换文件夹内所有脚本的启用状态
+  console.log('批量切换文件夹脚本:', id);
+};
 
-onUnmounted(() => {
-  // 清理资源
-});
+const handleEditFolder = (id: string) => {
+  // TODO: 实现编辑文件夹
+  console.log('编辑文件夹:', id);
+};
+
+const handleExportFolder = (id: string) => {
+  // TODO: 实现导出文件夹
+  console.log('导出文件夹:', id);
+};
+
+const handleMoveFolder = (id: string) => {
+  // TODO: 实现移动文件夹
+  console.log('移动文件夹:', id);
+};
+
+const handleDeleteFolder = (id: string) => {
+  commands.confirmDeleteFolder(id);
+};
 </script>
 
 <style scoped>
-.script-search-container {
+.repository-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--SmartThemeBlurTintColor);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--SmartThemeBorderColor);
+  background-color: var(--SmartThemeQuoteColor);
+}
+
+.search-container {
   position: relative;
+  flex: 1;
+  max-width: 300px;
 }
 
-.text_pole {
-  padding-right: 50px;
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  padding-right: 30px;
+  border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 20px;
+  background-color: var(--SmartThemeBlurTintColor);
+  color: var(--SmartThemeBodyColor);
+  font-size: 14px;
 }
 
-.script-search-icon {
+.search-input:focus {
+  outline: none;
+  border-color: var(--SmartThemeBodyColor);
+}
+
+.clear-search {
   position: absolute;
-  right: 5px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--SmartThemeEmColor);
-  pointer-events: none;
-}
-
-.clear-search-btn {
-  position: absolute;
-  right: 30px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: transparent;
-  border: none;
   cursor: pointer;
-  padding: 5px;
-  margin: 0;
-  color: var(--SmartThemeEmColor);
-  border-radius: 50%;
+  color: var(--SmartThemeBodyColor);
+  opacity: 0.6;
+}
+
+.clear-search:hover {
+  opacity: 1;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 5px;
+  margin-left: 15px;
+}
+
+.toolbar-button {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.clear-search-btn:hover {
-  color: var(--SmartThemeQuoteColor);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.repository-content {
-  position: relative;
-}
-
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 10;
-}
-
-.loading-spinner {
-  color: white;
-}
-
-.error-message {
-  background: rgba(255, 0, 0, 0.1);
-  border: 1px solid rgba(255, 0, 0, 0.3);
-  border-radius: 4px;
-  color: #ff6b6b;
-}
-
-.retry-btn {
-  background: none;
-  border: 1px solid currentColor;
-  color: inherit;
-  padding: 4px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.retry-btn:hover {
-  background: rgba(255, 107, 107, 0.1);
-}
-
-.repository-stats {
-  color: var(--SmartThemeBodyColor);
-  border-bottom: 1px solid var(--SmartThemeBorderColor);
-}
-
-.stats-item {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-}
-
-.search-stats {
-  color: var(--SmartThemeEmColor);
-  font-weight: 500;
-}
-
-.view-toggle {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  margin-bottom: 12px;
-}
-
-.view-btn {
-  border-radius: 4px;
-  background: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 8px;
+  background-color: var(--SmartThemeBlurTintColor);
   color: var(--SmartThemeBodyColor);
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+  transition: background-color 0.2s;
 }
 
-.view-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--SmartThemeBorderColor);
+.toolbar-button:hover {
+  background-color: var(--SmartThemeQuoteColor);
 }
 
-.view-btn.active {
-  background: var(--SmartThemeQuoteColor);
-  color: var(--SmartThemeEmColor);
-  border-color: var(--SmartThemeEmColor);
-}
-
-.left-panel {
-  min-width: 300px;
-}
-
-.panel-divider {
-  width: 4px;
-  background: var(--SmartThemeBorderColor);
-  cursor: col-resize;
-  transition: background 0.2s ease;
-  position: relative;
-}
-
-.panel-divider:hover {
-  background: var(--SmartThemeEmColor);
-}
-
-.panel-divider::after {
-  content: '';
-  position: absolute;
-  left: -2px;
-  right: -2px;
-  top: 0;
-  bottom: 0;
-}
-
-.right-panel {
-  min-width: 300px;
-  max-width: 800px;
+.content-area {
+  flex: 1;
+  overflow: hidden;
 }
 </style>

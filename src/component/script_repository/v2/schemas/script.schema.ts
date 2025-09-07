@@ -16,6 +16,7 @@ export const ScriptSchema = z.object({
   ),
   data: z.record(z.string(), z.any()),
   enabled: z.boolean(),
+  folderId: z.string().nullable(), // null 表示在根目录
 });
 
 /**

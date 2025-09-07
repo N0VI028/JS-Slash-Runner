@@ -6,7 +6,7 @@ import type {
 } from '../schemas/payloads.schema';
 import { CreateScriptPayloadSchema } from '../schemas/payloads.schema';
 import type { Folder, Repository, Script } from '../schemas/script.schema';
-import { ScriptSchema } from '../schemas/script.schema';
+import { FolderSchema, ScriptSchema } from '../schemas/script.schema';
 
 /**
  * 脚本仓库服务 - 负责数据持久化和I/O操作
@@ -87,20 +87,21 @@ export class RepositoryService {
    */
   async createScript(payload: CreateScriptPayload): Promise<string> {
     try {
-      // Zod 校验载荷
+      // Zod 校验载荷并应用默认值
       const validatedPayload = CreateScriptPayloadSchema.parse(payload);
 
-      // 生成新的脚本ID并保存
+      // 生成新的脚本ID
       const scriptId = crypto.randomUUID();
 
       const script: Script = {
         id: scriptId,
         name: validatedPayload.name,
-        content: validatedPayload.content || '',
-        info: validatedPayload.info || '',
+        content: validatedPayload.content,
+        info: validatedPayload.info,
         enabled: validatedPayload.enabled,
-        buttons: [],
-        data: {},
+        buttons: validatedPayload.buttons,
+        data: validatedPayload.data,
+        folderId: validatedPayload.folderId,
       };
 
       await this.saveScript(script);
@@ -127,7 +128,10 @@ export class RepositoryService {
         ...payload,
       };
 
-      await this.saveScript(updatedScript);
+      // Zod 校验更新后的脚本数据
+      const validatedScript = ScriptSchema.parse(updatedScript);
+
+      await this.saveScript(validatedScript);
     } catch (error) {
       console.error('更新脚本失败:', error);
       throw error;
@@ -157,8 +161,11 @@ export class RepositoryService {
    */
   async saveFolder(folder: Folder): Promise<void> {
     try {
+      // Zod 校验文件夹数据
+      const validatedFolder = FolderSchema.parse(folder);
+      
       // TODO: 实现文件夹保存逻辑
-      console.log('保存文件夹:', folder.name);
+      console.log('保存文件夹:', validatedFolder.name);
 
       await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
@@ -192,14 +199,20 @@ export class RepositoryService {
       const scriptIds: string[] = [];
 
       for (const scriptData of payload.scripts) {
-        const scriptId = await this.createScript({
-          name: scriptData.name,
-          content: scriptData.content,
-          info: scriptData.info || '',
-          folderId: payload.folderId,
-          enabled: false,
-        });
-        scriptIds.push(scriptId);
+        try {
+          const scriptId = await this.createScript({
+            name: scriptData.name,
+            content: scriptData.content || '',
+            info: scriptData.info || '',
+            folderId: payload.folderId,
+            enabled: false,
+            // buttons 和 data 将由 CreateScriptPayloadSchema 的默认值处理
+          });
+          scriptIds.push(scriptId);
+        } catch (validationError) {
+          console.warn(`跳过无效脚本数据: ${scriptData.name}`, validationError);
+          // 继续处理其他脚本，不中断整个导入过程
+        }
       }
 
       return scriptIds;

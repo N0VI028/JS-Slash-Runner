@@ -9,27 +9,11 @@ export interface ToastMessage {
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   message?: string;
-  duration?: number; // 毫秒，0 表示不自动消失
+  duration?: number; // 0 表示不自动消失
   actions?: Array<{
     label: string;
     action: () => void;
   }>;
-}
-
-/**
- * 对话框配置
- */
-export interface DialogConfig {
-  id: string;
-  type: 'confirm' | 'alert' | 'custom';
-  title: string;
-  message?: string;
-  component?: string; // 自定义组件名称
-  props?: Record<string, any>; // 传递给组件的属性
-  onConfirm?: (data?: any) => void;
-  onCancel?: () => void;
-  cancelable?: boolean; // 是否可以取消
-  persistent?: boolean; // 是否持久显示（不能点击外部关闭）
 }
 
 /**
@@ -50,11 +34,6 @@ export const useUiStore = defineStore('ui', () => {
   const toasts = ref<ToastMessage[]>([]);
 
   /**
-   * 对话框栈
-   */
-  const dialogs = ref<DialogConfig[]>([]);
-
-  /**
    * 加载状态
    */
   const loadingStates = ref<Map<string, LoadingState>>(new Map());
@@ -70,16 +49,6 @@ export const useUiStore = defineStore('ui', () => {
    * 是否显示 toast
    */
   const hasToasts = computed(() => toasts.value.length > 0);
-
-  /**
-   * 是否显示对话框
-   */
-  const hasDialogs = computed(() => dialogs.value.length > 0);
-
-  /**
-   * 当前对话框
-   */
-  const currentDialog = computed(() => (dialogs.value.length > 0 ? dialogs.value[dialogs.value.length - 1] : null));
 
   /**
    * 是否正在加载
@@ -179,69 +148,6 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   /**
-   * 打开对话框
-   */
-  function openDialog(dialog: Omit<DialogConfig, 'id'>): string {
-    const id = crypto.randomUUID();
-    const dialogConfig: DialogConfig = {
-      id,
-      cancelable: true,
-      persistent: false,
-      ...dialog,
-    };
-
-    dialogs.value.push(dialogConfig);
-    return id;
-  }
-
-  /**
-   * 关闭对话框
-   */
-  function closeDialog(id?: string): void {
-    if (id) {
-      const index = dialogs.value.findIndex(dialog => dialog.id === id);
-      if (index !== -1) {
-        dialogs.value.splice(index, 1);
-      }
-    } else {
-      // 关闭最顶层的对话框
-      dialogs.value.pop();
-    }
-  }
-
-  /**
-   * 关闭所有对话框
-   */
-  function closeAllDialogs(): void {
-    dialogs.value = [];
-  }
-
-  /**
-   * 显示确认对话框
-   */
-  function showConfirm(title: string, message: string, onConfirm?: () => void, onCancel?: () => void): string {
-    return openDialog({
-      type: 'confirm',
-      title,
-      message,
-      onConfirm,
-      onCancel,
-    });
-  }
-
-  /**
-   * 显示警告对话框
-   */
-  function showAlert(title: string, message: string): string {
-    return openDialog({
-      type: 'alert',
-      title,
-      message,
-      cancelable: false,
-    });
-  }
-
-  /**
    * 开始加载状态
    */
   function beginLoading(id: string, message: string, progress?: number): void {
@@ -255,14 +161,10 @@ export const useUiStore = defineStore('ui', () => {
   /**
    * 更新加载进度
    */
-  function updateLoadingProgress(id: string, progress: number, message?: string): void {
+  function updateLoadingProgress(id: string, progress: number): void {
     const state = loadingStates.value.get(id);
     if (state) {
       state.progress = progress;
-      if (message) {
-        state.message = message;
-      }
-      loadingStates.value.set(id, { ...state });
     }
   }
 
@@ -276,48 +178,45 @@ export const useUiStore = defineStore('ui', () => {
   /**
    * 清空所有加载状态
    */
-  function clearLoading(): void {
+  function clearAllLoading(): void {
     loadingStates.value.clear();
   }
 
   /**
-   * 开始 pending 操作
+   * 增加 pending 计数
    */
-  function beginPending(): void {
+  function incrementPending(): void {
     pendingCount.value++;
   }
 
   /**
-   * 结束 pending 操作
+   * 减少 pending 计数
    */
-  function endPending(): void {
+  function decrementPending(): void {
     if (pendingCount.value > 0) {
       pendingCount.value--;
     }
   }
 
   /**
-   * 清空 pending 计数
+   * 重置 pending 计数
    */
-  function clearPending(): void {
+  function resetPending(): void {
     pendingCount.value = 0;
   }
 
   return {
     // State
     toasts,
-    dialogs,
-    loadingStates: loadingStates.value,
+    loadingStates,
     pendingCount,
 
     // Getters
     hasToasts,
-    hasDialogs,
-    currentDialog,
     isLoading,
     currentLoadingStates,
 
-    // Actions - Toast
+    // Toast Actions
     pushToast,
     removeToast,
     clearToasts,
@@ -326,22 +225,13 @@ export const useUiStore = defineStore('ui', () => {
     showWarning,
     showInfo,
 
-    // Actions - Dialog
-    openDialog,
-    closeDialog,
-    closeAllDialogs,
-    showConfirm,
-    showAlert,
-
-    // Actions - Loading
+    // Loading Actions
     beginLoading,
     updateLoadingProgress,
     endLoading,
-    clearLoading,
-
-    // Actions - Pending
-    beginPending,
-    endPending,
-    clearPending,
+    clearAllLoading,
+    incrementPending,
+    decrementPending,
+    resetPending,
   };
 });

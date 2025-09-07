@@ -1,13 +1,5 @@
 // 导出所有类型定义
 
-import {
-  CreateFolderPayload,
-  CreateScriptPayload,
-  MoveScriptPayload,
-  RenameFolderPayload,
-  SearchFilters,
-  UpdateScriptPayload,
-} from '../schemas/payloads.schema';
 
 // Schema 类型
 export type { Folder, Repository, Script, ScriptRepositoryItem, ScriptType } from '../schemas/script.schema';
@@ -23,11 +15,11 @@ export type {
   RenameFolderPayload,
   SearchFilters,
   SortOptions,
-  UpdateScriptPayload,
+  UpdateScriptPayload
 } from '../schemas/payloads.schema';
 
 // Store 相关类型
-export type { DialogConfig, LoadingState, ToastMessage } from '../stores/ui.store';
+export type { LoadingState, ToastMessage } from '../stores/ui.store';
 
 // 额外的工具类型
 
@@ -163,38 +155,7 @@ export interface UserPreferences {
   foldersExpanded: string[];
 }
 
-/**
- * 组件事件类型定义
- */
-export interface ComponentEvents {
-  // 脚本事件
-  'script:select': [id: string];
-  'script:create': [payload: CreateScriptPayload];
-  'script:update': [payload: UpdateScriptPayload];
-  'script:delete': [id: string];
-  'script:move': [payload: MoveScriptPayload];
-  'script:toggle': [id: string];
-  'script:run': [id: string];
-  'script:stop': [id: string];
-
-  // 文件夹事件
-  'folder:select': [id: string];
-  'folder:create': [payload: CreateFolderPayload];
-  'folder:rename': [payload: RenameFolderPayload];
-  'folder:delete': [id: string];
-  'folder:expand': [id: string];
-  'folder:collapse': [id: string];
-
-  // 编辑器事件
-  'editor:content-change': [content: string];
-  'editor:save': [];
-  'editor:dirty': [isDirty: boolean];
-
-  // 搜索事件
-  'search:change': [keyword: string];
-  'filter:change': [filters: Partial<SearchFilters>];
-  'sort:change': [options: { field: SortField; order: SortOrder }];
-}
+// 组件事件类型定义已移除 - 现在使用 Pinia store 和命令模式替代事件系统
 
 /**
  * 服务接口基类
