@@ -43,7 +43,7 @@ export class FormValidator {
    * @param data 要验证的数据
    * @returns 验证结果
    */
-  static safeValidate<T>(schema: z.ZodSchema<T>, data: unknown): z.SafeParseReturnType<unknown, T> {
+  static safeValidate<T>(schema: z.ZodSchema<T>, data: unknown) {
     return schema.safeParse(data);
   }
 
@@ -55,7 +55,13 @@ export class FormValidator {
   static formatZodErrors(error: ZodError): Record<string, string[]> {
     const formattedErrors: Record<string, string[]> = {};
     
-    error.errors.forEach((err) => {
+    // 安全检查：确保 issues 数组存在
+    if (!error.issues || !Array.isArray(error.issues)) {
+      log.warn('[FormValidator] ZodError.issues 不存在或不是数组:', error);
+      return { _general: ['验证失败'] };
+    }
+    
+    error.issues.forEach((err) => {
       const path = err.path.length > 0 ? err.path.join('.') : '_general';
       
       if (!formattedErrors[path]) {

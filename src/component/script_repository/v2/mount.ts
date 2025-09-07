@@ -1,3 +1,5 @@
+import { extensionFolderPath } from '@/util/extension_variables';
+import { loadFileToDocument } from '@sillytavern/scripts/utils';
 import log from 'loglevel';
 import { createPinia } from 'pinia';
 import { App, createApp } from 'vue';
@@ -35,6 +37,16 @@ export class VueAppManager {
 
       // 清空容器
       this.mountElement.innerHTML = '';
+
+      // 确保加载 V1 样式，保持外观一致
+      try {
+        await loadFileToDocument(
+          `/scripts/extensions/${extensionFolderPath}/src/component/script_repository/public/style.css`,
+          'css'
+        );
+      } catch (e) {
+        log.warn('[VueAppManager] 加载 V1 样式失败（可忽略）:', e);
+      }
 
       // 创建Pinia实例
       this.pinia = createPinia();

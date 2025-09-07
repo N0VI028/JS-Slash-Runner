@@ -33,14 +33,14 @@
       >
         <i class="fa-solid fa-pencil"></i>
       </div>
-      
-      <!-- 移动脚本 -->
+
+      <!-- 在全局/角色之间移动脚本 -->
       <div 
-        class="script-storage-location menu_button interactable"
-        @click="$emit('move-script', script.id)"
-        :title="moveTitle"
+        class="script-move-type menu_button interactable"
+        @click="$emit('move-script-type', script.id)"
+        :title="typeMoveTitle"
       >
-        <i class="fa-solid" :class="moveIcon"></i>
+        <i class="fa-solid" :class="typeMoveIcon"></i>
       </div>
       
       <!-- 导出脚本 -->
@@ -71,6 +71,7 @@ import type { Script } from '../schemas/script.schema';
 // Props
 interface Props {
   script: Script;
+  repoType: 'global' | 'character';
 }
 
 const props = defineProps<Props>();
@@ -81,21 +82,25 @@ defineEmits<{
   'show-info': [id: string];
   'edit-script': [id: string];
   'move-script': [id: string];
+  'move-script-type': [id: string];
   'export-script': [id: string];
   'delete-script': [id: string];
 }>();
 
-// 计算移动按钮的图标和标题
-const moveIcon = computed(() => {
-  return props.script.folderId ? 'fa-folder-open' : 'fa-folder';
+// 全局/角色移动按钮
+const typeMoveIcon = computed(() => {
+  return props.repoType === 'global' ? 'fa-arrow-down' : 'fa-arrow-up';
 });
 
-const moveTitle = computed(() => {
-  return props.script.folderId ? '移动到根目录' : '移动到文件夹';
+const typeMoveTitle = computed(() => {
+  return props.repoType === 'global' ? '移动到角色脚本库' : '移动到全局脚本库';
 });
 </script>
 
 <style scoped>
+.script-item-control{
+  gap: 3px;
+}
 /* 使用V1的样式 */
 .script-item {
   width: 100%;

@@ -130,111 +130,121 @@ const getContentPreview = (content: string): string => {
 </script>
 
 <style scoped>
+/* 脚本项容器 */
 .script-item {
-  background: var(--SmartThemeBlurTintColor);
+  width: 100%;
   border: 1px solid var(--SmartThemeBorderColor);
-  border-radius: 6px;
-  padding: 12px;
+  border-radius: 10px;
+  min-height: 35px;
+  background-color: var(--SmartThemeBlurTintColor);
+  margin-bottom: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .script-item:hover {
-  background: var(--SmartThemeEmColor);
-  border-color: var(--SmartThemeQuoteColor);
+  background-color: var(--SmartThemeQuoteColor);
 }
 
 .script-item.selected {
-  background: var(--SmartThemeQuoteColor);
-  border-color: var(--SmartThemeEmColor);
+  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent);
+  border-color: var(--SmartThemeQuoteColor);
 }
 
 .script-item.disabled {
   opacity: 0.6;
 }
 
-.script-item-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.script-item.disabled .script-name {
+  text-decoration: line-through;
+  filter: grayscale(0.5);
 }
 
+/* 脚本内容 */
+.script-item-content {
+  padding: 10px;
+  width: 100%;
+}
+
+/* 脚本头部 */
 .script-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  margin-bottom: 5px;
 }
 
 .script-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   flex: 1;
-  min-width: 0; /* 防止文字溢出 */
+  min-width: 0;
 }
 
 .script-name {
-  margin: 0;
-  font-size: 14px;
+  margin: 0 0 5px 0;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--SmartThemeEmColor);
+  color: var(--SmartThemeBodyColor);
   word-break: break-word;
 }
 
 .script-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--SmartThemeBodyColor);
+  opacity: 0.8;
 }
 
 .script-status {
-  color: #888;
-  padding: 2px 6px;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--crimson70a);
+  color: white;
 }
 
 .script-status.enabled {
-  color: #4caf50;
-  background: rgba(76, 175, 80, 0.1);
+  background-color: var(--green70a);
 }
 
 .script-buttons-count {
   display: flex;
   align-items: center;
-  gap: 2px;
-  color: #666;
+  gap: 4px;
 }
 
+/* 操作按钮 */
 .script-actions {
   display: flex;
-  gap: 6px;
-  align-items: flex-start;
-  flex-shrink: 0;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
 }
 
 .toggle-btn,
 .action-btn {
-  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--SmartThemeBorderColor);
-  padding: 6px 8px;
-  border-radius: 4px;
-  cursor: pointer;
+  border-radius: 6px;
+  background-color: var(--SmartThemeBlurTintColor);
   color: var(--SmartThemeBodyColor);
+  cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 12px;
+}
+
+.toggle-btn:hover,
+.action-btn:hover {
+  background-color: var(--SmartThemeQuoteColor);
 }
 
 .toggle-btn.enabled {
-  color: #4caf50;
-  border-color: #4caf50;
-}
-
-.action-btn:hover,
-.toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--green70a);
 }
 
 .action-btn:disabled {
@@ -242,28 +252,32 @@ const getContentPreview = (content: string): string => {
   cursor: not-allowed;
 }
 
-.run-btn:not(:disabled):hover {
-  color: #4caf50;
-  border-color: #4caf50;
+.run-btn {
+  color: var(--green70a);
 }
 
-.menu-btn:hover {
-  color: var(--SmartThemeEmColor);
-}
-
-.script-description {
-  font-size: 13px;
+.menu-btn {
   color: var(--SmartThemeBodyColor);
-  opacity: 0.8;
-  line-height: 1.4;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* 脚本描述 */
+.script-description {
+  margin: 8px 0;
+  padding: 8px;
+  background-color: var(--black30a);
+  border-radius: 5px;
+  font-size: 0.9rem;
+  color: var(--SmartThemeBodyColor);
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* 代码预览 */
 .script-preview {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  overflow: hidden;
+  margin: 8px 0;
+  border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 5px;
+  background-color: var(--black30a);
 }
 
 .preview-header {
@@ -271,80 +285,71 @@ const getContentPreview = (content: string): string => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--SmartThemeBorderColor);
+  background-color: var(--grey5020a);
 }
 
 .preview-label {
-  font-size: 12px;
-  color: var(--SmartThemeBodyColor);
+  font-size: 0.85rem;
   font-weight: 500;
+  color: var(--SmartThemeBodyColor);
 }
 
 .preview-close-btn {
-  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   border: none;
-  color: #888;
+  border-radius: 3px;
+  background-color: transparent;
+  color: var(--SmartThemeBodyColor);
   cursor: pointer;
-  padding: 2px 4px;
-  font-size: 10px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
 }
 
 .preview-close-btn:hover {
-  color: var(--SmartThemeEmColor);
+  opacity: 1;
+  background-color: var(--SmartThemeBorderColor);
 }
 
 .preview-code {
   padding: 12px;
   margin: 0;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 11px;
+  font-family: var(--monoFontFamily);
+  font-size: 0.85rem;
   line-height: 1.4;
-  color: #e8e8e8;
+  color: var(--SmartThemeBodyColor);
+  background-color: transparent;
   white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 200px;
-  overflow-y: auto;
+  word-break: break-all;
+  overflow-x: auto;
 }
 
+/* 脚本底部 */
 .script-footer {
   display: flex;
   justify-content: center;
-  padding-top: 4px;
+  margin-top: 8px;
 }
 
 .expand-btn {
-  background: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
   border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 5px;
+  background-color: var(--SmartThemeBlurTintColor);
   color: var(--SmartThemeBodyColor);
-  padding: 4px 12px;
-  border-radius: 3px;
+  font-size: 0.85rem;
   cursor: pointer;
-  font-size: 11px;
   transition: all 0.2s ease;
 }
 
 .expand-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--SmartThemeEmColor);
-  color: var(--SmartThemeEmColor);
-}
-
-/* 代码滚动条 */
-.preview-code::-webkit-scrollbar {
-  width: 6px;
-}
-
-.preview-code::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.preview-code::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-
-.preview-code::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background-color: var(--SmartThemeQuoteColor);
 }
 </style>

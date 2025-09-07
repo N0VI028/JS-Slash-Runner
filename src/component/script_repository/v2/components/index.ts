@@ -10,9 +10,9 @@ import { VueAppManager } from '@/component/script_repository/v2/mount';
  */
 export async function initializeVueScriptRepository(): Promise<void> {
   try {
-    const container = $('#script-repository-content');
+    const container = $('#script-settings-content');
     if (!container) {
-      console.error('[ScriptRepository] 找不到script-repository-content容器');
+      console.error('[ScriptRepository] 找不到script-settings-content容器');
       return;
     }
 

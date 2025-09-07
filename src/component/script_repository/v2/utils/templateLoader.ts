@@ -72,7 +72,6 @@ export class TemplateLoader {
       'script_editor',
       'folder_create',
       'script_target_selector',
-      'script_default_repository',
       'script_allow_popup'
     ];
 
@@ -97,7 +96,6 @@ export const TEMPLATE_NAMES = {
   SCRIPT_EDITOR: 'script_editor',
   FOLDER_CREATE: 'folder_create',
   TARGET_SELECTOR: 'script_target_selector',
-  BUILTIN_LIBRARY: 'script_default_repository',
   SCRIPT_ALLOW: 'script_allow_popup',
 } as const;
 
@@ -126,14 +124,6 @@ export interface TargetSelectorTemplateData {
   showPresetOption?: boolean;
 }
 
-export interface BuiltinLibraryTemplateData {
-  scripts?: Array<{
-    id: string;
-    name: string;
-    info?: string;
-  }>;
-}
-
 /**
  * 便捷的模板加载函数
  */
@@ -145,6 +135,3 @@ export const loadFolderCreateTemplate = (data?: FolderCreateTemplateData) =>
 
 export const loadTargetSelectorTemplate = (data: TargetSelectorTemplateData) => 
   TemplateLoader.loadTemplate(TEMPLATE_NAMES.TARGET_SELECTOR, data);
-
-export const loadBuiltinLibraryTemplate = (data?: BuiltinLibraryTemplateData) => 
-  TemplateLoader.loadTemplate(TEMPLATE_NAMES.BUILTIN_LIBRARY, data);

@@ -70,7 +70,7 @@ export function unmountPresetPanels(): void {
  */
 function mountScriptPanel(pinia: Pinia): void {
   // 查找脚本库容器
-  const scriptContainer = $('#script-repository-content');
+  const scriptContainer = $('#script-settings-content');
   if (!scriptContainer) {
     console.warn('[PresetBundles] Script repository container not found');
     return;

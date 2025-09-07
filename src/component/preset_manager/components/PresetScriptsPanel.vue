@@ -26,9 +26,8 @@
             v-for="scriptData in boundScripts"
             :key="scriptData.script.id"
             :script="scriptData.script"
-            :script-type="scriptData.type"
             style="width: 100%"
-            @remove-from-preset="handleRemoveFromPreset"
+            @delete-script="handleRemoveFromPreset"
           />
         </div>
       </div>
@@ -38,9 +37,9 @@
 
 <script setup lang="ts">
 import { usePresetBundlesStore } from '@/component/preset_manager/store/presetBundles.store';
-import ScriptItem from '@/component/script_repository/components/ScriptItem.vue';
 import type { Script, ScriptType } from '@/component/script_repository/types';
 import { ScriptType as ScriptTypeEnum } from '@/component/script_repository/types';
+import ScriptItem from '@/component/script_repository/v2/components/ScriptItem.vue';
 
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 
@@ -102,7 +101,7 @@ const boundScripts = computed(() => {
   }
 });
 
-// 处理从预设中移除脚本
+// 处理从预设中删除脚本（v2版本的事件处理）
 const handleRemoveFromPreset = async (scriptId: string) => {
   try {
     if (!currentPresetName.value) {

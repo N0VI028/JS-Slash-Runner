@@ -1,13 +1,14 @@
 import { renderMarkdown } from '@/util/render_markdown';
-import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
+import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import log from 'loglevel';
+import { DEFAULT_SCRIPT_CONFIGS, createDefaultScript } from '../../builtin_scripts';
 import {
-    FolderCreateFormSchema,
-    ScriptEditorFormSchema,
-    TargetSelectorFormSchema,
-    type FolderCreateFormData,
-    type ScriptEditorFormData,
-    type TargetSelectorFormData,
+  FolderCreateFormSchema,
+  ScriptEditorFormSchema,
+  TargetSelectorFormSchema,
+  type FolderCreateFormData,
+  type ScriptEditorFormData,
+  type TargetSelectorFormData,
 } from '../schemas/popup.schema';
 import type { Script } from '../schemas/script.schema';
 import { useUiStore } from '../stores/ui.store';
@@ -27,7 +28,38 @@ export interface PopupResult<T = any> {
  */
 export function usePopups() {
   const uiStore = useUiStore();
-  // const scriptRepoStore = useScriptRepoStore(); // 暂时未使用，将来可能需要
+
+  /**
+   * 获取内置脚本配置（异步加载实际内容）
+   */
+  const getBuiltinScriptConfigs = async () => {
+    const configs = Object.keys(DEFAULT_SCRIPT_CONFIGS);
+    const results = await Promise.all(
+      configs.map(async key => {
+        const config = DEFAULT_SCRIPT_CONFIGS[key];
+        try {
+          // 使用 createDefaultScript 来正确加载内容
+          const loadedScript = await createDefaultScript(key);
+          return {
+            id: key,
+            name: config.name,
+            info: loadedScript?.info || config.info, // 优先使用加载的内容，回退到原始配置
+            content: loadedScript?.content || config.content
+          };
+        } catch (error) {
+          log.warn(`[usePopups] 加载内置脚本配置失败: ${key}`, error);
+          // 回退到原始配置
+          return {
+            id: key,
+            name: config.name,
+            info: config.info,
+            content: config.content
+          };
+        }
+      })
+    );
+    return results;
+  };
 
   /**
    * 显示脚本信息
@@ -184,8 +216,14 @@ export function usePopups() {
         // 收集表单数据
         const formData = FormValidator.extractFormData($selectorHtml);
         
+        // 映射字段名（因为模板中使用了prefix）
+        const mappedData = {
+          target: formData['target-target'] || formData.target,
+          showPresetOption: config.showPresetOption || false,
+        };
+        
         // 验证数据
-        const validation = FormValidator.validate(TargetSelectorFormSchema, formData);
+        const validation = FormValidator.validate(TargetSelectorFormSchema, mappedData);
         
         if (validation.success) {
           return {
@@ -208,20 +246,60 @@ export function usePopups() {
 
   /**
    * 显示内置脚本库
+   * @param onAddScript 添加脚本的回调函数
    * @returns 选择的脚本ID
    */
-  const showBuiltinLibrary = async (): Promise<PopupResult<string[]>> => {
+  const showBuiltinLibrary = async (onAddScript?: (scriptId: string, target: 'global' | 'character') => Promise<void>): Promise<PopupResult<string[]>> => {
     try {
-      // 这里需要根据实际的内置脚本数据来构建界面
-      // 暂时使用简单的实现
-      const message = '内置脚本库功能正在开发中...';
+      // 异步加载内置脚本配置
+      const builtinScripts = await getBuiltinScriptConfigs();
       
-      await callGenericPopup(message, POPUP_TYPE.DISPLAY, '', {
-        wide: true,
-        okButton: '关闭'
-      });
+      // 创建容器
+      const $container = $('<div class="default-script-repository-container"></div>');
+      
+      // 为每个内置脚本创建项目
+      for (const script of builtinScripts) {
+        const $item = await TemplateLoader.loadV1Template('script_default_repository', {
+          id: `default_lib_${script.id}`,
+          scriptName: script.name
+        });
+        
+        const $scriptHtml = $($item);
+        
+        // 绑定信息按钮
+        $scriptHtml.find('.script-info').on('click', () => {
+          const htmlText = renderMarkdown(script.info);
+          callGenericPopup(htmlText, POPUP_TYPE.DISPLAY, undefined, { wide: true });
+        });
+        
+        // 绑定添加按钮
+        $scriptHtml.find('.add-script').on('click', async () => {
+          const targetResult = await selectTarget({
+            title: '添加到:',
+            showPresetOption: false,
+          });
+          
+          if (targetResult.confirmed && targetResult.data) {
+            try {
+              if (onAddScript && (targetResult.data.target === 'global' || targetResult.data.target === 'character')) {
+                await onAddScript(script.id, targetResult.data.target);
+                uiStore.showSuccess('添加成功', `脚本 "${script.name}" 已添加到${targetResult.data.target === 'global' ? '全局' : '角色'}脚本库`);
+              } else {
+                uiStore.showSuccess('添加成功', `脚本 "${script.name}" 已添加`);
+              }
+            } catch (error) {
+              uiStore.showError('添加失败', `添加脚本 "${script.name}" 失败: ${error}`);
+            }
+          }
+        });
+        
+        $container.append($scriptHtml);
+      }
 
-      return { confirmed: false };
+      // 显示弹窗
+      await callGenericPopup($container, POPUP_TYPE.DISPLAY, '', { wide: true });
+      
+      return { confirmed: false }; // V1风格，不返回选择结果
     } catch (error) {
       log.error('[usePopups] 显示内置脚本库失败:', error);
       uiStore.showError('显示内置脚本库失败', String(error));

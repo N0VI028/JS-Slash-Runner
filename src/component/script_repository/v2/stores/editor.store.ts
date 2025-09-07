@@ -131,9 +131,15 @@ export const useEditorStore = defineStore('editor', () => {
       const { repositoryService } = await import('../services/repository.service');
 
       // 获取当前脚本信息
-      const { useScriptRepoStore } = await import('./scriptRepo.store');
-      const scriptStore = useScriptRepoStore();
-      const currentScript = scriptStore.scripts.get(currentScriptId.value);
+      const { useGlobalScriptStore } = await import('./globalScript.store');
+      const { useCharacterScriptStore } = await import('./characterScript.store');
+      const globalStore = useGlobalScriptStore();
+      const characterStore = useCharacterScriptStore();
+      
+      let currentScript = globalStore.scripts.get(currentScriptId.value);
+      if (!currentScript) {
+        currentScript = characterStore.scripts.get(currentScriptId.value);
+      }
 
       if (!currentScript) {
         throw new Error('当前脚本不存在');
@@ -147,8 +153,12 @@ export const useEditorStore = defineStore('editor', () => {
 
       await repositoryService.saveScript(updatedScript);
 
-      // 同步更新 store 中的脚本
-      scriptStore.scripts.set(currentScriptId.value, updatedScript);
+      // 同步更新对应的 store 中的脚本
+      if (globalStore.scripts.has(currentScriptId.value)) {
+        globalStore.scripts.set(currentScriptId.value, updatedScript);
+      } else {
+        characterStore.scripts.set(currentScriptId.value, updatedScript);
+      }
 
       isDirty.value = false;
       lastSaved.value = new Date();

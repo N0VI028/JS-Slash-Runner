@@ -1,61 +1,21 @@
 <template>
   <div class="script-list-container">
     <!-- 空状态 -->
-    <div v-if="allItems.length === 0" class="empty-state">
-      <div v-if="isSearching" class="empty-search">
-        <i class="fa-solid fa-search"></i>
-        <h3>未找到匹配的脚本</h3>
-        <p>尝试使用不同的关键词搜索</p>
-        <button @click="$emit('clear-search')" class="TavernHelper-button">清除搜索条件</button>
-      </div>
-      <div v-else class="empty-repository">
-        <i class="fa-solid fa-scroll"></i>
-        <p>脚本库为空</p>
-      </div>
-    </div>
+    <EmptyState
+      v-if="allItems.length === 0"
+      :is-searching="isSearching"
+      @clear-search="$emit('clear-search')"
+    />
 
     <!-- 脚本和文件夹列表 -->
     <div v-else class="script-list" ref="listContainer">
-      <template v-for="item in allItems" :key="`${item.type}-${item.id}`">
-        <!-- 文件夹 -->
-        <folder-item
-          v-if="item.type === 'folder'"
-          :folder="item.data as Folder"
-          :is-expanded="expandedFolders.has(item.id)"
-          :folder-scripts="getFolderScripts(item.id)"
-          @toggle-expand="$emit('toggle-folder-expand', $event)"
-          @toggle-folder-scripts="$emit('toggle-folder-scripts', $event)"
-          @edit-folder="$emit('edit-folder', $event)"
-          @export-folder="$emit('export-folder', $event)"
-          @move-folder="$emit('move-folder', $event)"
-          @delete-folder="$emit('delete-folder', $event)"
-        >
-          <!-- 文件夹内的脚本 -->
-          <script-item
-            v-for="script in getFolderScripts(item.id)"
-            :key="script.id"
-            :script="script"
-            @toggle-script="$emit('toggle-script', $event)"
-            @show-info="$emit('show-info', $event)"
-            @edit-script="$emit('edit-script', $event)"
-            @move-script="$emit('move-script', $event)"
-            @export-script="$emit('export-script', $event)"
-            @delete-script="$emit('delete-script', $event)"
-          />
-        </folder-item>
-
-        <!-- 根级脚本 -->
-        <script-item
-          v-else-if="item.type === 'script'"
-          :script="item.data as Script"
-          @toggle-script="$emit('toggle-script', $event)"
-          @show-info="$emit('show-info', $event)"
-          @edit-script="$emit('edit-script', $event)"
-          @move-script="$emit('move-script', $event)"
-          @export-script="$emit('export-script', $event)"
-          @delete-script="$emit('delete-script', $event)"
-        />
-      </template>
+      <component
+        v-for="item in allItems"
+        :key="`${item.type}-${item.id}`"
+        :is="getComponentType(item)"
+        v-bind="getComponentProps(item)"
+        v-on="getComponentEvents(item)"
+      />
     </div>
   </div>
 </template>
@@ -66,12 +26,34 @@ import type { Folder, Script } from '../schemas/script.schema';
 import FolderItem from './FolderItem.vue';
 import ScriptItem from './ScriptItem.vue';
 
+// 空状态组件
+const EmptyState = {
+  props: {
+    isSearching: Boolean,
+  },
+  emits: ['clear-search'],
+  template: `
+    <div class="empty-state">
+      <div v-if="isSearching" class="empty-search">
+        <i class="fa-solid fa-search"></i>
+        <h3>未找到匹配的脚本</h3>
+        <p>尝试使用不同的关键词搜索</p>
+        <button @click="$emit('clear-search')" class="TavernHelper-button">清除搜索条件</button>
+      </div>
+      <div v-else class="empty-repository">
+        <i class="fa-solid fa-scroll"></i>
+      </div>
+    </div>
+  `,
+};
+
 // Props
 interface Props {
   scripts: Script[];
   folders?: Folder[];
   expandedFolders?: Set<string>;
   isSearching: boolean;
+  repoType: 'global' | 'character';
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -80,13 +62,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // Emits
-defineEmits<{
+const emit = defineEmits<{
   'clear-search': [];
   'create-script': [];
   'toggle-script': [id: string];
   'show-info': [id: string];
   'edit-script': [id: string];
   'move-script': [id: string];
+  'move-script-type': [id: string];
   'export-script': [id: string];
   'delete-script': [id: string];
   'toggle-folder-expand': [id: string];
@@ -123,6 +106,52 @@ const allItems = computed(() => {
 const getFolderScripts = (folderId: string): Script[] => {
   return props.scripts.filter(script => script.folderId === folderId);
 };
+
+// 动态组件类型
+const getComponentType = (item: { type: 'folder' | 'script'; id: string; data: Folder | Script }) => {
+  return item.type === 'folder' ? FolderItem : ScriptItem;
+};
+
+// 动态组件属性
+const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: Folder | Script }) => {
+  if (item.type === 'folder') {
+    const folder = item.data as Folder;
+    return {
+      folder,
+      isExpanded: props.expandedFolders?.has(item.id) ?? false,
+      folderScripts: getFolderScripts(item.id),
+    };
+  } else {
+    return {
+      script: item.data as Script,
+      repoType: props.repoType,
+    };
+  }
+};
+
+// 动态组件事件
+const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data: Folder | Script }) => {
+  if (item.type === 'folder') {
+    return {
+      'toggle-expand': (id: string) => emit('toggle-folder-expand', id),
+      'toggle-folder-scripts': (id: string) => emit('toggle-folder-scripts', id),
+      'edit-folder': (id: string) => emit('edit-folder', id),
+      'export-folder': (id: string) => emit('export-folder', id),
+      'move-folder': (id: string) => emit('move-folder', id),
+      'delete-folder': (id: string) => emit('delete-folder', id),
+    };
+  } else {
+    return {
+      'toggle-script': (id: string) => emit('toggle-script', id),
+      'show-info': (id: string) => emit('show-info', id),
+      'edit-script': (id: string) => emit('edit-script', id),
+      'move-script': (id: string) => emit('move-script', id),
+      'move-script-type': (id: string) => emit('move-script-type', id),
+      'export-script': (id: string) => emit('export-script', id),
+      'delete-script': (id: string) => emit('delete-script', id),
+    };
+  }
+};
 </script>
 
 <style scoped>
@@ -136,7 +165,7 @@ const getFolderScripts = (folderId: string): Script[] => {
 .script-list {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 10px 0;
   display: flex;
   flex-direction: column;
   gap: 5px;
