@@ -1,16 +1,13 @@
-/*!********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/script_repository/v2/components/FolderItem.vue?vue&type=style&index=0&id=4de7b663&scoped=true&lang=css ***!
-  \********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
 /* 使用V1的样式 */
-.script-folder[data-v-4de7b663] {
+.script-folder[data-v-ecb77eae] {
   width: 100%;
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 10px;
   min-height: 35px;
   background-color: var(--grey5020a);
 }
-.folder-header[data-v-4de7b663] {
+.folder-header[data-v-ecb77eae] {
   display: flex;
   justify-content: space-between;
   flex-wrap: nowrap;
@@ -18,84 +15,81 @@
   padding: 0 5px;
   min-height: 35px;
 }
-.script-folder:has(.folder-script-toggle:not(.enabled)) .folder-name[data-v-4de7b663] {
+.script-folder:has(.folder-script-toggle:not(.enabled)) .folder-name[data-v-ecb77eae] {
   text-decoration: line-through;
   filter: grayscale(0.5);
 }
-.folder-content[data-v-4de7b663] {
+.folder-content[data-v-ecb77eae] {
   padding: 5px;
   border-top: 1px solid var(--SmartThemeBorderColor);
 }
-.folder-content[data-v-4de7b663] .script-item {
+.folder-content[data-v-ecb77eae] .script-item {
   background-color: var(--SmartThemeBlurTintColor);
   margin-bottom: 5px;
 }
-.folder-content[data-v-4de7b663] .script-item:last-child {
+.folder-content[data-v-ecb77eae] .script-item:last-child {
   margin-bottom: 0;
 }
-.folder-script-toggle[data-v-4de7b663] {
+.folder-script-toggle[data-v-ecb77eae] {
   cursor: pointer;
   padding: 5px;
 }
-.folder-script-toggle[data-v-4de7b663]:hover {
+.folder-script-toggle[data-v-ecb77eae]:hover {
   background-color: var(--SmartThemeBlurTintColor);
   border-radius: 5px;
 }
-.folder-edit[data-v-4de7b663],
-.folder-export[data-v-4de7b663],
-.folder-move[data-v-4de7b663],
-.folder-delete[data-v-4de7b663],
-.folder-toggle[data-v-4de7b663] {
+.folder-edit[data-v-ecb77eae],
+.folder-export[data-v-ecb77eae],
+.folder-move[data-v-ecb77eae],
+.folder-delete[data-v-ecb77eae],
+.folder-toggle[data-v-ecb77eae] {
   cursor: pointer;
   padding: 5px;
   margin: 0 2px;
   border-radius: 5px;
 }
-.folder-edit[data-v-4de7b663]:hover,
-.folder-export[data-v-4de7b663]:hover,
-.folder-move[data-v-4de7b663]:hover,
-.folder-delete[data-v-4de7b663]:hover,
-.folder-toggle[data-v-4de7b663]:hover {
+.folder-edit[data-v-ecb77eae]:hover,
+.folder-export[data-v-ecb77eae]:hover,
+.folder-move[data-v-ecb77eae]:hover,
+.folder-delete[data-v-ecb77eae]:hover,
+.folder-toggle[data-v-ecb77eae]:hover {
   background-color: var(--SmartThemeBlurTintColor);
 }
-.drag-handle[data-v-4de7b663] {
+.drag-handle[data-v-ecb77eae] {
   cursor: grab;
   padding: 5px;
   user-select: none;
 }
-.drag-handle[data-v-4de7b663]:active {
+.drag-handle[data-v-ecb77eae]:active {
   cursor: grabbing;
 }
-.folder-icon[data-v-4de7b663] {
+.folder-icon[data-v-ecb77eae] {
   color: var(--SmartThemeBodyColor);
 }
-.flexGrow[data-v-4de7b663] {
+.flexGrow[data-v-ecb77eae] {
   flex-grow: 1;
 }
-.overflow-hidden[data-v-4de7b663] {
+.overflow-hidden[data-v-ecb77eae] {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.marginLeft5[data-v-4de7b663] {
+.marginLeft5[data-v-ecb77eae] {
   margin-left: 5px;
 }
-.flex-container[data-v-4de7b663] {
+.flex-container[data-v-ecb77eae] {
   display: flex;
 }
-.flexnowrap[data-v-4de7b663] {
+.flexnowrap[data-v-ecb77eae] {
   flex-wrap: nowrap;
 }
-.alignItemsCenter[data-v-4de7b663] {
+.alignItemsCenter[data-v-ecb77eae] {
   align-items: center;
 }
 
-/*!********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/script_repository/v2/components/ScriptItem.vue?vue&type=style&index=0&id=5658bdc0&scoped=true&lang=css ***!
-  \********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
 /* 使用V1的样式 */
-.script-item[data-v-5658bdc0] {
+.script-item[data-v-4f88f808] {
   width: 100%;
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 10px;
@@ -106,67 +100,64 @@
   align-items: center;
   padding: 0 5px;
 }
-.script-item:has(.script-toggle:not(.enabled)) .script-item-name[data-v-5658bdc0] {
+.script-item:has(.script-toggle:not(.enabled)) .script-item-name[data-v-4f88f808] {
   text-decoration: line-through;
   filter: grayscale(0.5);
 }
-.script-toggle[data-v-5658bdc0] {
+.script-toggle[data-v-4f88f808] {
   cursor: pointer;
   padding: 5px;
 }
-.script-toggle[data-v-5658bdc0]:hover {
+.script-toggle[data-v-4f88f808]:hover {
   background-color: var(--SmartThemeBlurTintColor);
   border-radius: 5px;
 }
-.menu_button[data-v-5658bdc0] {
+.menu_button[data-v-4f88f808] {
   cursor: pointer;
   padding: 5px;
   margin: 0 2px;
   border-radius: 5px;
 }
-.menu_button[data-v-5658bdc0]:hover {
+.menu_button[data-v-4f88f808]:hover {
   background-color: var(--SmartThemeBlurTintColor);
 }
-.drag-handle[data-v-5658bdc0] {
+.drag-handle[data-v-4f88f808] {
   cursor: grab;
   padding: 5px;
   user-select: none;
 }
-.drag-handle[data-v-5658bdc0]:active {
+.drag-handle[data-v-4f88f808]:active {
   cursor: grabbing;
 }
-.flexGrow[data-v-5658bdc0] {
+.flexGrow[data-v-4f88f808] {
   flex-grow: 1;
 }
-.overflow-hidden[data-v-5658bdc0] {
+.overflow-hidden[data-v-4f88f808] {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.marginLeft5[data-v-5658bdc0] {
+.marginLeft5[data-v-4f88f808] {
   margin-left: 5px;
 }
-.flex-container[data-v-5658bdc0] {
+.flex-container[data-v-4f88f808] {
   display: flex;
 }
-.flexnowrap[data-v-5658bdc0] {
+.flexnowrap[data-v-4f88f808] {
   flex-wrap: nowrap;
 }
-.alignItemsCenter[data-v-5658bdc0] {
+.alignItemsCenter[data-v-4f88f808] {
   align-items: center;
 }
 
-/*!********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/script_repository/v2/components/ScriptList.vue?vue&type=style&index=0&id=605e35cb&scoped=true&lang=css ***!
-  \********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
-.script-list-container[data-v-605e35cb] {
+.script-list-container[data-v-2a80fa7e] {
   height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
-.script-list[data-v-605e35cb] {
+.script-list[data-v-2a80fa7e] {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
@@ -174,7 +165,7 @@
   flex-direction: column;
   gap: 5px;
 }
-.empty-state[data-v-605e35cb] {
+.empty-state[data-v-2a80fa7e] {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -183,23 +174,23 @@
   text-align: center;
   padding: 20px;
 }
-.empty-search i[data-v-605e35cb],
-.empty-repository i[data-v-605e35cb] {
+.empty-search i[data-v-2a80fa7e],
+.empty-repository i[data-v-2a80fa7e] {
   font-size: 3rem;
   margin-bottom: 1rem;
   opacity: 0.5;
 }
-.empty-search h3[data-v-605e35cb],
-.empty-repository h3[data-v-605e35cb] {
+.empty-search h3[data-v-2a80fa7e],
+.empty-repository h3[data-v-2a80fa7e] {
   margin-bottom: 0.5rem;
   color: var(--SmartThemeBodyColor);
 }
-.empty-search p[data-v-605e35cb],
-.empty-repository p[data-v-605e35cb] {
+.empty-search p[data-v-2a80fa7e],
+.empty-repository p[data-v-2a80fa7e] {
   margin-bottom: 1rem;
   opacity: 0.7;
 }
-.TavernHelper-button[data-v-605e35cb] {
+.TavernHelper-button[data-v-2a80fa7e] {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -211,22 +202,19 @@
   cursor: pointer;
   transition: background-color 0.2s;
 }
-.TavernHelper-button[data-v-605e35cb]:hover {
+.TavernHelper-button[data-v-2a80fa7e]:hover {
   background-color: var(--SmartThemeQuoteColor);
 }
 
-/*!************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/script_repository/v2/components/ToastContainer.vue?vue&type=style&index=0&id=04601a5c&scoped=true&lang=css ***!
-  \************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
-.toast-container[data-v-04601a5c] {
+.toast-container[data-v-2b801add] {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 9999;
   pointer-events: none;
 }
-.toast[data-v-04601a5c] {
+.toast[data-v-2b801add] {
   pointer-events: auto;
   margin-bottom: 12px;
   max-width: 400px;
@@ -236,55 +224,55 @@
   overflow: hidden;
   backdrop-filter: blur(8px);
 }
-.toast-success[data-v-04601a5c] {
+.toast-success[data-v-2b801add] {
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(67, 160, 71, 0.95));
   border-left: 4px solid #4caf50;
 }
-.toast-error[data-v-04601a5c] {
+.toast-error[data-v-2b801add] {
   background: linear-gradient(135deg, rgba(244, 67, 54, 0.95), rgba(229, 57, 53, 0.95));
   border-left: 4px solid #f44336;
 }
-.toast-warning[data-v-04601a5c] {
+.toast-warning[data-v-2b801add] {
   background: linear-gradient(135deg, rgba(255, 152, 0, 0.95), rgba(251, 140, 0, 0.95));
   border-left: 4px solid #ff9800;
 }
-.toast-info[data-v-04601a5c] {
+.toast-info[data-v-2b801add] {
   background: linear-gradient(135deg, rgba(33, 150, 243, 0.95), rgba(30, 136, 229, 0.95));
   border-left: 4px solid #2196f3;
 }
-.toast-content[data-v-04601a5c] {
+.toast-content[data-v-2b801add] {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
   color: white;
 }
-.toast-icon[data-v-04601a5c] {
+.toast-icon[data-v-2b801add] {
   flex-shrink: 0;
   font-size: 18px;
   margin-top: 2px;
 }
-.toast-body[data-v-04601a5c] {
+.toast-body[data-v-2b801add] {
   flex: 1;
   min-width: 0;
 }
-.toast-title[data-v-04601a5c] {
+.toast-title[data-v-2b801add] {
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 4px;
 }
-.toast-message[data-v-04601a5c] {
+.toast-message[data-v-2b801add] {
   font-size: 13px;
   opacity: 0.9;
   line-height: 1.4;
 }
-.toast-actions[data-v-04601a5c] {
+.toast-actions[data-v-2b801add] {
   display: flex;
   gap: 6px;
   align-items: flex-start;
   flex-shrink: 0;
 }
-.toast-action-btn[data-v-04601a5c] {
+.toast-action-btn[data-v-2b801add] {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -294,10 +282,10 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.toast-action-btn[data-v-04601a5c]:hover {
+.toast-action-btn[data-v-2b801add]:hover {
   background: rgba(255, 255, 255, 0.3);
 }
-.toast-close-btn[data-v-04601a5c] {
+.toast-close-btn[data-v-2b801add] {
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.8);
@@ -307,39 +295,36 @@
   font-size: 12px;
   transition: all 0.2s ease;
 }
-.toast-close-btn[data-v-04601a5c]:hover {
+.toast-close-btn[data-v-2b801add]:hover {
   color: white;
   background: rgba(255, 255, 255, 0.2);
 }
 
 /* 过渡动画 */
-.toast-enter-active[data-v-04601a5c],
-.toast-leave-active[data-v-04601a5c] {
+.toast-enter-active[data-v-2b801add],
+.toast-leave-active[data-v-2b801add] {
   transition: all 0.3s ease;
 }
-.toast-enter-from[data-v-04601a5c] {
+.toast-enter-from[data-v-2b801add] {
   opacity: 0;
   transform: translateX(100%);
 }
-.toast-leave-to[data-v-04601a5c] {
+.toast-leave-to[data-v-2b801add] {
   opacity: 0;
   transform: translateX(100%);
 }
-.toast-move[data-v-04601a5c] {
+.toast-move[data-v-2b801add] {
   transition: transform 0.3s ease;
 }
 
-/*!************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/script_repository/v2/components/RepositoryPage.vue?vue&type=style&index=0&id=dcf4848a&scoped=true&lang=css ***!
-  \************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
-.repository-page[data-v-dcf4848a] {
+.repository-page[data-v-7f737874] {
   height: 100%;
   display: flex;
   flex-direction: column;
   background-color: var(--SmartThemeBlurTintColor);
 }
-.toolbar[data-v-dcf4848a] {
+.toolbar[data-v-7f737874] {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -347,12 +332,12 @@
   border-bottom: 1px solid var(--SmartThemeBorderColor);
   background-color: var(--SmartThemeQuoteColor);
 }
-.search-container[data-v-dcf4848a] {
+.search-container[data-v-7f737874] {
   position: relative;
   flex: 1;
   max-width: 300px;
 }
-.search-input[data-v-dcf4848a] {
+.search-input[data-v-7f737874] {
   width: 100%;
   padding: 8px 12px;
   padding-right: 30px;
@@ -362,11 +347,11 @@
   color: var(--SmartThemeBodyColor);
   font-size: 14px;
 }
-.search-input[data-v-dcf4848a]:focus {
+.search-input[data-v-7f737874]:focus {
   outline: none;
   border-color: var(--SmartThemeBodyColor);
 }
-.clear-search[data-v-dcf4848a] {
+.clear-search[data-v-7f737874] {
   position: absolute;
   right: 10px;
   top: 50%;
@@ -375,15 +360,15 @@
   color: var(--SmartThemeBodyColor);
   opacity: 0.6;
 }
-.clear-search[data-v-dcf4848a]:hover {
+.clear-search[data-v-7f737874]:hover {
   opacity: 1;
 }
-.toolbar-actions[data-v-dcf4848a] {
+.toolbar-actions[data-v-7f737874] {
   display: flex;
   gap: 5px;
   margin-left: 15px;
 }
-.toolbar-button[data-v-dcf4848a] {
+.toolbar-button[data-v-7f737874] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -396,22 +381,19 @@
   cursor: pointer;
   transition: background-color 0.2s;
 }
-.toolbar-button[data-v-dcf4848a]:hover {
+.toolbar-button[data-v-7f737874]:hover {
   background-color: var(--SmartThemeQuoteColor);
 }
-.content-area[data-v-dcf4848a] {
+.content-area[data-v-7f737874] {
   flex: 1;
   overflow: hidden;
 }
 
-/*!********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/preset_manager/components/PresetRegexPanel.vue?vue&type=style&index=0&id=7d57709e&scoped=true&lang=css ***!
-  \********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
-.preset-regex-panel[data-v-7d57709e] {
+.preset-regex-panel[data-v-a322ba02] {
   width: 100%;
 }
-.regex-item[data-v-7d57709e] {
+.regex-item[data-v-a322ba02] {
   width: 100%;
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 10px;
@@ -422,22 +404,19 @@
   align-items: center;
   padding: 0 5px;
 }
-.regex-item-name[data-v-7d57709e] {
+.regex-item-name[data-v-a322ba02] {
   flex: 1;
   padding: 8px;
 }
-.regex-item-controls[data-v-7d57709e] {
+.regex-item-controls[data-v-a322ba02] {
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 5px;
 }
 
-/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/script_repository/components/ScriptItem.vue?vue&type=style&index=0&id=6f491b8b&scoped=true&lang=css ***!
-  \*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
-.script-item[data-v-6f491b8b] {
+.script-item[data-v-2f2b5588] {
   width: 100%;
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 10px;
@@ -448,72 +427,66 @@
   align-items: center;
   padding: 0 5px;
 }
-.script-item.preset-mode[data-v-6f491b8b] {
+.script-item.preset-mode[data-v-2f2b5588] {
   background-color: var(--SmartThemeBlurTintColor);
 }
-.script-item-name[data-v-6f491b8b] {
+.script-item-name[data-v-2f2b5588] {
   text-align: left;
   transition: all 0.2s ease;
 }
-.script-item-name.disabled[data-v-6f491b8b] {
+.script-item-name.disabled[data-v-2f2b5588] {
   text-decoration: line-through;
   filter: grayscale(0.5);
 }
-.script-toggle[data-v-6f491b8b] {
+.script-toggle[data-v-2f2b5588] {
   cursor: pointer;
   transition: color 0.2s ease;
 }
-.script-toggle[data-v-6f491b8b]:hover {
+.script-toggle[data-v-2f2b5588]:hover {
   color: var(--SmartThemeQuoteColor);
 }
-.script-toggle.enabled .fa-toggle-on[data-v-6f491b8b] {
+.script-toggle.enabled .fa-toggle-on[data-v-2f2b5588] {
   color: var(--green);
 }
-.script-toggle:not(.enabled) .fa-toggle-off[data-v-6f491b8b] {
+.script-toggle:not(.enabled) .fa-toggle-off[data-v-2f2b5588] {
   color: var(--red);
 }
-.menu_button[data-v-6f491b8b] {
+.menu_button[data-v-2f2b5588] {
   cursor: pointer;
   padding: 5px;
   border-radius: 3px;
   transition: background-color 0.2s ease;
 }
-.menu_button[data-v-6f491b8b]:hover {
+.menu_button[data-v-2f2b5588]:hover {
   background-color: var(--grey20);
 }
-.preset-bind-indicator[data-v-6f491b8b] {
+.preset-bind-indicator[data-v-2f2b5588] {
   color: var(--SmartThemeQuoteColor);
   cursor: default;
 }
-.preset-bind-indicator[data-v-6f491b8b]:hover {
+.preset-bind-indicator[data-v-2f2b5588]:hover {
   background-color: transparent;
 }
-.drag-handle[data-v-6f491b8b] {
+.drag-handle[data-v-2f2b5588] {
   cursor: move;
   padding: 5px;
   opacity: 0.6;
   user-select: none;
 }
-.drag-handle[data-v-6f491b8b]:hover {
+.drag-handle[data-v-2f2b5588]:hover {
   opacity: 1;
 }
-.script-item-control[data-v-6f491b8b] {
+.script-item-control[data-v-2f2b5588] {
   gap: 5px;
 }
 
-/*!**********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/preset_manager/components/PresetScriptsPanel.vue?vue&type=style&index=0&id=6e3a3a86&scoped=true&lang=css ***!
-  \**********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
-.preset-scripts-panel[data-v-6e3a3a86] {
+.preset-scripts-panel[data-v-0396dc83] {
   width: 100%;
 }
 
-/*!************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/.pnpm/css-loader@7.1.2_webpack@5.101.3/node_modules/css-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.0_postcs_388120e9a2b4112df0bc0673b279dba7/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.2_c218d30ceef5a043169c87881bb69148/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[4].use[0]!./src/component/script_repository/v2/components/ScriptListItem.vue?vue&type=style&index=0&id=679581fe&scoped=true&lang=css ***!
-  \************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
-.script-item[data-v-679581fe] {
+.script-item[data-v-34dcf041] {
   background: var(--SmartThemeBlurTintColor);
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 6px;
@@ -521,72 +494,72 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.script-item[data-v-679581fe]:hover {
+.script-item[data-v-34dcf041]:hover {
   background: var(--SmartThemeEmColor);
   border-color: var(--SmartThemeQuoteColor);
 }
-.script-item.selected[data-v-679581fe] {
+.script-item.selected[data-v-34dcf041] {
   background: var(--SmartThemeQuoteColor);
   border-color: var(--SmartThemeEmColor);
 }
-.script-item.disabled[data-v-679581fe] {
+.script-item.disabled[data-v-34dcf041] {
   opacity: 0.6;
 }
-.script-item-content[data-v-679581fe] {
+.script-item-content[data-v-34dcf041] {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.script-header[data-v-679581fe] {
+.script-header[data-v-34dcf041] {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
 }
-.script-info[data-v-679581fe] {
+.script-info[data-v-34dcf041] {
   display: flex;
   flex-direction: column;
   gap: 4px;
   flex: 1;
   min-width: 0; /* 防止文字溢出 */
 }
-.script-name[data-v-679581fe] {
+.script-name[data-v-34dcf041] {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
   color: var(--SmartThemeEmColor);
   word-break: break-word;
 }
-.script-meta[data-v-679581fe] {
+.script-meta[data-v-34dcf041] {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 12px;
 }
-.script-status[data-v-679581fe] {
+.script-status[data-v-34dcf041] {
   color: #888;
   padding: 2px 6px;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.1);
 }
-.script-status.enabled[data-v-679581fe] {
+.script-status.enabled[data-v-34dcf041] {
   color: #4caf50;
   background: rgba(76, 175, 80, 0.1);
 }
-.script-buttons-count[data-v-679581fe] {
+.script-buttons-count[data-v-34dcf041] {
   display: flex;
   align-items: center;
   gap: 2px;
   color: #666;
 }
-.script-actions[data-v-679581fe] {
+.script-actions[data-v-34dcf041] {
   display: flex;
   gap: 6px;
   align-items: flex-start;
   flex-shrink: 0;
 }
-.toggle-btn[data-v-679581fe],
-.action-btn[data-v-679581fe] {
+.toggle-btn[data-v-34dcf041],
+.action-btn[data-v-34dcf041] {
   background: none;
   border: 1px solid var(--SmartThemeBorderColor);
   padding: 6px 8px;
@@ -596,26 +569,26 @@
   transition: all 0.2s ease;
   font-size: 12px;
 }
-.toggle-btn.enabled[data-v-679581fe] {
+.toggle-btn.enabled[data-v-34dcf041] {
   color: #4caf50;
   border-color: #4caf50;
 }
-.action-btn[data-v-679581fe]:hover,
-.toggle-btn[data-v-679581fe]:hover {
+.action-btn[data-v-34dcf041]:hover,
+.toggle-btn[data-v-34dcf041]:hover {
   background: rgba(255, 255, 255, 0.1);
 }
-.action-btn[data-v-679581fe]:disabled {
+.action-btn[data-v-34dcf041]:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.run-btn[data-v-679581fe]:not(:disabled):hover {
+.run-btn[data-v-34dcf041]:not(:disabled):hover {
   color: #4caf50;
   border-color: #4caf50;
 }
-.menu-btn[data-v-679581fe]:hover {
+.menu-btn[data-v-34dcf041]:hover {
   color: var(--SmartThemeEmColor);
 }
-.script-description[data-v-679581fe] {
+.script-description[data-v-34dcf041] {
   font-size: 13px;
   color: var(--SmartThemeBodyColor);
   opacity: 0.8;
@@ -623,12 +596,12 @@
   padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.script-preview[data-v-679581fe] {
+.script-preview[data-v-34dcf041] {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
   overflow: hidden;
 }
-.preview-header[data-v-679581fe] {
+.preview-header[data-v-34dcf041] {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -636,12 +609,12 @@
   background: rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.preview-label[data-v-679581fe] {
+.preview-label[data-v-34dcf041] {
   font-size: 12px;
   color: var(--SmartThemeBodyColor);
   font-weight: 500;
 }
-.preview-close-btn[data-v-679581fe] {
+.preview-close-btn[data-v-34dcf041] {
   background: none;
   border: none;
   color: #888;
@@ -649,10 +622,10 @@
   padding: 2px 4px;
   font-size: 10px;
 }
-.preview-close-btn[data-v-679581fe]:hover {
+.preview-close-btn[data-v-34dcf041]:hover {
   color: var(--SmartThemeEmColor);
 }
-.preview-code[data-v-679581fe] {
+.preview-code[data-v-34dcf041] {
   padding: 12px;
   margin: 0;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -664,12 +637,12 @@
   max-height: 200px;
   overflow-y: auto;
 }
-.script-footer[data-v-679581fe] {
+.script-footer[data-v-34dcf041] {
   display: flex;
   justify-content: center;
   padding-top: 4px;
 }
-.expand-btn[data-v-679581fe] {
+.expand-btn[data-v-34dcf041] {
   background: none;
   border: 1px solid var(--SmartThemeBorderColor);
   color: var(--SmartThemeBodyColor);
@@ -679,24 +652,26 @@
   font-size: 11px;
   transition: all 0.2s ease;
 }
-.expand-btn[data-v-679581fe]:hover {
+.expand-btn[data-v-34dcf041]:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: var(--SmartThemeEmColor);
   color: var(--SmartThemeEmColor);
 }
 
 /* 代码滚动条 */
-.preview-code[data-v-679581fe]::-webkit-scrollbar {
+.preview-code[data-v-34dcf041]::-webkit-scrollbar {
   width: 6px;
 }
-.preview-code[data-v-679581fe]::-webkit-scrollbar-track {
+.preview-code[data-v-34dcf041]::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
 }
-.preview-code[data-v-679581fe]::-webkit-scrollbar-thumb {
+.preview-code[data-v-34dcf041]::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
 }
-.preview-code[data-v-679581fe]::-webkit-scrollbar-thumb:hover {
+.preview-code[data-v-34dcf041]::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
+
+/*# sourceMappingURL=main.css.map*/
