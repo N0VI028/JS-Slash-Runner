@@ -1,11 +1,18 @@
 <template>
-  <div class="script-item" :id="script.id">
-    <input type="checkbox" class="script-checkbox" style="display: none" />
-    <span class="drag-handle menu-handle">☰</span>
+  <div class="script-item" :id="script.id" :class="{ 'batch-mode': batchMode, selected }" ref="scriptElement">
+    <input
+      type="checkbox"
+      class="script-checkbox"
+      :style="batchMode ? {} : { display: 'none' }"
+      :checked="selected"
+      @change="$emit('select-script', script.id, ($event.target as HTMLInputElement).checked)"
+      @click.stop
+    />
+    <span class="drag-handle menu-handle" v-show="!batchMode" ref="dragHandle">☰</span>
     <div class="script-item-name flexGrow overflow-hidden marginLeft5">
       {{ script.name }}
     </div>
-    <div class="script-item-control flex-container flexnowrap alignItemsCenter">
+    <div class="script-item-control flex-container flexnowrap alignItemsCenter" v-show="!batchMode">
       <!-- 脚本开关 -->
       <div class="script-toggle" :class="{ enabled: script.enabled }" @click="$emit('toggle-script', script.id)">
         <i v-if="script.enabled" class="fa-solid fa-toggle-on"></i>
@@ -45,16 +52,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { useJQueryDrag } from '../composables/useJQueryDrag';
 import type { Script } from '../schemas/script.schema';
 
 // Props
 interface Props {
   script: Script;
   repoType: 'global' | 'character';
+  batchMode?: boolean;
+  selected?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  batchMode: false,
+  selected: false,
+});
 
 // Emits
 defineEmits<{
@@ -65,6 +78,7 @@ defineEmits<{
   'move-script-type': [id: string];
   'export-script': [id: string];
   'delete-script': [id: string];
+  'select-script': [id: string, selected: boolean];
 }>();
 
 // 全局/角色移动按钮
@@ -75,6 +89,11 @@ const typeMoveIcon = computed(() => {
 const typeMoveTitle = computed(() => {
   return props.repoType === 'global' ? '移动到角色脚本库' : '移动到全局脚本库';
 });
+
+// 拖拽功能
+const scriptElement = ref<HTMLElement>();
+const { useScriptElement } = useJQueryDrag();
+useScriptElement(scriptElement, props.script.id);
 </script>
 
 <style scoped>
@@ -92,6 +111,11 @@ const typeMoveTitle = computed(() => {
   flex-wrap: nowrap;
   align-items: center;
   padding: 0 5px;
+}
+
+.script-item.batch-mode.selected {
+  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
+  border-color: var(--SmartThemeQuoteColor);
 }
 
 .script-item:has(.script-toggle:not(.enabled)) .script-item-name {
@@ -137,5 +161,16 @@ const typeMoveTitle = computed(() => {
 
 .drag-handle:active {
   cursor: grabbing;
+}
+
+/* 拖拽状态样式 */
+.script-item.dragging-source {
+  opacity: 0.6;
+}
+
+.script-item.ui-dragging {
+  opacity: 0.8;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 </style>

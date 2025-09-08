@@ -110,7 +110,7 @@ export class FormValidator {
             FormValidator.populateEditorVariables(form, value);
             break;
 
-          default:
+          default: {
             // 通用字段填充（兼容其他表单）
             const $input = form.find(`#${key}-input`);
             if ($input.length > 0) {
@@ -121,6 +121,7 @@ export class FormValidator {
               }
             }
             break;
+          }
         }
       });
 
@@ -177,16 +178,20 @@ export class FormValidator {
    * @param variables 变量对象
    */
   private static populateEditorVariables(form: JQuery, variables: Record<string, any>) {
-    if (!variables || typeof variables !== 'object' || Object.keys(variables).length === 0) {
-      return;
-    }
-
     const $variableList = form.find('#variable-list');
     if ($variableList.length === 0) {
       log.warn('[ScriptRepository] 未找到变量列表容器');
       return;
     }
 
+    // 如果没有变量数据或变量为空，隐藏变量列表容器
+    if (!variables || typeof variables !== 'object' || Object.keys(variables).length === 0) {
+      $variableList.hide();
+      return;
+    }
+
+    // 显示变量列表容器
+    $variableList.show();
     $variableList.empty();
 
     Object.entries(variables).forEach(([key, value]) => {
@@ -216,3 +221,4 @@ export class FormValidator {
     log.debug('[FormValidator] 变量数据填充完成:', variables);
   }
 }
+

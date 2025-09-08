@@ -39,7 +39,15 @@ function bindScriptEditorEvents($editorHtml: JQuery<HTMLElement>): void {
 
   // 绑定删除变量按钮
   $editorHtml.on('click', '.delete-variable', (e: JQuery.ClickEvent) => {
-    $(e.currentTarget).closest('.variable-item').remove();
+    const $variableItem = $(e.currentTarget).closest('.variable-item');
+    const $variableList = $variableItem.closest('#variable-list');
+
+    $variableItem.remove();
+
+    // 如果删除了最后一个变量，隐藏变量列表容器
+    if ($variableList.find('.variable-item').length === 0) {
+      $variableList.hide();
+    }
   });
 
   // 绑定删除按钮按钮
@@ -68,6 +76,10 @@ function bindScriptEditorEvents($editorHtml: JQuery<HTMLElement>): void {
  */
 function addVariableToEditor($editorHtml: JQuery<HTMLElement>): void {
   const $variableList = $editorHtml.find('#variable-list');
+
+  // 添加变量前先显示变量列表容器
+  $variableList.show();
+
   const $variableItem = $(`
     <div class="variable-item flex-container flexFlowColumn width100p">
       <div class="flex flexFlowColumn">
@@ -210,6 +222,11 @@ export function usePopups() {
       // 绑定变量和按钮添加功能
       bindScriptEditorEvents($editorHtml);
 
+      // 对于新建脚本，隐藏变量列表容器
+      if (!script) {
+        $editorHtml.find('#variable-list').hide();
+      }
+
       // 填充现有数据（在绑定事件后进行，这样动态生成的元素也能正常工作）
       if (script) {
         FormValidator.populateEditorForm($editorHtml, {
@@ -234,7 +251,7 @@ export function usePopups() {
 
       if (result) {
         // 收集表单数据
-        let formData: { [key: string]: any } = {};
+        const formData: { [key: string]: any } = {};
         formData.name = $editorHtml.find('#script-name-input').val();
         formData.content = $editorHtml.find('#script-content-textarea').val();
         formData.info = $editorHtml.find('#script-info-textarea').val();
@@ -333,7 +350,7 @@ export function usePopups() {
       });
 
       if (result) {
-        let formData: { [key: string]: any } = {};
+        const formData: { [key: string]: any } = {};
         formData.name = $folderHtml.find('#folder-name-input').val();
         formData.color = $folderHtml.find('#folder-color-picker').val();
         formData.icon = $folderHtml.find('#folder-icon-value').val();
@@ -360,6 +377,73 @@ export function usePopups() {
     } catch (error) {
       log.error('[ScriptRepository] 文件夹创建失败:', error);
       toastr.error('创建文件夹失败', String(error));
+      return { confirmed: false };
+    }
+  };
+
+  /**
+   * 编辑文件夹对话框（预填名称/图标/颜色）
+   */
+  const editFolder = async (initial: Partial<FolderCreateFormData>): Promise<PopupResult<FolderCreateFormData>> => {
+    try {
+      const $folderHtml = $(await loadTemplate('folder_create'));
+
+      // 预填初始值
+      if (initial.name) $folderHtml.find('#folder-name-input').val(initial.name);
+      if (initial.icon) {
+        $folderHtml.find('#folder-icon-value').val(initial.icon);
+        $folderHtml.find('#folder-icon-preview').removeClass().addClass(`fa ${initial.icon}`);
+      }
+      if (initial.color) {
+        $folderHtml.find('#folder-color-picker').val(initial.color);
+      }
+
+      let folderColor: string | undefined = initial.color;
+      $folderHtml.find('#folder-color-picker').on('change', (evt: any) => {
+        folderColor = evt.detail?.rgba || evt.detail?.hex || String($folderHtml.find('#folder-color-picker').val() || '');
+      });
+
+      $folderHtml.find('#folder-icon-preview').on('click', async () => {
+        try {
+          // @ts-ignore
+          const selectedIcon = await showFontAwesomePicker();
+          if (selectedIcon && selectedIcon.trim() !== '') {
+            $folderHtml.find('#folder-icon-preview').removeClass().addClass(`fa ${selectedIcon}`);
+            $folderHtml.find('#folder-icon-value').val(selectedIcon);
+          }
+        } catch (error) {
+          console.error('图标选择失败:', error);
+        }
+      });
+
+      const result = await callGenericPopup($folderHtml, POPUP_TYPE.CONFIRM, '', {
+        okButton: '保存',
+        cancelButton: '取消',
+      });
+
+      if (result) {
+        const formData: { [key: string]: any } = {};
+        formData.name = $folderHtml.find('#folder-name-input').val();
+        formData.color = folderColor || $folderHtml.find('#folder-color-picker').val();
+        formData.icon = $folderHtml.find('#folder-icon-value').val();
+
+        const validation = FormValidator.validate(FolderCreateFormSchema, formData);
+
+        if (validation.success) {
+          return {
+            confirmed: true,
+            data: validation.data as FolderCreateFormData,
+          };
+        } else {
+          toastr.error('表单验证失败,错误信息:' + validation.errors, '请检查输入的数据');
+          return { confirmed: false };
+        }
+      }
+
+      return { confirmed: false };
+    } catch (error) {
+      log.error('[ScriptRepository] 文件夹编辑失败:', error);
+      toastr.error('编辑文件夹失败', String(error));
       return { confirmed: false };
     }
   };
@@ -394,13 +478,15 @@ export function usePopups() {
 
       if (result) {
         // 收集表单数据
-        let formData: { [key: string]: any } = {};
-        formData.target = $selectorHtml.find('#target-target-input').val();
+        const formData: { [key: string]: any } = {};
+        // 从单选框读取已选中的目标值（prefix 固定为 'target'）
+        const $checked = $selectorHtml.find('input[name="target-target"]:checked');
+        formData.target = String($checked.val() || '');
         formData.showPresetOption = config.showPresetOption || false;
 
         // 映射字段名（因为模板中使用了prefix）
         const mappedData = {
-          target: formData.target || formData.target,
+          target: formData.target,
           showPresetOption: config.showPresetOption || false,
         };
 
@@ -495,6 +581,61 @@ export function usePopups() {
   };
 
   /**
+   * 显示文件夹选择器对话框
+   * @param config 配置选项
+   * @returns 选择结果
+   */
+  const selectFolder = async (config: {
+    title: string;
+    folders: Array<{ id: string; name: string }>;
+    allowRoot?: boolean;
+  }): Promise<PopupResult<string | null>> => {
+    try {
+      const { title, folders, allowRoot = true } = config;
+      
+      if (folders.length === 0) {
+        toastr.error('没有可用的文件夹', '请先创建一个文件夹');
+        return { confirmed: false };
+      }
+
+      const folderOptions = folders
+        .map(folder => `<option value="${folder.id}">${folder.name}</option>`)
+        .join('');
+
+      const rootOption = allowRoot ? '<option value="">根目录</option>' : '';
+
+      const template = $(`
+        <div>
+          <p>${title}</p>
+          <select id="folder-selector" class="text_pole" style="width: 100%;">
+            ${rootOption}
+            ${folderOptions}
+          </select>
+        </div>
+      `);
+
+      const result = await callGenericPopup(template, POPUP_TYPE.CONFIRM, '', {
+        okButton: '确认',
+        cancelButton: '取消',
+      });
+
+      if (result) {
+        const selectedValue = template.find('#folder-selector').val() as string;
+        return {
+          confirmed: true,
+          data: selectedValue || null,
+        };
+      }
+
+      return { confirmed: false };
+    } catch (error) {
+      log.error('[usePopups] 文件夹选择失败:', error);
+      toastr.error('文件夹选择失败', String(error));
+      return { confirmed: false };
+    }
+  };
+
+  /**
    * 确认删除对话框
    * @param message 确认消息
    * @returns 确认结果
@@ -548,6 +689,72 @@ export function usePopups() {
     }
   };
 
+  /**
+   * 导入时脚本ID冲突处理对话框（复刻V1行为）
+   * @returns 'override' | 'new' | 'cancel'
+   */
+  const resolveImportIdConflict = async (config: {
+    scriptName: string;
+    existingScriptName: string;
+    existingType: 'global' | 'character';
+  }): Promise<'new' | 'override' | 'cancel'> => {
+    try {
+      const existingTypeText = config.existingType === 'global' ? '全局脚本' : '角色脚本';
+      const message = `要导入的脚本 '${config.scriptName}' 与${existingTypeText}库中的 '${config.existingScriptName}' id 相同，是否要继续操作？`;
+
+      const input = await callGenericPopup(message, POPUP_TYPE.TEXT, '', {
+        okButton: '覆盖原脚本',
+        cancelButton: '取消',
+        customButtons: ['新建脚本'],
+      });
+
+      switch (input) {
+        case 1:
+          return 'override';
+        case 2:
+          return 'new';
+        default:
+          return 'cancel';
+      }
+    } catch (error) {
+      log.error('[usePopups] 冲突对话框失败:', error);
+      return 'cancel';
+    }
+  };
+
+  /**
+   * 跨类型移动时脚本ID冲突处理对话框（复刻V1移动文案）
+   * @returns 'override' | 'new' | 'cancel'
+   */
+  const resolveMoveIdConflict = async (config: {
+    scriptName: string;
+    existingScriptName: string;
+    target: 'global' | 'character';
+  }): Promise<'new' | 'override' | 'cancel'> => {
+    try {
+      const targetTypeText = config.target === 'global' ? '全局脚本' : '角色脚本';
+      const message = `要移动到${targetTypeText}库的脚本 '${config.scriptName}' 与目标库中的 '${config.existingScriptName}' id 相同，是否要继续操作？`;
+
+      const input = await callGenericPopup(message, POPUP_TYPE.TEXT, '', {
+        okButton: '覆盖原脚本',
+        cancelButton: '取消',
+        customButtons: ['新建脚本'],
+      });
+
+      switch (input) {
+        case 1:
+          return 'override';
+        case 2:
+          return 'new';
+        default:
+          return 'cancel';
+      }
+    } catch (error) {
+      log.error('[usePopups] 移动冲突对话框失败:', error);
+      return 'cancel';
+    }
+  };
+
   return {
     // 脚本相关
     showScriptInfo,
@@ -555,9 +762,11 @@ export function usePopups() {
 
     // 文件夹相关
     createFolder,
+    editFolder,
 
     // 通用选择器
     selectTarget,
+    selectFolder,
 
     // 内置脚本库
     showBuiltinLibrary,
@@ -566,5 +775,7 @@ export function usePopups() {
     confirmDelete,
     promptText,
     showAlert,
+    resolveImportIdConflict,
+    resolveMoveIdConflict,
   };
 }

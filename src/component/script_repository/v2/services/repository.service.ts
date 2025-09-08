@@ -586,6 +586,37 @@ export class RepositoryService {
   }
 
   /**
+   * 更新文件夹（名称/图标/颜色）
+   */
+  async updateFolderInType(
+    type: 'global' | 'character',
+    folderId: string,
+    payload: { name?: string; icon?: string; color?: string },
+  ): Promise<void> {
+    try {
+      const repository = await this.loadRepositoryByType(type);
+      const folderIndex = this.findFolderIndex(repository, folderId);
+      if (folderIndex === -1) {
+        throw new Error('文件夹不存在');
+      }
+
+      const folderItem = repository[folderIndex] as ScriptRepositoryItem;
+      if (folderItem.type !== 'folder') {
+        throw new Error('目标不是文件夹');
+      }
+
+      if (payload.name !== undefined) folderItem.name = payload.name;
+      if (payload.icon !== undefined) folderItem.icon = payload.icon;
+      if (payload.color !== undefined) folderItem.color = payload.color;
+
+      await this.saveRepositoryByType(type, repository);
+    } catch (error) {
+      console.error('更新文件夹失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 移动脚本到文件夹
    */
   async moveScriptWithinType(
@@ -817,6 +848,40 @@ export class RepositoryService {
   }
 
   /**
+   * 在不同类型间移动文件夹（连同内部脚本一起移动）
+   */
+  async moveFolderToOtherType(folderId: string, fromType: 'global' | 'character'): Promise<void> {
+    try {
+      const toType = fromType === 'global' ? 'character' : 'global';
+
+      // 加载源与目标仓库
+      const fromRepository = await this.loadRepositoryByType(fromType);
+      const toRepository = await this.loadRepositoryByType(toType);
+
+      // 在源仓库中找到并移除文件夹
+      const folderIndex = this.findFolderIndex(fromRepository, folderId);
+      if (folderIndex === -1) {
+        throw new Error('文件夹不存在');
+      }
+
+      const [folderItem] = fromRepository.splice(folderIndex, 1);
+      if (!folderItem || (folderItem as any).type !== 'folder') {
+        throw new Error('目标不是文件夹');
+      }
+
+      // 将整个文件夹（包含内部脚本）追加到目标仓库根目录
+      toRepository.push(folderItem);
+
+      // 分别保存源与目标仓库
+      await this.saveRepositoryByType(fromType, fromRepository);
+      await this.saveRepositoryByType(toType, toRepository);
+    } catch (error) {
+      console.error('移动文件夹到其他类型失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 导出脚本
    */
   async exportScripts(scriptIds: string[], type: 'global' | 'character'): Promise<any[]> {
@@ -903,6 +968,36 @@ export class RepositoryService {
       await this.saveGlobalRepository(repository);
     } catch (error) {
       console.error('导入全局脚本失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 在指定类型中插入已存在的脚本对象（保留传入的脚本ID）
+   */
+  async insertExistingScriptInType(
+    type: 'global' | 'character',
+    script: Script,
+    folderId: string | null,
+  ): Promise<void> {
+    try {
+      // 校验脚本结构
+      ScriptSchema.parse(script);
+
+      const repository = await this.loadRepositoryByType(type);
+
+      if (folderId) {
+        const folderItem = this.findFolderById(repository, folderId);
+        if (!folderItem) throw new Error('目标文件夹不存在');
+        if (!Array.isArray(folderItem.value)) throw new Error('文件夹数据格式错误');
+        folderItem.value.push(script);
+      } else {
+        repository.push({ type: 'script', value: script });
+      }
+
+      await this.saveRepositoryByType(type, repository);
+    } catch (error) {
+      console.error('插入脚本失败:', error);
       throw error;
     }
   }

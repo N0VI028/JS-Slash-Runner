@@ -5,19 +5,41 @@
 
     <!-- 脚本和文件夹列表 -->
     <div v-else class="script-list" ref="listContainer">
-      <component
-        v-for="item in allItems"
-        :key="`${item.type}-${item.id}`"
-        :is="getComponentType(item)"
-        v-bind="getComponentProps(item)"
-        v-on="getComponentEvents(item)"
-      />
+      <template v-for="item in allItems" :key="`${item.type}-${item.id}`">
+        <component
+          :is="getComponentType(item)"
+          v-bind="getComponentProps(item)"
+          v-on="getComponentEvents(item)"
+        >
+          <!-- 如果是文件夹，渲染文件夹内的脚本 -->
+          <template v-if="item.type === 'folder'">
+            <component
+              v-for="script in getFolderScripts(item.id)"
+              :key="`script-${script.id}`"
+              :is="ScriptItem"
+              :script="script"
+              :repo-type="repoType"
+              :batch-mode="batchMode"
+              :selected="selectedScriptIds?.has(script.id) ?? false"
+              @toggle-script="(id) => emit('toggle-script', id)"
+              @show-info="(id) => emit('show-info', id)"
+              @edit-script="(id) => emit('edit-script', id)"
+              @move-script="(id) => emit('move-script', id)"
+              @move-script-type="(id) => emit('move-script-type', id)"
+              @export-script="(id) => emit('export-script', id)"
+              @delete-script="(id) => emit('delete-script', id)"
+              @select-script="(id, selected) => emit('select-script', id, selected)"
+            />
+          </template>
+        </component>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useJQueryDrag } from '../composables/useJQueryDrag';
 import type { Repository, Script, ScriptRepositoryItem } from '../schemas/script.schema';
 import { ScriptRepositoryItemSchema, ScriptSchema } from '../schemas/script.schema';
 import FolderItem from './FolderItem.vue';
@@ -52,10 +74,16 @@ interface Props {
   expandedFolders?: Set<string>;
   isSearching: boolean;
   repoType: 'global' | 'character';
+  batchMode?: boolean;
+  selectedScriptIds?: Set<string>;
+  selectedFolderIds?: Set<string>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   expandedFolders: () => new Set(),
+  batchMode: false,
+  selectedScriptIds: () => new Set<string>(),
+  selectedFolderIds: () => new Set<string>(),
 });
 
 // Emits
@@ -75,10 +103,17 @@ const emit = defineEmits<{
   'export-folder': [id: string];
   'move-folder': [id: string];
   'delete-folder': [id: string];
+  'select-script': [id: string, selected: boolean];
+  'select-folder': [id: string, selected: boolean];
 }>();
 
 // Template refs
 const listContainer = ref<HTMLElement>();
+
+// 拖拽功能
+const { useListSortable, useRootDrop } = useJQueryDrag();
+useListSortable(listContainer);
+useRootDrop(listContainer, props.repoType);
 
 // 计算属性：解析仓库数据为列表项
 const allItems = computed(() => {
@@ -140,11 +175,16 @@ const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: 
       folder: folderItem,
       isExpanded: props.expandedFolders?.has(item.id) ?? false,
       folderScripts: getFolderScripts(item.id),
+      batchMode: props.batchMode,
+      selected: props.selectedFolderIds?.has(item.id) ?? false,
+      repoType: props.repoType,
     };
   } else {
     return {
       script: item.data as Script,
       repoType: props.repoType,
+      batchMode: props.batchMode,
+      selected: props.selectedScriptIds?.has(item.id) ?? false,
     };
   }
 };
@@ -159,6 +199,7 @@ const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data:
       'export-folder': (id: string) => emit('export-folder', id),
       'move-folder': (id: string) => emit('move-folder', id),
       'delete-folder': (id: string) => emit('delete-folder', id),
+      'select-folder': (id: string, selected: boolean) => emit('select-folder', id, selected),
     };
   } else {
     return {
@@ -169,6 +210,7 @@ const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data:
       'move-script-type': (id: string) => emit('move-script-type', id),
       'export-script': (id: string) => emit('export-script', id),
       'delete-script': (id: string) => emit('delete-script', id),
+      'select-script': (id: string, selected: boolean) => emit('select-script', id, selected),
     };
   }
 };
@@ -235,5 +277,12 @@ const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data:
 
 .TavernHelper-button:hover {
   background-color: var(--SmartThemeQuoteColor);
+}
+
+/* 拖拽状态样式 */
+.script-list.root-drag-target {
+  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 5%, transparent);
+  border: 1px solid var(--SmartThemeQuoteColor);
+  border-radius: 5px;
 }
 </style>
