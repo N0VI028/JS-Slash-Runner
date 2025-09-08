@@ -11,9 +11,8 @@ import {
   type TargetSelectorFormData,
 } from '../schemas/popup.schema';
 import type { Script } from '../schemas/script.schema';
-import { useUiStore } from '../stores/ui.store';
 import { FormValidator } from '../utils/formValidation';
-import { TemplateLoader } from '../utils/templateLoader';
+import { loadTemplate } from '../utils/templateLoader';
 
 /**
  * Popup 操作结果接口
@@ -24,11 +23,129 @@ export interface PopupResult<T = any> {
 }
 
 /**
+ * 绑定脚本编辑器的事件监听器
+ * @param $editorHtml 编辑器HTML元素
+ */
+function bindScriptEditorEvents($editorHtml: JQuery<HTMLElement>): void {
+  // 绑定变量添加按钮
+  $editorHtml.find('#add-variable-trigger').on('click', () => {
+    addVariableToEditor($editorHtml);
+  });
+
+  // 绑定按钮添加按钮
+  $editorHtml.find('#add-button-trigger').on('click', () => {
+    addButtonToEditor($editorHtml);
+  });
+
+  // 绑定删除变量按钮
+  $editorHtml.on('click', '.delete-variable', (e: JQuery.ClickEvent) => {
+    $(e.currentTarget).closest('.variable-item').remove();
+  });
+
+  // 绑定删除按钮按钮
+  $editorHtml.on('click', '.delete-button', (e: JQuery.ClickEvent) => {
+    $(e.currentTarget).closest('.button-item').remove();
+  });
+
+  // 初始化按钮列表的拖拽排序功能
+  const $buttonList = $editorHtml.find('.button-list');
+  if ($buttonList.length > 0) {
+    // 确保jQuery UI sortable可用
+    if (typeof $buttonList.sortable === 'function') {
+      $buttonList.sortable({
+        handle: '.drag-handle',
+        items: '.button-item',
+        tolerance: 'pointer',
+        cursor: 'move',
+      });
+    }
+  }
+}
+
+/**
+ * 添加新变量到编辑器
+ * @param $editorHtml 编辑器HTML元素
+ */
+function addVariableToEditor($editorHtml: JQuery<HTMLElement>): void {
+  const $variableList = $editorHtml.find('#variable-list');
+  const $variableItem = $(`
+    <div class="variable-item flex-container flexFlowColumn width100p">
+      <div class="flex flexFlowColumn">
+        <div class="flex-container alignitemscenter spaceBetween wide100p">
+          <div>名称:</div>
+          <div class="menu_button interactable delete-variable" title="删除变量">
+            <i class="fa-solid fa-trash"></i>
+          </div>
+        </div>
+        <input type="text" class="text_pole variable-key" value="" placeholder="变量名">
+      </div>
+      <div class="flex flexFlowColumn" style="align-items: flex-start;">
+        <div>值:</div>
+        <textarea class="text_pole variable-value" style="min-height: 12px;" rows="1" placeholder="请以纯文本或YAML格式输入变量值"></textarea>
+      </div>
+      <hr>
+    </div>
+  `);
+  $variableList.append($variableItem);
+
+  // 聚焦到新添加的变量名输入框
+  $variableItem.find('.variable-key').focus();
+}
+
+/**
+ * 添加新按钮到编辑器
+ * @param $editorHtml 编辑器HTML元素
+ */
+function addButtonToEditor($editorHtml: JQuery<HTMLElement>): void {
+  const $buttonList = $editorHtml.find('.button-list');
+  const buttonIndex = $buttonList.find('.button-item').length;
+  const buttonId = `button-${buttonIndex}`;
+
+  const $buttonItem = $(`
+    <div class="button-item" id="${buttonId}">
+      <span class="drag-handle menu-handle">☰</span>
+      <input type="checkbox" id="checkbox-${buttonId}" class="button-visible" checked>
+      <input class="text_pole button-name" type="text" id="text-${buttonId}" placeholder="按钮名称">
+      <div class="delete-button menu_button interactable" data-index="${buttonIndex}">
+        <i class="fa-solid fa-trash"></i>
+      </div>
+    </div>
+  `);
+  $buttonList.append($buttonItem);
+
+  // 聚焦到新添加的按钮名输入框
+  $buttonItem.find('.button-name').focus();
+}
+
+/**
+ * 重新绑定动态生成元素的事件
+ * @param $editorHtml 编辑器HTML元素
+ */
+function rebindDynamicEvents($editorHtml: JQuery<HTMLElement>): void {
+  // 重新初始化按钮列表的拖拽排序功能
+  const $buttonList = $editorHtml.find('.button-list');
+  if ($buttonList.length > 0 && typeof $buttonList.sortable === 'function') {
+    // 销毁现有的sortable实例（如果存在）
+    try {
+      $buttonList.sortable('destroy');
+    } catch (e) {
+      // 忽略destroy错误（可能还没有初始化）
+    }
+
+    // 重新初始化sortable
+    $buttonList.sortable({
+      handle: '.drag-handle',
+      items: '.button-item',
+      tolerance: 'pointer',
+      cursor: 'move',
+    });
+  }
+}
+
+/**
  * 使用ST popup系统的composable
  */
 export function usePopups() {
-  const uiStore = useUiStore();
-
   /**
    * 获取内置脚本配置（异步加载实际内容）
    */
@@ -44,7 +161,7 @@ export function usePopups() {
             id: key,
             name: config.name,
             info: loadedScript?.info || config.info, // 优先使用加载的内容，回退到原始配置
-            content: loadedScript?.content || config.content
+            content: loadedScript?.content || config.content,
           };
         } catch (error) {
           log.warn(`[usePopups] 加载内置脚本配置失败: ${key}`, error);
@@ -53,10 +170,10 @@ export function usePopups() {
             id: key,
             name: config.name,
             info: config.info,
-            content: config.content
+            content: config.content,
           };
         }
-      })
+      }),
     );
     return results;
   };
@@ -69,14 +186,14 @@ export function usePopups() {
     try {
       const scriptInfo = script.info || '暂无脚本信息';
       const htmlText = renderMarkdown(scriptInfo);
-      
-      await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY, undefined, { 
+
+      await callGenericPopup(htmlText, POPUP_TYPE.DISPLAY, undefined, {
         wide: true,
-        okButton: '关闭'
+        okButton: '关闭',
       });
     } catch (error) {
       log.error('[usePopups] 显示脚本信息失败:', error);
-      uiStore.showError('显示脚本信息失败', String(error));
+      toastr.error('显示脚本信息失败', String(error));
     }
   };
 
@@ -88,11 +205,14 @@ export function usePopups() {
   const openScriptEditor = async (script?: Script): Promise<PopupResult<ScriptEditorFormData>> => {
     try {
       // 加载模板
-      const $editorHtml = $(await TemplateLoader.loadV1Template('script_editor'));
+      const $editorHtml = $(await loadTemplate('script_editor'));
 
-      // 填充现有数据
+      // 绑定变量和按钮添加功能
+      bindScriptEditorEvents($editorHtml);
+
+      // 填充现有数据（在绑定事件后进行，这样动态生成的元素也能正常工作）
       if (script) {
-        FormValidator.populateForm($editorHtml, {
+        FormValidator.populateEditorForm($editorHtml, {
           name: script.name,
           content: script.content,
           info: script.info,
@@ -100,10 +220,10 @@ export function usePopups() {
           buttons: script.buttons,
           data: script.data,
         });
-      }
 
-      // 绑定实时验证
-      FormValidator.bindRealTimeValidation(ScriptEditorFormSchema, $editorHtml);
+        // 重新绑定动态生成元素的事件
+        rebindDynamicEvents($editorHtml);
+      }
 
       // 显示编辑器popup
       const result = await callGenericPopup($editorHtml, POPUP_TYPE.CONFIRM, '', {
@@ -114,18 +234,56 @@ export function usePopups() {
 
       if (result) {
         // 收集表单数据
-        const formData = FormValidator.extractFormData($editorHtml);
-        
+        let formData: { [key: string]: any } = {};
+        formData.name = $editorHtml.find('#script-name-input').val();
+        formData.content = $editorHtml.find('#script-content-textarea').val();
+        formData.info = $editorHtml.find('#script-info-textarea').val();
+        const $buttonItems = $editorHtml.find('.button-item');
+        if ($buttonItems.length > 0) {
+          const buttons: Array<{ name: string; visible: boolean }> = [];
+          $buttonItems.each(function () {
+            const $item = $(this);
+            const name = String($item.find('.button-name').val() || '');
+            const visible = Boolean($item.find('.button-visible').prop('checked'));
+
+            if (name.trim()) {
+              buttons.push({ name, visible });
+            }
+          });
+
+          if (buttons.length > 0) {
+            formData.buttons = buttons;
+          }
+        }
+
+        const $variableItems = $editorHtml.find('.variable-item');
+        if ($variableItems.length > 0) {
+          const data: Record<string, any> = {};
+          $variableItems.each(function () {
+            const $item = $(this);
+            const key = String($item.find('.variable-key').val() || '');
+            const value = $item.find('.variable-value').val();
+
+            if (key.trim()) {
+              data[key] = value;
+            }
+          });
+
+          if (Object.keys(data).length > 0) {
+            formData.data = data;
+          }
+        }
+
         // 验证数据
         const validation = FormValidator.validate(ScriptEditorFormSchema, formData);
-        
+
         if (validation.success) {
           return {
             confirmed: true,
             data: validation.data as ScriptEditorFormData,
           };
         } else {
-          uiStore.showError('表单验证失败', '请检查输入的数据');
+          toastr.error('表单验证失败', '请检查输入的数据');
           return { confirmed: false };
         }
       }
@@ -133,55 +291,75 @@ export function usePopups() {
       return { confirmed: false };
     } catch (error) {
       log.error('[usePopups] 脚本编辑器失败:', error);
-      uiStore.showError('打开脚本编辑器失败', String(error));
+      toastr.error('打开脚本编辑器失败', String(error));
       return { confirmed: false };
     }
   };
 
   /**
    * 创建文件夹对话框
-   * @param parentId 父文件夹ID
    * @returns 创建结果
    */
-  const createFolder = async (parentId?: string): Promise<PopupResult<FolderCreateFormData>> => {
+  const createFolder = async (): Promise<PopupResult<FolderCreateFormData>> => {
     try {
       // 加载模板
-      const $folderHtml = $(await TemplateLoader.loadV1Template('folder_create', {
-        defaultColor: '#4a90e2'
-      }));
+      const $folderHtml = $(await loadTemplate('folder_create'));
 
-      // 绑定实时验证
-      FormValidator.bindRealTimeValidation(FolderCreateFormSchema, $folderHtml);
+      // 用于存储颜色选择结果
+      let folderColor: string | undefined;
 
-      // 显示创建对话框
+      // 绑定颜色选择器
+      $folderHtml.find('#folder-color-picker').on('change', (evt: any) => {
+        folderColor = evt.detail?.rgba || evt.detail?.hex;
+      });
+
+      // 绑定图标选择器
+      $folderHtml.find('#folder-icon-preview').on('click', async () => {
+        try {
+          // @ts-ignore - showFontAwesomePicker 是全局函数
+          const selectedIcon = await showFontAwesomePicker();
+          if (selectedIcon && selectedIcon.trim() !== '') {
+            $folderHtml.find('#folder-icon-preview').removeClass().addClass(`fa ${selectedIcon}`);
+            $folderHtml.find('#folder-icon-value').val(selectedIcon);
+          }
+        } catch (error) {
+          console.error('图标选择失败:', error);
+        }
+      });
+
       const result = await callGenericPopup($folderHtml, POPUP_TYPE.CONFIRM, '', {
         okButton: '创建',
         cancelButton: '取消',
       });
 
       if (result) {
-        // 收集表单数据
-        const formData = FormValidator.extractFormData($folderHtml);
-        formData.parentId = parentId || null;
-        
+        let formData: { [key: string]: any } = {};
+        formData.name = $folderHtml.find('#folder-name-input').val();
+        formData.color = $folderHtml.find('#folder-color-picker').val();
+        formData.icon = $folderHtml.find('#folder-icon-value').val();
+
+        if (folderColor) {
+          formData.color = folderColor;
+        }
+
         // 验证数据
         const validation = FormValidator.validate(FolderCreateFormSchema, formData);
-        
+
         if (validation.success) {
           return {
             confirmed: true,
             data: validation.data as FolderCreateFormData,
           };
         } else {
-          uiStore.showError('表单验证失败', '请检查输入的数据');
+          toastr.error('表单验证失败,错误信息:' + validation.errors, '请检查输入的数据');
           return { confirmed: false };
         }
       }
 
       return { confirmed: false };
     } catch (error) {
-      log.error('[usePopups] 文件夹创建失败:', error);
-      uiStore.showError('创建文件夹失败', String(error));
+      log.error('[ScriptRepository] 文件夹创建失败:', error);
+      toastr.error('创建文件夹失败', String(error));
       return { confirmed: false };
     }
   };
@@ -197,14 +375,16 @@ export function usePopups() {
   }): Promise<PopupResult<TargetSelectorFormData>> => {
     try {
       // 加载模板
-      const $selectorHtml = $(await TemplateLoader.loadV1Template('script_target_selector', {
-        title: config.title,
-        prefix: 'target',
-        globalLabel: '全局脚本库',
-        characterLabel: '角色脚本库',
-        presetLabel: '预设脚本库',
-        showPresetOption: config.showPresetOption || false,
-      }));
+      const $selectorHtml = $(
+        await loadTemplate('script_target_selector', {
+          title: config.title,
+          prefix: 'target',
+          globalLabel: '全局脚本库',
+          characterLabel: '角色脚本库',
+          presetLabel: '预设脚本库',
+          showPresetOption: config.showPresetOption || false,
+        }),
+      );
 
       // 显示选择对话框
       const result = await callGenericPopup($selectorHtml, POPUP_TYPE.CONFIRM, '', {
@@ -214,24 +394,26 @@ export function usePopups() {
 
       if (result) {
         // 收集表单数据
-        const formData = FormValidator.extractFormData($selectorHtml);
-        
+        let formData: { [key: string]: any } = {};
+        formData.target = $selectorHtml.find('#target-target-input').val();
+        formData.showPresetOption = config.showPresetOption || false;
+
         // 映射字段名（因为模板中使用了prefix）
         const mappedData = {
-          target: formData['target-target'] || formData.target,
+          target: formData.target || formData.target,
           showPresetOption: config.showPresetOption || false,
         };
-        
+
         // 验证数据
         const validation = FormValidator.validate(TargetSelectorFormSchema, mappedData);
-        
+
         if (validation.success) {
           return {
             confirmed: true,
             data: validation.data as TargetSelectorFormData,
           };
         } else {
-          uiStore.showError('表单验证失败', '请选择一个目标');
+          toastr.error('表单验证失败', '请选择一个目标');
           return { confirmed: false };
         }
       }
@@ -239,7 +421,7 @@ export function usePopups() {
       return { confirmed: false };
     } catch (error) {
       log.error('[usePopups] 目标选择失败:', error);
-      uiStore.showError('目标选择失败', String(error));
+      toastr.error('目标选择失败', String(error));
       return { confirmed: false };
     }
   };
@@ -249,60 +431,65 @@ export function usePopups() {
    * @param onAddScript 添加脚本的回调函数
    * @returns 选择的脚本ID
    */
-  const showBuiltinLibrary = async (onAddScript?: (scriptId: string, target: 'global' | 'character') => Promise<void>): Promise<PopupResult<string[]>> => {
+  const showBuiltinLibrary = async (
+    onAddScript?: (scriptId: string, target: 'global' | 'character') => Promise<void>,
+  ): Promise<PopupResult<string[]>> => {
     try {
       // 异步加载内置脚本配置
       const builtinScripts = await getBuiltinScriptConfigs();
-      
+
       // 创建容器
       const $container = $('<div class="default-script-repository-container"></div>');
-      
+
       // 为每个内置脚本创建项目
       for (const script of builtinScripts) {
-        const $item = await TemplateLoader.loadV1Template('script_default_repository', {
+        const $item = await loadTemplate('script_default_repository', {
           id: `default_lib_${script.id}`,
-          scriptName: script.name
+          scriptName: script.name,
         });
-        
+
         const $scriptHtml = $($item);
-        
+
         // 绑定信息按钮
         $scriptHtml.find('.script-info').on('click', () => {
           const htmlText = renderMarkdown(script.info);
           callGenericPopup(htmlText, POPUP_TYPE.DISPLAY, undefined, { wide: true });
         });
-        
+
         // 绑定添加按钮
         $scriptHtml.find('.add-script').on('click', async () => {
           const targetResult = await selectTarget({
             title: '添加到:',
             showPresetOption: false,
           });
-          
+
           if (targetResult.confirmed && targetResult.data) {
             try {
               if (onAddScript && (targetResult.data.target === 'global' || targetResult.data.target === 'character')) {
                 await onAddScript(script.id, targetResult.data.target);
-                uiStore.showSuccess('添加成功', `脚本 "${script.name}" 已添加到${targetResult.data.target === 'global' ? '全局' : '角色'}脚本库`);
+                toastr.success(
+                  '添加成功',
+                  `脚本 "${script.name}" 已添加到${targetResult.data.target === 'global' ? '全局' : '角色'}脚本库`,
+                );
               } else {
-                uiStore.showSuccess('添加成功', `脚本 "${script.name}" 已添加`);
+                toastr.success('添加成功', `脚本 "${script.name}" 已添加`);
               }
             } catch (error) {
-              uiStore.showError('添加失败', `添加脚本 "${script.name}" 失败: ${error}`);
+              toastr.error('添加失败', `添加脚本 "${script.name}" 失败: ${error}`);
             }
           }
         });
-        
+
         $container.append($scriptHtml);
       }
 
       // 显示弹窗
       await callGenericPopup($container, POPUP_TYPE.DISPLAY, '', { wide: true });
-      
+
       return { confirmed: false }; // V1风格，不返回选择结果
     } catch (error) {
       log.error('[usePopups] 显示内置脚本库失败:', error);
-      uiStore.showError('显示内置脚本库失败', String(error));
+      toastr.error('显示内置脚本库失败', String(error));
       return { confirmed: false };
     }
   };
@@ -318,7 +505,7 @@ export function usePopups() {
       return Boolean(result);
     } catch (error) {
       log.error('[usePopups] 确认删除失败:', error);
-      uiStore.showError('确认删除失败', String(error));
+      toastr.error('确认删除失败', String(error));
       return false;
     }
   };
@@ -332,7 +519,7 @@ export function usePopups() {
   const promptText = async (message: string, defaultValue?: string): Promise<PopupResult<string>> => {
     try {
       const result = await callGenericPopup(message, POPUP_TYPE.TEXT, defaultValue || '');
-      
+
       if (result) {
         return {
           confirmed: true,
@@ -343,7 +530,7 @@ export function usePopups() {
       return { confirmed: false };
     } catch (error) {
       log.error('[usePopups] 文本输入失败:', error);
-      uiStore.showError('文本输入失败', String(error));
+      toastr.error('文本输入失败', String(error));
       return { confirmed: false };
     }
   };
@@ -357,7 +544,7 @@ export function usePopups() {
       await callGenericPopup(message, POPUP_TYPE.DISPLAY);
     } catch (error) {
       log.error('[usePopups] 显示警告失败:', error);
-      uiStore.showError('显示警告失败', String(error));
+      toastr.error('显示警告失败', String(error));
     }
   };
 
@@ -365,16 +552,16 @@ export function usePopups() {
     // 脚本相关
     showScriptInfo,
     openScriptEditor,
-    
+
     // 文件夹相关
     createFolder,
-    
+
     // 通用选择器
     selectTarget,
-    
+
     // 内置脚本库
     showBuiltinLibrary,
-    
+
     // 通用对话框
     confirmDelete,
     promptText,

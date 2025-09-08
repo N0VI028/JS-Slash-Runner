@@ -13,15 +13,30 @@
         <i class="fa-solid fa-file-import"></i>
         <small>导入</small>
       </div>
-      <input multiple accept="*.json,*.zip" hidden id="import-script-file" type="file" ref="fileInput" @change="handleFileImport" />
+      <input
+        multiple
+        accept="*.json,*.zip"
+        hidden
+        id="import-script-file"
+        type="file"
+        ref="fileInput"
+        @change="handleFileImport"
+      />
       <div id="default-script" class="menu_button menu_button_icon interactable" @click="handleBuiltinLibraryClick">
         <i class="fa-solid fa-archive"></i>
         <small>内置库</small>
       </div>
     </div>
 
-    <div class="script-search-container" style="width: 100%; position: relative; margin: 5px 0;">
-      <input type="text" id="script-search-input" placeholder="搜索脚本..." class="text_pole" v-model="searchQuery" @input="handleSearch" />
+    <div class="script-search-container" style="width: 100%; position: relative; margin: 5px 0">
+      <input
+        type="text"
+        id="script-search-input"
+        placeholder="搜索脚本..."
+        class="text_pole"
+        v-model="searchQuery"
+        @input="handleSearch"
+      />
       <i class="fa-solid fa-search script-search-icon"></i>
     </div>
 
@@ -37,7 +52,13 @@
           <div class="settings-title-description">应用于酒馆所有聊天</div>
         </div>
         <div class="toggle-switch marginLeft5">
-          <input type="checkbox" id="global-script-enable-toggle" class="toggle-input" :checked="globalEnabled" @change="onToggleType('global', $event)" />
+          <input
+            type="checkbox"
+            id="global-script-enable-toggle"
+            class="toggle-input"
+            :checked="globalEnabled"
+            @change="onToggleType('global', $event)"
+          />
           <label for="global-script-enable-toggle" class="toggle-label">
             <span class="toggle-handle"></span>
           </label>
@@ -58,18 +79,18 @@
         </button>
       </div>
       <ScriptList
-        :scripts="globalScripts"
-        :folders="globalFolders"
+        :repository="globalScriptStore.repository"
         :expanded-folders="expandedGlobalFolders"
         :is-searching="isSearching"
         repo-type="global"
         @toggle-folder-expand="toggleGlobalFolderExpand"
-        @toggle-script="id => commands.toggleScriptEnabled(id)"
-        @show-info="id => commands.showScriptInfo(id)"
-        @edit-script="id => commands.editScript(id)"
+        @toggle-folder-scripts="id => onToggleFolderScripts('global', id)"
+        @toggle-script="id => commands.toggleScriptEnabled('global', id)"
+        @show-info="id => commands.showScriptInfo('global', id)"
+        @edit-script="id => commands.editScript('global', id)"
         @move-script="id => onMoveWithinFolder('global', id)"
         @export-script="id => onExportSingle(id)"
-        @delete-script="id => commands.confirmDeleteScript(id)"
+        @delete-script="id => commands.confirmDeleteScript('global', id)"
         @move-script-type="id => onMoveType('global', id)"
       />
 
@@ -85,7 +106,13 @@
           <div class="settings-title-description">应用于当前角色卡</div>
         </div>
         <div class="toggle-switch marginLeft5">
-          <input type="checkbox" id="character-script-enable-toggle" class="toggle-input" :checked="characterEnabled" @change="onToggleType('character', $event)" />
+          <input
+            type="checkbox"
+            id="character-script-enable-toggle"
+            class="toggle-input"
+            :checked="characterEnabled"
+            @change="onToggleType('character', $event)"
+          />
           <label for="character-script-enable-toggle" class="toggle-label">
             <span class="toggle-handle"></span>
           </label>
@@ -106,22 +133,21 @@
         </button>
       </div>
       <ScriptList
-        :scripts="characterScripts"
-        :folders="characterFolders"
+        :repository="characterScriptStore.repository"
         :expanded-folders="expandedCharacterFolders"
         :is-searching="isSearching"
         repo-type="character"
         @toggle-folder-expand="toggleCharacterFolderExpand"
-        @toggle-script="id => commands.toggleScriptEnabled(id)"
-        @show-info="id => commands.showScriptInfo(id)"
-        @edit-script="id => commands.editScript(id)"
+        @toggle-folder-scripts="id => onToggleFolderScripts('character', id)"
+        @toggle-script="id => commands.toggleScriptEnabled('character', id)"
+        @show-info="id => commands.showScriptInfo('character', id)"
+        @edit-script="id => commands.editScript('character', id)"
         @move-script="id => onMoveWithinFolder('character', id)"
         @export-script="id => onExportSingle(id)"
-        @delete-script="id => commands.confirmDeleteScript(id)"
+        @delete-script="id => commands.confirmDeleteScript('character', id)"
         @move-script-type="id => onMoveType('character', id)"
       />
     </div>
-
   </div>
 </template>
 
@@ -132,13 +158,11 @@ import { useScriptRepoCommands } from '../composables/useScriptRepoCommands';
 import { repositoryService } from '../services/repository.service';
 import { useCharacterScriptStore } from '../stores/characterScript.store';
 import { useGlobalScriptStore } from '../stores/globalScript.store';
-import { useUiStore } from '../stores/ui.store';
 import ScriptList from './ScriptList.vue';
 
 const commands = useScriptRepoCommands();
 const globalScriptStore = useGlobalScriptStore();
 const characterScriptStore = useCharacterScriptStore();
-const uiStore = useUiStore();
 
 const searchQuery = ref('');
 const fileInput = ref<HTMLInputElement>();
@@ -148,12 +172,7 @@ const expandedGlobalFolders = ref<Set<string>>(new Set());
 const expandedCharacterFolders = ref<Set<string>>(new Set());
 
 // 从各自的 store 获取数据
-const globalScripts = computed(() => globalScriptStore.allScripts);
-const globalFolders = computed(() => globalScriptStore.allFolders);
 const globalEnabled = computed(() => globalScriptStore.enabled);
-
-const characterScripts = computed(() => characterScriptStore.allScripts);
-const characterFolders = computed(() => characterScriptStore.allFolders);
 const characterEnabled = computed(() => characterScriptStore.enabled);
 
 const isSearching = computed(() => searchQuery.value.trim().length > 0);
@@ -208,23 +227,30 @@ const handleFileImport = async (event: Event) => {
       const popups = (await import('../composables/usePopups')).usePopups();
       const result = await popups.selectTarget({ title: '导入到:' });
       if (result.confirmed && result.data) {
-        const tgt = result.data.target;
-        if (tgt === 'global' || tgt === 'character') {
-          await repositoryService.importScriptsToType(tgt, {
+        const tgt = result.data.target as 'global' | 'character';
+        if (tgt === 'global') {
+          await repositoryService.importScriptsToGlobal({
             scripts: importedScripts,
             folderId: null,
             overwrite: false,
           });
-          await commands.initRepository();
-          uiStore.showSuccess('导入成功', `已导入 ${importedScripts.length} 个脚本`);
+        } else if (tgt === 'character') {
+          await repositoryService.importScriptsToCharacter({
+            scripts: importedScripts,
+            folderId: null,
+            overwrite: false,
+          });
         } else {
-          uiStore.showError('导入失败', '仅支持导入到全局或角色脚本库');
+          toastr.error('导入失败', '仅支持导入到全局或角色脚本库');
+          return;
         }
+        await commands.initRepository();
+        toastr.success('导入成功', `已导入 ${importedScripts.length} 个脚本`);
       }
     }
   } catch (error) {
     console.error('导入失败:', error);
-    uiStore.showError('导入失败', error instanceof Error ? error.message : '未知错误');
+    toastr.error('导入失败', error instanceof Error ? error.message : '未知错误');
   } finally {
     target.value = '';
   }
@@ -257,42 +283,46 @@ function toggleCharacterFolderExpand(id: string): void {
 
 onMounted(async () => {
   // 初始化分离的 stores
-  await Promise.all([
-    globalScriptStore.init(),
-    characterScriptStore.init(),
-  ]);
-  
+  await Promise.all([globalScriptStore.init(), characterScriptStore.init()]);
+
   // 也初始化命令层（保持兼容）
-  try { await commands.initRepository(); } catch {}
+  try {
+    await commands.initRepository();
+  } catch (err) {
+    console.warn('初始化命令层失败:', err);
+  }
 });
 
-function onToggleType(type: 'global' | 'character', event: Event): void {
+async function onToggleType(type: 'global' | 'character', event: Event): Promise<void> {
   const checked = (event.target as HTMLInputElement).checked;
-  
+
+  // 先更新本地开关状态
   if (type === 'global') {
-    globalScriptStore.setEnabled(checked).catch(err => {
-      console.error('切换全局脚本启用失败:', err);
-    });
+    globalScriptStore.setEnabled(checked);
   } else {
-    characterScriptStore.setEnabled(checked).catch(err => {
-      console.error('切换角色脚本启用失败:', err);
-    });
+    characterScriptStore.setEnabled(checked);
+  }
+
+  // 使用V2专用的运行时管理器批量切换
+  try {
+    const { useScriptRuntime } = await import('../composables/useScriptRuntime');
+    const runtime = useScriptRuntime();
+    await runtime.toggleScriptsByType(type, checked);
+  } catch (err) {
+    console.warn('切换脚本类型运行态失败:', err);
   }
 }
 
 async function onMoveType(source: 'global' | 'character', scriptId: string): Promise<void> {
   try {
-    await repositoryService.moveScriptToOtherType(source, scriptId);
+    await repositoryService.moveScriptToOtherType(scriptId, source);
     // 重新初始化 stores 以刷新数据
-    await Promise.all([
-      globalScriptStore.init(),
-      characterScriptStore.init(),
-    ]);
+    await Promise.all([globalScriptStore.init(), characterScriptStore.init()]);
     await commands.initRepository();
-    uiStore.showSuccess('移动成功', '脚本已移动到另一脚本库');
+    toastr.success('移动成功', '脚本已移动到另一脚本库');
   } catch (error) {
     console.error('移动失败:', error);
-    uiStore.showError('移动失败', error instanceof Error ? error.message : '未知错误');
+    toastr.error('移动失败', error instanceof Error ? error.message : '未知错误');
   }
 }
 
@@ -304,23 +334,65 @@ async function onMoveWithinFolder(source: 'global' | 'character', scriptId: stri
     const input = await popups.promptText('输入目标文件夹ID（留空则移动到根）');
     if (!input.confirmed) return;
     const folderId = input.data?.trim() || null;
-    // 使用 v2 repositoryService 移动
-    await repositoryService.moveScriptWithinType(source, scriptId, folderId);
+    // 使用分离的移动方法
+    if (source === 'global') {
+      await repositoryService.moveGlobalScript(scriptId, folderId);
+    } else {
+      await repositoryService.moveCharacterScript(scriptId, folderId);
+    }
 
-    await Promise.all([
-      globalScriptStore.init(),
-      characterScriptStore.init(),
-    ]);
-    uiStore.showSuccess('已移动', folderId ? '脚本已移动到目标文件夹' : '脚本已移动到根目录');
+    await Promise.all([globalScriptStore.init(), characterScriptStore.init()]);
+    toastr.success('已移动', folderId ? '脚本已移动到目标文件夹' : '脚本已移动到根目录');
   } catch (error) {
     console.error('移动失败:', error);
-    uiStore.showError('移动失败', error instanceof Error ? error.message : '未知错误');
+    toastr.error('移动失败', error instanceof Error ? error.message : '未知错误');
+  }
+}
+
+async function onToggleFolderScripts(type: 'global' | 'character', folderId: string): Promise<void> {
+  try {
+    const store = type === 'global' ? globalScriptStore : characterScriptStore;
+    const folderScripts = store.getFolderScripts(folderId);
+
+    if (folderScripts.length === 0) {
+      return;
+    }
+
+    // 判断当前状态：如果所有脚本都启用，则禁用；否则启用
+    const allEnabled = folderScripts.every(script => script.enabled);
+    const targetEnabled = !allEnabled;
+
+    // 使用V2专用的运行时管理器
+    const { useScriptRuntime } = await import('../composables/useScriptRuntime');
+    const runtime = useScriptRuntime();
+    await runtime.toggleFolderScripts(folderId, type, targetEnabled);
+
+    toastr.success(
+      `${targetEnabled ? '启用' : '禁用'}成功`,
+      `已${targetEnabled ? '启用' : '禁用'}文件夹内${folderScripts.length}个脚本`,
+    );
+  } catch (error) {
+    console.error('批量切换文件夹脚本失败:', error);
+    toastr.error('操作失败', error instanceof Error ? error.message : '未知错误');
   }
 }
 
 async function onExportSingle(scriptId: string): Promise<void> {
   try {
-    const blob = await repositoryService.exportScripts({ scriptIds: [scriptId], format: 'json', includeData: true });
+    // 先确定脚本在哪个类型中
+    const globalScript = globalScriptStore.getScript(scriptId);
+    const type = globalScript ? 'global' : 'character';
+
+    const scripts =
+      type === 'global'
+        ? await repositoryService.exportGlobalScripts([scriptId])
+        : await repositoryService.exportCharacterScripts([scriptId]);
+    if (scripts.length === 0) {
+      toastr.error('导出失败', '找不到指定脚本');
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(scripts[0], null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -329,9 +401,10 @@ async function onExportSingle(scriptId: string): Promise<void> {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    toastr.success('导出成功', '脚本已导出');
   } catch (error) {
     console.error('导出失败:', error);
-    uiStore.showError('导出失败', error instanceof Error ? error.message : '未知错误');
+    toastr.error('导出失败', error instanceof Error ? error.message : '未知错误');
   }
 }
 </script>

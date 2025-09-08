@@ -1,11 +1,7 @@
 <template>
   <div class="script-list-container">
     <!-- 空状态 -->
-    <EmptyState
-      v-if="allItems.length === 0"
-      :is-searching="isSearching"
-      @clear-search="$emit('clear-search')"
-    />
+    <EmptyState v-if="allItems.length === 0" :is-searching="isSearching" @clear-search="$emit('clear-search')" />
 
     <!-- 脚本和文件夹列表 -->
     <div v-else class="script-list" ref="listContainer">
@@ -22,7 +18,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import type { Folder, Script } from '../schemas/script.schema';
+import type { Repository, Script, ScriptRepositoryItem } from '../schemas/script.schema';
+import { ScriptRepositoryItemSchema, ScriptSchema } from '../schemas/script.schema';
 import FolderItem from './FolderItem.vue';
 import ScriptItem from './ScriptItem.vue';
 
@@ -42,6 +39,8 @@ const EmptyState = {
       </div>
       <div v-else class="empty-repository">
         <i class="fa-solid fa-scroll"></i>
+        <h3>暂无脚本</h3>
+        <p>点击"创建脚本"按钮开始添加脚本</p>
       </div>
     </div>
   `,
@@ -49,15 +48,13 @@ const EmptyState = {
 
 // Props
 interface Props {
-  scripts: Script[];
-  folders?: Folder[];
+  repository: Repository;
   expandedFolders?: Set<string>;
   isSearching: boolean;
   repoType: 'global' | 'character';
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  folders: () => [],
   expandedFolders: () => new Set(),
 });
 
@@ -83,41 +80,64 @@ const emit = defineEmits<{
 // Template refs
 const listContainer = ref<HTMLElement>();
 
-// 计算属性：合并文件夹和根级脚本
+// 计算属性：解析仓库数据为列表项
 const allItems = computed(() => {
-  const items: Array<{ type: 'folder' | 'script'; id: string; data: Folder | Script }> = [];
+  const items: Array<{ type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }> = [];
 
-  // 添加文件夹
-  props.folders.forEach(folder => {
-    items.push({ type: 'folder', id: folder.id, data: folder });
-  });
-
-  // 添加根级脚本（folderId 为 null 的脚本）
-  props.scripts
-    .filter(script => !script.folderId)
-    .forEach(script => {
+  for (const item of props.repository) {
+    // 使用zod验证数据类型
+    const scriptResult = ScriptSchema.safeParse(item);
+    if (scriptResult.success) {
+      // 直接的脚本对象
+      const script = scriptResult.data;
       items.push({ type: 'script', id: script.id, data: script });
-    });
+      continue;
+    }
+
+    const repositoryItemResult = ScriptRepositoryItemSchema.safeParse(item);
+    if (repositoryItemResult.success) {
+      const repositoryItem = repositoryItemResult.data;
+      if (repositoryItem.type === 'folder') {
+        items.push({
+          type: 'folder',
+          id: repositoryItem.id || 'unknown',
+          data: repositoryItem,
+        });
+      } else if (repositoryItem.type === 'script') {
+        const script = repositoryItem.value as Script;
+        items.push({ type: 'script', id: script.id, data: script });
+      }
+    }
+  }
 
   return items;
 });
 
 // 获取指定文件夹内的脚本
 const getFolderScripts = (folderId: string): Script[] => {
-  return props.scripts.filter(script => script.folderId === folderId);
+  for (const item of props.repository) {
+    const repositoryItemResult = ScriptRepositoryItemSchema.safeParse(item);
+    if (repositoryItemResult.success) {
+      const repositoryItem = repositoryItemResult.data;
+      if (repositoryItem.type === 'folder' && repositoryItem.id === folderId) {
+        return Array.isArray(repositoryItem.value) ? repositoryItem.value : [];
+      }
+    }
+  }
+  return [];
 };
 
 // 动态组件类型
-const getComponentType = (item: { type: 'folder' | 'script'; id: string; data: Folder | Script }) => {
+const getComponentType = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }) => {
   return item.type === 'folder' ? FolderItem : ScriptItem;
 };
 
 // 动态组件属性
-const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: Folder | Script }) => {
+const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }) => {
   if (item.type === 'folder') {
-    const folder = item.data as Folder;
+    const folderItem = item.data as ScriptRepositoryItem;
     return {
-      folder,
+      folder: folderItem,
       isExpanded: props.expandedFolders?.has(item.id) ?? false,
       folderScripts: getFolderScripts(item.id),
     };
@@ -130,7 +150,7 @@ const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: 
 };
 
 // 动态组件事件
-const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data: Folder | Script }) => {
+const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }) => {
   if (item.type === 'folder') {
     return {
       'toggle-expand': (id: string) => emit('toggle-folder-expand', id),

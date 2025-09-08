@@ -1,5 +1,5 @@
-import { debounce } from 'lodash';
 import log from 'loglevel';
+import YAML from 'yaml';
 import { z, ZodError } from 'zod';
 import type { ValidationResult } from '../schemas/popup.schema';
 
@@ -28,12 +28,7 @@ export class FormValidator {
           errors,
         };
       }
-      
-      log.error('[FormValidator] 验证失败:', error);
-      return {
-        success: false,
-        errors: { _general: ['验证过程中发生未知错误'] },
-      };
+      throw error;
     }
   }
 
@@ -54,20 +49,20 @@ export class FormValidator {
    */
   static formatZodErrors(error: ZodError): Record<string, string[]> {
     const formattedErrors: Record<string, string[]> = {};
-    
+
     // 安全检查：确保 issues 数组存在
     if (!error.issues || !Array.isArray(error.issues)) {
       log.warn('[FormValidator] ZodError.issues 不存在或不是数组:', error);
       return { _general: ['验证失败'] };
     }
-    
-    error.issues.forEach((err) => {
+
+    error.issues.forEach(err => {
       const path = err.path.length > 0 ? err.path.join('.') : '_general';
-      
+
       if (!formattedErrors[path]) {
         formattedErrors[path] = [];
       }
-      
+
       formattedErrors[path].push(err.message);
     });
 
@@ -75,204 +70,149 @@ export class FormValidator {
   }
 
   /**
-   * 在DOM中显示验证错误
-   * @param $form jQuery表单元素
-   * @param errors 错误对象
+   * 填充表单数据到HTML表单
+   * @param form JQuery表单元素
+   * @param data 要填充的数据对象
    */
-  static showValidationErrors($form: JQuery, errors: Record<string, string[]>): void {
-    // 清除之前的错误
-    FormValidator.clearValidationErrors($form);
+  static populateEditorForm(form: JQuery, data: Record<string, any>) {
+    try {
+      Object.entries(data).forEach(([key, value]) => {
+        switch (key) {
+          case 'name':
+            // 脚本名称
+            form.find('#script-name-input').val(value || '');
+            break;
 
-    Object.entries(errors).forEach(([field, messages]) => {
-      if (field === '_general') {
-        // 显示通用错误
-        const $generalError = $(`<div class="validation-error general-error alert alert-danger">${messages.join(', ')}</div>`);
-        $form.prepend($generalError);
-      } else {
-        // 显示字段特定错误
-        const $field = $form.find(`#${field}-input, #${field}-textarea, input[name="${field}"], textarea[name="${field}"]`);
-        
-        if ($field.length) {
-          $field.addClass('is-invalid');
-          
-          messages.forEach(message => {
-            const $errorDiv = $(`<div class="validation-error field-error text-danger small">${message}</div>`);
-            $field.after($errorDiv);
-          });
+          case 'content':
+            // 脚本内容
+            form.find('#script-content-textarea').val(value || '');
+            break;
+
+          case 'info':
+            // 脚本信息
+            form.find('#script-info-textarea').val(value || '');
+            break;
+
+          case 'enabled':
+            // 启用状态（如果有相关的checkbox）
+            if (typeof value === 'boolean') {
+              form.find('#script-enabled-input').prop('checked', value);
+            }
+            break;
+
+          case 'buttons':
+            // 填充按钮数据
+            FormValidator.populateEditorButtons(form, value);
+            break;
+
+          case 'data':
+            // 填充变量数据
+            FormValidator.populateEditorVariables(form, value);
+            break;
+
+          default:
+            // 通用字段填充（兼容其他表单）
+            const $input = form.find(`#${key}-input`);
+            if ($input.length > 0) {
+              if ($input.is(':checkbox')) {
+                $input.prop('checked', Boolean(value));
+              } else {
+                $input.val(value || '');
+              }
+            }
+            break;
         }
-      }
-    });
+      });
+
+      log.debug('[FormValidator] 表单数据填充完成:', data);
+    } catch (error) {
+      log.error('[FormValidator] 填充表单数据失败:', error);
+      throw error;
+    }
   }
 
   /**
-   * 清除DOM中的验证错误
-   * @param $form jQuery表单元素
+   * 填充按钮数据到表单
+   * @param form JQuery表单元素
+   * @param buttons 按钮数组
    */
-  static clearValidationErrors($form: JQuery): void {
-    $form.find('.validation-error').remove();
-    $form.find('.is-invalid').removeClass('is-invalid');
-  }
-
-  /**
-   * 创建防抖的实时验证函数
-   * @param schema Zod schema
-   * @param $form jQuery表单元素
-   * @param delay 防抖延迟（毫秒）
-   * @returns 防抖验证函数
-   */
-  static createDebouncedValidator<T>(
-    schema: z.ZodSchema<T>, 
-    $form: JQuery, 
-    delay: number = 300
-  ): () => void {
-    return debounce(() => {
-      const formData = FormValidator.extractFormData($form);
-      const result = FormValidator.validate(schema, formData);
-      
-      if (!result.success && result.errors) {
-        FormValidator.showValidationErrors($form, result.errors);
-      } else {
-        FormValidator.clearValidationErrors($form);
-      }
-    }, delay);
-  }
-
-  /**
-   * 从表单中提取数据
-   * @param $form jQuery表单元素
-   * @returns 表单数据对象
-   */
-  static extractFormData($form: JQuery): Record<string, any> {
-    const formData: Record<string, any> = {};
-
-    // 提取输入框和文本域
-    $form.find('input, textarea, select').each(function() {
-      const $element = $(this);
-      const name = $element.attr('name') || $element.attr('id')?.replace('-input', '').replace('-textarea', '');
-      
-      if (name) {
-        const type = $element.attr('type');
-        
-        if (type === 'checkbox') {
-          formData[name] = $element.prop('checked');
-        } else if (type === 'radio') {
-          if ($element.prop('checked')) {
-            formData[name] = $element.val();
-          }
-        } else if (type === 'number') {
-          const value = $element.val();
-          formData[name] = value ? Number(value) : undefined;
-        } else {
-          formData[name] = $element.val();
-        }
-      }
-    });
-
-    // 特殊处理：提取按钮列表
-    const buttons: Array<{ name: string; visible: boolean }> = [];
-    $form.find('.button-item').each(function() {
-      const $item = $(this);
-      const name = String($item.find('.button-name').val() || '');
-      const visible = Boolean($item.find('.button-visible').prop('checked'));
-      
-      if (name.trim()) {
-        buttons.push({ name, visible });
-      }
-    });
-    
-    if (buttons.length > 0) {
-      formData.buttons = buttons;
+  private static populateEditorButtons(form: JQuery, buttons: Array<{ name: string; visible: boolean }>) {
+    if (!Array.isArray(buttons) || buttons.length === 0) {
+      return;
     }
 
-    // 特殊处理：提取变量数据
-    const data: Record<string, any> = {};
-    $form.find('.variable-item').each(function() {
-      const $item = $(this);
-      const key = String($item.find('.variable-key').val() || '');
-      const value = $item.find('.variable-value').val();
-      
-      if (key.trim()) {
-        data[key] = value;
-      }
-    });
-    
-    if (Object.keys(data).length > 0) {
-      formData.data = data;
+    const $buttonList = form.find('.button-list');
+    if ($buttonList.length === 0) {
+      log.warn('[FormValidator] 未找到按钮列表容器');
+      return;
     }
 
-    log.debug('[FormValidator] 提取的表单数据:', formData);
-    return formData;
+    // 清空现有按钮
+    $buttonList.empty();
+
+    // 添加每个按钮
+    buttons.forEach((button, index) => {
+      const buttonId = `button-${index}`;
+      const escapedButtonName = button.name || '';
+
+      const $buttonItem = $(`
+        <div class="button-item" id="${buttonId}">
+          <span class="drag-handle menu-handle">☰</span>
+          <input type="checkbox" id="checkbox-${buttonId}" class="button-visible" ${button.visible ? 'checked' : ''}>
+          <input class="text_pole button-name" type="text" id="text-${buttonId}" placeholder="按钮名称" value="${escapedButtonName}">
+          <div class="delete-button menu_button interactable" data-index="${index}">
+            <i class="fa-solid fa-trash"></i>
+          </div>
+        </div>
+      `);
+      $buttonList.append($buttonItem);
+    });
+
+    log.debug('[FormValidator] 按钮数据填充完成:', buttons);
   }
 
   /**
-   * 绑定实时验证到表单
-   * @param schema Zod schema
-   * @param $form jQuery表单元素
-   * @param delay 防抖延迟
+   * 填充变量数据到表单
+   * @param form JQuery表单元素
+   * @param variables 变量对象
    */
-  static bindRealTimeValidation<T>(
-    schema: z.ZodSchema<T>, 
-    $form: JQuery, 
-    delay: number = 300
-  ): void {
-    const validator = FormValidator.createDebouncedValidator(schema, $form, delay);
-    
-    // 绑定到所有输入元素
-    $form.find('input, textarea, select').on('input change', validator);
-    
-    // 特殊绑定：动态添加的按钮和变量
-    $form.on('input change', '.button-item input, .variable-item input', validator);
-    
-    log.debug('[FormValidator] 已绑定实时验证');
-  }
+  private static populateEditorVariables(form: JQuery, variables: Record<string, any>) {
+    if (!variables || typeof variables !== 'object' || Object.keys(variables).length === 0) {
+      return;
+    }
 
-  /**
-   * 填充表单数据
-   * @param $form jQuery表单元素
-   * @param data 要填充的数据
-   */
-  static populateForm($form: JQuery, data: Record<string, any>): void {
-    Object.entries(data).forEach(([key, value]) => {
-      if (value === null || value === undefined) return;
+    const $variableList = form.find('#variable-list');
+    if ($variableList.length === 0) {
+      log.warn('[ScriptRepository] 未找到变量列表容器');
+      return;
+    }
 
-      const $field = $form.find(`#${key}-input, #${key}-textarea, input[name="${key}"], textarea[name="${key}"]`);
-      
-      if ($field.length) {
-        const type = $field.attr('type');
-        
-        if (type === 'checkbox') {
-          $field.prop('checked', Boolean(value));
-        } else if (type === 'radio') {
-          $form.find(`input[name="${key}"][value="${value}"]`).prop('checked', true);
-        } else {
-          $field.val(String(value));
-        }
-      }
+    $variableList.empty();
+
+    Object.entries(variables).forEach(([key, value]) => {
+      const valueStr = typeof value === 'string' ? value : YAML.stringify(value);
+
+      const $variableItem = $(`
+        <div class="variable-item flex-container flexFlowColumn width100p">
+          <div class="flex flexFlowColumn">
+            <div class="flex-container alignitemscenter spaceBetween wide100p">
+              <div>名称:</div>
+              <div class="menu_button interactable delete-variable" title="删除变量">
+                <i class="fa-solid fa-trash"></i>
+              </div>
+            </div>
+            <input type="text" class="text_pole variable-key" value="${key}" placeholder="变量名">
+          </div>
+          <div class="flex flexFlowColumn" style="align-items: flex-start;">
+            <div>值:</div>
+            <textarea class="text_pole variable-value" style="min-height: 12px;" rows="1" placeholder="请以纯文本或YAML格式输入变量值">${valueStr}</textarea>
+          </div>
+          <hr>
+        </div>
+      `);
+      $variableList.append($variableItem);
     });
 
-    // 特殊处理：填充按钮数据
-    if (data.buttons && Array.isArray(data.buttons)) {
-      // 这里需要根据具体的按钮UI实现来填充
-      log.debug('[FormValidator] 需要填充按钮数据:', data.buttons);
-    }
-
-    // 特殊处理：填充变量数据
-    if (data.data && typeof data.data === 'object') {
-      // 这里需要根据具体的变量UI实现来填充
-      log.debug('[FormValidator] 需要填充变量数据:', data.data);
-    }
-
-    log.debug('[FormValidator] 表单数据填充完成');
+    log.debug('[FormValidator] 变量数据填充完成:', variables);
   }
 }
-
-/**
- * 便捷的验证函数
- */
-export const validateForm = FormValidator.validate;
-export const safeValidateForm = FormValidator.safeValidate;
-export const showFormErrors = FormValidator.showValidationErrors;
-export const clearFormErrors = FormValidator.clearValidationErrors;
-export const extractFormData = FormValidator.extractFormData;
-export const populateForm = FormValidator.populateForm;
-export const bindRealTimeValidation = FormValidator.bindRealTimeValidation;

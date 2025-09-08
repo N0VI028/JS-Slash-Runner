@@ -4,29 +4,34 @@ import { z } from 'zod';
  * 脚本编辑器表单数据的 Zod schema
  */
 export const ScriptEditorFormSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(1, '脚本名称不能为空')
     .max(100, '脚本名称不能超过100个字符')
-    .refine(name => {
-      // 检查无效字符（不使用控制字符范围）
-      const invalidChars = /[<>:"/\\|?*]/;
-      const controlChars = name.split('').some(char => {
-        const code = char.charCodeAt(0);
-        return code < 32 || code === 127; // 控制字符
-      });
-      return !invalidChars.test(name) && !controlChars;
-    }, {
-      message: '脚本名称包含无效字符'
-    }),
+    .refine(
+      name => {
+        // 检查无效字符（不使用控制字符范围）
+        const invalidChars = /[<>:"/\\|?*]/;
+        const controlChars = name.split('').some(char => {
+          const code = char.charCodeAt(0);
+          return code < 32 || code === 127; // 控制字符
+        });
+        return !invalidChars.test(name) && !controlChars;
+      },
+      {
+        message: '脚本名称包含无效字符',
+      },
+    ),
   content: z.string(),
   info: z.string(),
-  enabled: z.boolean().default(false),
-  buttons: z.array(
-    z.object({
-      name: z.string().min(1, '按钮名称不能为空'),
-      visible: z.boolean().default(true),
-    })
-  ).default([]),
+  buttons: z
+    .array(
+      z.object({
+        name: z.string().min(1, '按钮名称不能为空'),
+        visible: z.boolean().default(true),
+      }),
+    )
+    .default([]),
   data: z.record(z.string(), z.any()).default({}),
 });
 
@@ -34,23 +39,32 @@ export const ScriptEditorFormSchema = z.object({
  * 文件夹创建表单数据的 Zod schema
  */
 export const FolderCreateFormSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(1, '文件夹名称不能为空')
     .max(50, '文件夹名称不能超过50个字符')
-    .refine(name => {
-      // 检查无效字符（不使用控制字符范围）
-      const invalidChars = /[<>:"/\\|?*]/;
-      const controlChars = name.split('').some(char => {
-        const code = char.charCodeAt(0);
-        return code < 32 || code === 127; // 控制字符
-      });
-      return !invalidChars.test(name) && !controlChars;
-    }, {
-      message: '文件夹名称包含无效字符'
-    }),
-  parentId: z.string().nullable().optional(),
+    .refine(
+      name => {
+        // 检查无效字符（不使用控制字符范围）
+        const invalidChars = /[<>:"/\\|?*]/;
+        const controlChars = name.split('').some(char => {
+          const code = char.charCodeAt(0);
+          return code < 32 || code === 127; // 控制字符
+        });
+        return !invalidChars.test(name) && !controlChars;
+      },
+      {
+        message: '文件夹名称包含无效字符',
+      },
+    ),
   icon: z.string().default('fa-folder'),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, '颜色格式无效').optional(),
+  color: z
+    .string()
+    .regex(
+      /^#(#[0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$|^rgb(a?)\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+|1\.0))?\s*\)$/,
+      '颜色格式无效',
+    )
+    .optional(),
   target: z.enum(['global', 'character', 'preset']).default('global'),
 });
 

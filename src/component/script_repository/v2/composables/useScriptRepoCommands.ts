@@ -1,10 +1,9 @@
+import { useScriptRuntime } from '@/component/script_repository/v2/composables/useScriptRuntime';
 import { createDefaultScript } from '../../builtin_scripts';
-import type {
-  SearchFilters,
-} from '../schemas/payloads.schema';
+import type { SearchFilters } from '../schemas/payloads.schema';
+import type { Script } from '../schemas/script.schema';
 import { useCharacterScriptStore } from '../stores/characterScript.store';
 import { useGlobalScriptStore } from '../stores/globalScript.store';
-import { useUiStore } from '../stores/ui.store';
 import { usePopups } from './usePopups';
 
 /**
@@ -14,27 +13,6 @@ import { usePopups } from './usePopups';
 export function useScriptRepoCommands() {
   const globalScriptStore = useGlobalScriptStore();
   const characterScriptStore = useCharacterScriptStore();
-  const uiStore = useUiStore();
-  const popups = usePopups();
-
-  // ===== 辅助函数 =====
-
-  /**
-   * 查找脚本在哪个store中
-   */
-  const findScriptStore = (scriptId: string) => {
-    let script = globalScriptStore.scripts.get(scriptId);
-    if (script) {
-      return { store: globalScriptStore, script };
-    }
-    
-    script = characterScriptStore.scripts.get(scriptId);
-    if (script) {
-      return { store: characterScriptStore, script };
-    }
-    
-    return null;
-  };
 
   // ===== 核心命令 =====
 
@@ -42,10 +20,7 @@ export function useScriptRepoCommands() {
    * 初始化仓库命令
    */
   const initRepository = async (): Promise<void> => {
-    await Promise.all([
-      globalScriptStore.init(),
-      characterScriptStore.init(),
-    ]);
+    await Promise.all([globalScriptStore.init(), characterScriptStore.init()]);
   };
 
   /**
@@ -72,10 +47,10 @@ export function useScriptRepoCommands() {
       };
 
       // V1风格的内置库，传递添加脚本的回调
-      await popups.showBuiltinLibrary(handleAddScript);
+      await usePopups().showBuiltinLibrary(handleAddScript);
     } catch (error) {
       const message = error instanceof Error ? error.message : '打开内置库失败';
-      uiStore.showError('打开失败', message);
+      toastr.error('打开失败', message);
       throw error;
     }
   };
@@ -83,24 +58,40 @@ export function useScriptRepoCommands() {
   /**
    * 显示脚本信息
    */
-  const showScriptInfo = async (scriptId: string): Promise<void> => {
-    const found = findScriptStore(scriptId);
-    if (found) {
-      await popups.showScriptInfo(found.script);
-    } else {
-      uiStore.showError('脚本不存在', '找不到指定的脚本');
+  const showScriptInfo = async (target: 'global' | 'character', scriptId: string): Promise<void> => {
+    let script: Script | null;
+    switch (target) {
+      case 'global':
+        script = globalScriptStore.getScript(scriptId);
+        break;
+      case 'character':
+        script = characterScriptStore.getScript(scriptId);
+        break;
+    }
+    if (script) {
+      await usePopups().showScriptInfo(script);
     }
   };
 
   /**
    * 切换脚本启用状态
    */
-  const toggleScriptEnabled = async (id: string): Promise<void> => {
-    const found = findScriptStore(id);
-    if (found) {
-      await found.store.toggleScriptEnabled(id);
+  const toggleScriptEnabled = async (target: 'global' | 'character', id: string): Promise<void> => {
+    const store = target === 'global' ? globalScriptStore : characterScriptStore;
+    const current = store.getScript(id);
+    if (!current) return;
+
+    const nextEnabled = !current.enabled;
+
+    // 先持久化 enabled 变更
+    await store.updateScript(id, { enabled: nextEnabled });
+
+    // 使用V2专用的运行时管理器
+    const runtime = useScriptRuntime();
+    if (nextEnabled) {
+      await runtime.startScript(id, target);
     } else {
-      uiStore.showError('脚本不存在', '找不到指定的脚本');
+      await runtime.stopScript(id, target);
     }
   };
 
@@ -117,15 +108,15 @@ export function useScriptRepoCommands() {
    */
   const createScriptWithUI = async (): Promise<void> => {
     try {
-      const result = await popups.openScriptEditor();
+      const result = await usePopups().openScriptEditor();
       if (result.confirmed && result.data) {
         // 默认创建到全局脚本库
         await globalScriptStore.createScript(result.data);
-        uiStore.showSuccess('创建成功', `脚本 "${result.data.name}" 已创建`);
+        toastr.success('创建成功', `脚本 "${result.data.name}" 已创建`);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : '创建脚本失败';
-      uiStore.showError('创建失败', message);
+      toastr.error('创建失败', message);
     }
   };
 
@@ -133,50 +124,66 @@ export function useScriptRepoCommands() {
    * 创建文件夹（UI版本）
    */
   const createFolderWithUI = async (): Promise<void> => {
-    // TODO: 实现文件夹编辑器
-    uiStore.showError('功能暂未实现', '文件夹创建功能正在开发中');
+    const result = await usePopups().createFolder();
+
+    if (result.confirmed && result.data) {
+      const target = result.data.target === 'global' ? globalScriptStore : characterScriptStore;
+      await target.createFolder({
+        name: result.data.name,
+        icon: result.data.icon,
+        color: result.data.color,
+        target: result.data.target,
+      });
+      toastr.success('创建成功', `文件夹 "${result.data.name}" 已创建`);
+    }
   };
 
   /**
    * 编辑脚本
    */
-  const editScript = async (scriptId: string): Promise<void> => {
-    const found = findScriptStore(scriptId);
-    if (found) {
-      try {
-        const result = await popups.openScriptEditor(found.script);
-        if (result.confirmed && result.data) {
-          await found.store.updateScript({ id: scriptId, ...result.data });
-          uiStore.showSuccess('更新成功', '脚本已更新');
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : '编辑脚本失败';
-        uiStore.showError('编辑失败', message);
-      }
-    } else {
-      uiStore.showError('脚本不存在', '找不到指定的脚本');
+  const editScript = async (target: 'global' | 'character', scriptId: string): Promise<void> => {
+    let script: Script | null;
+    switch (target) {
+      case 'global':
+        script = globalScriptStore.getScript(scriptId);
+        break;
+      case 'character':
+        script = characterScriptStore.getScript(scriptId);
+        break;
+    }
+    if (script) {
+      usePopups().openScriptEditor(script);
     }
   };
 
   /**
    * 确认删除脚本
    */
-  const confirmDeleteScript = async (scriptId: string): Promise<void> => {
-    const found = findScriptStore(scriptId);
-    if (found) {
+  const confirmDeleteScript = async (target: 'global' | 'character', scriptId: string): Promise<void> => {
+    let script: Script | null;
+    switch (target) {
+      case 'global':
+        script = globalScriptStore.getScript(scriptId);
+        break;
+      case 'character':
+        script = characterScriptStore.getScript(scriptId);
+        break;
+    }
+    if (script) {
       // 使用简单的确认对话框
-      const confirmed = confirm(`确定要删除脚本 "${found.script.name}" 吗？`);
+      const confirmed = confirm(`确定要删除脚本 "${script.name}" 吗？`);
       if (confirmed) {
         try {
-          await found.store.deleteScript(scriptId);
-          uiStore.showSuccess('删除成功', `脚本 "${found.script.name}" 已删除`);
+          const store = target === 'global' ? globalScriptStore : characterScriptStore;
+          await store.deleteScript(scriptId);
+          toastr.success('删除成功', `脚本 "${script.name}" 已删除`);
         } catch (error) {
           const message = error instanceof Error ? error.message : '删除脚本失败';
-          uiStore.showError('删除失败', message);
+          toastr.error('删除失败', message);
         }
       }
     } else {
-      uiStore.showError('脚本不存在', '找不到指定的脚本');
+      toastr.error('脚本不存在', '找不到指定的脚本');
     }
   };
 
@@ -212,17 +219,17 @@ export function useScriptRepoCommands() {
     // 核心系统操作
     initRepository,
     openBuiltinLibrary,
-    
+
     // 脚本操作
     showScriptInfo,
     editScript,
     toggleScriptEnabled,
     createScriptWithUI,
     confirmDeleteScript,
-    
+
     // 文件夹操作
     createFolderWithUI,
-    
+
     // 搜索和过滤
     setFilters,
   };

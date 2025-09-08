@@ -1,38 +1,26 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type {
-    CreateFolderPayload,
-    CreateScriptPayload,
-    MoveScriptPayload,
-    RenameFolderPayload,
-    SearchFilters,
-    SortOptions,
-    UpdateScriptPayload,
+  CreateFolderPayload,
+  CreateScriptPayload,
+  SearchFilters,
+  SortOptions,
+  UpdateScriptPayload,
 } from '../schemas/payloads.schema';
-import type { Folder, Script } from '../schemas/script.schema';
+import type { Repository, Script } from '../schemas/script.schema';
 import { repositoryService } from '../services/repository.service';
 
 /**
- * 角色脚本 Store
- * 专门管理当前角色的脚本和文件夹
+ * 角色脚本 Store - 基于V1数据结构
+ * 直接管理V1格式的Repository数据
  */
 export const useCharacterScriptStore = defineStore('characterScript', () => {
   // ===== State =====
 
   /**
-   * 角色脚本的集合
+   * 角色仓库数据（V1格式）
    */
-  const scripts = ref<Map<string, Script>>(new Map());
-
-  /**
-   * 角色文件夹的集合
-   */
-  const folders = ref<Map<string, Folder>>(new Map());
-
-  /**
-   * 根级别的项目ID列表（脚本和文件夹）
-   */
-  const rootItems = ref<string[]>([]);
+  const repository = ref<Repository>([]);
 
   /**
    * 当前展开的文件夹ID集合
@@ -70,14 +58,25 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
   // ===== Getters =====
 
   /**
-   * 获取所有脚本数组
+   * 获取所有角色脚本（扁平化）
    */
-  const allScripts = computed(() => Array.from(scripts.value.values()));
+  const allScripts = computed((): Script[] => {
+    return repositoryService.getAllScripts(repository.value);
+  });
 
   /**
-   * 获取所有文件夹数组
+   * 获取所有文件夹
    */
-  const allFolders = computed(() => Array.from(folders.value.values()));
+  const allFolders = computed(() => {
+    return repositoryService.getAllFolders(repository.value);
+  });
+
+  /**
+   * 获取根级别的脚本
+   */
+  const rootScripts = computed(() => {
+    return repositoryService.getRootScripts(repository.value);
+  });
 
   /**
    * 根据过滤条件获取筛选后的脚本列表
@@ -88,10 +87,11 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
     // 应用关键字过滤
     if (filters.value.keyword) {
       const keyword = filters.value.keyword.toLowerCase();
-      list = list.filter(script => 
-        script.name.toLowerCase().includes(keyword) ||
-        script.info.toLowerCase().includes(keyword) ||
-        script.content.toLowerCase().includes(keyword)
+      list = list.filter(
+        script =>
+          script.name.toLowerCase().includes(keyword) ||
+          script.info.toLowerCase().includes(keyword) ||
+          script.content.toLowerCase().includes(keyword),
       );
     }
 
@@ -102,90 +102,102 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
 
     // 应用文件夹过滤
     if (filters.value.folderId !== undefined) {
-      list = list.filter(script => script.folderId === filters.value.folderId);
+      if (filters.value.folderId === null) {
+        // 只显示根级别的脚本
+        list = list.filter(script => rootScripts.value.includes(script));
+      } else {
+        // 只显示特定文件夹中的脚本
+        const folderScripts = repositoryService.getFolderScripts(repository.value, filters.value.folderId);
+        list = list.filter(script => folderScripts.includes(script));
+      }
     }
 
     return list;
   });
 
   /**
-   * 排序后的脚本列表
+   * 根据排序选项获取排序后的脚本列表
    */
   const sortedScripts = computed(() => {
     const list = [...filteredScripts.value];
-    const { field, order } = sortOptions.value;
 
     list.sort((a, b) => {
-      let aVal: any = a[field as keyof Script];
-      let bVal: any = b[field as keyof Script];
+      let comparison = 0;
 
-      // 处理不同类型的排序
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        aVal = aVal.toLowerCase();
-        bVal = bVal.toLowerCase();
+      switch (sortOptions.value.field) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'enabled':
+          comparison = Number(b.enabled) - Number(a.enabled);
+          break;
+        default:
+          comparison = a.name.localeCompare(b.name);
       }
 
-      if (aVal < bVal) return order === 'asc' ? -1 : 1;
-      if (aVal > bVal) return order === 'asc' ? 1 : -1;
-      return 0;
+      return sortOptions.value.order === 'asc' ? comparison : -comparison;
     });
 
     return list;
   });
 
   /**
-   * 构建文件夹树结构
+   * 获取启用的脚本数量
    */
-  const folderTree = computed(() => {
-    const buildTree = (parentId: string | null): Folder[] => {
-      return allFolders.value
-        .filter(folder => folder.parentId === parentId)
-        .sort((a, b) => a.name.localeCompare(b.name));
-    };
+  const enabledScriptsCount = computed(() => {
+    return allScripts.value.filter(script => script.enabled).length;
+  });
 
-    return buildTree(null);
+  /**
+   * 获取脚本总数
+   */
+  const totalScriptsCount = computed(() => {
+    return allScripts.value.length;
+  });
+
+  /**
+   * 获取文件夹总数
+   */
+  const totalFoldersCount = computed(() => {
+    return allFolders.value.length;
+  });
+
+  /**
+   * 检查是否有搜索结果
+   */
+  const hasSearchResults = computed(() => {
+    return filteredScripts.value.length > 0;
   });
 
   // ===== Actions =====
 
   /**
-   * 初始化角色脚本仓库数据
+   * 加载仓库数据
    */
-  async function init(): Promise<void> {
-    isLoading.value = true;
-    error.value = null;
-
+  async function loadRepository(): Promise<void> {
     try {
-      // 加载角色脚本仓库
-      const repository = await repositoryService.loadRepositoryByType('character');
+      isLoading.value = true;
+      error.value = null;
 
-      // 清空现有数据
-      scripts.value.clear();
-      folders.value.clear();
-      rootItems.value = [];
-
-      // 加载脚本数据
-      repository.scripts.forEach(script => {
-        scripts.value.set(script.id, script);
-      });
-
-      // 加载文件夹数据
-      repository.folders.forEach(folder => {
-        folders.value.set(folder.id, folder);
-      });
-
-      // 设置根目录项目
-      rootItems.value = repository.rootItems;
-
-      // 加载启用状态
-      enabled.value = await repositoryService.getTypeEnabled('character');
-
-      console.log(`[CharacterScriptStore] 加载完成: ${repository.scripts.length} 脚本, ${repository.folders.length} 文件夹`);
+      const data = await repositoryService.loadCharacterRepository();
+      repository.value = data;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : '加载角色脚本失败';
-      console.error('[CharacterScriptStore] 初始化失败:', err);
+      error.value = err instanceof Error ? err.message : '加载仓库数据失败';
+      throw err;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /**
+   * 保存仓库数据
+   */
+  async function saveRepository(): Promise<void> {
+    try {
+      await repositoryService.saveCharacterRepository(repository.value);
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '保存仓库数据失败';
+      throw err;
     }
   }
 
@@ -194,10 +206,11 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
    */
   async function createScript(payload: CreateScriptPayload): Promise<string> {
     try {
-      const scriptId = await repositoryService.createScriptInType('character', payload);
-      
-      // 重新加载数据以确保同步
-      await init();
+      error.value = null;
+      const scriptId = await repositoryService.createCharacterScript(payload);
+
+      // 重新加载数据以保持同步
+      await loadRepository();
 
       return scriptId;
     } catch (err) {
@@ -209,19 +222,13 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
   /**
    * 更新脚本
    */
-  async function updateScript(payload: UpdateScriptPayload): Promise<void> {
-    const script = scripts.value.get(payload.id);
-    if (!script) {
-      throw new Error(`脚本不存在: ${payload.id}`);
-    }
-
+  async function updateScript(scriptId: string, payload: UpdateScriptPayload): Promise<void> {
     try {
-      // 调用 repository service 保存
-      await repositoryService.updateScript(payload);
+      error.value = null;
+      await repositoryService.updateCharacterScript(scriptId, payload);
 
-      // 更新本地状态
-      const updatedScript = { ...script, ...payload };
-      scripts.value.set(payload.id, updatedScript);
+      // 重新加载数据以保持同步
+      await loadRepository();
     } catch (err) {
       error.value = err instanceof Error ? err.message : '更新脚本失败';
       throw err;
@@ -231,31 +238,13 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
   /**
    * 删除脚本
    */
-  async function deleteScript(id: string): Promise<void> {
-    const script = scripts.value.get(id);
-    if (!script) {
-      throw new Error(`脚本不存在: ${id}`);
-    }
-
+  async function deleteScript(scriptId: string): Promise<void> {
     try {
-      await repositoryService.deleteScript(id);
+      error.value = null;
+      await repositoryService.deleteCharacterScript(scriptId);
 
-      // 从本地状态中移除
-      scripts.value.delete(id);
-
-      // 从根目录或文件夹中移除
-      const rootIndex = rootItems.value.indexOf(id);
-      if (rootIndex !== -1) {
-        rootItems.value.splice(rootIndex, 1);
-      } else {
-        // 从文件夹中移除
-        allFolders.value.forEach(folder => {
-          const index = folder.scripts.indexOf(id);
-          if (index !== -1) {
-            folder.scripts.splice(index, 1);
-          }
-        });
-      }
+      // 重新加载数据以保持同步
+      await loadRepository();
     } catch (err) {
       error.value = err instanceof Error ? err.message : '删除脚本失败';
       throw err;
@@ -263,50 +252,60 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
   }
 
   /**
+   * 获取脚本
+   */
+  function getScript(scriptId: string): Script | null {
+    return allScripts.value.find(script => script.id === scriptId) || null;
+  }
+
+  /**
+   * 创建文件夹
+   */
+  async function createFolder(payload: CreateFolderPayload): Promise<string> {
+    try {
+      error.value = null;
+      const folderId = await repositoryService.createCharacterFolder(payload);
+
+      // 重新加载数据以保持同步
+      await loadRepository();
+
+      return folderId;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '创建文件夹失败';
+      throw err;
+    }
+  }
+
+  /**
+   * 删除文件夹
+   */
+  async function deleteFolder(folderId: string): Promise<void> {
+    try {
+      error.value = null;
+      await repositoryService.deleteCharacterFolder(folderId);
+
+      // 重新加载数据以保持同步
+      await loadRepository();
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '删除文件夹失败';
+      throw err;
+    }
+  }
+
+  /**
    * 移动脚本
    */
-  async function moveScript(payload: MoveScriptPayload): Promise<void> {
+  async function moveScript(scriptId: string, targetFolderId: string | null): Promise<void> {
     try {
-      await repositoryService.moveScriptWithinType('character', payload.id, payload.toFolderId);
-      
-      // 重新加载数据以确保同步
-      await init();
+      error.value = null;
+      await repositoryService.moveCharacterScript(scriptId, targetFolderId);
+
+      // 重新加载数据以保持同步
+      await loadRepository();
     } catch (err) {
       error.value = err instanceof Error ? err.message : '移动脚本失败';
       throw err;
     }
-  }
-
-  /**
-   * 切换脚本启用状态
-   */
-  async function toggleScriptEnabled(id: string): Promise<void> {
-    const script = scripts.value.get(id);
-    if (!script) {
-      throw new Error(`脚本不存在: ${id}`);
-    }
-
-    try {
-      const newEnabled = !script.enabled;
-      await updateScript({ id, enabled: newEnabled });
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '切换脚本状态失败';
-      throw err;
-    }
-  }
-
-  /**
-   * 设置过滤条件
-   */
-  function setFilters(newFilters: Partial<SearchFilters>): void {
-    filters.value = { ...filters.value, ...newFilters };
-  }
-
-  /**
-   * 设置排序选项
-   */
-  function setSortOptions(newOptions: Partial<SortOptions>): void {
-    sortOptions.value = { ...sortOptions.value, ...newOptions };
   }
 
   /**
@@ -321,76 +320,89 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
   }
 
   /**
-   * 创建文件夹
+   * 检查文件夹是否展开
    */
-  async function createFolder(payload: CreateFolderPayload): Promise<string> {
-    try {
-      const folderId = await repositoryService.createFolderInType('character', payload);
-      
-      // 重新加载数据以确保同步
-      await init();
-
-      return folderId;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '创建文件夹失败';
-      throw err;
-    }
+  function isFolderExpanded(folderId: string): boolean {
+    return expandedFolders.value.has(folderId);
   }
 
   /**
-   * 重命名文件夹
+   * 设置搜索过滤器
    */
-  async function renameFolder(payload: RenameFolderPayload): Promise<void> {
-    try {
-      // TODO: 实现重命名文件夹的 repository service 方法
-      // 暂时重新加载数据
-      await init();
-      
-      // 更新本地状态
-      const folder = folders.value.get(payload.id);
-      if (folder) {
-        folder.name = payload.name;
-        folders.value.set(payload.id, { ...folder });
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '重命名文件夹失败';
-      throw err;
-    }
+  function setFilters(newFilters: Partial<SearchFilters>): void {
+    filters.value = { ...filters.value, ...newFilters };
   }
 
   /**
-   * 删除文件夹
+   * 清除搜索过滤器
    */
-  async function deleteFolder(id: string): Promise<void> {
-    try {
-      await repositoryService.deleteFolder(id);
-      
-      // 重新加载数据以确保同步
-      await init();
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '删除文件夹失败';
-      throw err;
-    }
+  function clearFilters(): void {
+    filters.value = {};
+  }
+
+  /**
+   * 设置排序选项
+   */
+  function setSortOptions(newSortOptions: Partial<SortOptions>): void {
+    sortOptions.value = { ...sortOptions.value, ...newSortOptions };
   }
 
   /**
    * 设置启用状态
    */
-  async function setEnabled(enable: boolean): Promise<void> {
-    try {
-      await repositoryService.setTypeEnabled('character', enable);
-      enabled.value = enable;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '设置启用状态失败';
-      throw err;
+  function setEnabled(isEnabled: boolean): void {
+    enabled.value = isEnabled;
+  }
+
+  /**
+   * 清除错误信息
+   */
+  function clearError(): void {
+    error.value = null;
+  }
+
+  /**
+   * 获取文件夹中的脚本
+   */
+  function getFolderScripts(folderId: string): Script[] {
+    return repositoryService.getFolderScripts(repository.value, folderId);
+  }
+
+  /**
+   * 初始化仓库（加载数据）
+   */
+  async function init(): Promise<void> {
+    await loadRepository();
+  }
+
+  /**
+   * 切换脚本启用状态
+   */
+  async function toggleScriptEnabled(scriptId: string): Promise<void> {
+    const script = getScript(scriptId);
+    if (!script) {
+      throw new Error('脚本不存在');
     }
+
+    await updateScript(scriptId, { enabled: !script.enabled });
+  }
+
+  /**
+   * 重置store状态
+   */
+  function $reset(): void {
+    repository.value = [];
+    expandedFolders.value.clear();
+    filters.value = {};
+    sortOptions.value = { field: 'name', order: 'asc' };
+    isLoading.value = false;
+    error.value = null;
+    enabled.value = false;
   }
 
   return {
     // State
-    scripts,
-    folders,
-    rootItems,
+    repository,
     expandedFolders,
     filters,
     sortOptions,
@@ -401,23 +413,34 @@ export const useCharacterScriptStore = defineStore('characterScript', () => {
     // Getters
     allScripts,
     allFolders,
+    rootScripts,
     filteredScripts,
     sortedScripts,
-    folderTree,
+    enabledScriptsCount,
+    totalScriptsCount,
+    totalFoldersCount,
+    hasSearchResults,
 
     // Actions
-    init,
+    loadRepository,
+    saveRepository,
     createScript,
     updateScript,
     deleteScript,
-    moveScript,
-    toggleScriptEnabled,
-    setFilters,
-    setSortOptions,
-    toggleFolderExpand,
+    getScript,
     createFolder,
-    renameFolder,
     deleteFolder,
+    moveScript,
+    toggleFolderExpand,
+    isFolderExpanded,
+    setFilters,
+    clearFilters,
+    setSortOptions,
     setEnabled,
+    clearError,
+    getFolderScripts,
+    init,
+    toggleScriptEnabled,
+    $reset,
   };
 });

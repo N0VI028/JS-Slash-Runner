@@ -1,8 +1,7 @@
 // 导出所有类型定义
 
-
 // Schema 类型
-export type { Folder, Repository, Script, ScriptRepositoryItem, ScriptType } from '../schemas/script.schema';
+export type { Repository, Script, ScriptRepositoryItem, ScriptType } from '../schemas/script.schema';
 
 export type {
   CreateFolderPayload,
@@ -15,11 +14,8 @@ export type {
   RenameFolderPayload,
   SearchFilters,
   SortOptions,
-  UpdateScriptPayload
+  UpdateScriptPayload,
 } from '../schemas/payloads.schema';
-
-// Store 相关类型
-export type { LoadingState, ToastMessage } from '../stores/ui.store';
 
 // 额外的工具类型
 

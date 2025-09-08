@@ -7,57 +7,37 @@
     </div>
     <div class="script-item-control flex-container flexnowrap alignItemsCenter">
       <!-- 脚本开关 -->
-      <div 
-        class="script-toggle" 
-        :class="{ enabled: script.enabled }"
-        @click="$emit('toggle-script', script.id)"
-      >
+      <div class="script-toggle" :class="{ enabled: script.enabled }" @click="$emit('toggle-script', script.id)">
         <i v-if="script.enabled" class="fa-solid fa-toggle-on"></i>
         <i v-else class="fa-solid fa-toggle-off"></i>
       </div>
-      
+
       <!-- 脚本信息 -->
-      <div 
-        class="script-info menu_button interactable"
-        @click="$emit('show-info', script.id)"
-        title="查看脚本信息"
-      >
+      <div class="script-info menu_button interactable" @click="$emit('show-info', script.id)" title="查看脚本信息">
         <i class="fa-solid fa-info-circle"></i>
       </div>
-      
+
       <!-- 编辑脚本 -->
-      <div 
-        class="edit-script menu_button interactable"
-        @click="$emit('edit-script', script.id)"
-        title="编辑脚本"
-      >
+      <div class="edit-script menu_button interactable" @click="$emit('edit-script', script.id)" title="编辑脚本">
         <i class="fa-solid fa-pencil"></i>
       </div>
 
       <!-- 在全局/角色之间移动脚本 -->
-      <div 
+      <div
         class="script-move-type menu_button interactable"
         @click="$emit('move-script-type', script.id)"
         :title="typeMoveTitle"
       >
         <i class="fa-solid" :class="typeMoveIcon"></i>
       </div>
-      
+
       <!-- 导出脚本 -->
-      <div 
-        class="export-script menu_button interactable"
-        @click="$emit('export-script', script.id)"
-        title="导出脚本"
-      >
+      <div class="export-script menu_button interactable" @click="$emit('export-script', script.id)" title="导出脚本">
         <i class="fa-solid fa-file-export"></i>
       </div>
-      
+
       <!-- 删除脚本 -->
-      <div 
-        class="delete-script menu_button interactable"
-        @click="$emit('delete-script', script.id)"
-        title="删除脚本"
-      >
+      <div class="delete-script menu_button interactable" @click="$emit('delete-script', script.id)" title="删除脚本">
         <i class="fa-solid fa-trash"></i>
       </div>
     </div>
@@ -98,7 +78,7 @@ const typeMoveTitle = computed(() => {
 </script>
 
 <style scoped>
-.script-item-control{
+.script-item-control {
   gap: 3px;
 }
 /* 使用V1的样式 */
@@ -117,6 +97,15 @@ const typeMoveTitle = computed(() => {
 .script-item:has(.script-toggle:not(.enabled)) .script-item-name {
   text-decoration: line-through;
   filter: grayscale(0.5);
+}
+
+.script-item .menu_button {
+  width: calc(var(--icon-size) * 1.8);
+  height: calc(var(--icon-size) * 1.8);
+}
+
+.script-item i {
+  font-size: calc(var(--icon-size) * 0.95)!important;
 }
 
 .script-toggle {
@@ -148,31 +137,5 @@ const typeMoveTitle = computed(() => {
 
 .drag-handle:active {
   cursor: grabbing;
-}
-
-.flexGrow {
-  flex-grow: 1;
-}
-
-.overflow-hidden {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.marginLeft5 {
-  margin-left: 5px;
-}
-
-.flex-container {
-  display: flex;
-}
-
-.flexnowrap {
-  flex-wrap: nowrap;
-}
-
-.alignItemsCenter {
-  align-items: center;
 }
 </style>

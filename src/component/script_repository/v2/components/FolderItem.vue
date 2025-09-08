@@ -1,65 +1,62 @@
 <template>
-  <div class="script-folder" :id="folder.id">
-    <div class="folder-header">
+  <div class="script-folder wide100p" :id="folder.id || ''">
+    <div class="folder-header flex justifyContentSpaceBetween flexNoWrap alignItemsCenter paddingLeftRight5 height32px">
       <input type="checkbox" class="folder-checkbox" style="display: none" />
-      <span class="drag-handle menu-handle">☰</span>
+      <span class="drag-handle menu-handle padding5">☰</span>
       <i :class="['fa', folderIcon, 'folder-icon', 'marginLeft5']"></i>
       <span class="folder-name flexGrow overflow-hidden marginLeft5">
         {{ folder.name }}
       </span>
       <div class="folder-control flex-container flexnowrap alignItemsCenter">
         <!-- 批量开关文件夹内脚本 -->
-        <div 
-          class="folder-script-toggle" 
+        <div
+          class="folder-script-toggle padding5"
           :class="{ enabled: allScriptsEnabled }"
-          @click="$emit('toggle-folder-scripts', folder.id)"
+          @click="$emit('toggle-folder-scripts', folder.id || '')"
           title="批量开关文件夹内脚本"
         >
           <i v-if="allScriptsEnabled" class="fa-solid fa-toggle-on"></i>
           <i v-else class="fa-solid fa-toggle-off"></i>
         </div>
-        
+
         <!-- 编辑文件夹 -->
-        <i 
-          class="fa fa-pencil folder-edit" 
-          @click="$emit('edit-folder', folder.id)"
+        <i
+          class="fa fa-pencil folder-edit padding5 margin-r2"
+          @click="$emit('edit-folder', folder.id || '')"
           title="编辑文件夹"
         ></i>
-        
+
         <!-- 导出文件夹 -->
-        <i 
-          class="fa fa-file-export folder-export" 
-          @click="$emit('export-folder', folder.id)"
+        <i
+          class="fa fa-file-export folder-export padding5 margin-r2"
+          @click="$emit('export-folder', folder.id || '')"
           title="导出文件夹"
         ></i>
-        
+
         <!-- 移动文件夹 -->
-        <i 
-          :class="['fa', moveIcon, 'folder-move']"
-          @click="$emit('move-folder', folder.id)"
+        <i
+          :class="['fa', moveIcon, 'folder-move', 'padding5', 'margin-r2']"
+          @click="$emit('move-folder', folder.id || '')"
           :title="moveTitle"
         ></i>
-        
+
         <!-- 删除文件夹 -->
-        <i 
-          class="fa fa-trash folder-delete" 
-          @click="$emit('delete-folder', folder.id)"
+        <i
+          class="fa fa-trash folder-delete padding5 margin-r2"
+          @click="$emit('delete-folder', folder.id || '')"
           title="删除文件夹"
         ></i>
-        
+
         <!-- 展开/折叠 -->
-        <i 
-          :class="['fa', isExpanded ? 'fa-chevron-up' : 'fa-chevron-down', 'folder-toggle']"
-          @click="$emit('toggle-expand', folder.id)"
+        <i
+          :class="['fa', isExpanded ? 'fa-chevron-up' : 'fa-chevron-down', 'folder-toggle', 'padding5', 'margin-r2']"
+          @click="$emit('toggle-expand', folder.id || '')"
         ></i>
       </div>
     </div>
-    
+
     <!-- 文件夹内容 -->
-    <div 
-      class="folder-content" 
-      :style="{ display: isExpanded ? 'block' : 'none' }"
-    >
+    <div class="folder-content padding5" :style="{ display: isExpanded ? 'block' : 'none' }">
       <slot></slot>
     </div>
   </div>
@@ -67,13 +64,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Folder } from '../schemas/script.schema';
+import type { Script, ScriptRepositoryItem } from '../schemas/script.schema';
 
 // Props
 interface Props {
-  folder: Folder;
+  folder: ScriptRepositoryItem; // V1文件夹结构
   isExpanded: boolean;
-  folderScripts?: any[]; // 文件夹内的脚本，用于判断是否全部启用
+  folderScripts?: Script[]; // 文件夹内的脚本，用于判断是否全部启用
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -101,31 +98,24 @@ const allScriptsEnabled = computed(() => {
 });
 
 const moveIcon = computed(() => {
-  return props.folder.parentId ? 'fa-folder-open' : 'fa-folder';
+  // V1结构中没有parentId概念，所有文件夹都在根级别
+  return 'fa-folder';
 });
 
 const moveTitle = computed(() => {
-  return props.folder.parentId ? '移动到根目录' : '移动到文件夹';
+  return '移动文件夹';
 });
 </script>
 
 <style scoped>
-/* 使用V1的样式 */
+.folder-control {
+  gap: 3px; /* 保留现有样式，gap3px 类可能不够精确 */
+}
 .script-folder {
-  width: 100%;
   border: 1px solid var(--SmartThemeBorderColor);
   border-radius: 10px;
   min-height: 35px;
   background-color: var(--grey5020a);
-}
-
-.folder-header {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: nowrap;
-  align-items: center;
-  padding: 0 5px;
-  min-height: 35px;
 }
 
 .script-folder:has(.folder-script-toggle:not(.enabled)) .folder-name {
@@ -134,13 +124,11 @@ const moveTitle = computed(() => {
 }
 
 .folder-content {
-  padding: 5px;
   border-top: 1px solid var(--SmartThemeBorderColor);
 }
 
 .folder-content :deep(.script-item) {
   background-color: var(--SmartThemeBlurTintColor);
-  margin-bottom: 5px;
 }
 
 .folder-content :deep(.script-item:last-child) {
@@ -149,7 +137,6 @@ const moveTitle = computed(() => {
 
 .folder-script-toggle {
   cursor: pointer;
-  padding: 5px;
 }
 
 .folder-script-toggle:hover {
@@ -163,8 +150,6 @@ const moveTitle = computed(() => {
 .folder-delete,
 .folder-toggle {
   cursor: pointer;
-  padding: 5px;
-  margin: 0 2px;
   border-radius: 5px;
 }
 
@@ -178,7 +163,6 @@ const moveTitle = computed(() => {
 
 .drag-handle {
   cursor: grab;
-  padding: 5px;
   user-select: none;
 }
 
@@ -188,31 +172,5 @@ const moveTitle = computed(() => {
 
 .folder-icon {
   color: var(--SmartThemeBodyColor);
-}
-
-.flexGrow {
-  flex-grow: 1;
-}
-
-.overflow-hidden {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.marginLeft5 {
-  margin-left: 5px;
-}
-
-.flex-container {
-  display: flex;
-}
-
-.flexnowrap {
-  flex-wrap: nowrap;
-}
-
-.alignItemsCenter {
-  align-items: center;
 }
 </style>
