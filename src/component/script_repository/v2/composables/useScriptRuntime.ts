@@ -5,6 +5,7 @@ import type { Script } from '../schemas/script.schema';
 import { useCharacterScriptStore } from '../stores/characterScript.store';
 import { useGlobalScriptStore } from '../stores/globalScript.store';
 import { usePresetScriptStore } from '../stores/presetScript.store';
+import { buttonManagerV2 } from '../utils/buttonManager';
 
 /**
  * V2专用的脚本运行时管理器
@@ -89,10 +90,14 @@ export function useScriptRuntime() {
 
       $('body').append($iframe);
 
-      // TODO: 处理按钮注册（如果需要的话）
+      // 同步按钮：随脚本启用一起添加
       if (script.buttons && script.buttons.length > 0) {
-        // 这里可以触发按钮管理器添加按钮
-        log.info(`[V2ScriptRuntime] 脚本["${script.name}"]包含${script.buttons.length}个按钮`);
+        try {
+          buttonManagerV2.init();
+          buttonManagerV2.addButtonsForScript(script);
+        } catch (e) {
+          log.warn('[V2ScriptRuntime] 添加按钮失败:', e);
+        }
       }
     } catch (error) {
       log.error(`[V2ScriptRuntime] ${type}脚本启用失败:["${script.name}"]`, error);
@@ -120,9 +125,13 @@ export function useScriptRuntime() {
         log.info(`[V2ScriptRuntime] 禁用${type}脚本["${script.name}"]`);
       }
 
-      // TODO: 处理按钮移除（如果需要的话）
+      // 同步按钮：随脚本禁用一起移除
       if (script.buttons && script.buttons.length > 0) {
-        log.info(`[V2ScriptRuntime] 移除脚本["${script.name}"]的${script.buttons.length}个按钮`);
+        try {
+          buttonManagerV2.removeButtonsByScriptId(scriptId);
+        } catch (e) {
+          log.warn('[V2ScriptRuntime] 移除按钮失败:', e);
+        }
       }
     } catch (error) {
       log.error(`[V2ScriptRuntime] ${type}脚本停止失败:["${script.name}"]`, error);

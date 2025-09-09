@@ -19,6 +19,60 @@ export async function initializeVueScriptRepository(): Promise<void> {
 
     // 挂载全局事件监听（一次性）
     registerGlobalEventListeners();
+
+    // 初始化后首轮自动启动：受总开关与各类型开关约束
+    try {
+      // 总开关优先：若未启用扩展，则直接跳过
+      // @ts-ignore
+      const extensionEnabled = getSettingValue('enabled_extension');
+      if (!extensionEnabled) {
+        return;
+      }
+
+      // 准备 Pinia 与 stores
+      const pinia = vueAppManager.getPinia();
+      if (!pinia) return;
+      setActivePinia(pinia);
+
+      const { useGlobalScriptStore } = await import('./stores/globalScript.store');
+      const { useCharacterScriptStore } = await import('./stores/characterScript.store');
+      const { usePresetScriptStore } = await import('./stores/presetScript.store');
+      const globalStore = useGlobalScriptStore(pinia);
+      const characterStore = useCharacterScriptStore(pinia);
+      const presetStore = usePresetScriptStore(pinia);
+
+      // 先加载各仓库数据
+      await Promise.all([globalStore.init(), characterStore.init(), presetStore.init()]);
+
+      // 应用三类“类型开关”的依据：
+      // - 全局：来自 script. 数据中的 global_script_enabled
+      // - 角色：白名单/一次性弹窗逻辑（已有函数）
+      // - 预设：来自自身扩展字段（init 已读出 enabled）
+
+      const globalEnabledFlag = Boolean(getSettingValue('script.global_script_enabled'));
+      await globalStore.setEnabled(globalEnabledFlag);
+
+      // 角色：根据白名单/一次性弹窗逻辑设置 enabled
+      await checkEmbeddedScriptsOnce(pinia);
+
+      // 启动已启用脚本（受类型开关与脚本自身 enabled 共同约束）
+      const { useScriptRuntime } = await import('./composables/useScriptRuntime');
+      const runtime = useScriptRuntime();
+
+      if (globalStore.enabled) {
+        await runtime.toggleScriptsByType('global', true);
+      }
+
+      if (characterStore.enabled) {
+        await runtime.toggleScriptsByType('character', true);
+      }
+
+      if (presetStore.enabled) {
+        await runtime.toggleScriptsByType('preset', true);
+      }
+    } catch (err) {
+      console.warn('[ScriptRepository][V2] 初始化后首轮自动启动失败:', err);
+    }
   } catch (error) {
     console.error('[ScriptRepository] 初始化Vue脚本库失败:', error);
   }

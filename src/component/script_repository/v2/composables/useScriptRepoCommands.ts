@@ -1,4 +1,4 @@
-import { useScriptRuntime } from '@/component/script_repository/v2/composables/useScriptRuntime';
+import log from 'loglevel';
 import { createDefaultScript } from '../../builtin_scripts';
 import type { SearchFilters } from '../schemas/payloads.schema';
 import type { Script } from '../schemas/script.schema';
@@ -6,6 +6,7 @@ import { useCharacterScriptStore } from '../stores/characterScript.store';
 import { useGlobalScriptStore } from '../stores/globalScript.store';
 import { usePresetScriptStore } from '../stores/presetScript.store';
 import { usePopups } from './usePopups';
+import { useScriptRuntime } from './useScriptRuntime';
 
 /**
  * 简化的脚本仓库命令层
@@ -149,18 +150,44 @@ export function useScriptRepoCommands() {
   /**
    * 编辑脚本
    */
-  const editScript = async (target: 'global' | 'character', scriptId: string): Promise<void> => {
+  const editScript = async (target: 'global' | 'character' | 'preset', scriptId: string): Promise<void> => {
     let script: Script | null;
+    let store: any;
     switch (target) {
       case 'global':
         script = globalScriptStore.getScript(scriptId);
+        store = globalScriptStore;
         break;
       case 'character':
         script = characterScriptStore.getScript(scriptId);
+        store = characterScriptStore;
+        break;
+      case 'preset':
+        script = presetScriptStore.getScript(scriptId);
+        store = presetScriptStore;
         break;
     }
     if (script) {
-      usePopups().openScriptEditor(script);
+      const result = await usePopups().openScriptEditor(script);
+      if (result.confirmed && result.data) {
+        // 先更新脚本数据
+        await store.updateScript(scriptId, result.data);
+
+        // 获取更新后的脚本数据来检查启用状态
+        const updatedScript = store.getScript(scriptId);
+        if (updatedScript && updatedScript.enabled) {
+          try {
+            const scriptRuntime = useScriptRuntime();
+            log.info(`[ScriptEditor] 检测到脚本 "${updatedScript.name}" 已启用，正在重载...`);
+            await scriptRuntime.stopScript(scriptId, target);
+            await scriptRuntime.startScript(scriptId, target);
+            log.info(`[ScriptEditor] 脚本 "${updatedScript.name}" 重载完成`);
+          } catch (error) {
+            log.error('[ScriptEditor] 脚本重载失败:', error);
+            toastr.warning('脚本重载失败，请手动重启脚本');
+          }
+        }
+      }
     }
   };
 

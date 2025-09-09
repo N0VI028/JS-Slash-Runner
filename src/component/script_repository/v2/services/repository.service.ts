@@ -630,6 +630,75 @@ export class RepositoryService {
   }
 
   /**
+   * 在任意两种类型间移动文件夹（含 'preset' 作为目标）
+   */
+  async moveFolderBetweenTypes(
+    folderId: string,
+    fromType: 'global' | 'character' | 'preset',
+    toType: 'global' | 'character' | 'preset',
+    conflictResolver?: (args: {
+      script: Script;
+      conflict: Script;
+      target: 'global' | 'character' | 'preset';
+    }) => Promise<'new' | 'override' | 'cancel'>,
+  ): Promise<void> {
+    try {
+      if (fromType === toType) {
+        return;
+      }
+
+      const fromRepository = await this.loadRepositoryByType(fromType);
+      const toRepository = await this.loadRepositoryByType(toType);
+
+      const folderIndex = this.findFolderIndex(fromRepository, folderId);
+      if (folderIndex === -1) {
+        throw new Error('文件夹不存在');
+      }
+
+      const [folderItem] = fromRepository.splice(folderIndex, 1);
+      if (!folderItem || (folderItem as any).type !== 'folder') {
+        throw new Error('目标不是文件夹');
+      }
+
+      // 在移动之前，针对文件夹内的每一个脚本与目标仓库做ID冲突处理
+      const targetAllScripts = this.getAllScripts(toRepository);
+      if (Array.isArray((folderItem as any).value)) {
+        for (const s of (folderItem as any).value as Script[]) {
+          const conflict = targetAllScripts.find(t => t.id === s.id);
+          if (!conflict) continue;
+
+          let decision: 'new' | 'override' | 'cancel' = 'new';
+          if (conflictResolver) {
+            decision = await conflictResolver({ script: s, conflict, target: toType });
+          }
+
+          if (decision === 'cancel') {
+            // 取消整个移动操作：将文件夹放回原处
+            fromRepository.splice(folderIndex, 0, folderItem);
+            throw new Error('移动被用户取消');
+          }
+          if (decision === 'override') {
+            // 删除目标中的冲突脚本
+            await this.deleteScriptInType(toType, conflict.id);
+          } else if (decision === 'new') {
+            // 为即将移动的脚本换新ID
+            s.id = uuidv4();
+          }
+        }
+      }
+
+      // 冲突处理完成后，将整个文件夹（包含内部脚本）追加到目标仓库根目录
+      toRepository.push(folderItem);
+
+      await this.saveRepositoryByType(fromType, fromRepository);
+      await this.saveRepositoryByType(toType, toRepository);
+    } catch (error) {
+      console.error('在不同类型间移动文件夹失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 导出脚本
    */
   async exportScripts(scriptIds: string[], type: 'global' | 'character' | 'preset'): Promise<any[]> {
@@ -756,7 +825,6 @@ export class RepositoryService {
       // 动态加载 JSZip（保持与 V1 行为一致）
       // @ts-ignore
       if (!window.JSZip) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         await import('@sillytavern/lib/jszip.min.js');
       }

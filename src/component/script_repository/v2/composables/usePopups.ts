@@ -1,7 +1,12 @@
 import { renderMarkdown } from '@/util/render_markdown';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import log from 'loglevel';
+import { createApp } from 'vue';
 import { DEFAULT_SCRIPT_CONFIGS, createDefaultScript } from '../../builtin_scripts';
+import FolderCreate from '../components/FolderCreate.vue';
+import ScriptDefaultRepository from '../components/ScriptDefaultRepository.vue';
+import ScriptEditor from '../components/ScriptEditor.vue';
+import ScriptTargetSelector from '../components/ScriptTargetSelector.vue';
 import {
   FolderCreateFormSchema,
   ScriptEditorFormSchema,
@@ -12,7 +17,6 @@ import {
 } from '../schemas/popup.schema';
 import type { Script } from '../schemas/script.schema';
 import { FormValidator } from '../utils/formValidation';
-import { loadTemplate } from '../utils/templateLoader';
 
 /**
  * Popup 操作结果接口
@@ -20,6 +24,36 @@ import { loadTemplate } from '../utils/templateLoader';
 export interface PopupResult<T = any> {
   confirmed: boolean;
   data?: T;
+}
+
+/**
+ * 创建Vue组件并挂载到DOM元素
+ * @param component Vue组件
+ * @param props 组件props
+ * @returns 挂载后的jQuery元素和Vue应用实例
+ */
+function createVueComponentElement<T extends Record<string, any>>(
+  component: any,
+  props: T = {} as T
+): { $element: JQuery<HTMLElement>; vueApp: any; cleanup: () => void } {
+  // 使用jQuery创建容器元素
+  const $container = $('<div>');
+  
+  // 创建Vue应用实例
+  const vueApp = createApp(component, props);
+  
+  // 挂载Vue组件
+  vueApp.mount($container[0]);
+  
+  const cleanup = () => {
+    try {
+      vueApp.unmount();
+    } catch (error) {
+      log.warn('[usePopups] Vue组件卸载失败:', error);
+    }
+  };
+  
+  return { $element: $container, vueApp, cleanup };
 }
 
 /**
@@ -215,32 +249,45 @@ export function usePopups() {
    * @returns 编辑结果
    */
   const openScriptEditor = async (script?: Script): Promise<PopupResult<ScriptEditorFormData>> => {
+    let cleanup: (() => void) | null = null;
+    
     try {
-      // 加载模板
-      const $editorHtml = $(await loadTemplate('script_editor'));
+      // 创建Vue组件
+      const { $element: $editorHtml, cleanup: vueCleanup } = createVueComponentElement(ScriptEditor, {
+        script: script
+      });
+      
+      cleanup = vueCleanup;
 
-      // 绑定变量和按钮添加功能
-      bindScriptEditorEvents($editorHtml);
+      // 等待Vue组件渲染完成，然后绑定jQuery事件
+      await new Promise<void>((resolve) => {
+        // 使用nextTick确保Vue组件完全渲染
+        setTimeout(() => {
+          bindScriptEditorEvents($editorHtml);
+          
+          // 对于新建脚本，隐藏变量列表容器
+          if (!script) {
+            $editorHtml.find('#variable-list').hide();
+          }
 
-      // 对于新建脚本，隐藏变量列表容器
-      if (!script) {
-        $editorHtml.find('#variable-list').hide();
-      }
+          // 填充现有数据（在绑定事件后进行，这样动态生成的元素也能正常工作）
+          if (script) {
+            FormValidator.populateEditorForm($editorHtml, {
+              name: script.name,
+              content: script.content,
+              info: script.info,
+              enabled: script.enabled,
+              buttons: script.buttons,
+              data: script.data,
+            });
 
-      // 填充现有数据（在绑定事件后进行，这样动态生成的元素也能正常工作）
-      if (script) {
-        FormValidator.populateEditorForm($editorHtml, {
-          name: script.name,
-          content: script.content,
-          info: script.info,
-          enabled: script.enabled,
-          buttons: script.buttons,
-          data: script.data,
-        });
-
-        // 重新绑定动态生成元素的事件
-        rebindDynamicEvents($editorHtml);
-      }
+            // 重新绑定动态生成元素的事件
+            rebindDynamicEvents($editorHtml);
+          }
+          
+          resolve();
+        }, 50);
+      });
 
       // 显示编辑器popup
       const result = await callGenericPopup($editorHtml, POPUP_TYPE.CONFIRM, '', {
@@ -310,6 +357,11 @@ export function usePopups() {
       log.error('[usePopups] 脚本编辑器失败:', error);
       toastr.error('打开脚本编辑器失败', String(error));
       return { confirmed: false };
+    } finally {
+      // 清理Vue组件
+      if (cleanup) {
+        cleanup();
+      }
     }
   };
 
@@ -318,30 +370,41 @@ export function usePopups() {
    * @returns 创建结果
    */
   const createFolder = async (): Promise<PopupResult<FolderCreateFormData>> => {
+    let cleanup: (() => void) | null = null;
+    
     try {
-      // 加载模板
-      const $folderHtml = $(await loadTemplate('folder_create'));
+      // 创建Vue组件
+      const { $element: $folderHtml, cleanup: vueCleanup } = createVueComponentElement(FolderCreate, {});
+      
+      cleanup = vueCleanup;
 
       // 用于存储颜色选择结果
       let folderColor: string | undefined;
 
-      // 绑定颜色选择器
-      $folderHtml.find('#folder-color-picker').on('change', (evt: any) => {
-        folderColor = evt.detail?.rgba || evt.detail?.hex;
-      });
+      // 等待Vue组件渲染完成，然后绑定jQuery事件
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          // 绑定颜色选择器
+          $folderHtml.find('#folder-color-picker').on('change', (evt: any) => {
+            folderColor = evt.detail?.rgba || evt.detail?.hex;
+          });
 
-      // 绑定图标选择器
-      $folderHtml.find('#folder-icon-preview').on('click', async () => {
-        try {
-          // @ts-ignore - showFontAwesomePicker 是全局函数
-          const selectedIcon = await showFontAwesomePicker();
-          if (selectedIcon && selectedIcon.trim() !== '') {
-            $folderHtml.find('#folder-icon-preview').removeClass().addClass(`fa ${selectedIcon}`);
-            $folderHtml.find('#folder-icon-value').val(selectedIcon);
-          }
-        } catch (error) {
-          console.error('图标选择失败:', error);
-        }
+          // 绑定图标选择器
+          $folderHtml.find('#folder-icon-preview').on('click', async () => {
+            try {
+              // @ts-ignore - showFontAwesomePicker 是全局函数
+              const selectedIcon = await showFontAwesomePicker();
+              if (selectedIcon && selectedIcon.trim() !== '') {
+                $folderHtml.find('#folder-icon-preview').removeClass().addClass(`fa ${selectedIcon}`);
+                $folderHtml.find('#folder-icon-value').val(selectedIcon);
+              }
+            } catch (error) {
+              console.error('图标选择失败:', error);
+            }
+          });
+          
+          resolve();
+        }, 50);
       });
 
       const result = await callGenericPopup($folderHtml, POPUP_TYPE.CONFIRM, '', {
@@ -378,6 +441,11 @@ export function usePopups() {
       log.error('[ScriptRepository] 文件夹创建失败:', error);
       toastr.error('创建文件夹失败', String(error));
       return { confirmed: false };
+    } finally {
+      // 清理Vue组件
+      if (cleanup) {
+        cleanup();
+      }
     }
   };
 
@@ -385,8 +453,13 @@ export function usePopups() {
    * 编辑文件夹对话框（预填名称/图标/颜色）
    */
   const editFolder = async (initial: Partial<FolderCreateFormData>): Promise<PopupResult<FolderCreateFormData>> => {
+    let cleanup: (() => void) | null = null;
+    
     try {
-      const $folderHtml = $(await loadTemplate('folder_create'));
+      // 创建Vue组件
+      const { $element: $folderHtml, cleanup: vueCleanup } = createVueComponentElement(FolderCreate, {});
+      
+      cleanup = vueCleanup;
 
       // 预填初始值
       if (initial.name) $folderHtml.find('#folder-name-input').val(initial.name);
@@ -446,6 +519,11 @@ export function usePopups() {
       log.error('[ScriptRepository] 文件夹编辑失败:', error);
       toastr.error('编辑文件夹失败', String(error));
       return { confirmed: false };
+    } finally {
+      // 清理Vue组件
+      if (cleanup) {
+        cleanup();
+      }
     }
   };
 
@@ -459,17 +537,15 @@ export function usePopups() {
     showPresetOption?: boolean;
   }): Promise<PopupResult<TargetSelectorFormData>> => {
     try {
-      // 加载模板
-      const $selectorHtml = $(
-        await loadTemplate('script_target_selector', {
-          title: config.title,
-          prefix: 'target',
-          globalLabel: '全局脚本库',
-          characterLabel: '角色脚本库',
-          presetLabel: '预设脚本库',
-          showPresetOption: config.showPresetOption || false,
-        }),
-      );
+      // 创建Vue组件
+      const { $element: $selectorHtml } = createVueComponentElement(ScriptTargetSelector, {
+        title: config.title,
+        prefix: 'target',
+        globalLabel: '全局脚本库',
+        characterLabel: '角色脚本库',
+        presetLabel: '预设脚本库',
+        showPresetOption: config.showPresetOption || false,
+      });
 
       // 显示选择对话框
       const result = await callGenericPopup($selectorHtml, POPUP_TYPE.CONFIRM, '', {
@@ -530,12 +606,10 @@ export function usePopups() {
 
       // 为每个内置脚本创建项目
       for (const script of builtinScripts) {
-        const $item = await loadTemplate('script_default_repository', {
+        const { $element: $scriptHtml } = createVueComponentElement(ScriptDefaultRepository, {
           id: `default_lib_${script.id}`,
           scriptName: script.name,
         });
-
-        const $scriptHtml = $($item);
 
         // 绑定信息按钮
         $scriptHtml.find('.script-info').on('click', () => {
@@ -736,10 +810,11 @@ export function usePopups() {
   const resolveMoveIdConflict = async (config: {
     scriptName: string;
     existingScriptName: string;
-    target: 'global' | 'character';
+    target: 'global' | 'character' | 'preset';
   }): Promise<'new' | 'override' | 'cancel'> => {
     try {
-      const targetTypeText = config.target === 'global' ? '全局脚本' : '角色脚本';
+      const targetTypeText =
+        config.target === 'global' ? '全局脚本' : config.target === 'character' ? '角色脚本' : '预设脚本';
       const message = `要移动到${targetTypeText}库的脚本 '${config.scriptName}' 与目标库中的 '${config.existingScriptName}' id 相同，是否要继续操作？`;
 
       const input = await callGenericPopup(message, POPUP_TYPE.TEXT, '', {

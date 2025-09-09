@@ -185,10 +185,10 @@
         @toggle-folder-scripts="id => onTogglePresetFolderScripts(id)"
         @edit-folder="() => {}"
         @export-folder="() => {}"
-        @move-folder="() => {}"
+        @move-folder="id => onMoveFolderType('preset', id)"
         @toggle-script="id => onTogglePresetScript(id)"
         @show-info="id => onShowPresetScriptInfo(id)"
-        @edit-script="id => onEditPresetScript(id)"
+        @edit-script="id => commands.editScript('preset', id)"
         @move-script="id => onMovePresetWithinFolder(id)"
         @export-script="id => onExportPresetSingle(id)"
         @delete-script="id => onDeletePresetScript(id)"
@@ -356,15 +356,7 @@ async function onShowPresetScriptInfo(scriptId: string): Promise<void> {
   }
 }
 
-async function onEditPresetScript(scriptId: string): Promise<void> {
-  const script = presetScriptStore.getScript(scriptId);
-  if (!script) return;
-  const { usePopups } = await import('../composables/usePopups');
-  const result = await usePopups().openScriptEditor(script);
-  if (result.confirmed && result.data) {
-    await presetScriptStore.updateScript(scriptId, result.data);
-  }
-}
+// 删除单独的onEditPresetScript函数，现在使用统一的editScript
 
 async function onMovePresetWithinFolder(scriptId: string): Promise<void> {
   const { usePopups } = await import('../composables/usePopups');
@@ -574,12 +566,111 @@ async function onMoveWithinFolder(source: 'global' | 'character', scriptId: stri
   }
 }
 
-async function onMoveFolderType(source: 'global' | 'character', folderId: string): Promise<void> {
+async function onMoveFolderType(source: 'global' | 'character' | 'preset', folderId: string): Promise<void> {
   try {
-    await repositoryService.moveFolderToOtherType(folderId, source);
-    await Promise.all([globalScriptStore.init(), characterScriptStore.init()]);
+    const popups = (await import('../composables/usePopups')).usePopups();
+    const { useScriptRuntime } = await import('../composables/useScriptRuntime');
+    const runtime = useScriptRuntime();
+
+    // 获取源文件夹
+    const sourceRepo = await repositoryService.loadRepositoryByType(source);
+    const folder = repositoryService.getAllFolders(sourceRepo).find(f => f.id === folderId);
+    if (!folder) {
+      toastr.error('移动失败', '文件夹不存在');
+      return;
+    }
+
+    // 选择目标类型（包含预设）
+    const selection = await popups.selectTarget({ title: '移动文件夹到:', showPresetOption: true });
+    if (!selection.confirmed || !selection.data) return;
+    const targetSel = selection.data.target as 'global' | 'character' | 'preset';
+
+    // 仅允许 -> global/character/preset
+    if (targetSel !== 'global' && targetSel !== 'character' && targetSel !== 'preset') return;
+
+    // 如果目标与源相同，不进行移动
+    if (targetSel === source) {
+      toastr.info('移动取消', '目标库与源库相同');
+      return;
+    }
+
+    // 冲突检查：仅与目标仓库比对（全库唯一需求，按你要求只检查目标仓库即可）
+    const targetRepoBefore = await repositoryService.loadRepositoryByType(targetSel as any);
+    const targetAllScripts = repositoryService.getAllScripts(targetRepoBefore);
+
+    // 获取该文件夹内的脚本
+    const folderScripts = repositoryService.getFolderScripts(sourceRepo, folderId);
+
+    // 逐个脚本在目标仓库检查ID冲突，按V1脚本移动的弹窗逻辑处理
+    for (const script of folderScripts) {
+      const conflict = targetAllScripts.find(s => s.id === script.id);
+      if (!conflict) continue;
+
+      const decision = await popups.resolveMoveIdConflict({
+        scriptName: script.name,
+        existingScriptName: conflict.name,
+        target: targetSel,
+      });
+
+      if (decision === 'cancel') {
+        toastr.info('已取消移动', `脚本 "${script.name}" 与目标冲突，用户取消`);
+        return;
+      }
+
+      if (decision === 'override') {
+        // 删除目标中的冲突脚本
+        await repositoryService.deleteScriptInType(targetSel as any, conflict.id);
+      } else if (decision === 'new') {
+        // 换新ID插入目标
+        script.id = uuidv4();
+      }
+    }
+
+    // 执行移动（支持移动到 preset）
+    await repositoryService.moveFolderBetweenTypes(
+      folderId,
+      source as any,
+      targetSel as any,
+      async ({ script, conflict, target }) => {
+        const decision = await popups.resolveMoveIdConflict({
+          scriptName: script.name,
+          existingScriptName: conflict.name,
+          target,
+        });
+        return decision;
+      },
+    );
+
+    // 刷新仓库
+    await Promise.all([globalScriptStore.init(), characterScriptStore.init(), presetScriptStore.init()]);
     await commands.initRepository();
-    toastr.success('移动成功', '文件夹已移动到另一脚本库');
+
+    // 移动后启动：总开关与目标类型开关必须开启，且脚本本身为enabled
+    const masterEnabled = (await import('@/util/extension_variables')).getSettingValue('enabled_extension');
+    if (masterEnabled) {
+      const targetEnabled =
+        targetSel === 'global'
+          ? globalScriptStore.enabled
+          : targetSel === 'character'
+          ? characterScriptStore.enabled
+          : presetScriptStore.enabled;
+
+      if (targetEnabled) {
+        const targetRepoAfter = await repositoryService.loadRepositoryByType(targetSel as any);
+        const folderInTarget = repositoryService.getAllFolders(targetRepoAfter).find(f => f.id === folderId);
+        if (folderInTarget && Array.isArray((folderInTarget as any).value)) {
+          const scripts = (folderInTarget as any).value.filter((i: any) => i?.type === 'script').map((i: any) => i.value);
+          for (const s of scripts) {
+            if (s?.enabled) {
+              await runtime.startScript(s.id, targetSel as any);
+            }
+          }
+        }
+      }
+    }
+
+    const targetName = targetSel === 'global' ? '全局脚本库' : targetSel === 'character' ? '角色脚本库' : '预设脚本库';
+    toastr.success('移动成功', `文件夹"${folder.name}"已移动到${targetName}`);
   } catch (error) {
     console.error('移动失败:', error);
     toastr.error('移动失败', error instanceof Error ? error.message : '未知错误');

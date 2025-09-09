@@ -46,9 +46,9 @@
 
         <!-- 移动文件夹 -->
         <i
-          :class="['fa', moveIcon, 'folder-move', 'padding5', 'margin-r2']"
+          class="fa fa-exchange-alt folder-move padding5 margin-r2"
           @click="$emit('move-folder', folder.id || '')"
-          :title="moveTitle"
+          title="移动到其他脚本库"
         ></i>
 
         <!-- 删除文件夹 -->
@@ -78,8 +78,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useJQueryDrag } from '../composables/useJQueryDrag';
-import type { Script, ScriptRepositoryItem } from '../schemas/script.schema';
-import type { ScriptType } from '../types';
+import type { Script, ScriptRepositoryItem, ScriptType } from '../schemas/script.schema';
 
 // Props
 interface Props {
@@ -118,14 +117,7 @@ const allScriptsEnabled = computed(() => {
   return props.folderScripts.every(script => script.enabled);
 });
 
-const moveIcon = computed(() => {
-  // 与脚本项的跨类型移动图标一致：global 向下，character 向上
-  return props.repoType === 'global' ? 'fa-arrow-down' : 'fa-arrow-up';
-});
-
-const moveTitle = computed(() => {
-  return props.repoType === 'global' ? '移动到角色脚本库' : '移动到全局脚本库';
-});
+// 移动图标现在使用固定的exchange图标，与脚本项保持一致
 
 // 处理文件夹头部点击事件
 const onHeaderClick = (event: MouseEvent) => {
