@@ -400,7 +400,8 @@ export function usePopups() {
 
       let folderColor: string | undefined = initial.color;
       $folderHtml.find('#folder-color-picker').on('change', (evt: any) => {
-        folderColor = evt.detail?.rgba || evt.detail?.hex || String($folderHtml.find('#folder-color-picker').val() || '');
+        folderColor =
+          evt.detail?.rgba || evt.detail?.hex || String($folderHtml.find('#folder-color-picker').val() || '');
       });
 
       $folderHtml.find('#folder-icon-preview').on('click', async () => {
@@ -518,7 +519,7 @@ export function usePopups() {
    * @returns 选择的脚本ID
    */
   const showBuiltinLibrary = async (
-    onAddScript?: (scriptId: string, target: 'global' | 'character') => Promise<void>,
+    onAddScript?: (scriptId: string, target: 'global' | 'character' | 'preset') => Promise<void>,
   ): Promise<PopupResult<string[]>> => {
     try {
       // 异步加载内置脚本配置
@@ -546,17 +547,25 @@ export function usePopups() {
         $scriptHtml.find('.add-script').on('click', async () => {
           const targetResult = await selectTarget({
             title: '添加到:',
-            showPresetOption: false,
+            showPresetOption: true,
           });
 
           if (targetResult.confirmed && targetResult.data) {
             try {
-              if (onAddScript && (targetResult.data.target === 'global' || targetResult.data.target === 'character')) {
-                await onAddScript(script.id, targetResult.data.target);
-                toastr.success(
-                  '添加成功',
-                  `脚本 "${script.name}" 已添加到${targetResult.data.target === 'global' ? '全局' : '角色'}脚本库`,
-                );
+              if (
+                onAddScript &&
+                (targetResult.data.target === 'global' ||
+                  targetResult.data.target === 'character' ||
+                  targetResult.data.target === 'preset')
+              ) {
+                await onAddScript(script.id, targetResult.data.target as any);
+                const targetLabel =
+                  targetResult.data.target === 'global'
+                    ? '全局'
+                    : targetResult.data.target === 'character'
+                    ? '角色'
+                    : '预设';
+                toastr.success('添加成功', `脚本 "${script.name}" 已添加到${targetLabel}脚本库`);
               } else {
                 toastr.success('添加成功', `脚本 "${script.name}" 已添加`);
               }
@@ -592,15 +601,13 @@ export function usePopups() {
   }): Promise<PopupResult<string | null>> => {
     try {
       const { title, folders, allowRoot = true } = config;
-      
+
       if (folders.length === 0) {
         toastr.error('没有可用的文件夹', '请先创建一个文件夹');
         return { confirmed: false };
       }
 
-      const folderOptions = folders
-        .map(folder => `<option value="${folder.id}">${folder.name}</option>`)
-        .join('');
+      const folderOptions = folders.map(folder => `<option value="${folder.id}">${folder.name}</option>`).join('');
 
       const rootOption = allowRoot ? '<option value="">根目录</option>' : '';
 

@@ -4,6 +4,7 @@ import type { SearchFilters } from '../schemas/payloads.schema';
 import type { Script } from '../schemas/script.schema';
 import { useCharacterScriptStore } from '../stores/characterScript.store';
 import { useGlobalScriptStore } from '../stores/globalScript.store';
+import { usePresetScriptStore } from '../stores/presetScript.store';
 import { usePopups } from './usePopups';
 
 /**
@@ -13,6 +14,7 @@ import { usePopups } from './usePopups';
 export function useScriptRepoCommands() {
   const globalScriptStore = useGlobalScriptStore();
   const characterScriptStore = useCharacterScriptStore();
+  const presetScriptStore = usePresetScriptStore();
 
   // ===== 核心命令 =====
 
@@ -20,7 +22,7 @@ export function useScriptRepoCommands() {
    * 初始化仓库命令
    */
   const initRepository = async (): Promise<void> => {
-    await Promise.all([globalScriptStore.init(), characterScriptStore.init()]);
+    await Promise.all([globalScriptStore.init(), characterScriptStore.init(), presetScriptStore.init()]);
   };
 
   /**
@@ -29,11 +31,12 @@ export function useScriptRepoCommands() {
   const openBuiltinLibrary = async (): Promise<void> => {
     try {
       // 定义添加脚本的回调函数
-      const handleAddScript = async (scriptId: string, target: 'global' | 'character'): Promise<void> => {
+      const handleAddScript = async (scriptId: string, target: 'global' | 'character' | 'preset'): Promise<void> => {
         const builtinScript = await createDefaultScript(scriptId);
         if (builtinScript) {
           // 使用分离的 store 创建脚本，这会自动触发响应式更新
-          const targetStore = target === 'global' ? globalScriptStore : characterScriptStore;
+          const targetStore =
+            target === 'global' ? globalScriptStore : target === 'character' ? characterScriptStore : presetScriptStore;
           await targetStore.createScript({
             name: builtinScript.name,
             content: builtinScript.content,
@@ -127,7 +130,12 @@ export function useScriptRepoCommands() {
     const result = await usePopups().createFolder();
 
     if (result.confirmed && result.data) {
-      const target = result.data.target === 'global' ? globalScriptStore : characterScriptStore;
+      const target =
+        result.data.target === 'global'
+          ? globalScriptStore
+          : result.data.target === 'character'
+          ? characterScriptStore
+          : presetScriptStore;
       await target.createFolder({
         name: result.data.name,
         icon: result.data.icon,
@@ -170,8 +178,8 @@ export function useScriptRepoCommands() {
         break;
     }
     if (script) {
-      // 使用简单的确认对话框
-      const confirmed = confirm(`确定要删除脚本 "${script.name}" 吗？`);
+      // 使用 popup 确认对话框
+      const confirmed = await usePopups().confirmDelete(`确定要删除脚本 "${script.name}" 吗？`);
       if (confirmed) {
         try {
           const store = target === 'global' ? globalScriptStore : characterScriptStore;
@@ -186,34 +194,6 @@ export function useScriptRepoCommands() {
       toastr.error('脚本不存在', '找不到指定的脚本');
     }
   };
-
-  // 暂时注释掉不常用的方法，专注于核心功能
-  /*
-  const updateScript = async (payload: UpdateScriptPayload): Promise<void> => {
-    // TODO: 实现
-  };
-
-  const deleteScript = async (id: string): Promise<void> => {
-    // TODO: 实现
-  };
-
-  const moveScript = async (payload: MoveScriptPayload): Promise<void> => {
-    // TODO: 实现
-  };
-
-  const createFolder = async (payload: CreateFolderPayload): Promise<string> => {
-    // TODO: 实现
-    return '';
-  };
-
-  const renameFolder = async (payload: RenameFolderPayload): Promise<void> => {
-    // TODO: 实现
-  };
-
-  const deleteFolder = async (id: string): Promise<void> => {
-    // TODO: 实现
-  };
-  */
 
   return {
     // 核心系统操作

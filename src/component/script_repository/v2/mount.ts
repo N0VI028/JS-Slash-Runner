@@ -1,5 +1,3 @@
-import { extensionFolderPath } from '@/util/extension_variables';
-import { loadFileToDocument } from '@sillytavern/scripts/utils';
 import log from 'loglevel';
 import { createPinia } from 'pinia';
 import { App, createApp } from 'vue';
@@ -27,26 +25,16 @@ export class VueAppManager {
    * 挂载Vue应用
    * @param containerId 容器元素ID
    */
-  public async mount(containerId: string): Promise<void> {
+  public async mount(container: JQuery<HTMLElement>): Promise<void> {
     try {
       // 查找容器元素
-      this.mountElement = document.getElementById(containerId);
+      this.mountElement = container[0];
       if (!this.mountElement) {
-        throw new Error(`找不到挂载容器: ${containerId}`);
+        throw new Error(`找不到挂载容器: ${container}`);
       }
 
       // 清空容器
       this.mountElement.innerHTML = '';
-
-      // 确保加载 V1 样式，保持外观一致
-      try {
-        await loadFileToDocument(
-          `/scripts/extensions/${extensionFolderPath}/src/component/script_repository/public/style.css`,
-          'css'
-        );
-      } catch (e) {
-        log.warn('[VueAppManager] 加载 V1 样式失败（可忽略）:', e);
-      }
 
       // 创建Pinia实例
       this.pinia = createPinia();
@@ -59,16 +47,14 @@ export class VueAppManager {
 
       // 全局错误处理
       this.app.config.errorHandler = (err, _instance, info) => {
-        log.error('[Vue] 应用错误:', err, info);
+        log.error('[ScriptRepository] 应用错误:', err, info);
         console.error(err);
       };
 
       // 挂载应用
       this.app.mount(this.mountElement);
-
-      log.info('[VueAppManager] Vue应用已挂载到:', containerId);
     } catch (error) {
-      log.error('[VueAppManager] 挂载Vue应用失败:', error);
+      log.error('[ScriptRepository] 挂载Vue应用失败:', error);
       throw error;
     }
   }
@@ -90,9 +76,9 @@ export class VueAppManager {
 
       this.pinia = null;
 
-      log.info('[VueAppManager] Vue应用已卸载');
+      log.info('[ScriptRepository] Vue应用已卸载');
     } catch (error) {
-      log.error('[VueAppManager] 卸载Vue应用失败:', error);
+      log.error('[ScriptRepository] 卸载Vue应用失败:', error);
     }
   }
 

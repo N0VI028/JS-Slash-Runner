@@ -3,9 +3,9 @@
  * 负责监听和处理 tavern 事件
  */
 
-import { eventSource } from '@sillytavern/script';
-import { tavern_events, type ListenerType } from '@/function/event';
 import { type PresetBundlesStore } from '@/component/preset_manager/store/presetBundles.store';
+import { tavern_events, type ListenerType } from '@/function/event';
+import { eventSource } from '@sillytavern/script';
 
 // 存储事件监听器引用，用于后续清理
 const eventListeners: {
@@ -50,6 +50,12 @@ export function registerPresetBundleEvents(store: PresetBundlesStore): void {
   ) => {
     try {
       console.log('[PresetBundles] Preset export ready, injecting bundle data...');
+
+      // 如脚本库导出拦截设置为跳过绑定，则直接返回
+      if ((preset as any).__th_export_filter?.skipBundles) {
+        console.log('[PresetBundles] Skipping bundle injection due to export filter');
+        return;
+      }
 
       // 获取当前预设的绑定数据
       const currentPresetName = store.currentPresetName;

@@ -78,70 +78,11 @@ export class UIController {
   /**
    * 初始化UI
    */
-  public async initialize(): Promise<void> {
-    await this.initializeTemplates();
-
-    this.setupScriptRepositoryEvents();
-
-    this.registerEventListeners();
-
-    // 初始化Vue UI
-    await this.initializeVueUI();
-
-    initScriptButton();
-
-    scriptEvents.emit(ScriptRepositoryEventType.UI_LOADED);
-  }
 
   /**
    * 初始化Vue UI
    */
-  private async initializeVueUI(): Promise<void> {
-    try {
-      log.info('[UIController] 开始初始化Vue UI');
 
-      // 查找脚本仓库容器
-      const scriptRepositoryContent = document.getElementById('script-repository-content');
-      log.info('[UIController] 查找script-repository-content元素:', scriptRepositoryContent);
-
-      if (!scriptRepositoryContent) {
-        log.error('[UIController] 找不到脚本仓库容器元素，检查DOM结构...');
-
-        // 调试：打印所有可能的容器
-        const allContainers = document.querySelectorAll('[id*="script"]');
-        log.info(
-          '[UIController] 找到的script相关元素:',
-          Array.from(allContainers).map(el => ({ id: el.id, tagName: el.tagName, className: el.className })),
-        );
-
-        throw new Error('找不到脚本仓库容器元素');
-      }
-
-      log.info(
-        '[UIController] 找到script-repository-content容器，内容:',
-        scriptRepositoryContent.innerHTML.substring(0, 200) + '...',
-      );
-
-      const vueContainer = document.createElement('div');
-      vueContainer.id = 'vue-script-repository';
-      vueContainer.style.width = '100%';
-      vueContainer.style.height = '100%';
-
-      // 清空容器并添加Vue容器
-      scriptRepositoryContent.innerHTML = '';
-      scriptRepositoryContent.appendChild(vueContainer);
-
-      log.info('[UIController] 创建Vue容器，准备挂载Vue应用');
-
-      // 挂载Vue应用
-      await this.vueAppManager.mount('vue-script-repository');
-
-      log.info('[UIController] Vue UI 初始化完成，检查挂载状态:', this.vueAppManager.isMounted());
-    } catch (error) {
-      log.error('[UIController] 初始化Vue UI失败:', error);
-      throw error;
-    }
-  }
 
   /**
    * 初始化模板

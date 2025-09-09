@@ -35,7 +35,7 @@
         @click="$emit('move-script-type', script.id)"
         :title="typeMoveTitle"
       >
-        <i class="fa-solid" :class="typeMoveIcon"></i>
+        <i class="fa-solid fa-exchange-alt"></i>
       </div>
 
       <!-- 导出脚本 -->
@@ -59,7 +59,7 @@ import type { Script } from '../schemas/script.schema';
 // Props
 interface Props {
   script: Script;
-  repoType: 'global' | 'character';
+  repoType: 'global' | 'character' | 'preset';
   batchMode?: boolean;
   selected?: boolean;
 }
@@ -81,13 +81,9 @@ defineEmits<{
   'select-script': [id: string, selected: boolean];
 }>();
 
-// 全局/角色移动按钮
-const typeMoveIcon = computed(() => {
-  return props.repoType === 'global' ? 'fa-arrow-down' : 'fa-arrow-up';
-});
-
+// 全局/角色移动按钮（固定图标与提示）
 const typeMoveTitle = computed(() => {
-  return props.repoType === 'global' ? '移动到角色脚本库' : '移动到全局脚本库';
+  return '移动到其他脚本库';
 });
 
 // 拖拽功能
@@ -129,7 +125,7 @@ useScriptElement(scriptElement, props.script.id);
 }
 
 .script-item i {
-  font-size: calc(var(--icon-size) * 0.95)!important;
+  font-size: calc(var(--icon-size) * 0.95) !important;
 }
 
 .script-toggle {

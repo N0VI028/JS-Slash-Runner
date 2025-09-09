@@ -3,10 +3,9 @@
  * 负责初始化 store、事件、挂载 UI
  */
 
-import { createPinia } from 'pinia';
-import { registerPresetBundleEvents } from '@/component/preset_manager/events';
 import { mountPresetPanels } from '@/component/preset_manager/mount/mountPresetPanels';
 import { usePresetBundlesStore } from '@/component/preset_manager/store/presetBundles.store';
+import { createPinia } from 'pinia';
 
 // 全局 Pinia 实例
 let globalPinia: ReturnType<typeof createPinia> | null = null;
@@ -41,10 +40,9 @@ export async function initPresetBundles(): Promise<void> {
       console.error('[PresetBundles] Health check failed during initialization:', healthError);
     }
 
-    // 注册事件
-    registerPresetBundleEvents(store);
+    // 事件迁移到 v2 脚本库处理，此处不再注册脚本相关事件
 
-    // 挂载 UI
+    // 挂载 UI（仅正则）
     mountPresetPanels(globalPinia);
 
     console.log('[PresetBundles] Initialization completed successfully');

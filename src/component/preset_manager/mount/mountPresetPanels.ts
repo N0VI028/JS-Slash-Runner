@@ -4,13 +4,11 @@
  */
 
 import PresetRegexPanel from '@/component/preset_manager/components/PresetRegexPanel.vue';
-import PresetScriptsPanel from '@/component/preset_manager/components/PresetScriptsPanel.vue';
 import log from 'loglevel';
 import { Pinia } from 'pinia';
 import { createApp } from 'vue';
 
 // 存储 Vue 应用实例，用于后续清理
-let scriptPanelApp: any = null;
 let regexPanelApp: any = null;
 
 /**
@@ -20,7 +18,7 @@ export function mountPresetPanels(pinia: Pinia): void {
   try {
     // 等待 DOM 准备就绪后挂载
     setTimeout(() => {
-      mountScriptPanel(pinia);
+      // 仅挂载正则面板
       mountRegexPanel(pinia);
     }, 1000);
 
@@ -38,22 +36,12 @@ export function unmountPresetPanels(): void {
   console.log('[PresetBundles] Unmounting Vue panels...');
 
   try {
-    if (scriptPanelApp) {
-      scriptPanelApp.unmount();
-      scriptPanelApp = null;
-    }
-
     if (regexPanelApp) {
       regexPanelApp.unmount();
       regexPanelApp = null;
     }
 
     // 清理 DOM 节点
-    const scriptPanel = document.getElementById('preset-script-panel');
-    if (scriptPanel) {
-      scriptPanel.remove();
-    }
-
     const regexPanel = document.getElementById('preset-regex-panel');
     if (regexPanel) {
       regexPanel.remove();
@@ -62,41 +50,6 @@ export function unmountPresetPanels(): void {
     console.log('[PresetBundles] Vue panels unmounted successfully');
   } catch (error) {
     console.error('[PresetBundles] Error unmounting Vue panels:', error);
-  }
-}
-
-/**
- * 挂载脚本预设面板
- */
-function mountScriptPanel(pinia: Pinia): void {
-  // 查找脚本库容器
-  const scriptContainer = $('#script-settings-content');
-  if (!scriptContainer) {
-    console.warn('[PresetBundles] Script repository container not found');
-    return;
-  }
-
-  // 清理已存在的面板
-  const existingPanel = $('#preset-script-panel');
-  if (existingPanel) {
-    existingPanel.remove();
-  }
-
-  // 创建预设脚本面板挂载点
-  const presetScriptPanel = $('<div>').attr('id', 'preset-script-panel');
-
-  // 插入到角色脚本库后面
-  scriptContainer.append(presetScriptPanel);
-
-  // 创建并挂载 Vue 应用
-  try {
-    scriptPanelApp = createApp(PresetScriptsPanel);
-    scriptPanelApp.use(pinia);
-
-    scriptPanelApp.mount(presetScriptPanel[0]);
-  } catch (error) {
-    log.error('[PresetBundles] 脚本预设面板挂载失败:', error);
-    toastr.error('[PresetBundles] 脚本预设面板挂载失败:');
   }
 }
 

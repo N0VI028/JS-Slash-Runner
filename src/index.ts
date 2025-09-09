@@ -7,7 +7,7 @@ import { initPresetBundles } from '@/component/preset_manager/index';
 import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';
 import { defaultScriptSettings } from '@/component/script_repository/types';
-import { initializeVueScriptRepository } from '@/component/script_repository/v2/components';
+import { initializeVueScriptRepository } from '@/component/script_repository/v2';
 import { initVariableManager } from '@/component/variable_manager';
 import { disableIncompatibleOption } from '@/disable_incompatible_option';
 import { initTavernHelperObject } from '@/function';
@@ -250,7 +250,7 @@ jQuery(async () => {
     await initListener();
     initVariableManager();
     initPromptView();
-    await initPresetBundles();
+    // await initPresetBundles();
   });
 
   // 通用Collapsible折叠功能

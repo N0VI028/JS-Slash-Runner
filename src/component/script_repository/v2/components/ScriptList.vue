@@ -1,16 +1,14 @@
 <template>
   <div class="script-list-container">
     <!-- 空状态 -->
-    <EmptyState v-if="allItems.length === 0" :is-searching="isSearching" @clear-search="$emit('clear-search')" />
+    <div v-if="allItems.length === 0" class="empty-state">
+      <p>暂无脚本</p>
+    </div>
 
     <!-- 脚本和文件夹列表 -->
     <div v-else class="script-list" ref="listContainer">
       <template v-for="item in allItems" :key="`${item.type}-${item.id}`">
-        <component
-          :is="getComponentType(item)"
-          v-bind="getComponentProps(item)"
-          v-on="getComponentEvents(item)"
-        >
+        <component :is="getComponentType(item)" v-bind="getComponentProps(item)" v-on="getComponentEvents(item)">
           <!-- 如果是文件夹，渲染文件夹内的脚本 -->
           <template v-if="item.type === 'folder'">
             <component
@@ -21,13 +19,13 @@
               :repo-type="repoType"
               :batch-mode="batchMode"
               :selected="selectedScriptIds?.has(script.id) ?? false"
-              @toggle-script="(id) => emit('toggle-script', id)"
-              @show-info="(id) => emit('show-info', id)"
-              @edit-script="(id) => emit('edit-script', id)"
-              @move-script="(id) => emit('move-script', id)"
-              @move-script-type="(id) => emit('move-script-type', id)"
-              @export-script="(id) => emit('export-script', id)"
-              @delete-script="(id) => emit('delete-script', id)"
+              @toggle-script="id => emit('toggle-script', id)"
+              @show-info="id => emit('show-info', id)"
+              @edit-script="id => emit('edit-script', id)"
+              @move-script="id => emit('move-script', id)"
+              @move-script-type="id => emit('move-script-type', id)"
+              @export-script="id => emit('export-script', id)"
+              @delete-script="id => emit('delete-script', id)"
               @select-script="(id, selected) => emit('select-script', id, selected)"
             />
           </template>
@@ -45,38 +43,16 @@ import { ScriptRepositoryItemSchema, ScriptSchema } from '../schemas/script.sche
 import FolderItem from './FolderItem.vue';
 import ScriptItem from './ScriptItem.vue';
 
-// 空状态组件
-const EmptyState = {
-  props: {
-    isSearching: Boolean,
-  },
-  emits: ['clear-search'],
-  template: `
-    <div class="empty-state">
-      <div v-if="isSearching" class="empty-search">
-        <i class="fa-solid fa-search"></i>
-        <h3>未找到匹配的脚本</h3>
-        <p>尝试使用不同的关键词搜索</p>
-        <button @click="$emit('clear-search')" class="TavernHelper-button">清除搜索条件</button>
-      </div>
-      <div v-else class="empty-repository">
-        <i class="fa-solid fa-scroll"></i>
-        <h3>暂无脚本</h3>
-        <p>点击"创建脚本"按钮开始添加脚本</p>
-      </div>
-    </div>
-  `,
-};
-
 // Props
 interface Props {
   repository: Repository;
   expandedFolders?: Set<string>;
   isSearching: boolean;
-  repoType: 'global' | 'character';
+  repoType: 'global' | 'character' | 'preset';
   batchMode?: boolean;
   selectedScriptIds?: Set<string>;
   selectedFolderIds?: Set<string>;
+  searchKeyword?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -85,6 +61,8 @@ const props = withDefaults(defineProps<Props>(), {
   selectedScriptIds: () => new Set<string>(),
   selectedFolderIds: () => new Set<string>(),
 });
+
+import { matchesNameByQuery } from '../../../common/SearchBar.vue';
 
 // Emits
 const emit = defineEmits<{
@@ -125,7 +103,11 @@ const allItems = computed(() => {
     if (scriptResult.success) {
       // 直接的脚本对象
       const script = scriptResult.data;
-      items.push({ type: 'script', id: script.id, data: script });
+      // 根级脚本：按搜索关键字过滤名称
+      const show = !props.searchKeyword || matchesNameByQuery(script.name, props.searchKeyword);
+      if (show) {
+        items.push({ type: 'script', id: script.id, data: script });
+      }
       continue;
     }
 
@@ -133,14 +115,22 @@ const allItems = computed(() => {
     if (repositoryItemResult.success) {
       const repositoryItem = repositoryItemResult.data;
       if (repositoryItem.type === 'folder') {
-        items.push({
-          type: 'folder',
-          id: repositoryItem.id || 'unknown',
-          data: repositoryItem,
-        });
+        // 未搜索时：显示所有文件夹；搜索时：仅显示包含匹配脚本的文件夹
+        const folderId = repositoryItem.id || 'unknown';
+        const hasVisible = getFolderScripts(folderId).length > 0;
+        if (!props.searchKeyword || hasVisible) {
+          items.push({
+            type: 'folder',
+            id: folderId,
+            data: repositoryItem,
+          });
+        }
       } else if (repositoryItem.type === 'script') {
         const script = repositoryItem.value as Script;
-        items.push({ type: 'script', id: script.id, data: script });
+        const show = !props.searchKeyword || matchesNameByQuery(script.name, props.searchKeyword);
+        if (show) {
+          items.push({ type: 'script', id: script.id, data: script });
+        }
       }
     }
   }
@@ -155,7 +145,9 @@ const getFolderScripts = (folderId: string): Script[] => {
     if (repositoryItemResult.success) {
       const repositoryItem = repositoryItemResult.data;
       if (repositoryItem.type === 'folder' && repositoryItem.id === folderId) {
-        return Array.isArray(repositoryItem.value) ? repositoryItem.value : [];
+        const scripts = Array.isArray(repositoryItem.value) ? repositoryItem.value : [];
+        if (!props.searchKeyword) return scripts;
+        return scripts.filter(s => matchesNameByQuery(s.name, props.searchKeyword || ''));
       }
     }
   }
@@ -241,42 +233,7 @@ const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data:
   height: 100%;
   text-align: center;
   padding: 20px;
-}
-
-.empty-search i,
-.empty-repository i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
   opacity: 0.5;
-}
-
-.empty-search h3,
-.empty-repository h3 {
-  margin-bottom: 0.5rem;
-  color: var(--SmartThemeBodyColor);
-}
-
-.empty-search p,
-.empty-repository p {
-  margin-bottom: 1rem;
-  opacity: 0.7;
-}
-
-.TavernHelper-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 8px 16px;
-  background-color: var(--SmartThemeBlurTintColor);
-  border: 1px solid var(--SmartThemeBorderColor);
-  border-radius: 5px;
-  color: var(--SmartThemeBodyColor);
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.TavernHelper-button:hover {
-  background-color: var(--SmartThemeQuoteColor);
 }
 
 /* 拖拽状态样式 */
