@@ -1,6 +1,6 @@
 <template>
   <div class="script-item" :id="id">
-    <div class="script-item-name flexGrow overflow-hidden marginLeft5" style="text-align:left;">{{ scriptName }}</div>
+    <div class="script-item-name flexGrow overflow-hidden marginLeft5" style="text-align: left">{{ scriptName }}</div>
     <div class="script-item-control flex-container flexnowrap alignItemsCenter">
       <div class="script-info menu_button interactable">
         <i class="fa-solid fa-info-circle"></i>
@@ -48,5 +48,4 @@ onUnmounted(() => {
 <style scoped>
 /* 预留的局部CSS空间 */
 /* 你可以在这里添加scoped样式 */
-
 </style>

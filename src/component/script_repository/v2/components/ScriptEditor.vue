@@ -77,7 +77,7 @@ onMounted(() => {
       $element.find('#script-content-textarea').val(props.script.content || '');
       $element.find('#script-info-textarea').val(props.script.info || '');
     }
-    
+
     emit('ready', $element[0]);
   }
 });
@@ -139,5 +139,4 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 10px;
 }
-
 </style>
