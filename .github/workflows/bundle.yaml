@@ -31,6 +31,8 @@ jobs:
         with: { version: 10 }
       - run: pnpm i
         working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
+      - run: pnpm format
+        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
       - run: pnpm build
         working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
       - name: Merge @types files to a single file
