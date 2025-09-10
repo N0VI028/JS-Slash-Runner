@@ -862,11 +862,11 @@ export class UIController {
               <div class="button-item" id="button-${buttonIndex}">
                 <span class="drag-handle menu-handle">☰</span>
                 <input type="checkbox" id="checkbox-button-${buttonIndex}" class="button-visible" ${
-              button.visible ? 'checked' : ''
-            }>
+                  button.visible ? 'checked' : ''
+                }>
                 <input class="text_pole button-name" type="text" id="text-button-${buttonIndex}" value="${
-              button.name
-            }" placeholder="按钮名称">
+                  button.name
+                }" placeholder="按钮名称">
                 <div class="delete-button menu_button interactable" data-index="${buttonIndex}">
                   <i class="fa-solid fa-trash"></i>
                 </div>

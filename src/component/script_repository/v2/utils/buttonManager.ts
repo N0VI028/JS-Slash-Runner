@@ -204,5 +204,3 @@ export class ButtonManagerV2 {
 }
 
 export const buttonManagerV2 = new ButtonManagerV2();
-
-

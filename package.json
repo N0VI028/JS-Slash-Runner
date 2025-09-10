@@ -7,6 +7,7 @@
     "build": "webpack --mode production",
     "watch:production": "webpack --mode production --watch --progress",
     "watch": "webpack --mode development --watch --progress",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,scss,html,vue}\"",
     "lint": "eslint"
   },
   "browserslist": {
@@ -38,6 +39,7 @@
     "highlight.js": "^11.11.1",
     "html-loader": "^5.1.0",
     "postcss-loader": "^8.2.0",
+    "prettier": "^3.6.2",
     "terser-webpack-plugin": "^5.3.14",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",

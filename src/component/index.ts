@@ -18,10 +18,9 @@ import {
 } from '@/component/message_iframe/render_optimize';
 import { addPromptViewQuickButton } from '@/component/prompt_view';
 import { destroyCharacterLevelOnExtension, initializeCharacterLevelOnExtension } from '@/component/script_iframe';
-import {
-  //buildScriptRepositoryOnExtension,
-  //destroyScriptRepositoryOnExtension,
-} from '@/component/script_repository/index';
+import {} from //buildScriptRepositoryOnExtension,
+//destroyScriptRepositoryOnExtension,
+'@/component/script_repository/index';
 import { initializeToastr } from '@/component/toastr';
 import { addVariableManagerQuickButton } from '@/component/variable_manager';
 import iframe from '@/iframe?raw';

@@ -183,8 +183,8 @@ export function useRepoOps() {
           targetSel === 'global'
             ? globalScriptStore.enabled
             : targetSel === 'character'
-            ? characterScriptStore.enabled
-            : presetScriptStore.enabled;
+              ? characterScriptStore.enabled
+              : presetScriptStore.enabled;
         if (targetEnabled) {
           const targetRepoAfter = await repositoryService.loadRepositoryByType(targetSel as any);
           const folderInTarget = repositoryService.getAllFolders(targetRepoAfter).find(f => f.id === folderId);

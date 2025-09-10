@@ -331,7 +331,7 @@ export const usePresetBundlesStore = defineStore('presetBundles', {
           ]);
 
           return {
-            scripts: fullScripts.map(script => ({ ...script, type: 'preset', presetName } as any)),
+            scripts: fullScripts.map(script => ({ ...script, type: 'preset', presetName }) as any),
             regexes: fullRegexes,
           };
         } else {
@@ -349,7 +349,7 @@ export const usePresetBundlesStore = defineStore('presetBundles', {
 
             if (allBindings.scripts) {
               allBindings.scripts.push(
-                ...fullScripts.map(script => ({ ...script, type: 'preset', presetName: preset } as any)),
+                ...fullScripts.map(script => ({ ...script, type: 'preset', presetName: preset }) as any),
               );
             }
             if (allBindings.regexes) {

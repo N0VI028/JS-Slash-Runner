@@ -512,7 +512,11 @@ export class VariableCardFactory {
         $body.toggleClass('expanded');
       });
 
-      card.find('.yaml-input').val(YAML.stringify(variable.value, null, 2)).end().attr('data-view-mode', 'card');
+      card
+        .find('.yaml-input')
+        .val(YAML.stringify(variable.value, null, 2))
+        .end()
+        .attr('data-view-mode', 'card');
 
       card.find('.yaml-input').on('blur change', () => {
         const currentMode = card.attr('data-view-mode') || 'card';

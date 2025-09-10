@@ -16,7 +16,6 @@ export interface IController {
 }
 
 export class VariableView implements IDomUpdater {
-
   /**
    * 变量管理器浮窗ID
    */

@@ -9,8 +9,6 @@ import { renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 import log from 'loglevel';
 import Mark from 'mark.js';
 
-
-
 export const templatePath = `${extensionFolderPath}/src/component/prompt_view/public`;
 
 interface PromptData {
@@ -206,36 +204,35 @@ export async function openPromptViewDialog(): Promise<void> {
     if (!contentElement[0] || !searchValue) return;
 
     contentElement.addClass('search-highlighted');
-    
+
     const originalText = getOriginalContent(contentElement);
-    
+
     try {
       const markInstance = new Mark(contentElement[0]);
-      
+
       markInstance.unmark();
-      
+
       contentElement.html($('<div>').text(originalText).html());
-      
+
       if (isRegex) {
         try {
           const regex = new RegExp(searchValue, 'gi');
           markInstance.markRegExp(regex, {
-            className: 'search-highlight'
+            className: 'search-highlight',
           });
         } catch (regexError) {
           log.warn('正则表达式错误:', regexError);
           markInstance.mark(searchValue, {
             className: 'search-highlight',
-            caseSensitive: false
+            caseSensitive: false,
           });
         }
       } else {
         markInstance.mark(searchValue, {
           className: 'search-highlight',
-          caseSensitive: false
+          caseSensitive: false,
         });
       }
-
     } catch (error) {
       log.warn('高亮关键词时发生错误', error);
       contentElement.html($('<div>').text(originalText).html());
@@ -261,7 +258,6 @@ export async function openPromptViewDialog(): Promise<void> {
 
     contentElement.off('click.contextExpand click.contextCollapse');
   }
-
 
   /**
    * 转义正则表达式特殊字符

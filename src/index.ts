@@ -1,9 +1,13 @@
 import { defaultAudioSettings, initAudioComponents } from '@/component/audio';
 import { initExtensionMainPanel } from '@/component/index';
 import { initListener } from '@/component/listener';
-import { derenderAllMacrosDebounced, registerMacroOnExtension, renderAllMacrosDebounced, unregisterMacroOnExtension } from '@/component/macrolike';
+import {
+  derenderAllMacrosDebounced,
+  registerMacroOnExtension,
+  renderAllMacrosDebounced,
+  unregisterMacroOnExtension,
+} from '@/component/macrolike';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
-import { initPresetBundles } from '@/component/preset_manager/index';
 import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';
 import { defaultScriptSettings } from '@/component/script_repository/types';

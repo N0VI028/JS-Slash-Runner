@@ -160,8 +160,8 @@ function registerGlobalEventListeners(): void {
       const repository: any[] = Array.isArray(ths)
         ? ths
         : ths && typeof ths === 'object' && Array.isArray(ths.repository)
-        ? ths.repository
-        : [];
+          ? ths.repository
+          : [];
 
       if (!Array.isArray(repository) || repository.length === 0) return;
 

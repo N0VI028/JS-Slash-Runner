@@ -560,6 +560,5 @@ export class RepositoryService {
   }
 }
 
-
 // 导出单例实例
 export const repositoryService = RepositoryService.getInstance();

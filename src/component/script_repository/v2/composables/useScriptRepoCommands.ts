@@ -120,8 +120,8 @@ export function useScriptRepoCommands() {
         result.data.target === 'global'
           ? globalScriptStore
           : result.data.target === 'character'
-          ? characterScriptStore
-          : presetScriptStore;
+            ? characterScriptStore
+            : presetScriptStore;
       await target.createFolder({
         name: result.data.name,
         icon: result.data.icon,
