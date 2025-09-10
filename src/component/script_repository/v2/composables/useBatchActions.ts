@@ -1,10 +1,9 @@
+import type { ScriptType } from '@/component/script_repository/v2/schemas/script.schema';
 import { ref } from 'vue';
 import { repositoryService } from '../services/repository.service';
-import { useCharacterScriptStore } from '../stores/characterScript.store';
-import { useGlobalScriptStore } from '../stores/globalScript.store';
-import { usePresetScriptStore } from '../stores/presetScript.store';
+import { useCharacterScriptStore, useGlobalScriptStore, usePresetScriptStore } from '../stores/factory';
 
-export function useBatchActions(repoType: 'global' | 'character' | 'preset') {
+export function useBatchActions(repoType: ScriptType) {
   const isBatchMode = ref(false);
   const selectedScripts = ref<Set<string>>(new Set());
   const selectedFolders = ref<Set<string>>(new Set());
@@ -88,7 +87,7 @@ export function useBatchActions(repoType: 'global' | 'character' | 'preset') {
     }
 
     try {
-      const repo = await repositoryService.loadRepositoryByType(repoType);
+      const repo = repositoryService.loadRepositoryByType(repoType);
       const folderScriptIds: string[] = [];
       for (const folderId of folderIds) {
         const folderScripts = repositoryService.getFolderScripts(repo, folderId);
@@ -96,22 +95,9 @@ export function useBatchActions(repoType: 'global' | 'character' | 'preset') {
       }
 
       const allScriptIds = Array.from(new Set([...scriptIds, ...folderScriptIds]));
-      const exported = await repositoryService.exportScripts(allScriptIds, repoType);
 
-      if (exported.length === 0) {
-        toastr.error('导出失败', '没有可导出的脚本');
-        return;
-      }
-
-      const blob = new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'scripts-export.json';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // 使用统一的导出方法，自动处理文件生成和下载
+      await repositoryService.exportScripts(allScriptIds, repoType, 'batch');
       toastr.success('导出成功');
     } catch (error) {
       console.error('批量导出失败:', error);

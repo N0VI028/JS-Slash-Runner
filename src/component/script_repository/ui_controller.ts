@@ -1,5 +1,4 @@
-import { createDefaultScripts } from '@/component/script_repository/builtin_scripts';
-import { ButtonManager, initScriptButton } from '@/component/script_repository/button';
+import { ButtonManager } from '@/component/script_repository/button';
 import { scriptEvents, ScriptRepositoryEventType } from '@/component/script_repository/events';
 import { ScriptManager } from '@/component/script_repository/script_controller';
 import {
@@ -11,6 +10,7 @@ import {
   ScriptType,
 } from '@/component/script_repository/types';
 import { VueAppManager } from '@/component/script_repository/v2/mount';
+import { createDefaultScripts } from '@/component/script_repository/v2/utils/builtin_scripts';
 import { extensionFolderPath, getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { renderMarkdown } from '@/util/render_markdown';
 
@@ -82,7 +82,6 @@ export class UIController {
   /**
    * 初始化Vue UI
    */
-
 
   /**
    * 初始化模板
@@ -1029,7 +1028,7 @@ export class UIController {
     const $variableItem = $(`
       <div class="variable-item flex-container flexFlowColumn width100p">
         <div class="flex flexFlowColumn">
-        <div class="flex-container alignitemscenter spaceBetween wide100p">
+        <div class="flex-container alignitemscenter spaceBetween width100p">
           <div>名称:</div>
           <div class="menu_button interactable delete-variable" title="删除变量">
             <i class="fa-solid fa-trash"></i>
@@ -1600,7 +1599,7 @@ export class UIController {
     const template = $(`
       <div class="folder-edit-dialog">
       <h3>编辑文件夹</h3>
-      <div class="flex-container flexFlowColumn wide100p padding10 justifyLeft">
+      <div class="flex-container flexFlowColumn width100p padding10 justifyLeft">
         <div>
           <h4>文件夹名称:</h4>
           <input type="text" id="folder-name-input" class="text_pole" value="${currentName}" />

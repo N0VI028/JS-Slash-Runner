@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3>{{ title }}</h3>
-    <div class="flex-container flexFlowColumn wide100p padding10 justifyLeft">
+    <div class="flex-container flexFlowColumn width100p padding10 justifyLeft">
       <label :for="`${prefix}-target-global`">
         <input type="radio" :name="`${prefix}-target`" :id="`${prefix}-target-global`" value="global" checked />
         <span> {{ globalLabel }} </span>
@@ -47,5 +47,4 @@ withDefaults(defineProps<Props>(), {
 <style scoped>
 /* 预留的局部CSS空间 */
 /* 你可以在这里添加scoped样式 */
-
 </style>

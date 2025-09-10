@@ -1,10 +1,14 @@
 import log from 'loglevel';
-import { createDefaultScript } from '../../builtin_scripts';
-import type { SearchFilters } from '../schemas/payloads.schema';
-import type { Script } from '../schemas/script.schema';
-import { useCharacterScriptStore } from '../stores/characterScript.store';
-import { useGlobalScriptStore } from '../stores/globalScript.store';
-import { usePresetScriptStore } from '../stores/presetScript.store';
+import type { Script, ScriptType, SearchFilters } from '../schemas/script.schema';
+import { ScriptTypeSchema } from '../schemas/script.schema';
+import { repositoryService } from '../services/repository.service';
+import {
+  createScriptStore,
+  useCharacterScriptStore,
+  useGlobalScriptStore,
+  usePresetScriptStore,
+} from '../stores/factory';
+import { createDefaultScript } from '../utils/builtin_scripts';
 import { usePopups } from './usePopups';
 import { useScriptRuntime } from './useScriptRuntime';
 
@@ -13,17 +17,22 @@ import { useScriptRuntime } from './useScriptRuntime';
  * 只保留核心功能，专注于内置库和基本操作
  */
 export function useScriptRepoCommands() {
+  // Pinia stores（用于 setFilters、编辑与切换等）
   const globalScriptStore = useGlobalScriptStore();
   const characterScriptStore = useCharacterScriptStore();
   const presetScriptStore = usePresetScriptStore();
-
-  // ===== 核心命令 =====
+  const storeByType: Record<ScriptType, any> = {
+    global: globalScriptStore,
+    character: characterScriptStore,
+    preset: presetScriptStore,
+  };
 
   /**
-   * 初始化仓库命令
+   * 初始化仓库
    */
   const initRepository = async (): Promise<void> => {
-    await Promise.all([globalScriptStore.init(), characterScriptStore.init(), presetScriptStore.init()]);
+    const scriptTypes = Object.values(ScriptTypeSchema.enum) as ScriptType[];
+    await Promise.all(scriptTypes.map(type => createScriptStore(type)().init()));
   };
 
   /**
@@ -31,26 +40,19 @@ export function useScriptRepoCommands() {
    */
   const openBuiltinLibrary = async (): Promise<void> => {
     try {
-      // 定义添加脚本的回调函数
-      const handleAddScript = async (scriptId: string, target: 'global' | 'character' | 'preset'): Promise<void> => {
+      const handleAddScript = async (scriptId: string, target: ScriptType): Promise<void> => {
         const builtinScript = await createDefaultScript(scriptId);
         if (builtinScript) {
-          // 使用分离的 store 创建脚本，这会自动触发响应式更新
-          const targetStore =
-            target === 'global' ? globalScriptStore : target === 'character' ? characterScriptStore : presetScriptStore;
-          await targetStore.createScript({
+          await repositoryService.createScriptInType(target, {
             name: builtinScript.name,
             content: builtinScript.content,
             info: builtinScript.info,
-            folderId: null,
-            enabled: false,
-            buttons: builtinScript.buttons || [],
-            data: builtinScript.data || {},
+            buttons: builtinScript.buttons,
+            data: builtinScript.data,
           });
         }
       };
 
-      // V1风格的内置库，传递添加脚本的回调
       await usePopups().showBuiltinLibrary(handleAddScript);
     } catch (error) {
       const message = error instanceof Error ? error.message : '打开内置库失败';
@@ -62,16 +64,9 @@ export function useScriptRepoCommands() {
   /**
    * 显示脚本信息
    */
-  const showScriptInfo = async (target: 'global' | 'character', scriptId: string): Promise<void> => {
-    let script: Script | null;
-    switch (target) {
-      case 'global':
-        script = globalScriptStore.getScript(scriptId);
-        break;
-      case 'character':
-        script = characterScriptStore.getScript(scriptId);
-        break;
-    }
+  const showScriptInfo = async (target: ScriptType, scriptId: string): Promise<void> => {
+    const store = repositoryService.loadRepositoryByType(target);
+    const script = repositoryService.findScriptById(store, scriptId) as Script | null;
     if (script) {
       await usePopups().showScriptInfo(script);
     }
@@ -80,23 +75,13 @@ export function useScriptRepoCommands() {
   /**
    * 切换脚本启用状态
    */
-  const toggleScriptEnabled = async (target: 'global' | 'character', id: string): Promise<void> => {
-    const store = target === 'global' ? globalScriptStore : characterScriptStore;
-    const current = store.getScript(id);
+  const toggleScriptEnabled = async (target: ScriptType, id: string): Promise<void> => {
+    const store = storeByType[target];
+    const current = store.getScript(id) as Script | null;
     if (!current) return;
-
     const nextEnabled = !current.enabled;
-
-    // 先持久化 enabled 变更
+    // 仅更新 enabled；运行时切换与数据补充由 orchestrator 订阅处理
     await store.updateScript(id, { enabled: nextEnabled });
-
-    // 使用V2专用的运行时管理器
-    const runtime = useScriptRuntime();
-    if (nextEnabled) {
-      await runtime.startScript(id, target);
-    } else {
-      await runtime.stopScript(id, target);
-    }
   };
 
   /**
@@ -150,23 +135,9 @@ export function useScriptRepoCommands() {
   /**
    * 编辑脚本
    */
-  const editScript = async (target: 'global' | 'character' | 'preset', scriptId: string): Promise<void> => {
-    let script: Script | null;
-    let store: any;
-    switch (target) {
-      case 'global':
-        script = globalScriptStore.getScript(scriptId);
-        store = globalScriptStore;
-        break;
-      case 'character':
-        script = characterScriptStore.getScript(scriptId);
-        store = characterScriptStore;
-        break;
-      case 'preset':
-        script = presetScriptStore.getScript(scriptId);
-        store = presetScriptStore;
-        break;
-    }
+  const editScript = async (target: ScriptType, scriptId: string): Promise<void> => {
+    const store = storeByType[target];
+    const script = store.getScript(scriptId) as Script | null;
     if (script) {
       const result = await usePopups().openScriptEditor(script);
       if (result.confirmed && result.data) {
@@ -194,22 +165,14 @@ export function useScriptRepoCommands() {
   /**
    * 确认删除脚本
    */
-  const confirmDeleteScript = async (target: 'global' | 'character', scriptId: string): Promise<void> => {
-    let script: Script | null;
-    switch (target) {
-      case 'global':
-        script = globalScriptStore.getScript(scriptId);
-        break;
-      case 'character':
-        script = characterScriptStore.getScript(scriptId);
-        break;
-    }
+  const confirmDeleteScript = async (target: ScriptType, scriptId: string): Promise<void> => {
+    const store = storeByType[target];
+    const script = store.getScript(scriptId) as Script | null;
     if (script) {
       // 使用 popup 确认对话框
       const confirmed = await usePopups().confirmDelete(`确定要删除脚本 "${script.name}" 吗？`);
       if (confirmed) {
         try {
-          const store = target === 'global' ? globalScriptStore : characterScriptStore;
           await store.deleteScript(scriptId);
           toastr.success('删除成功', `脚本 "${script.name}" 已删除`);
         } catch (error) {

@@ -1,7 +1,12 @@
 <template>
-  <div class="script-folder wide100p" :id="folder.id || ''" :class="{ 'batch-mode': batchMode, selected }" ref="folderElement">
-    <div 
-      class="folder-header flex justifyContentSpaceBetween flexNoWrap alignItemsCenter paddingLeftRight5 height32px"
+  <div
+    class="script-folder width100p"
+    :id="folder.id || ''"
+    :class="{ 'batch-mode': batchMode, selected }"
+    ref="folderElement"
+  >
+    <div
+      class="folder-header flex justifySpaceBetween flexNoWrap alignItemsCenter paddingLeftRight5"
       @click="onHeaderClick"
       ref="folderHeader"
     >
@@ -78,16 +83,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useJQueryDrag } from '../composables/useJQueryDrag';
-import type { Script, ScriptRepositoryItem, ScriptType } from '../schemas/script.schema';
+import type { Script, ScriptRepository, ScriptType } from '../schemas/script.schema';
 
 // Props
 interface Props {
-  folder: ScriptRepositoryItem; // V1文件夹结构
+  folder: ScriptRepository;
   isExpanded: boolean;
   folderScripts?: Script[]; // 文件夹内的脚本，用于判断是否全部启用
   batchMode?: boolean;
   selected?: boolean;
-  repoType: ScriptType; // 添加仓库类型
+  repoType: ScriptType;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -96,7 +101,6 @@ const props = withDefaults(defineProps<Props>(), {
   selected: false,
 });
 
-// Emits
 const emit = defineEmits<{
   'toggle-expand': [id: string];
   'toggle-folder-scripts': [id: string];
@@ -107,7 +111,6 @@ const emit = defineEmits<{
   'select-folder': [id: string, selected: boolean];
 }>();
 
-// 计算属性
 const folderIcon = computed(() => {
   return props.folder.icon || 'fa-folder';
 });
@@ -117,33 +120,38 @@ const allScriptsEnabled = computed(() => {
   return props.folderScripts.every(script => script.enabled);
 });
 
-// 移动图标现在使用固定的exchange图标，与脚本项保持一致
-
-// 处理文件夹头部点击事件
+/**
+ * 处理文件夹头部点击事件
+ */
 const onHeaderClick = (event: MouseEvent) => {
   // 如果点击的是控制按钮或复选框，不触发折叠切换
   const target = event.target as HTMLElement;
-  if (target.closest('.folder-control') || target.closest('.folder-checkbox') || target.classList.contains('folder-checkbox')) {
+  if (
+    target.closest('.folder-control') ||
+    target.closest('.folder-checkbox') ||
+    target.classList.contains('folder-checkbox')
+  ) {
     return;
   }
-  
-  // 触发折叠切换
+
   emit('toggle-expand', props.folder.id || '');
 };
 
-// 拖拽功能
+/**
+ * 拖拽功能
+ */
 const folderElement = ref<HTMLElement>();
 const folderHeader = ref<HTMLElement>();
 const { useFolderElement, useFolderDrop, useFolderSortable } = useJQueryDrag();
 
 useFolderElement(folderElement, props.folder.id || '');
 useFolderDrop(folderHeader, props.folder.id || '', props.repoType);
-useFolderSortable(folderElement, props.repoType);
+useFolderSortable(folderElement, props.repoType as any);
 </script>
 
 <style scoped>
 .folder-control {
-  gap: 3px; /* 保留现有样式，gap3px 类可能不够精确 */
+  gap: 3px;
 }
 .script-folder {
   border: 1px solid var(--SmartThemeBorderColor);

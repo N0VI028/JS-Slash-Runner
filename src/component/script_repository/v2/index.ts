@@ -34,15 +34,17 @@ export async function initializeVueScriptRepository(): Promise<void> {
       if (!pinia) return;
       setActivePinia(pinia);
 
-      const { useGlobalScriptStore } = await import('./stores/globalScript.store');
-      const { useCharacterScriptStore } = await import('./stores/characterScript.store');
-      const { usePresetScriptStore } = await import('./stores/presetScript.store');
+      const { useGlobalScriptStore, useCharacterScriptStore, usePresetScriptStore } = await import('./stores/factory');
+      const { registerScriptWatchers } = await import('./utils/watchers');
       const globalStore = useGlobalScriptStore(pinia);
       const characterStore = useCharacterScriptStore(pinia);
       const presetStore = usePresetScriptStore(pinia);
 
       // 先加载各仓库数据
       await Promise.all([globalStore.init(), characterStore.init(), presetStore.init()]);
+
+      // 注册一次性 Pinia watch（处理 enabled 切换副作用）
+      await registerScriptWatchers(pinia);
 
       // 应用三类“类型开关”的依据：
       // - 全局：来自 script. 数据中的 global_script_enabled
@@ -101,8 +103,7 @@ function registerGlobalEventListeners(): void {
       await runtime.toggleScriptsByType('character', false);
 
       // 2) 刷新仓库数据
-      const { useGlobalScriptStore } = await import('./stores/globalScript.store');
-      const { useCharacterScriptStore } = await import('./stores/characterScript.store');
+      const { useGlobalScriptStore, useCharacterScriptStore } = await import('./stores/factory');
       const globalStore = useGlobalScriptStore(pinia);
       const characterStore = useCharacterScriptStore(pinia);
       await Promise.all([globalStore.init(), characterStore.init()]);
@@ -136,7 +137,7 @@ function registerGlobalEventListeners(): void {
       await runtime.toggleScriptsByType('preset', false);
 
       // 刷新预设仓库并按持久化的 enabled 决定是否启用
-      const { usePresetScriptStore } = await import('./stores/presetScript.store');
+      const { usePresetScriptStore } = await import('./stores/factory');
       const presetStore = usePresetScriptStore(pinia);
       await presetStore.init();
       if (presetStore.enabled) {
@@ -256,7 +257,7 @@ async function checkEmbeddedScriptsOnce(pinia: any): Promise<void> {
     const avatar = (this_chid && (characters as any)?.[this_chid]?.avatar) || '';
     if (!avatar) return;
 
-    const { useCharacterScriptStore } = await import('./stores/characterScript.store');
+    const { useCharacterScriptStore } = await import('./stores/factory');
     const characterStore = useCharacterScriptStore(pinia);
 
     // 若无角色脚本则无需检查

@@ -1,4 +1,5 @@
 import { isUrl } from '@/util/is_url';
+import { ScriptSchema } from '../schemas/script.schema';
 
 import log from 'loglevel';
 
@@ -70,15 +71,13 @@ export async function createDefaultScript(script_id: string): Promise<any> {
   }
 
   try {
-    return {
+    const newScript = ScriptSchema.parse({
       id: script_id,
       name: config.name,
       content: loadScriptContent(config.content),
       info: await loadScriptInfo(config.info),
-      enabled: false,
-      buttons: [],
-      data: {},
-    };
+    });
+    return newScript;
   } catch (error) {
     log.error(`[ScriptManager] 创建默认脚本失败: ${script_id}:`, error);
     return null;

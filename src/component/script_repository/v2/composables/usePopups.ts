@@ -2,7 +2,6 @@ import { renderMarkdown } from '@/util/render_markdown';
 import { POPUP_TYPE, callGenericPopup } from '@sillytavern/scripts/popup';
 import log from 'loglevel';
 import { createApp } from 'vue';
-import { DEFAULT_SCRIPT_CONFIGS, createDefaultScript } from '../../builtin_scripts';
 import FolderCreate from '../components/FolderCreate.vue';
 import ScriptDefaultRepository from '../components/ScriptDefaultRepository.vue';
 import ScriptEditor from '../components/ScriptEditor.vue';
@@ -16,6 +15,7 @@ import {
   type TargetSelectorFormData,
 } from '../schemas/popup.schema';
 import type { Script } from '../schemas/script.schema';
+import { DEFAULT_SCRIPT_CONFIGS, createDefaultScript } from '../utils/builtin_scripts';
 import { FormValidator } from '../utils/formValidation';
 
 /**
@@ -34,17 +34,17 @@ export interface PopupResult<T = any> {
  */
 function createVueComponentElement<T extends Record<string, any>>(
   component: any,
-  props: T = {} as T
+  props: T = {} as T,
 ): { $element: JQuery<HTMLElement>; vueApp: any; cleanup: () => void } {
   // 使用jQuery创建容器元素
   const $container = $('<div>');
-  
+
   // 创建Vue应用实例
   const vueApp = createApp(component, props);
-  
+
   // 挂载Vue组件
   vueApp.mount($container[0]);
-  
+
   const cleanup = () => {
     try {
       vueApp.unmount();
@@ -52,7 +52,7 @@ function createVueComponentElement<T extends Record<string, any>>(
       log.warn('[usePopups] Vue组件卸载失败:', error);
     }
   };
-  
+
   return { $element: $container, vueApp, cleanup };
 }
 
@@ -117,7 +117,7 @@ function addVariableToEditor($editorHtml: JQuery<HTMLElement>): void {
   const $variableItem = $(`
     <div class="variable-item flex-container flexFlowColumn width100p">
       <div class="flex flexFlowColumn">
-        <div class="flex-container alignitemscenter spaceBetween wide100p">
+        <div class="flex-container alignitemscenter spaceBetween width100p">
           <div>名称:</div>
           <div class="menu_button interactable delete-variable" title="删除变量">
             <i class="fa-solid fa-trash"></i>
@@ -250,21 +250,21 @@ export function usePopups() {
    */
   const openScriptEditor = async (script?: Script): Promise<PopupResult<ScriptEditorFormData>> => {
     let cleanup: (() => void) | null = null;
-    
+
     try {
       // 创建Vue组件
       const { $element: $editorHtml, cleanup: vueCleanup } = createVueComponentElement(ScriptEditor, {
-        script: script
+        script: script,
       });
-      
+
       cleanup = vueCleanup;
 
       // 等待Vue组件渲染完成，然后绑定jQuery事件
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         // 使用nextTick确保Vue组件完全渲染
         setTimeout(() => {
           bindScriptEditorEvents($editorHtml);
-          
+
           // 对于新建脚本，隐藏变量列表容器
           if (!script) {
             $editorHtml.find('#variable-list').hide();
@@ -284,7 +284,7 @@ export function usePopups() {
             // 重新绑定动态生成元素的事件
             rebindDynamicEvents($editorHtml);
           }
-          
+
           resolve();
         }, 50);
       });
@@ -371,18 +371,18 @@ export function usePopups() {
    */
   const createFolder = async (): Promise<PopupResult<FolderCreateFormData>> => {
     let cleanup: (() => void) | null = null;
-    
+
     try {
       // 创建Vue组件
       const { $element: $folderHtml, cleanup: vueCleanup } = createVueComponentElement(FolderCreate, {});
-      
+
       cleanup = vueCleanup;
 
       // 用于存储颜色选择结果
       let folderColor: string | undefined;
 
       // 等待Vue组件渲染完成，然后绑定jQuery事件
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         setTimeout(() => {
           // 绑定颜色选择器
           $folderHtml.find('#folder-color-picker').on('change', (evt: any) => {
@@ -402,7 +402,7 @@ export function usePopups() {
               console.error('图标选择失败:', error);
             }
           });
-          
+
           resolve();
         }, 50);
       });
@@ -454,11 +454,11 @@ export function usePopups() {
    */
   const editFolder = async (initial: Partial<FolderCreateFormData>): Promise<PopupResult<FolderCreateFormData>> => {
     let cleanup: (() => void) | null = null;
-    
+
     try {
       // 创建Vue组件
       const { $element: $folderHtml, cleanup: vueCleanup } = createVueComponentElement(FolderCreate, {});
-      
+
       cleanup = vueCleanup;
 
       // 预填初始值
@@ -595,7 +595,10 @@ export function usePopups() {
    * @returns 选择的脚本ID
    */
   const showBuiltinLibrary = async (
-    onAddScript?: (scriptId: string, target: 'global' | 'character' | 'preset') => Promise<void>,
+    onAddScript?: (
+      scriptId: string,
+      target: import('@/component/script_repository/v2/schemas/script.schema').ScriptType,
+    ) => Promise<void>,
   ): Promise<PopupResult<string[]>> => {
     try {
       // 异步加载内置脚本配置
@@ -777,7 +780,7 @@ export function usePopups() {
   const resolveImportIdConflict = async (config: {
     scriptName: string;
     existingScriptName: string;
-    existingType: 'global' | 'character';
+    existingType: import('@/component/script_repository/v2/schemas/script.schema').ScriptType;
   }): Promise<'new' | 'override' | 'cancel'> => {
     try {
       const existingTypeText = config.existingType === 'global' ? '全局脚本' : '角色脚本';
@@ -810,7 +813,7 @@ export function usePopups() {
   const resolveMoveIdConflict = async (config: {
     scriptName: string;
     existingScriptName: string;
-    target: 'global' | 'character' | 'preset';
+    target: import('@/component/script_repository/v2/schemas/script.schema').ScriptType;
   }): Promise<'new' | 'override' | 'cancel'> => {
     try {
       const targetTypeText =

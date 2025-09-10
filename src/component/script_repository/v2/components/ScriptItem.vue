@@ -57,9 +57,11 @@ import { useJQueryDrag } from '../composables/useJQueryDrag';
 import type { Script } from '../schemas/script.schema';
 
 // Props
+import type { ScriptType } from '@/component/script_repository/v2/schemas/script.schema';
+
 interface Props {
   script: Script;
-  repoType: 'global' | 'character' | 'preset';
+  repoType: ScriptType;
   batchMode?: boolean;
   selected?: boolean;
 }

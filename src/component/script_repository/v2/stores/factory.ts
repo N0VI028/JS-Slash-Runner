@@ -1,38 +1,55 @@
+import type { ScriptType } from '@/component/script_repository/v2/schemas/script.schema';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { matchesNameByQuery } from '../../../common/SearchBar.vue';
-import type {
-  CreateFolderPayload,
-  CreateScriptPayload,
-  SearchFilters,
-  SortOptions,
-  UpdateScriptPayload,
-} from '../schemas/payloads.schema';
-import type { Repository, Script } from '../schemas/script.schema';
+import type { Script, ScriptRepository, SearchFilters } from '../schemas/script.schema';
 import { repositoryService } from '../services/repository.service';
 
-export function createScriptStore(type: 'global' | 'character' | 'preset', id: string) {
-  return defineStore(id, () => {
-    // ===== State =====
-    const repository = ref<Repository>([]);
+export function createScriptStore(type: ScriptType) {
+  const storeId = `${type}-Script`;
+  return defineStore(storeId, () => {
+    const repository = ref<ScriptRepository>([]);
     const expandedFolders = ref<Set<string>>(new Set());
     const filters = ref<SearchFilters>({});
-    const sortOptions = ref<SortOptions>({ field: 'name', order: 'asc' });
-    const isLoading = ref(false);
-    const error = ref<string | null>(null);
     const enabled = ref(false);
 
     // ===== Getters =====
     const allScripts = computed((): Script[] => {
-      return repositoryService.getAllScripts(repository.value);
+      const result: Script[] = [];
+      for (const item of repository.value as any[]) {
+        const anyItem: any = item as any;
+        if (anyItem && anyItem.type === 'script' && anyItem.value) {
+          result.push(anyItem.value as Script);
+        } else if (anyItem && anyItem.type === 'folder' && Array.isArray(anyItem.value)) {
+          result.push(...(anyItem.value as Script[]));
+        } else if ((item as any)?.id && (item as any)?.content !== undefined) {
+          // 顶层纯 Script 兼容
+          result.push(item as unknown as Script);
+        }
+      }
+      return result;
     });
 
     const allFolders = computed(() => {
-      return repositoryService.getAllFolders(repository.value);
+      const folders: any[] = [];
+      for (const item of repository.value as any[]) {
+        const anyItem: any = item as any;
+        if (anyItem && anyItem.type === 'folder') folders.push(anyItem);
+      }
+      return folders;
     });
 
     const rootScripts = computed(() => {
-      return repositoryService.getRootScripts(repository.value);
+      const roots: Script[] = [];
+      for (const item of repository.value as any[]) {
+        const anyItem: any = item as any;
+        if (anyItem && anyItem.type === 'script' && anyItem.value) {
+          roots.push(anyItem.value as Script);
+        } else if ((item as any)?.id && (item as any)?.content !== undefined) {
+          roots.push(item as unknown as Script);
+        }
+      }
+      return roots;
     });
 
     const filteredScripts = computed(() => {
@@ -43,39 +60,14 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
         list = list.filter(script => matchesNameByQuery(script.name, keyword));
       }
 
-      if (filters.value.enabled !== undefined) {
-        list = list.filter(script => script.enabled === filters.value.enabled);
-      }
-
       if (filters.value.folderId !== undefined) {
         if (filters.value.folderId === null) {
           list = list.filter(script => rootScripts.value.includes(script));
         } else {
-          const folderScripts = repositoryService.getFolderScripts(repository.value, filters.value.folderId);
+          const folderScripts = getFolderScripts(filters.value.folderId);
           list = list.filter(script => folderScripts.includes(script));
         }
       }
-
-      return list;
-    });
-
-    const sortedScripts = computed(() => {
-      const list = [...filteredScripts.value];
-
-      list.sort((a, b) => {
-        let comparison = 0;
-        switch (sortOptions.value.field) {
-          case 'name':
-            comparison = a.name.localeCompare(b.name);
-            break;
-          case 'enabled':
-            comparison = Number(b.enabled) - Number(a.enabled);
-            break;
-          default:
-            comparison = a.name.localeCompare(b.name);
-        }
-        return sortOptions.value.order === 'asc' ? comparison : -comparison;
-      });
 
       return list;
     });
@@ -84,19 +76,15 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
     const totalScriptsCount = computed(() => allScripts.value.length);
     const totalFoldersCount = computed(() => allFolders.value.length);
     const hasSearchResults = computed(() => filteredScripts.value.length > 0);
-
-    // ===== Actions =====
+    /**
+     * 加载仓库
+     */
     async function loadRepository(): Promise<void> {
       try {
-        isLoading.value = true;
-        error.value = null;
         const data = await repositoryService.loadRepositoryByType(type);
         repository.value = data;
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '加载仓库数据失败';
         throw err;
-      } finally {
-        isLoading.value = false;
       }
     }
 
@@ -104,41 +92,37 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
       try {
         await repositoryService.saveRepositoryByType(type, repository.value);
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '保存仓库数据失败';
         throw err;
       }
     }
 
-    async function createScript(payload: CreateScriptPayload): Promise<string> {
+    async function createScript(schema: Partial<Script>): Promise<string> {
       try {
-        error.value = null;
-        const scriptId = await repositoryService.createScriptInType(type, payload);
+        const scriptId = await repositoryService.createScriptInType(type, schema);
         await loadRepository();
         return scriptId;
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '创建脚本失败';
         throw err;
       }
     }
 
-    async function updateScript(scriptId: string, payload: UpdateScriptPayload): Promise<void> {
+    async function updateScript(scriptId: string, payload: Partial<Script>): Promise<void> {
       try {
-        error.value = null;
-        await repositoryService.updateScriptInType(type, scriptId, payload);
+        const current = getScript(scriptId);
+        if (!current) throw new Error('脚本不存在');
+        const next: Script = { ...current, ...payload } as Script;
+        await repositoryService.updateScriptInType(type, next);
         await loadRepository();
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '更新脚本失败';
         throw err;
       }
     }
 
     async function deleteScript(scriptId: string): Promise<void> {
       try {
-        error.value = null;
         await repositoryService.deleteScriptInType(type, scriptId);
         await loadRepository();
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '删除脚本失败';
         throw err;
       }
     }
@@ -147,36 +131,30 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
       return allScripts.value.find(script => script.id === scriptId) || null;
     }
 
-    async function createFolder(payload: CreateFolderPayload): Promise<string> {
+    async function createFolder(payload: any): Promise<string> {
       try {
-        error.value = null;
         const folderId = await repositoryService.createFolderInType(type, payload);
         await loadRepository();
         return folderId;
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '创建文件夹失败';
         throw err;
       }
     }
 
     async function deleteFolder(folderId: string): Promise<void> {
       try {
-        error.value = null;
         await repositoryService.deleteFolderInType(type, folderId);
         await loadRepository();
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '删除文件夹失败';
         throw err;
       }
     }
 
     async function moveScript(scriptId: string, targetFolderId: string | null): Promise<void> {
       try {
-        error.value = null;
         await repositoryService.moveScriptWithinType(type, scriptId, targetFolderId);
         await loadRepository();
       } catch (err) {
-        error.value = err instanceof Error ? err.message : '移动脚本失败';
         throw err;
       }
     }
@@ -201,39 +179,20 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
       filters.value = {};
     }
 
-    function setSortOptions(newSortOptions: Partial<SortOptions>): void {
-      sortOptions.value = { ...sortOptions.value, ...newSortOptions } as SortOptions;
-    }
-
     async function setEnabled(isEnabled: boolean): Promise<void> {
       enabled.value = isEnabled;
-      if (type === 'preset') {
-        try {
-          await repositoryService.setPresetEnabled(isEnabled);
-        } catch (err) {
-          // 静默失败：不阻断UI
-          console.warn('保存预设开关失败:', err);
-        }
-      }
-    }
-
-    function clearError(): void {
-      error.value = null;
     }
 
     function getFolderScripts(folderId: string): Script[] {
-      return repositoryService.getFolderScripts(repository.value, folderId);
+      const folderItem = (repository.value as any[]).find(
+        item => (item as any)?.type === 'folder' && (item as any)?.id === folderId,
+      );
+      if (folderItem && Array.isArray((folderItem as any).value)) return (folderItem as any).value as Script[];
+      return [];
     }
 
     async function init(): Promise<void> {
       await loadRepository();
-      if (type === 'preset') {
-        try {
-          enabled.value = await repositoryService.getPresetEnabled();
-        } catch (_e) {
-          enabled.value = false;
-        }
-      }
     }
 
     async function toggleScriptEnabled(scriptId: string): Promise<void> {
@@ -245,12 +204,9 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
     }
 
     function $reset(): void {
-      repository.value = [];
+      repository.value = [] as any;
       expandedFolders.value.clear();
       filters.value = {};
-      sortOptions.value = { field: 'name', order: 'asc' };
-      isLoading.value = false;
-      error.value = null;
       enabled.value = false;
     }
 
@@ -259,9 +215,6 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
       repository,
       expandedFolders,
       filters,
-      sortOptions,
-      isLoading,
-      error,
       enabled,
 
       // Getters
@@ -269,7 +222,6 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
       allFolders,
       rootScripts,
       filteredScripts,
-      sortedScripts,
       enabledScriptsCount,
       totalScriptsCount,
       totalFoldersCount,
@@ -289,9 +241,7 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
       isFolderExpanded,
       setFilters,
       clearFilters,
-      setSortOptions,
       setEnabled,
-      clearError,
       getFolderScripts,
       init,
       toggleScriptEnabled,
@@ -299,3 +249,8 @@ export function createScriptStore(type: 'global' | 'character' | 'preset', id: s
     };
   });
 }
+
+// 便捷 hooks
+export const useGlobalScriptStore = createScriptStore('global');
+export const useCharacterScriptStore = createScriptStore('character');
+export const usePresetScriptStore = createScriptStore('preset');

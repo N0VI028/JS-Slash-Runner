@@ -1,3 +1,4 @@
+import type { ScriptType } from '@/component/script_repository/v2/schemas/script.schema';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { createDefaultScript, ScriptSchema, type Script } from '../schemas/script.schema';
 import { repositoryService } from '../services/repository.service';
@@ -10,7 +11,7 @@ export function useImporter() {
       const popups = (await import('./usePopups')).usePopups();
       const result = await popups.selectTarget({ title: '导入到:' });
       if (!result.confirmed || !result.data) return;
-      const tgt = result.data.target as 'global' | 'character';
+      const tgt = result.data.target as ScriptType;
 
       const jsonScripts: any[] = [];
       let totalImported = 0;
@@ -72,7 +73,7 @@ export function useImporter() {
     });
   }
 
-  async function importZipIntoSingleFolder(file: File, type: 'global' | 'character'): Promise<number> {
+  async function importZipIntoSingleFolder(file: File, type: ScriptType): Promise<number> {
     //@ts-ignore
     if (!window.JSZip) {
       await import('@sillytavern/lib/jszip.min.js');
@@ -151,7 +152,7 @@ export function useImporter() {
     globalScripts: Script[],
     characterScripts: Script[],
     id: string,
-  ): { existing: Script; existingType: 'global' | 'character' } | null {
+  ): { existing: Script; existingType: ScriptType } | null {
     const conflictInGlobal = globalScripts.find(s => s.id === id);
     if (conflictInGlobal) return { existing: conflictInGlobal, existingType: 'global' };
     const conflictInCharacter = characterScripts.find(s => s.id === id);
@@ -160,7 +161,7 @@ export function useImporter() {
   }
 
   async function importScriptsWithConflictHandling(
-    type: 'global' | 'character',
+    type: ScriptType,
     rawScripts: any[],
     folderId: string | null,
   ): Promise<number> {

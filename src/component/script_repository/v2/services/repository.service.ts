@@ -1,25 +1,15 @@
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { characters, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
-import { uuidv4 } from '@sillytavern/scripts/utils';
-import type {
-  CreateFolderPayload,
-  CreateScriptPayload,
-  ImportScriptPayload,
-  UpdateScriptPayload,
-} from '../schemas/payloads.schema';
-import { CreateFolderPayloadSchema, CreateScriptPayloadSchema } from '../schemas/payloads.schema';
-import type { Repository, Script, ScriptRepositoryItem } from '../schemas/script.schema';
-import {
-  ScriptRepositoryItemSchema,
-  ScriptSchema,
-  createDefaultFolderItem,
-  createDefaultScript,
-} from '../schemas/script.schema';
+import { getPresetManager } from '@sillytavern/scripts/preset-manager';
+import { download } from '@sillytavern/scripts/utils';
+import _ from 'lodash';
+import log from 'loglevel';
+import type { Script, ScriptFolder, ScriptRepository, ScriptRepositoryItem } from '../schemas/script.schema';
 
+import { ScriptFolderSchema, ScriptRepositoryItemSchema, ScriptSchema, ScriptType } from '../schemas/script.schema';
 /**
- * 脚本仓库服务 - 基于V1数据结构的服务层
- * 直接操作V1数据结构，使用zod进行类型验证
+ * 脚本仓库服务
  */
 export class RepositoryService {
   private static instance: RepositoryService;
@@ -33,221 +23,105 @@ export class RepositoryService {
     return RepositoryService.instance;
   }
 
-  // ===== 基础数据读写（含 preset） =====
-
-  // ===== 无类型 API（分离 char/global） =====
-
   /**
-   * 按类型加载仓库数据
+   * 加载仓库数据
+   * @param {ScriptType} type 脚本类型
+   * @returns {ScriptRepository} 仓库数据
    */
-  async loadRepositoryByType(type: 'global' | 'character' | 'preset'): Promise<Repository> {
-    try {
-      const rawData = this.readRawRepository(type);
-      return this.validateAndNormalizeRepository(rawData);
-    } catch (error) {
-      console.error(`加载仓库数据失败 [${type}]:`, error);
-      throw error;
+
+  public loadRepositoryByType(type: ScriptType): ScriptRepository {
+    switch (type) {
+      case 'global':
+        return getSettingValue('script.scriptsRepository') || [];
+      case 'character':
+        //@ts-ignore
+        return characters?.[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
+      case 'preset':
+        const presetManager = getPresetManager();
+        const raw = presetManager.readPresetExtensionField({ path: 'tavern_helper_scripts' });
+        const repository = _.get(raw, 'repository', []);
+        return repository;
     }
   }
 
   /**
    * 保存仓库数据
+   * @param {ScriptType} type 脚本类型
+   * @param {ScriptRepository} repository 仓库数据
    */
-  async saveRepositoryByType(type: 'global' | 'character' | 'preset', repository: Repository): Promise<void> {
-    try {
-      await this.saveRawRepository(type, repository);
-    } catch (error) {
-      console.error(`保存仓库数据失败 [${type}]:`, error);
-      throw error;
-    }
-  }
-
-  private readRawRepository(type: 'global' | 'character' | 'preset'): any[] {
-    if (type === 'global') {
-      return getSettingValue('script.scriptsRepository') || [];
-    }
-    if (type === 'character') {
-      // @ts-ignore
-      return characters?.[this_chid]?.data?.extensions?.TavernHelper_scripts || [];
-    }
-    // preset：从当前预设读取扩展字段
-    try {
-      const state = this.readPresetState();
-      return state.repository || [];
-    } catch (_e) {
-      return [];
-    }
-  }
-
-  private async saveRawRepository(type: 'global' | 'character' | 'preset', repository: Repository): Promise<void> {
-    if (type === 'global') {
-      saveSettingValue('script.scriptsRepository', repository);
-      return;
-    }
-    if (type === 'character') {
-      if (!this_chid) {
-        throw new Error('保存失败：当前角色为空');
-      }
-      // @ts-ignore
-      await writeExtensionField(this_chid, 'TavernHelper_scripts', repository);
-      return;
-    }
-    // preset：保留已有 enabled 值
-    const current = this.readPresetState();
-    await this.writePresetState({ repository, enabled: current.enabled === true });
-  }
-
-  /**
-   * 读取预设扩展字段整体状态（兼容旧格式：数组）
-   */
-  private readPresetState(): { repository: any[]; enabled: boolean } {
-    // 使用 require 避免循环依赖问题
-    const { getPresetManager } = require('@sillytavern/scripts/preset-manager');
-    const presetManager = getPresetManager();
-    const raw = presetManager.readPresetExtensionField({ path: 'tavern_helper_scripts' });
-    if (Array.isArray(raw)) {
-      return { repository: raw, enabled: false };
-    }
-    if (raw && typeof raw === 'object') {
-      const repository = Array.isArray((raw as any).repository) ? (raw as any).repository : [];
-      const enabled = Boolean((raw as any).enabled);
-      return { repository, enabled };
-    }
-    return { repository: [], enabled: false };
-  }
-
-  /**
-   * 覆盖写入预设扩展字段整体状态
-   */
-  private async writePresetState(state: { repository: any[]; enabled: boolean }): Promise<void> {
-    const { getPresetManager } = require('@sillytavern/scripts/preset-manager');
-    const presetManager = getPresetManager();
-    await presetManager.writePresetExtensionField({
-      path: 'tavern_helper_scripts',
-      value: { repository: state.repository || [], enabled: state.enabled === true },
-    });
-  }
-
-  /** 读取预设的总开关（持久化） */
-  public async getPresetEnabled(): Promise<boolean> {
-    try {
-      const state = this.readPresetState();
-      return state.enabled === true;
-    } catch (_e) {
-      return false;
-    }
-  }
-
-  /** 持久化设置预设的总开关 */
-  public async setPresetEnabled(value: boolean): Promise<void> {
-    const current = this.readPresetState();
-    await this.writePresetState({ repository: current.repository || [], enabled: value === true });
-  }
-
-  private validateAndNormalizeRepository(raw: any[]): Repository {
-    if (!Array.isArray(raw)) return [];
-
-    const normalized: Repository = [];
-    for (const item of raw) {
-      if (!item) continue;
-
-      try {
-        // 尝试解析为ScriptRepositoryItem
-        const repositoryItem = ScriptRepositoryItemSchema.safeParse(item);
-        if (repositoryItem.success) {
-          normalized.push(repositoryItem.data);
-          continue;
+  public async saveRepositoryByType(type: ScriptType, repository: ScriptRepository): Promise<void> {
+    switch (type) {
+      case 'global':
+        saveSettingValue('script.scriptsRepository', repository);
+        return;
+      case 'character':
+        if (!this_chid) {
+          throw new Error('保存失败：当前角色为空');
         }
-
-        // 尝试解析为直接的Script对象（兼容旧数据）
-        const script = ScriptSchema.safeParse(item);
-        if (script.success) {
-          normalized.push(script.data);
-          continue;
-        }
-
-        console.warn('跳过无法解析的仓库项:', item);
-      } catch (error) {
-        console.warn('解析仓库项失败:', item, error);
-      }
+        //@ts-ignore
+        await writeExtensionField(this_chid, 'TavernHelper_scripts', repository);
+        return;
+      case 'preset':
+        const presetManager = getPresetManager();
+        await presetManager.writePresetExtensionField({
+          path: 'tavern_helper_scripts',
+          value: { repository: repository },
+        });
+        return;
     }
-
-    return normalized;
   }
 
   // ===== 脚本操作 =====
 
   /**
    * 创建脚本
+   * @param {ScriptType} type 脚本类型
+   * @param {Partial<Script>} payload 脚本数据
+   * @returns {string} 脚本ID
    */
-  async createScriptInType(type: 'global' | 'character' | 'preset', payload: CreateScriptPayload): Promise<string> {
+  async createScriptInType(type: ScriptType, payload: Partial<Script>): Promise<string> {
     try {
-      const validated = CreateScriptPayloadSchema.parse(payload);
-      const scriptId = uuidv4();
-
-      const script = createDefaultScript({
-        id: scriptId,
-        name: validated.name,
-        content: validated.content || '',
-        info: validated.info || '',
-        enabled: validated.enabled || false,
+      const script = ScriptRepositoryItemSchema.parse({
+        type: 'script',
+        value: ScriptSchema.parse(payload),
       });
 
-      const repository = await this.loadRepositoryByType(type);
-
-      if (validated.folderId) {
-        // 添加到指定文件夹
-        const folderItem = this.findFolderById(repository, validated.folderId);
-        if (!folderItem) {
-          throw new Error('目标文件夹不存在');
-        }
-        if (!Array.isArray(folderItem.value)) {
-          throw new Error('文件夹数据格式错误');
-        }
-        folderItem.value.push(script);
-      } else {
-        // 添加到根目录
-        repository.push({ type: 'script', value: script });
-      }
+      const repository = this.loadRepositoryByType(type);
+      repository.unshift(script);
 
       await this.saveRepositoryByType(type, repository);
-      return scriptId;
+      return script.id;
     } catch (error) {
-      console.error('创建脚本失败:', error);
+      log.error('创建脚本失败:', error);
       throw error;
     }
   }
 
   /**
    * 更新脚本
+   * @param {ScriptType} type 脚本类型
+   * @param {Script} script 脚本数据
    */
-  async updateScriptInType(
-    type: 'global' | 'character' | 'preset',
-    scriptId: string,
-    payload: UpdateScriptPayload,
-  ): Promise<void> {
+  async updateScriptInType(type: ScriptType, script: Script): Promise<void> {
     try {
-      const repository = await this.loadRepositoryByType(type);
-      const script = this.findScriptById(repository, scriptId);
+      const newScript = ScriptSchema.parse(script);
 
-      if (!script) {
+      const repository = this.loadRepositoryByType(type);
+      const oldScript = this.findScriptById(repository, script.id);
+
+      if (!oldScript) {
         throw new Error('脚本不存在');
       }
 
-      // 更新脚本属性
-      if (payload.name !== undefined) script.name = payload.name;
-      if (payload.content !== undefined) script.content = payload.content;
-      if (payload.info !== undefined) script.info = payload.info;
-      if (payload.enabled !== undefined) script.enabled = payload.enabled;
-      if (payload.buttons !== undefined) script.buttons = payload.buttons;
-      if (payload.data !== undefined) script.data = payload.data;
+      const updateFields = _.pickBy(newScript, value => value !== undefined);
+      // 使用assign进行替换更新，因为用户传入的是完整的Script对象状态
+      _.assign(oldScript, updateFields);
 
-      // 验证更新后的脚本
-      ScriptSchema.parse(script);
+      ScriptSchema.parse(oldScript);
 
       await this.saveRepositoryByType(type, repository);
     } catch (error) {
-      console.error('更新脚本失败:', error);
+      log.error('更新脚本失败:', error);
       throw error;
     }
   }
@@ -255,31 +129,30 @@ export class RepositoryService {
   /**
    * 删除脚本
    */
-  async deleteScriptInType(type: 'global' | 'character' | 'preset', scriptId: string): Promise<void> {
+  async deleteScriptInType(type: ScriptType, scriptId: string): Promise<void> {
     try {
-      const repository = await this.loadRepositoryByType(type);
-      const result = this.removeScriptById(repository, scriptId);
-
-      if (!result) {
-        throw new Error('脚本不存在');
-      }
+      const repository = this.loadRepositoryByType(type);
+      this.removeScriptById(repository, scriptId);
 
       await this.saveRepositoryByType(type, repository);
     } catch (error) {
-      console.error('删除脚本失败:', error);
+      log.error('删除脚本失败:', error);
       throw error;
     }
   }
 
   /**
-   * 获取脚本
+   * 通过ID获取脚本
+   * @param type 脚本类型
+   * @param scriptId 脚本ID
+   * @returns 脚本
    */
-  async getScriptFromType(type: 'global' | 'character' | 'preset', scriptId: string): Promise<Script | null> {
+  async getScriptFromType(type: ScriptType, scriptId: string): Promise<Script | null> {
     try {
-      const repository = await this.loadRepositoryByType(type);
+      const repository = this.loadRepositoryByType(type);
       return this.findScriptById(repository, scriptId);
     } catch (error) {
-      console.error('获取脚本失败:', error);
+      log.error('获取脚本失败:', error);
       return null;
     }
   }
@@ -289,26 +162,20 @@ export class RepositoryService {
   /**
    * 创建文件夹
    */
-  async createFolderInType(type: 'global' | 'character' | 'preset', payload: CreateFolderPayload): Promise<string> {
+  async createFolderInType(type: ScriptType, payload: ScriptFolder): Promise<string> {
     try {
-      const validated = CreateFolderPayloadSchema.parse(payload);
-      const folderId = uuidv4();
-
-      const folderItem = createDefaultFolderItem({
-        id: folderId,
-        name: validated.name,
-        icon: validated.icon,
-        color: validated.color,
-        scripts: [],
+      const folder = ScriptRepositoryItemSchema.parse({
+        type: 'folder',
+        value: ScriptFolderSchema.parse(payload),
       });
 
-      const repository = await this.loadRepositoryByType(type);
-      repository.push(folderItem);
+      const repository = this.loadRepositoryByType(type);
+      repository.unshift(folder);
 
       await this.saveRepositoryByType(type, repository);
-      return folderId;
+      return folder.id;
     } catch (error) {
-      console.error('创建文件夹失败:', error);
+      log.error('创建文件夹失败:', error);
       throw error;
     }
   }
@@ -316,64 +183,63 @@ export class RepositoryService {
   /**
    * 删除文件夹
    */
-  async deleteFolderInType(type: 'global' | 'character' | 'preset', folderId: string): Promise<void> {
+  async deleteFolderInType(type: ScriptType, folderId: string): Promise<void> {
     try {
-      const repository = await this.loadRepositoryByType(type);
-      const folderIndex = this.findFolderIndex(repository, folderId);
+      const repository = this.loadRepositoryByType(type);
+      this.removeFolderById(repository, folderId);
 
-      if (folderIndex === -1) {
-        throw new Error('文件夹不存在');
-      }
-
-      repository.splice(folderIndex, 1);
       await this.saveRepositoryByType(type, repository);
     } catch (error) {
-      console.error('删除文件夹失败:', error);
+      log.error('删除文件夹失败:', error);
       throw error;
     }
   }
 
   /**
    * 更新文件夹（名称/图标/颜色）
+   * @param type 脚本类型
+   * @param folderId 文件夹ID
+   * @param payload 更新内容
    */
-  async updateFolderInType(
-    type: 'global' | 'character' | 'preset',
-    folderId: string,
-    payload: { name?: string; icon?: string; color?: string },
-  ): Promise<void> {
+  async updateFolderInType(type: ScriptType, folderId: string, payload: Partial<ScriptFolder>): Promise<void> {
     try {
-      const repository = await this.loadRepositoryByType(type);
-      const folderIndex = this.findFolderIndex(repository, folderId);
-      if (folderIndex === -1) {
-        throw new Error('文件夹不存在');
+      if (_.isEmpty(payload) || _.every(payload, _.isUndefined)) {
+        throw new Error('至少需要提供一个要更新的字段');
       }
 
-      const folderItem = repository[folderIndex] as ScriptRepositoryItem;
-      if (folderItem.type !== 'folder') {
-        throw new Error('目标不是文件夹');
-      }
+      const validatedPayload = ScriptFolderSchema.partial().parse(payload);
 
-      if (payload.name !== undefined) folderItem.name = payload.name;
-      if (payload.icon !== undefined) folderItem.icon = payload.icon;
-      if (payload.color !== undefined) folderItem.color = payload.color;
+      const repository = this.loadRepositoryByType(type);
+
+      const folderItem = this.findFolderById(repository, folderId);
+
+      // 使只更新有效的字段
+      const updateFields = _.pickBy(validatedPayload, value => !_.isUndefined(value));
+
+      _.assign(folderItem, updateFields);
+
+      const folderValidation = ScriptRepositoryItemSchema.safeParse(folderItem);
+      if (!folderValidation.success) {
+        throw new Error(`更新后的文件夹数据无效: ${folderValidation.error.message}`);
+      }
 
       await this.saveRepositoryByType(type, repository);
+
+      log.debug(`文件夹 ${folderId} 更新成功`);
     } catch (error) {
-      console.error('更新文件夹失败:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      log.error('更新文件夹失败:', errorMessage);
+
+      throw new Error(`更新文件夹失败: ${errorMessage}`);
     }
   }
 
   /**
    * 移动脚本到文件夹
    */
-  async moveScriptWithinType(
-    type: 'global' | 'character' | 'preset',
-    scriptId: string,
-    targetFolderId: string | null,
-  ): Promise<void> {
+  async moveScriptWithinType(type: ScriptType, scriptId: string, targetFolderId: string | null): Promise<void> {
     try {
-      const repository = await this.loadRepositoryByType(type);
+      const repository = this.loadRepositoryByType(type);
 
       // 从原位置移除脚本
       const script = this.removeScriptById(repository, scriptId);
@@ -382,95 +248,159 @@ export class RepositoryService {
       }
 
       if (targetFolderId) {
-        // 移动到目标文件夹
         const targetFolder = this.findFolderById(repository, targetFolderId);
         if (!targetFolder) {
           throw new Error('目标文件夹不存在');
         }
-        if (!Array.isArray(targetFolder.value)) {
+        const folderValue = _.get(targetFolder, 'value');
+        if (!_.isArray(folderValue)) {
           throw new Error('文件夹数据格式错误');
         }
-        targetFolder.value.push(script);
+        folderValue.unshift(script);
       } else {
         // 移动到根目录
-        repository.push({ type: 'script', value: script });
+        repository.unshift(script as unknown as ScriptRepositoryItem);
       }
 
       await this.saveRepositoryByType(type, repository);
     } catch (error) {
-      console.error('移动脚本失败:', error);
+      log.error('移动脚本失败:', error);
       throw error;
     }
   }
 
+  /**
+   * 通过ID获取脚本
+   * @param repository 仓库
+   * @param scriptId 脚本ID
+   * @returns 脚本
+   */
+
+  public findScriptById(repository: ScriptRepository, scriptId: string): Script | null {
+    const rootItem = _.find(repository, item => {
+      if (ScriptSchema.safeParse(item).success) {
+        return _.get(item, 'id') === scriptId;
+      }
+      return false;
+    });
+
+    if (rootItem) {
+      return rootItem as unknown as Script;
+    }
+
+    const repositoryItem = _.find(repository, item => {
+      if (ScriptRepositoryItemSchema.safeParse(item).success) {
+        const repoItem = item as any;
+        if (_.get(repoItem, 'type') === 'script') {
+          return _.get(repoItem, 'value.id') === scriptId;
+        } else if (_.get(repoItem, 'type') === 'folder' && Array.isArray(_.get(repoItem, 'value'))) {
+          return _.some(_.get(repoItem, 'value', []), (script: Script) => _.get(script, 'id') === scriptId);
+        }
+      }
+      return false;
+    }) as any;
+
+    if (repositoryItem) {
+      if (_.get(repositoryItem, 'type') === 'script') {
+        return _.get(repositoryItem, 'value') as unknown as Script;
+      } else if (_.get(repositoryItem, 'type') === 'folder') {
+        return _.find(
+          _.get(repositoryItem, 'value', []),
+          (script: Script) => _.get(script, 'id') === scriptId,
+        ) as unknown as Script;
+      }
+    }
+
+    return null;
+  }
+
   // ===== 辅助方法 =====
 
-  private findScriptById(repository: Repository, scriptId: string): Script | null {
-    for (const item of repository) {
-      if (ScriptSchema.safeParse(item).success) {
-        // 直接的脚本对象
-        const script = item as Script;
-        if (script.id === scriptId) {
-          return script;
-        }
-      } else if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as ScriptRepositoryItem;
-        if (repositoryItem.type === 'script') {
-          const script = repositoryItem.value as Script;
-          if (script.id === scriptId) {
-            return script;
-          }
-        } else if (repositoryItem.type === 'folder' && Array.isArray(repositoryItem.value)) {
-          // 在文件夹中查找
-          for (const script of repositoryItem.value) {
-            if (script.id === scriptId) {
-              return script;
-            }
-          }
-        }
+  /**
+   * 从仓库中移除文件夹
+   * @param repository
+   * @param folderId
+   */
+  private removeFolderById(repository: ScriptRepository, folderId: string): void {
+    // 查找根级文件夹
+    const rootFolderItem = _.find(repository, item => {
+      if (ScriptRepositoryItemSchema.safeParse(item).success) {
+        const repositoryItem = item as any;
+        return repositoryItem.type === 'folder' && repositoryItem.id === folderId;
       }
+      return false;
+    });
+
+    if (rootFolderItem) {
+      _.remove(repository, item => item === rootFolderItem);
+      return;
     }
-    return null;
+
+    throw new Error('文件夹不存在');
   }
 
-  private removeScriptById(repository: Repository, scriptId: string): Script | null {
-    for (let i = 0; i < repository.length; i++) {
-      const item = repository[i];
-
+  /**
+   * 从仓库中移除脚本
+   * @param repository
+   * @param scriptId
+   * @returns 被移除的脚本，如果不存在则返回null
+   */
+  private removeScriptById(repository: ScriptRepository, scriptId: string): Script | null {
+    const rootScriptItem = _.find(repository, item => {
       if (ScriptSchema.safeParse(item).success) {
-        // 直接的脚本对象
-        const script = item as Script;
-        if (script.id === scriptId) {
-          repository.splice(i, 1);
-          return script;
-        }
+        return (item as unknown as Script).id === scriptId;
       } else if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as ScriptRepositoryItem;
-        if (repositoryItem.type === 'script') {
-          const script = repositoryItem.value as Script;
-          if (script.id === scriptId) {
-            repository.splice(i, 1);
-            return script;
-          }
-        } else if (repositoryItem.type === 'folder' && Array.isArray(repositoryItem.value)) {
-          // 在文件夹中查找并移除
-          for (let j = 0; j < repositoryItem.value.length; j++) {
-            if (repositoryItem.value[j].id === scriptId) {
-              const script = repositoryItem.value[j];
-              repositoryItem.value.splice(j, 1);
-              return script;
-            }
-          }
-        }
+        const repositoryItem = item as any;
+        return repositoryItem.type === 'script' && repositoryItem.value?.id === scriptId;
+      }
+      return false;
+    });
+
+    if (rootScriptItem) {
+      _.remove(repository, item => item === rootScriptItem);
+      if (ScriptSchema.safeParse(rootScriptItem).success) {
+        return rootScriptItem as unknown as Script;
+      } else {
+        const repositoryItem = rootScriptItem as any;
+        return repositoryItem.value as Script;
       }
     }
+
+    const folderItem = _.find(repository, item => {
+      if (ScriptRepositoryItemSchema.safeParse(item).success) {
+        const repositoryItem = item as any;
+        return (
+          repositoryItem.type === 'folder' &&
+          Array.isArray(repositoryItem.value) &&
+          _.some(repositoryItem.value, (script: Script) => script.id === scriptId)
+        );
+      }
+      return false;
+    });
+
+    if (folderItem) {
+      const repositoryItem = folderItem as any;
+      const script = _.find(repositoryItem.value, (script: Script) => script.id === scriptId);
+
+      if (script) {
+        _.remove(repositoryItem.value, (s: Script) => s.id === scriptId);
+        return script;
+      }
+    }
+
+    // 没有找到脚本
     return null;
   }
-
-  private findFolderById(repository: Repository, folderId: string): ScriptRepositoryItem | null {
+  /**
+   * 通过ID获取文件夹
+   * @param repository 仓库
+   * @param folderId 文件夹ID
+   * @returns 文件夹项，包含文件夹的所有信息
+   */
+  private findFolderById(repository: ScriptRepository, folderId: string): ScriptRepositoryItem | null {
     for (const item of repository) {
       if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as ScriptRepositoryItem;
+        const repositoryItem = item as any;
         if (repositoryItem.type === 'folder' && repositoryItem.id === folderId) {
           return repositoryItem;
         }
@@ -479,231 +409,36 @@ export class RepositoryService {
     return null;
   }
 
-  private findFolderIndex(repository: Repository, folderId: string): number {
-    for (let i = 0; i < repository.length; i++) {
-      const item = repository[i];
-      if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as ScriptRepositoryItem;
-        if (repositoryItem.type === 'folder' && repositoryItem.id === folderId) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
-
   /**
-   * 获取所有脚本（扁平化）
+   * 导入脚本到指定类型的根目录
+   * @param type 脚本类型
+   * @param scripts 脚本数组
    */
-  getAllScripts(repository: Repository): Script[] {
-    const scripts: Script[] = [];
-
-    for (const item of repository) {
-      if (ScriptSchema.safeParse(item).success) {
-        // 直接的脚本对象
-        scripts.push(item as Script);
-      } else if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as ScriptRepositoryItem;
-        if (repositoryItem.type === 'script') {
-          scripts.push(repositoryItem.value as Script);
-        } else if (repositoryItem.type === 'folder' && Array.isArray(repositoryItem.value)) {
-          scripts.push(...repositoryItem.value);
-        }
-      }
-    }
-
-    return scripts;
-  }
-
-  /**
-   * 获取文件夹中的脚本
-   */
-  getFolderScripts(repository: Repository, folderId: string): Script[] {
-    const folder = this.findFolderById(repository, folderId);
-    if (folder && Array.isArray(folder.value)) {
-      return folder.value;
-    }
-    return [];
-  }
-
-  /**
-   * 获取根级别的脚本
-   */
-  getRootScripts(repository: Repository): Script[] {
-    const scripts: Script[] = [];
-
-    for (const item of repository) {
-      if (ScriptSchema.safeParse(item).success) {
-        // 直接的脚本对象
-        scripts.push(item as Script);
-      } else if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as ScriptRepositoryItem;
-        if (repositoryItem.type === 'script') {
-          scripts.push(repositoryItem.value as Script);
-        }
-      }
-    }
-
-    return scripts;
-  }
-
-  /**
-   * 获取所有文件夹
-   */
-  getAllFolders(repository: Repository): ScriptRepositoryItem[] {
-    const folders: ScriptRepositoryItem[] = [];
-
-    for (const item of repository) {
-      if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as ScriptRepositoryItem;
-        if (repositoryItem.type === 'folder') {
-          folders.push(repositoryItem);
-        }
-      }
-    }
-
-    return folders;
-  }
-
-  /**
-   * 在不同类型间移动脚本
-   */
-  async moveScriptToOtherType(scriptId: string, fromType: 'global' | 'character'): Promise<void> {
+  async importScriptsToType(type: ScriptType, scripts: Script[]): Promise<void> {
     try {
-      const toType = fromType === 'global' ? 'character' : 'global';
+      const repository = this.loadRepositoryByType(type);
 
-      // 从源类型获取脚本
-      const script = await this.getScriptFromType(fromType, scriptId);
-      if (!script) {
-        throw new Error('脚本不存在');
+      for (const scriptData of scripts) {
+        const script = ScriptSchema.parse(scriptData);
+        repository.unshift(script as unknown as ScriptRepositoryItem);
       }
 
-      // 删除源脚本
-      await this.deleteScriptInType(fromType, scriptId);
-
-      // 在目标类型创建脚本
-      await this.createScriptInType(toType, {
-        name: script.name,
-        content: script.content,
-        info: script.info,
-        enabled: script.enabled,
-        folderId: null, // 移动到根目录
-      });
+      await this.saveRepositoryByType(type, repository);
     } catch (error) {
-      console.error('移动脚本到其他类型失败:', error);
+      log.error('导入脚本失败:', error);
       throw error;
     }
   }
 
   /**
-   * 在不同类型间移动文件夹（连同内部脚本一起移动）
+   * 导出脚本并生成下载文件
+   * @param scriptIds 脚本ID数组
+   * @param type 脚本类型
+   * @param format 导出格式，'single'为单个脚本，'batch'为批量脚本数组
    */
-  async moveFolderToOtherType(folderId: string, fromType: 'global' | 'character'): Promise<void> {
+  async exportScripts(scriptIds: string[], type: ScriptType, format: 'single' | 'batch' = 'batch'): Promise<void> {
     try {
-      const toType = fromType === 'global' ? 'character' : 'global';
-
-      // 加载源与目标仓库
-      const fromRepository = await this.loadRepositoryByType(fromType);
-      const toRepository = await this.loadRepositoryByType(toType);
-
-      // 在源仓库中找到并移除文件夹
-      const folderIndex = this.findFolderIndex(fromRepository, folderId);
-      if (folderIndex === -1) {
-        throw new Error('文件夹不存在');
-      }
-
-      const [folderItem] = fromRepository.splice(folderIndex, 1);
-      if (!folderItem || (folderItem as any).type !== 'folder') {
-        throw new Error('目标不是文件夹');
-      }
-
-      // 将整个文件夹（包含内部脚本）追加到目标仓库根目录
-      toRepository.push(folderItem);
-
-      // 分别保存源与目标仓库
-      await this.saveRepositoryByType(fromType, fromRepository);
-      await this.saveRepositoryByType(toType, toRepository);
-    } catch (error) {
-      console.error('移动文件夹到其他类型失败:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 在任意两种类型间移动文件夹（含 'preset' 作为目标）
-   */
-  async moveFolderBetweenTypes(
-    folderId: string,
-    fromType: 'global' | 'character' | 'preset',
-    toType: 'global' | 'character' | 'preset',
-    conflictResolver?: (args: {
-      script: Script;
-      conflict: Script;
-      target: 'global' | 'character' | 'preset';
-    }) => Promise<'new' | 'override' | 'cancel'>,
-  ): Promise<void> {
-    try {
-      if (fromType === toType) {
-        return;
-      }
-
-      const fromRepository = await this.loadRepositoryByType(fromType);
-      const toRepository = await this.loadRepositoryByType(toType);
-
-      const folderIndex = this.findFolderIndex(fromRepository, folderId);
-      if (folderIndex === -1) {
-        throw new Error('文件夹不存在');
-      }
-
-      const [folderItem] = fromRepository.splice(folderIndex, 1);
-      if (!folderItem || (folderItem as any).type !== 'folder') {
-        throw new Error('目标不是文件夹');
-      }
-
-      // 在移动之前，针对文件夹内的每一个脚本与目标仓库做ID冲突处理
-      const targetAllScripts = this.getAllScripts(toRepository);
-      if (Array.isArray((folderItem as any).value)) {
-        for (const s of (folderItem as any).value as Script[]) {
-          const conflict = targetAllScripts.find(t => t.id === s.id);
-          if (!conflict) continue;
-
-          let decision: 'new' | 'override' | 'cancel' = 'new';
-          if (conflictResolver) {
-            decision = await conflictResolver({ script: s, conflict, target: toType });
-          }
-
-          if (decision === 'cancel') {
-            // 取消整个移动操作：将文件夹放回原处
-            fromRepository.splice(folderIndex, 0, folderItem);
-            throw new Error('移动被用户取消');
-          }
-          if (decision === 'override') {
-            // 删除目标中的冲突脚本
-            await this.deleteScriptInType(toType, conflict.id);
-          } else if (decision === 'new') {
-            // 为即将移动的脚本换新ID
-            s.id = uuidv4();
-          }
-        }
-      }
-
-      // 冲突处理完成后，将整个文件夹（包含内部脚本）追加到目标仓库根目录
-      toRepository.push(folderItem);
-
-      await this.saveRepositoryByType(fromType, fromRepository);
-      await this.saveRepositoryByType(toType, toRepository);
-    } catch (error) {
-      console.error('在不同类型间移动文件夹失败:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 导出脚本
-   */
-  async exportScripts(scriptIds: string[], type: 'global' | 'character' | 'preset'): Promise<any[]> {
-    try {
-      const repository = await this.loadRepositoryByType(type);
+      const repository = this.loadRepositoryByType(type);
       const scripts: Script[] = [];
 
       for (const scriptId of scriptIds) {
@@ -713,148 +448,118 @@ export class RepositoryService {
         }
       }
 
-      return scripts;
-    } catch (error) {
-      console.error('导出脚本失败:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 导入脚本到指定类型
-   */
-  async importScriptsToType(type: 'global' | 'character' | 'preset', payload: ImportScriptPayload): Promise<void> {
-    try {
-      const repository = await this.loadRepositoryByType(type);
-
-      for (const scriptData of payload.scripts) {
-        const script = createDefaultScript({
-          name: scriptData.name || '未命名脚本',
-          content: scriptData.content || '',
-          info: scriptData.info || '',
-          enabled: false,
-          buttons: [],
-          data: {},
-        });
-
-        if (payload.folderId) {
-          // 添加到指定文件夹
-          const folderItem = this.findFolderById(repository, payload.folderId);
-          if (!folderItem) {
-            throw new Error('目标文件夹不存在');
-          }
-          if (!Array.isArray(folderItem.value)) {
-            throw new Error('文件夹数据格式错误');
-          }
-          folderItem.value.push(script);
-        } else {
-          // 添加到根目录
-          repository.push({ type: 'script', value: script });
-        }
+      if (_.isEmpty(scripts)) {
+        throw new Error('没有找到可导出的脚本');
       }
 
-      await this.saveRepositoryByType(type, repository);
-    } catch (error) {
-      console.error('导入脚本失败:', error);
-      throw error;
-    }
-  }
+      // 根据格式生成和下载文件
 
-  // 统一 InType API 已涵盖导入（importScriptsToType）
+      if (format === 'single' && scripts.length === 1) {
+        // 单个脚本导出
+        const script = scripts[0];
+        const scriptName = _.get(script, 'name', 'script').replace(/[<>:"/\\|?*]/g, '_');
+        const filename = `${type === 'preset' ? 'preset-script' : 'script'}-${scriptName}.json`;
 
-  /**
-   * 在指定类型中插入已存在的脚本对象（保留传入的脚本ID）
-   */
-  async insertExistingScriptInType(
-    type: 'global' | 'character' | 'preset',
-    script: Script,
-    folderId: string | null,
-  ): Promise<void> {
-    try {
-      // 校验脚本结构
-      ScriptSchema.parse(script);
-
-      const repository = await this.loadRepositoryByType(type);
-
-      if (folderId) {
-        const folderItem = this.findFolderById(repository, folderId);
-        if (!folderItem) throw new Error('目标文件夹不存在');
-        if (!Array.isArray(folderItem.value)) throw new Error('文件夹数据格式错误');
-        folderItem.value.push(script);
+        const content = JSON.stringify(script, null, 2);
+        download(content, filename, 'application/json');
       } else {
-        repository.push({ type: 'script', value: script });
+        // 批量脚本导出 - 为每个脚本生成独立的JSON文件
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const typeName = type === 'global' ? 'global' : type === 'character' ? 'character' : 'preset';
+        _.forEach(scripts, (script, index) => {
+          const scriptName = _.get(script, 'name', 'script').replace(/[<>:"/\\|?*]/g, '_');
+          const filename = `${typeName}-script-${scriptName}-${timestamp}-${index + 1}.json`;
+
+          setTimeout(() => {
+            const content = JSON.stringify(script, null, 2);
+            download(content, filename, 'application/json');
+          }, index * 100);
+        });
       }
 
-      await this.saveRepositoryByType(type, repository);
+      log.info(`成功导出 ${scripts.length} 个脚本`);
     } catch (error) {
-      console.error('插入脚本失败:', error);
+      log.error('导出脚本失败:', error);
       throw error;
     }
   }
 
-  // 统一 InType API 已涵盖导入（importScriptsToType）
-
-  // 统一 InType API 已涵盖导出（exportScripts）
-
   /**
-   * 将指定类型下的文件夹打包为 ZIP 并返回 Blob 与建议文件名
+   * 将指定类型下的文件夹打包为 ZIP 并直接下载
+   * 使用zod验证输入，lodash优化对象操作
    */
-  async exportFolderToZip(
-    type: 'global' | 'character',
-    folderId: string,
-  ): Promise<{ blob: Blob; filename: string; folderName: string }> {
+  async exportFolderToZip(type: ScriptType, folderId: string): Promise<void> {
     try {
-      const repository = await this.loadRepositoryByType(type);
+      const repository = this.loadRepositoryByType(type);
 
-      // 定位文件夹
-      const folderItem = repository.find(
-        item => (item as any)?.type === 'folder' && (item as any)?.id === folderId,
-      ) as any;
+      const folderItem = _.find(repository, item => {
+        const repoItem = item as any;
+        return _.get(repoItem, 'type') === 'folder' && _.get(repoItem, 'id') === folderId;
+      });
+
       if (!folderItem) {
         throw new Error('文件夹不存在');
       }
 
-      const folderName = String(folderItem?.name || 'folder');
-      const sanitizedFolderName = folderName.replace(/[<>:"/\\|?*]/g, '_');
+      const folderValidation = ScriptRepositoryItemSchema.safeParse(folderItem);
+      if (!folderValidation.success) {
+        throw new Error(`文件夹数据结构无效: ${folderValidation.error.message}`);
+      }
+      const folderName = _.get(folderItem, 'name', 'folder');
+      const sanitizedFolderName = _.toString(folderName).replace(/[<>:"/\\|?*]/g, '_');
 
-      const scripts = Array.isArray(folderItem.value) ? (folderItem.value as any[]) : [];
-      if (!scripts.length) {
+      const scripts = _.get(folderItem, 'value', []);
+      if (!_.isArray(scripts) || _.isEmpty(scripts)) {
         throw new Error('文件夹内没有脚本');
       }
 
-      // 动态加载 JSZip（保持与 V1 行为一致）
       // @ts-ignore
       if (!window.JSZip) {
-        // @ts-ignore
         await import('@sillytavern/lib/jszip.min.js');
       }
       // @ts-ignore
       const zip = new JSZip();
 
-      for (const script of scripts) {
+      _.forEach(scripts, script => {
+        const scriptValidation = ScriptSchema.safeParse(script);
+        if (!scriptValidation.success) {
+          log.warn(`跳过无效脚本: ${scriptValidation.error.message}`, script);
+          return;
+        }
+
         const scriptData = {
-          name: script.name,
-          content: script.content,
-          info: script.info,
-          buttons: script.buttons,
-          data: script.data,
+          name: _.get(script, 'name', '未命名脚本'),
+          content: _.get(script, 'content', ''),
+          info: _.get(script, 'info', ''),
+          buttons: _.get(script, 'buttons', []),
+          data: _.get(script, 'data', {}),
         };
-        const scriptFileName = `${String(script.name || 'script').replace(/[<>:"/\\|?*]/g, '_')}.json`;
+
+        const scriptName = _.toString(_.get(script, 'name', 'script')).replace(/[<>:"/\\|?*]/g, '_');
+        const scriptFileName = `${scriptName}.json`;
+
         zip.file(`${sanitizedFolderName}/${scriptFileName}`, JSON.stringify(scriptData, null, 2));
-      }
+      });
 
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const typeName = type === 'global' ? 'global' : 'character';
       const filename = `folder_${sanitizedFolderName}_${typeName}_${timestamp}.zip`;
 
-      return { blob: zipBlob, filename, folderName };
+      download(zipBlob, filename, 'application/zip');
+
+      log.info(`文件夹 "${folderName}" 导出成功，包含 ${scripts.length} 个脚本`);
     } catch (error) {
-      console.error('导出文件夹失败:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      log.error('导出文件夹失败:', {
+        error: errorMessage,
+      });
+
+      throw new Error(`导出文件夹失败: ${errorMessage}`);
     }
   }
 }
+
 
 // 导出单例实例
 export const repositoryService = RepositoryService.getInstance();

@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div class="script-search-container width100p flexContainer alignItemsCenter">
+    <div class="script-search-container width100p flex-container alignItemsCenter">
       <SearchBar
         :model-value="search"
         placeholder="搜索（支持普通和正则）"

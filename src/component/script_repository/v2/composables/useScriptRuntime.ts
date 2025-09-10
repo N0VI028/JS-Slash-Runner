@@ -1,10 +1,8 @@
 import { script_url } from '@/script_url';
 import third_party from '@/third_party.html';
 import log from 'loglevel';
-import type { Script } from '../schemas/script.schema';
-import { useCharacterScriptStore } from '../stores/characterScript.store';
-import { useGlobalScriptStore } from '../stores/globalScript.store';
-import { usePresetScriptStore } from '../stores/presetScript.store';
+import type { Script, ScriptType } from '../schemas/script.schema';
+import { useCharacterScriptStore, useGlobalScriptStore, usePresetScriptStore } from '../stores/factory';
 import { buttonManagerV2 } from '../utils/buttonManager';
 
 /**
@@ -15,6 +13,11 @@ export function useScriptRuntime() {
   const globalScriptStore = useGlobalScriptStore();
   const characterScriptStore = useCharacterScriptStore();
   const presetScriptStore = usePresetScriptStore();
+  const storeByType: Record<ScriptType, any> = {
+    global: globalScriptStore,
+    character: characterScriptStore,
+    preset: presetScriptStore,
+  };
 
   /**
    * 创建脚本运行的HTML内容
@@ -54,9 +57,8 @@ export function useScriptRuntime() {
   /**
    * 启动单个脚本
    */
-  async function startScript(scriptId: string, type: 'global' | 'character' | 'preset'): Promise<void> {
-    const store =
-      type === 'global' ? globalScriptStore : type === 'character' ? characterScriptStore : presetScriptStore;
+  async function startScript(scriptId: string, type: ScriptType): Promise<void> {
+    const store = storeByType[type];
     const script = store.getScript(scriptId);
 
     if (!script || !script.enabled) {
@@ -109,9 +111,8 @@ export function useScriptRuntime() {
   /**
    * 停止单个脚本
    */
-  async function stopScript(scriptId: string, type: 'global' | 'character' | 'preset'): Promise<void> {
-    const store =
-      type === 'global' ? globalScriptStore : type === 'character' ? characterScriptStore : presetScriptStore;
+  async function stopScript(scriptId: string, type: ScriptType): Promise<void> {
+    const store = storeByType[type];
     const script = store.getScript(scriptId);
 
     if (!script) {
@@ -141,9 +142,8 @@ export function useScriptRuntime() {
   /**
    * 批量切换某类型的所有脚本
    */
-  async function toggleScriptsByType(type: 'global' | 'character' | 'preset', enable: boolean): Promise<void> {
-    const store =
-      type === 'global' ? globalScriptStore : type === 'character' ? characterScriptStore : presetScriptStore;
+  async function toggleScriptsByType(type: ScriptType, enable: boolean): Promise<void> {
+    const store = storeByType[type];
     const scripts = store.allScripts.filter((script: any) => script.enabled);
 
     if (!enable) {
@@ -164,26 +164,15 @@ export function useScriptRuntime() {
   /**
    * 批量切换文件夹内脚本
    */
-  async function toggleFolderScripts(
-    folderId: string,
-    type: 'global' | 'character' | 'preset',
-    enable: boolean,
-  ): Promise<void> {
-    const store =
-      type === 'global' ? globalScriptStore : type === 'character' ? characterScriptStore : presetScriptStore;
+  async function toggleFolderScripts(folderId: string, type: ScriptType, enable: boolean): Promise<void> {
+    const store = storeByType[type];
     const folderScripts = store.getFolderScripts(folderId);
 
-    // 先更新数据层的enabled状态
+    // 仅更新 enabled；运行时切换由 orchestrator 订阅处理
     for (const script of folderScripts) {
       if (script.enabled !== enable) {
         await store.updateScript(script.id, { enabled: enable });
       }
-    }
-
-    // 然后同步运行态
-    for (const script of folderScripts) {
-      if (enable) await startScript(script.id, type);
-      else await stopScript(script.id, type);
     }
 
     log.info(`[V2ScriptRuntime] ${enable ? '启用' : '禁用'}了文件夹内${folderScripts.length}个脚本`);

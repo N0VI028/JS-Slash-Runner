@@ -200,7 +200,7 @@ export class FormValidator {
       const $variableItem = $(`
         <div class="variable-item flex-container flexFlowColumn width100p">
           <div class="flex flexFlowColumn">
-            <div class="flex-container alignitemscenter spaceBetween wide100p">
+            <div class="flex-container alignitemscenter spaceBetween width100p">
               <div>名称:</div>
               <div class="menu_button interactable delete-variable" title="删除变量">
                 <i class="fa-solid fa-trash"></i>
@@ -221,4 +221,3 @@ export class FormValidator {
     log.debug('[FormValidator] 变量数据填充完成:', variables);
   }
 }
-

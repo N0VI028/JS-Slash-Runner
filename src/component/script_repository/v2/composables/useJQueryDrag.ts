@@ -1,8 +1,7 @@
+import type { ScriptType } from '@/component/script_repository/v2/schemas/script.schema';
 import { nextTick, onMounted, onUnmounted, watchEffect, type Ref } from 'vue';
 import { repositoryService } from '../services/repository.service';
-import { useCharacterScriptStore } from '../stores/characterScript.store';
-import { useGlobalScriptStore } from '../stores/globalScript.store';
-import type { ScriptType } from '../types';
+import { useCharacterScriptStore, useGlobalScriptStore } from '../stores/factory';
 
 /**
  * Vue 3 + jQuery UI Sortable 拖拽

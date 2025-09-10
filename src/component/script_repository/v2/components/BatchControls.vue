@@ -1,5 +1,5 @@
 <template>
-  <div class="batch-controls width100p flexContainer alignItemsCenter">
+  <div class="batch-controls width100p flex-container alignItemsCenter">
     <button
       class="menu_button menu_button_icon interactable redWarningBG batch-action-btn"
       @click="$emit('batch-delete')"
@@ -19,7 +19,8 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ repoType: 'global' | 'character' | 'preset' }>();
+import type { ScriptType } from '@/component/script_repository/v2/schemas/script.schema';
+defineProps<{ repoType: ScriptType }>();
 defineEmits(['batch-delete', 'batch-export', 'batch-move', 'batch-cancel']);
 </script>
 

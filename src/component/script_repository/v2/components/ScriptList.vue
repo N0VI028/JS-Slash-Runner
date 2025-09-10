@@ -38,17 +38,19 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useJQueryDrag } from '../composables/useJQueryDrag';
-import type { Repository, Script, ScriptRepositoryItem } from '../schemas/script.schema';
+import type { Script, ScriptRepository } from '../schemas/script.schema';
 import { ScriptRepositoryItemSchema, ScriptSchema } from '../schemas/script.schema';
 import FolderItem from './FolderItem.vue';
 import ScriptItem from './ScriptItem.vue';
 
 // Props
+import type { ScriptType } from '@/component/script_repository/v2/schemas/script.schema';
+
 interface Props {
-  repository: Repository;
+  repository: ScriptRepository;
   expandedFolders?: Set<string>;
   isSearching: boolean;
-  repoType: 'global' | 'character' | 'preset';
+  repoType: ScriptType;
   batchMode?: boolean;
   selectedScriptIds?: Set<string>;
   selectedFolderIds?: Set<string>;
@@ -95,7 +97,7 @@ useRootDrop(listContainer, props.repoType);
 
 // 计算属性：解析仓库数据为列表项
 const allItems = computed(() => {
-  const items: Array<{ type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }> = [];
+  const items: Array<{ type: 'folder' | 'script'; id: string; data: ScriptRepository | Script }> = [];
 
   for (const item of props.repository) {
     // 使用zod验证数据类型
@@ -155,14 +157,14 @@ const getFolderScripts = (folderId: string): Script[] => {
 };
 
 // 动态组件类型
-const getComponentType = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }) => {
+const getComponentType = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepository | Script }) => {
   return item.type === 'folder' ? FolderItem : ScriptItem;
 };
 
 // 动态组件属性
-const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }) => {
+const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepository | Script }) => {
   if (item.type === 'folder') {
-    const folderItem = item.data as ScriptRepositoryItem;
+    const folderItem = item.data as ScriptRepository;
     return {
       folder: folderItem,
       isExpanded: props.expandedFolders?.has(item.id) ?? false,
@@ -182,7 +184,7 @@ const getComponentProps = (item: { type: 'folder' | 'script'; id: string; data: 
 };
 
 // 动态组件事件
-const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepositoryItem | Script }) => {
+const getComponentEvents = (item: { type: 'folder' | 'script'; id: string; data: ScriptRepository | Script }) => {
   if (item.type === 'folder') {
     return {
       'toggle-expand': (id: string) => emit('toggle-folder-expand', id),
