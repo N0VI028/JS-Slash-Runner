@@ -68,16 +68,14 @@ export function getVariables({ type = 'chat', message_id = 'latest', script_id }
 
   log.info(
     `获取${
-      type === 'message'
-        ? `'${message_id}' 消息`
-        : type === 'chat'
-          ? '聊天'
-          : type === 'character'
-            ? '角色'
-            : type === 'script'
-              ? `'${script_id}' 脚本`
-              : '全局'
-    }变量表:\n${JSON.stringify(result)}`,
+      {
+        message: `'${message_id}' 消息`,
+        chat: '聊天',
+        character: '角色',
+        script: `'${script_id}' 脚本`,
+        global: '全局',
+      }[type]
+    }变量表`,
   );
   return structuredClone(result);
 }
@@ -156,17 +154,15 @@ export async function replaceVariables(
   }
 
   log.info(
-    `将${
-      type === 'message'
-        ? `'${message_id}' 消息`
-        : type === 'chat'
-          ? '聊天'
-          : type === 'character'
-            ? '角色'
-            : type === 'script'
-              ? `'${script_id}' 脚本`
-              : '全局'
-    }变量表替换为:\n${JSON.stringify(variables)}`,
+    `替换${
+      {
+        message: `'${message_id}' 消息`,
+        chat: '聊天',
+        character: '角色',
+        script: `'${script_id}' 脚本`,
+        global: '全局',
+      }[type]
+    }变量表`,
   );
 }
 
