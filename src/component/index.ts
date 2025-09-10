@@ -101,10 +101,8 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
 
     addAllShortcut();
 
-    // 重新注入前端卡优化的样式和设置
-    if (userAction && getSettingValue('render.rendering_optimize')) {
-      addRenderingOptimizeSettings();
-    }
+    addRenderingOptimizeSettings();
+
     if (userAction && getSettingValue('render.render_hide_style')) {
       addRenderingHideStyleSettings();
     }
@@ -132,9 +130,7 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
 
     removeAllShortcut();
 
-    if (getSettingValue('render.rendering_optimize')) {
-      removeRenderingOptimizeSettings();
-    }
+    removeRenderingOptimizeSettings();
 
     if (getSettingValue('render.render_hide_style')) {
       removeRenderingHideStyleSettings();

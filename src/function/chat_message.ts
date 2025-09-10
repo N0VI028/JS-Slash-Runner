@@ -1,3 +1,5 @@
+import { highlight_code } from '@/util/highlight_code';
+
 import {
   addOneMessage,
   chat,
@@ -298,25 +300,9 @@ export async function setChatMessages(
           message_id,
         ),
       );
-    $mes_html
-      .find('pre code')
-      .filter((_index, element) => {
-        const $element = $(element);
-        return !$element.hasClass('hljs') && !$element.text().includes('<body');
-      })
-      .each((_index, element) => {
-        hljs.highlightElement(element);
-        $(element).append(
-          $(`<i class="fa-solid fa-copy code-copy interactable" title="Copy code"></i>`)
-            .on('click', function (e) {
-              e.stopPropagation();
-            })
-            .on('pointerup', async function () {
-              navigator.clipboard.writeText($(element).text());
-              toastr.info(`已复制!`, '', { timeOut: 2000 });
-            }),
-        );
-      });
+    $mes_html.find('pre code').each((_index, element) => {
+      highlight_code(element);
+    });
     await eventSource.emit(
       chat_message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
       message_id,
