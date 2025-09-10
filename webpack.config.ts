@@ -1,6 +1,5 @@
 //import eslintWebpackPlugin from 'eslint-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
 import TerserPlugin from 'terser-webpack-plugin';
@@ -10,11 +9,10 @@ import webpack from 'webpack';
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const sillytavern_path = __dirname.substring(0, __dirname.lastIndexOf('public') + 6);
-const bundled_script_path = path.dirname(
-  path.join(__dirname, JSON.parse(fs.readFileSync('./manifest.json', 'utf8')).js),
+const relative_sillytavern_path = path.relative(
+  path.join(__dirname, 'dist'),
+  __dirname.substring(0, __dirname.lastIndexOf('public') + 6),
 );
-const relative_sillytavern_path = path.relative(bundled_script_path, sillytavern_path);
 
 const config = (_env: any, argv: any): webpack.Configuration => {
   return {
@@ -110,38 +108,26 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         },
       },
     },
-    externalsType: 'var',
-    externals: [
-      ({ context, request }, callback) => {
-        if (!context || !request) {
-          return callback();
-        }
-        let script_path = path.join(context, request);
-        const dir_basename = path.basename(__dirname);
-        if (/^@sillytavern/.test(request)) {
-          let script = `${relative_sillytavern_path}\\${request.replace('@sillytavern/', '')}`.replace(/\\/g, '/');
-          return callback(null, 'module ' + (path.extname(script) === '.js' ? script : `${script}.js`));
-        }
-        if (!script_path.includes(dir_basename)) {
-          let is_js = path.extname(script_path) === '.js';
-          if (!is_js) {
-            is_js = fs.existsSync(`${script_path}.js`);
-            script_path = is_js ? `${script_path}.js` : script_path;
-          }
-          if (is_js) {
-            const script = (relative_sillytavern_path + script_path.replace(sillytavern_path, '')).replace(/\\/g, '/');
-            return callback(null, 'module ' + script);
-          }
-        }
-        callback();
-      },
-      {
+    externals: ({ context, request }, callback) => {
+      if (!context || !request) {
+        return callback();
+      }
+      if (/^@sillytavern/.test(request)) {
+        const script = path.join(relative_sillytavern_path, request.replace('@sillytavern/', ''));
+        return callback(null, 'module ' + (path.extname(script) === '.js' ? script : `${script}.js`));
+      }
+      const builtin = {
+        jquery: '$',
         hljs: 'hljs',
         lodash: '_',
         toastr: 'toastr',
         '@popperjs/core': 'Popper',
-      },
-    ],
+      };
+      if (request in builtin) {
+        return callback(null, 'var ' + builtin[request as keyof typeof builtin]);
+      }
+      callback();
+    },
   };
 };
 
