@@ -43,6 +43,5 @@
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "vue.autoInsert.dotValue": true,
   "typescript.tsdk": "node_modules/typescript/lib",
 }
