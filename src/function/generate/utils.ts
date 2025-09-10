@@ -259,7 +259,7 @@ export function setupImageArrayProcessing(
       timeoutId = setTimeout(() => {
         log.warn('[Generate:图片数组处理] 图片处理超时');
         rejectImageProcessing(new Error('图片处理超时'));
-      }, 30000); 
+      }, 30000);
 
       for (let i = eventData.chat.length - 1; i >= 0; i--) {
         const message = eventData.chat[i];

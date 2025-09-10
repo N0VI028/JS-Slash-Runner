@@ -36,10 +36,7 @@ function isChatCompletion() {
  * 更新提示词查看器
  * @param data 聊天数据
  */
-export function onChatCompletionPromptReady(data: {
-  chat: { role: string; content: string }[];
-  dryRun: boolean;
-}) {
+export function onChatCompletionPromptReady(data: { chat: { role: string; content: string }[]; dryRun: boolean }) {
   if (data.dryRun) {
     return;
   }

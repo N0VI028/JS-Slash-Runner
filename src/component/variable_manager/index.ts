@@ -54,9 +54,11 @@ export function addVariableManagerQuickButton() {
   if ($('#tavern-helper-variable-container').length === 0) {
     $('#extensionsMenu').append(buttonHtml);
   }
-  $('#tavern-helper-variable-container').off('click').on('click', async function () {
-    await openVariableManager();
-  });
+  $('#tavern-helper-variable-container')
+    .off('click')
+    .on('click', async function () {
+      await openVariableManager();
+    });
 }
 
 export function initVariableManager() {

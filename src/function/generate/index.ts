@@ -246,6 +246,6 @@ $(document).on('click', '#mes_stop', function () {
       log.info(`[Generate:停止] > 已发送中断信号给 ${id}`);
     }
     generationControllers.clear();
-    unblockGeneration(); 
+    unblockGeneration();
   }
 });

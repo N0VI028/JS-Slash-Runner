@@ -640,8 +640,8 @@ export function usePopups() {
                   targetResult.data.target === 'global'
                     ? '全局'
                     : targetResult.data.target === 'character'
-                    ? '角色'
-                    : '预设';
+                      ? '角色'
+                      : '预设';
                 toastr.success('添加成功', `脚本 "${script.name}" 已添加到${targetLabel}脚本库`);
               } else {
                 toastr.success('添加成功', `脚本 "${script.name}" 已添加`);

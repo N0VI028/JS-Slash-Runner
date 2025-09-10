@@ -65,26 +65,26 @@ export class FloatingDialog {
     const savedSize = FloatingDialog.loadWindowSize(options.id, isCurrentlyMobile);
 
     const finalMinWidth = isCurrentlyMobile
-      ? options.mobileMinWidth ?? FloatingDialog.MOBILE_DEFAULT_MIN_WIDTH
-      : options.minWidth ?? FloatingDialog.DEFAULT_MIN_WIDTH;
+      ? (options.mobileMinWidth ?? FloatingDialog.MOBILE_DEFAULT_MIN_WIDTH)
+      : (options.minWidth ?? FloatingDialog.DEFAULT_MIN_WIDTH);
     const finalMinHeight = isCurrentlyMobile
-      ? options.mobileMinHeight ?? FloatingDialog.MOBILE_DEFAULT_MIN_HEIGHT
-      : options.minHeight ?? FloatingDialog.DEFAULT_MIN_HEIGHT;
-    
+      ? (options.mobileMinHeight ?? FloatingDialog.MOBILE_DEFAULT_MIN_HEIGHT)
+      : (options.minHeight ?? FloatingDialog.DEFAULT_MIN_HEIGHT);
+
     // 如果有保存的大小，使用保存的大小；否则使用选项中的大小或默认大小
     let finalWidth: number | string;
     let finalHeight: number | string;
-    
+
     if (savedSize) {
       finalWidth = savedSize.width;
       finalHeight = savedSize.height;
     } else {
       finalWidth = isCurrentlyMobile
-        ? options.mobileWidth ?? FloatingDialog.MOBILE_DEFAULT_WIDTH
-        : options.width ?? FloatingDialog.DEFAULT_WIDTH;
+        ? (options.mobileWidth ?? FloatingDialog.MOBILE_DEFAULT_WIDTH)
+        : (options.width ?? FloatingDialog.DEFAULT_WIDTH);
       finalHeight = isCurrentlyMobile
-        ? options.mobileHeight ?? FloatingDialog.MOBILE_DEFAULT_HEIGHT
-        : options.height ?? FloatingDialog.DEFAULT_HEIGHT;
+        ? (options.mobileHeight ?? FloatingDialog.MOBILE_DEFAULT_HEIGHT)
+        : (options.height ?? FloatingDialog.DEFAULT_HEIGHT);
     }
 
     this.options = {
@@ -277,8 +277,8 @@ export class FloatingDialog {
           ? FloatingDialog.MOBILE_DEFAULT_MIN_WIDTH
           : FloatingDialog.DEFAULT_MIN_WIDTH
         : isCurrentlyMobile
-        ? FloatingDialog.MOBILE_DEFAULT_MIN_HEIGHT
-        : FloatingDialog.DEFAULT_MIN_HEIGHT;
+          ? FloatingDialog.MOBILE_DEFAULT_MIN_HEIGHT
+          : FloatingDialog.DEFAULT_MIN_HEIGHT;
 
     if (typeof value === 'number' || typeof value === 'undefined') {
       return typeof value === 'number' ? value : fallback;
