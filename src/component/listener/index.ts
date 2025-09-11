@@ -6,8 +6,9 @@ import {
   getSettingValue,
   saveSettingValue,
 } from '@/util/extension_variables';
+import { reloadChatWithoutEvents } from '@/util/reload_chat_without_events';
 
-import { characters, reloadCurrentChat, saveChatConditional, this_chid } from '@sillytavern/script';
+import { characters, event_types, eventSource, saveChatConditional, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 
 import log from 'loglevel';
@@ -32,16 +33,26 @@ async function refresh_iframe(): Promise<void> {
 
   // @ts-expect-error
   const character = characters[this_chid];
+
   if (character) {
     await saveChatConditional();
   }
-
   const scriptManager = ScriptManager.getInstance();
-  const globalScripts = scriptManager.getGlobalScripts();
-
-  await scriptManager.stopScriptsByType(globalScripts, ScriptType.GLOBAL);
-  await scriptManager.runScriptsByType(globalScripts, ScriptType.GLOBAL);
-  await reloadCurrentChat();
+  await scriptManager.toggleScriptType(ScriptType.GLOBAL, false, false);
+  if (character) {
+    await scriptManager.toggleScriptType(ScriptType.CHARACTER, false, false);
+  }
+  await scriptManager.toggleScriptType(ScriptType.GLOBAL, true, false);
+  if (character) {
+    await scriptManager.toggleScriptType(ScriptType.CHARACTER, true, false);
+    await reloadChatWithoutEvents();
+    $('div .mes').each((_index, element) => {
+      eventSource.emit(
+        $(element).attr('is_user') ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
+        $(element).attr('mesid'),
+      );
+    });
+  }
 }
 
 function toggle_status(should_enable: boolean) {
