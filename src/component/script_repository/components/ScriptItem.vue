@@ -78,7 +78,7 @@ watchEffect(() => {
     enabled: props.script.enabled,
     hasContent: !!props.script.content,
     scriptObject: props.script,
-    repoType: props.repoType
+    repoType: props.repoType,
   });
 });
 

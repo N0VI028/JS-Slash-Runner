@@ -15,7 +15,6 @@ export type PresetBinding = {
 
 export type PresetBindingsMap = Record<PresetName, PresetBinding>;
 
-
 // 导出的绑定数据结构
 export type ExportedBundles = {
   regexes?: TavernRegex[];

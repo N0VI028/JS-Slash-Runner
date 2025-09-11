@@ -35,12 +35,11 @@ async function refresh_iframe(): Promise<void> {
     await saveChatConditional();
   }
 
-
   const runtime = useScriptRuntime();
-  
-  await runtime.toggleScriptsByType('global', false); 
-  await runtime.toggleScriptsByType('global', true);  
-  
+
+  await runtime.toggleScriptsByType('global', false);
+  await runtime.toggleScriptsByType('global', true);
+
   await reloadCurrentChat();
 }
 

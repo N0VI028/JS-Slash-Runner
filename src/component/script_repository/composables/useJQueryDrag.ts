@@ -9,7 +9,7 @@ export function useJQueryDrag() {
   async function reorderFolderByDom(folderEl: HTMLElement, repoType: ScriptType): Promise<boolean> {
     const folderId = folderEl.id;
     if (!folderId) return false;
-    
+
     const $folderContent = $(folderEl).find('.folder-content');
     const orderedIds: string[] = $folderContent
       .children('.script-item')

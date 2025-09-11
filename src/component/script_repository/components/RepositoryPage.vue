@@ -180,26 +180,23 @@ const handleFileImport = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const files = target.files;
   if (!files?.length) return;
-  
+
   try {
     const popups = (await import('@/component/script_repository/composables/usePopups')).usePopups();
     const result = await popups.selectTarget({ title: '导入到:' });
     if (!result.confirmed || !result.data) return;
-    
+
     const targetType = result.data.target as ScriptType;
     const { repositoryService } = await import('@/component/script_repository/services/repository.service');
 
-    const imported = await repositoryService.importScripts(
-      files,
-      targetType,
-    );
-    
+    const imported = await repositoryService.importScripts(files, targetType);
+
     toastr.success(`成功导入 ${imported} 个脚本`);
   } catch (error) {
     console.error('导入失败:', error);
     toastr.error('导入失败', error instanceof Error ? error.message : '未知错误');
   }
-  
+
   target.value = '';
 };
 
@@ -218,16 +215,11 @@ function toggleFolderExpand(expandedFolders: Ref<Set<string>>, id: string): void
 
 onMounted(async () => {
   try {
-    await Promise.all([
-      storeByType.global.init(),
-      storeByType.character.init(),
-      storeByType.preset.init(),
-    ]);
+    await Promise.all([storeByType.global.init(), storeByType.character.init(), storeByType.preset.init()]);
   } catch (e) {
     console.warn('[RepositoryPage] 初始化仓库数据失败:', e);
   }
 });
-
 
 /**
  * 切换脚本类型启用状态
@@ -249,7 +241,6 @@ function onToggleType(type: ScriptType, event: Event): void {
       break;
   }
 }
-
 
 const batchByType: Record<ScriptType, ReturnType<typeof useBatchActions>> = {
   global: useBatchActions('global'),

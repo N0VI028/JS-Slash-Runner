@@ -38,6 +38,4 @@ withDefaults(defineProps<Props>(), {
   showPresetOption: false,
   currentPresetName: undefined,
 });
-
 </script>
-

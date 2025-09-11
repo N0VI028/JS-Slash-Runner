@@ -1,4 +1,9 @@
-import type { Script, ScriptRepository, ScriptType, SearchFilters } from '@/component/script_repository/schemas/script.schema';
+import type {
+  Script,
+  ScriptRepository,
+  ScriptType,
+  SearchFilters,
+} from '@/component/script_repository/schemas/script.schema';
 import _ from 'lodash';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
@@ -12,7 +17,7 @@ export function createScriptStore(type: ScriptType) {
     const expandedFolders = ref<Set<string>>(new Set());
     const filters = ref<SearchFilters>({});
     const enabled = ref(false);
-    
+
     // 批量操作状态
     const batchMode = ref(false);
     const selectedScriptIds = ref<Set<string>>(new Set());
@@ -29,21 +34,21 @@ export function createScriptStore(type: ScriptType) {
             rootName: anyItem.name,
             valueId: anyItem.value?.id,
             valueName: anyItem.value?.name,
-            item: anyItem
+            item: anyItem,
           });
           result.push(anyItem.value as Script);
         } else if (anyItem && anyItem.type === 'folder' && Array.isArray(anyItem.value)) {
           console.log('[Store] allScripts - 处理文件夹类型项:', {
             folderId: anyItem.id,
             folderName: anyItem.name,
-            scriptsCount: anyItem.value.length
+            scriptsCount: anyItem.value.length,
           });
           result.push(...(anyItem.value as Script[]));
         } else if ((item as any)?.id && (item as any)?.content !== undefined) {
           // 顶层纯 Script 兼容
           console.log('[Store] allScripts - 处理纯脚本对象:', {
             id: (item as any).id,
-            name: (item as any).name
+            name: (item as any).name,
           });
           result.push(item as unknown as Script);
         }
@@ -119,27 +124,27 @@ export function createScriptStore(type: ScriptType) {
     async function updateScript(scriptId: string, payload: Partial<Script>): Promise<void> {
       const script = getScript(scriptId);
       if (!script) {
-          throw new Error('脚本不存在');
+        throw new Error('脚本不存在');
       }
       // 直接在内存中更新对象状态
       Object.assign(script, payload);
-  }
+    }
 
-  async function deleteScript(scriptId: string): Promise<void> {
-    // 同样，只操作内存中的 repository.value
-    // 注意：这里的实现需要 lodash 或者递归函数来处理嵌套情况
-    const removeRecursively = (items: any[]) => {
+    async function deleteScript(scriptId: string): Promise<void> {
+      // 同样，只操作内存中的 repository.value
+      // 注意：这里的实现需要 lodash 或者递归函数来处理嵌套情况
+      const removeRecursively = (items: any[]) => {
         _.remove(items, (item: any) => {
-            if (item.type === 'script' && item.value?.id === scriptId) return true;
-            if (item.id && item.content !== undefined && item.id === scriptId) return true; // 兼容顶层脚本
-            if (item.type === 'folder' && Array.isArray(item.value)) {
-                removeRecursively(item.value);
-            }
-            return false;
+          if (item.type === 'script' && item.value?.id === scriptId) return true;
+          if (item.id && item.content !== undefined && item.id === scriptId) return true; // 兼容顶层脚本
+          if (item.type === 'folder' && Array.isArray(item.value)) {
+            removeRecursively(item.value);
+          }
+          return false;
         });
-    };
-    removeRecursively(repository.value);
-}
+      };
+      removeRecursively(repository.value);
+    }
 
     function getScript(scriptId: string): Script | null {
       return allScripts.value.find(script => script.id === scriptId) || null;
@@ -184,7 +189,7 @@ export function createScriptStore(type: ScriptType) {
      * 设置类型开关
      * @param isEnabled 是否启用
      * @returns void
-    */
+     */
     async function setEnabled(isEnabled: boolean): Promise<void> {
       enabled.value = isEnabled;
     }
@@ -194,7 +199,7 @@ export function createScriptStore(type: ScriptType) {
      * 用于初始化阶段避免触发持久化保存
      * @param isEnabled 是否启用
      * @returns void
-    */
+     */
     function initEnabled(isEnabled: boolean): void {
       enabled.value = isEnabled;
     }
@@ -302,7 +307,7 @@ export function createScriptStore(type: ScriptType) {
       getFolderScripts,
       init,
       toggleScriptEnabled,
-      
+
       // Batch Actions
       toggleBatchMode,
       enterBatchMode,
@@ -310,7 +315,7 @@ export function createScriptStore(type: ScriptType) {
       clearBatchSelections,
       selectScript,
       selectFolder,
-      
+
       $reset,
     };
   });
@@ -327,7 +332,7 @@ export const usePresetScriptStore = createScriptStore('preset');
 export function getStoreByType() {
   return {
     global: useGlobalScriptStore(),
-    character: useCharacterScriptStore(), 
+    character: useCharacterScriptStore(),
     preset: usePresetScriptStore(),
   } as const;
 }
@@ -336,11 +341,7 @@ export function getStoreByType() {
  * 重新加载所有类型的仓库数据
  */
 export const loadAllRepositories = async (): Promise<void> => {
-  const stores = [
-    useGlobalScriptStore(),
-    useCharacterScriptStore(),
-    usePresetScriptStore()
-  ];
-  
+  const stores = [useGlobalScriptStore(), useCharacterScriptStore(), usePresetScriptStore()];
+
   await Promise.all(stores.map(store => store.init()));
 };

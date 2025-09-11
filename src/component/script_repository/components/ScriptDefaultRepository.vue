@@ -35,7 +35,6 @@ onMounted(() => {
     emit('ready', $element[0]);
   }
 });
-
 </script>
 
 <style scoped>
@@ -49,4 +48,5 @@ onMounted(() => {
   flex-wrap: nowrap;
   align-items: center;
   padding: 0 5px;
-}</style>
+}
+</style>

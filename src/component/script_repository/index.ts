@@ -2,7 +2,12 @@ import { useScriptRuntime } from '@/component/script_repository/composables/useS
 import { ScriptRepositoryManager } from '@/component/script_repository/mount';
 import type { ScriptRepository } from '@/component/script_repository/schemas/script.schema';
 import { purgeEmbeddedScripts } from '@/component/script_repository/services/repository.service';
-import { loadAllRepositories, useCharacterScriptStore, useGlobalScriptStore, usePresetScriptStore } from '@/component/script_repository/stores/factory';
+import {
+  loadAllRepositories,
+  useCharacterScriptStore,
+  useGlobalScriptStore,
+  usePresetScriptStore,
+} from '@/component/script_repository/stores/factory';
 import { registerScriptWatchers } from '@/component/script_repository/utils/watchers';
 import { tavern_events } from '@/function/event';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
@@ -103,8 +108,8 @@ function registerGlobalEventListeners(): void {
 
   /**
    * 角色删除时清理白名单/一次性提醒
-   */  
-   eventSource.makeFirst(event_types.CHARACTER_DELETED, (character: any) => purgeEmbeddedScripts({ character }));
+   */
+  eventSource.makeFirst(event_types.CHARACTER_DELETED, (character: any) => purgeEmbeddedScripts({ character }));
 
   /**
    * 预设切换
@@ -127,7 +132,7 @@ function registerGlobalEventListeners(): void {
       const presetExtension = presetManager.readPresetExtensionField({ path: 'tavern_helper_scripts' });
       const presetEnabledFlag = Boolean(presetExtension?.enabled);
       presetStore.initEnabled(presetEnabledFlag);
-      
+
       if (presetStore.enabled) {
         await runtime.toggleScriptsByType('preset', true);
       }
@@ -147,14 +152,14 @@ function registerGlobalEventListeners(): void {
       const ths = ext['tavern_helper_scripts'];
 
       if (!ths || typeof ths !== 'object' || !Array.isArray(ths.repository)) return;
-      
+
       const repository: ScriptRepository = ths.repository;
       if (repository.length === 0) return;
 
       // 弹窗询问是否启用
       const html = ScriptRepositoryManager.renderComponentToString(
         (await import('@/component/script_repository/components/ScriptAllowPopup.vue')).default,
-        { type: 'preset' }
+        { type: 'preset' },
       );
       const $template = $(html);
       const confirmed = await callGenericPopup($template, POPUP_TYPE.CONFIRM, '', {
@@ -190,8 +195,7 @@ function registerGlobalEventListeners(): void {
 
       const ext = (preset as any).extensions || ((preset as any).extensions = {});
       const ths = ext['tavern_helper_scripts'];
-      const hasRepository =
-        ths && typeof ths === 'object';
+      const hasRepository = ths && typeof ths === 'object';
 
       if (!hasRepository) return;
 
@@ -223,7 +227,7 @@ function registerGlobalEventListeners(): void {
         }
       } else if (choice === 4) {
         // 不导出绑定数据
-        if (ext && ext['tavern_helper_regex'] || ext['tavern_helper_scripts']) {
+        if ((ext && ext['tavern_helper_regex']) || ext['tavern_helper_scripts']) {
           delete ext['tavern_helper_regex'];
           delete ext['tavern_helper_scripts'];
         }
@@ -265,7 +269,7 @@ async function checkEmbeddedScriptsOnce(pinia: any): Promise<boolean> {
 
       const html = ScriptRepositoryManager.renderComponentToString(
         (await import('@/component/script_repository/components/ScriptAllowPopup.vue')).default,
-        { type: 'character' }
+        { type: 'character' },
       );
       const $template = $(html);
       const result = await callGenericPopup($template, POPUP_TYPE.CONFIRM, '', {

@@ -359,7 +359,7 @@ export class RepositoryService {
     try {
       const repository = this.loadRepositoryByType(type);
       const idToItem = new Map<string, ScriptRepositoryItem>();
-      
+
       // 先按仓库项建立ID映射，再兜底纯脚本
       for (const item of repository) {
         const repoItemResult = ScriptRepositoryItemSchema.safeParse(item);
@@ -407,7 +407,7 @@ export class RepositoryService {
     try {
       const repository = this.loadRepositoryByType(type);
       const folder = this.findFolderById(repository, folderId);
-      
+
       if (!folder) {
         throw new Error('文件夹不存在');
       }
@@ -500,7 +500,7 @@ export class RepositoryService {
    */
   public getScriptsFromRepository(repository: ScriptRepository): Script[] {
     const scripts: Script[] = [];
-    
+
     for (const item of repository) {
       // 先解析仓库项目，避免把包装项误判为纯脚本
       const repoItemResult = ScriptRepositoryItemSchema.safeParse(item);
@@ -521,7 +521,7 @@ export class RepositoryService {
         continue;
       }
     }
-    
+
     return scripts;
   }
 
@@ -589,7 +589,10 @@ export class RepositoryService {
     }
 
     // 兼容顶层纯 Script
-    const rootScriptItem = _.find(repository, item => ScriptSchema.safeParse(item).success && (item as unknown as Script).id === scriptId);
+    const rootScriptItem = _.find(
+      repository,
+      item => ScriptSchema.safeParse(item).success && (item as unknown as Script).id === scriptId,
+    );
 
     if (rootScriptItem) {
       _.remove(repository, item => item === rootScriptItem);
@@ -776,13 +779,12 @@ export class RepositoryService {
   findIdConflictInTarget(id: string, targetType: ScriptType): { existing: Script; existingType: ScriptType } | null {
     const targetRepo = this.loadRepositoryByType(targetType);
     const targetScripts = this.getScriptsFromRepository(targetRepo);
-    
+
     const conflictInTarget = targetScripts.find((s: Script) => s.id === id);
     if (conflictInTarget) return { existing: conflictInTarget, existingType: targetType };
-    
+
     return null;
   }
-
 
   /**
    * 导入脚本（支持 JSON/ZIP），包含：
@@ -790,9 +792,9 @@ export class RepositoryService {
    * - 冲突检测并强制弹窗处理
    * - 实际导入到目标仓库
    * - ZIP 导入：以 ZIP 文件名创建文件夹，内部 json 脚本导入到该文件夹
-   * 
+   *
    * 行为：当某个文件/条目解析失败时，记录错误并继续处理下一个。
-   * 
+   *
    * @param files 文件列表
    * @param targetType 目标仓库类型
    * @returns 导入的脚本数量
@@ -869,7 +871,7 @@ export class RepositoryService {
           for (const entry of entries) {
             const fileEntry = loaded.files[entry];
             if (!fileEntry || fileEntry.dir) continue;
-            if (entry.includes('/')) continue; 
+            if (entry.includes('/')) continue;
             if (!entry.toLowerCase().endsWith('.json')) continue;
 
             try {
@@ -879,8 +881,8 @@ export class RepositoryService {
               const list = Array.isArray(parsed)
                 ? parsed
                 : parsed && parsed.name && 'content' in parsed
-                ? [parsed]
-                : null;
+                  ? [parsed]
+                  : null;
 
               if (!list) {
                 log.error(`ZIP 内 JSON 不符合脚本格式，已跳过: ${entry}`);
@@ -903,8 +905,8 @@ export class RepositoryService {
           const scripts = Array.isArray(parsed)
             ? parsed
             : parsed && parsed.name && 'content' in parsed
-            ? [parsed]
-            : null;
+              ? [parsed]
+              : null;
 
           if (!scripts) {
             log.error(`JSON 文件不符合脚本格式，已跳过: ${file.name}`);
@@ -927,7 +929,6 @@ export class RepositoryService {
 
     return totalImported;
   }
-
 }
 
 /**

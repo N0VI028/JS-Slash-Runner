@@ -50,7 +50,7 @@ function bindRepositoryPersistence(store: any, type: ScriptType) {
   // 深度监听 repository 的变化
   watch(
     () => store.repository,
-    (newRepo) => {
+    newRepo => {
       debouncedSave(newRepo);
     },
     { deep: true }, // deep: true 是关键，确保能监听到数组内部对象的变化
@@ -82,7 +82,7 @@ function bindEnabledPersistence(store: any, type: ScriptType) {
     () => store.enabled,
     (enabled: boolean) => {
       debouncedSaveEnabled(enabled);
-    }
+    },
   );
 }
 
@@ -136,7 +136,7 @@ export async function registerScriptWatchers(pinia: Pinia): Promise<void> {
         } catch (err) {
           log.error(`[ScriptRepository-Watcher] 切换 "${type}" 脚本类型启用状态失败:`, err);
         }
-      }
+      },
     );
   };
 

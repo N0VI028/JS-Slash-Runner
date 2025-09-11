@@ -4,8 +4,6 @@ import log from 'loglevel';
 import type { Script } from '../schemas/script.schema';
 import { repositoryService } from '../services/repository.service';
 
-
-
 export function getButtonId(scriptId: string, name: string): string {
   return `${scriptId}_${getStringHash(name)}`;
 }

@@ -1,11 +1,14 @@
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import log from 'loglevel';
-import type { Script, ScriptRepository, ScriptRepositoryItem, ScriptType, SearchFilters } from '../schemas/script.schema';
+import type {
+  Script,
+  ScriptRepository,
+  ScriptRepositoryItem,
+  ScriptType,
+  SearchFilters,
+} from '../schemas/script.schema';
 import { repositoryService } from '../services/repository.service';
-import {
-  getStoreByType,
-  loadAllRepositories,
-} from '../stores/factory';
+import { getStoreByType, loadAllRepositories } from '../stores/factory';
 import { createDefaultScript } from '../utils/builtin_scripts';
 import { usePopups } from './usePopups';
 import { useScriptRuntime } from './useScriptRuntime';
@@ -218,7 +221,10 @@ export function useRepoActions() {
         });
         if (decision === 'cancel') return;
         if (decision === 'override') {
-          await repositoryService.deleteScriptInType((targetSel === 'preset' ? 'global' : targetSel) as any, conflict.id);
+          await repositoryService.deleteScriptInType(
+            (targetSel === 'preset' ? 'global' : targetSel) as any,
+            conflict.id,
+          );
           await repositoryService.deleteScriptInType(source as any, scriptId);
           await repositoryService.createScriptInType(targetSel as any, script as Script);
         } else if (decision === 'new') {
@@ -263,8 +269,8 @@ export function useRepoActions() {
         result.data.target === 'global'
           ? globalScriptStore
           : result.data.target === 'character'
-          ? characterScriptStore
-          : presetScriptStore;
+            ? characterScriptStore
+            : presetScriptStore;
       await target.createFolder({
         name: result.data.name,
         icon: result.data.icon,
@@ -385,9 +391,7 @@ export function useRepoActions() {
       }
 
       const targetRepoBefore: ScriptRepository = await repositoryService.loadRepositoryByType(targetSel as any);
-      const folderScripts: Script[] = Array.isArray((folder as any).value)
-        ? ((folder as any).value as Script[])
-        : [];
+      const folderScripts: Script[] = Array.isArray((folder as any).value) ? ((folder as any).value as Script[]) : [];
 
       for (const s of folderScripts) {
         const conflict = repositoryService.findScriptById(targetRepoBefore, s.id);
@@ -427,8 +431,8 @@ export function useRepoActions() {
           targetSel === 'global'
             ? globalScriptStore.enabled
             : targetSel === 'character'
-            ? characterScriptStore.enabled
-            : presetScriptStore.enabled;
+              ? characterScriptStore.enabled
+              : presetScriptStore.enabled;
         if (targetEnabled) {
           const targetRepoAfter: ScriptRepository = await repositoryService.loadRepositoryByType(targetSel as any);
           const folderInTarget = (targetRepoAfter as ScriptRepository).find(

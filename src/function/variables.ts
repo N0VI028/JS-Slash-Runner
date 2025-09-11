@@ -4,13 +4,13 @@ import { getChatMessages, setChatMessages } from '@/function/chat_message';
 import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
 
 import {
-    characters,
-    chat,
-    chat_metadata,
-    eventSource,
-    saveMetadata,
-    saveSettings,
-    this_chid,
+  characters,
+  chat,
+  chat_metadata,
+  eventSource,
+  saveMetadata,
+  saveSettings,
+  this_chid,
 } from '@sillytavern/script';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 
@@ -143,19 +143,17 @@ export async function replaceVariables(
         throw Error('保存变量失败, 未指定 script_id');
       }
       {
-
         const result = repositoryService.findScriptInAllTypes(script_id);
         if (!result) {
           throw Error(`保存变量失败, '${script_id}' 脚本不存在`);
         }
         const { script, type: script_type } = result;
-        
 
         await repositoryService.updateScriptInType(script_type, {
           ...script,
-          data: variables
+          data: variables,
         });
-        
+
         // 同步更新store中的数据
         const storeByType = getStoreByType();
         const store = storeByType[script_type];

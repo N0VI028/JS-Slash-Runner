@@ -9,7 +9,7 @@
     <div v-else class="script-list" ref="listContainer">
       <template v-for="item in allItems" :key="`${item.type}-${item.id}`">
         <!-- 文件夹项 -->
-        <FolderItem 
+        <FolderItem
           v-if="item.type === 'folder'"
           :folder="item.data"
           :is-expanded="expandedFolders?.has(item.id) ?? false"
@@ -43,9 +43,9 @@
             @select-script="(id, selected) => emit('select-script', id, selected)"
           />
         </FolderItem>
-        
+
         <!-- 脚本项 -->
-        <ScriptItem 
+        <ScriptItem
           v-else
           :script="item.data"
           :repo-type="repoType"
@@ -155,7 +155,7 @@ const allItems = computed(() => {
             console.log('[ScriptList] 添加脚本到列表:', {
               id: script.id,
               name: script.name,
-              enabled: script.enabled
+              enabled: script.enabled,
             });
             items.push({ type: 'script', id: script.id, data: script });
           }
@@ -188,7 +188,6 @@ const allItems = computed(() => {
 const getFolderScripts = (folderId: string): Script[] => {
   return currentStore.value.getFolderScripts(folderId, props.searchKeyword);
 };
-
 </script>
 
 <style scoped>

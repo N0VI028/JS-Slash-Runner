@@ -152,7 +152,9 @@ export function useBatchActions(repoType: ScriptType) {
         await repositoryService.moveScriptWithinType(repoType, scriptId, targetFolderId);
       }
 
-      const targetName = targetFolderId ? folders.find((f: any) => f.id === targetFolderId)?.name || '未知文件夹' : '根目录';
+      const targetName = targetFolderId
+        ? folders.find((f: any) => f.id === targetFolderId)?.name || '未知文件夹'
+        : '根目录';
 
       toastr.success(`成功将 ${scriptIds.length} 个脚本移动到"${targetName}"`);
       exitBatchMode();
