@@ -111,30 +111,21 @@ function demacroOnRender(message_id: string) {
     });
 }
 
-function renderAllMacros() {
+export function renderAllMacros() {
   $('div.mes').each((_index, node) => {
     demacroOnRender($(node).attr('mesid')!);
   });
 }
-export const renderAllMacrosDebounced = _.debounce(renderAllMacros, 1000);
 
 async function derenderAllMacros() {
   await saveChatConditional();
   await clearChat();
   await printMessages();
-  $('div.mes').each((_index, node) => {
-    eventSource.emit(
-      Boolean($(node).attr('is_user')) === true
-        ? tavern_events.USER_MESSAGE_RENDERED
-        : tavern_events.CHARACTER_MESSAGE_RENDERED,
-      Number($(node).attr('mesid')!),
-    );
-  });
 }
 export const derenderAllMacrosDebounced = _.debounce(derenderAllMacros, 1000);
 
 export function registerMacroOnExtension() {
-  eventSource.on(event_types.CHAT_CHANGED, renderAllMacrosDebounced);
+  eventSource.on(event_types.CHAT_CHANGED, renderAllMacros);
   eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
   eventSource.on(event_types.GENERATE_AFTER_DATA, demacroOnPrompt);
   eventSource.makeFirst(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
@@ -144,7 +135,7 @@ export function registerMacroOnExtension() {
 }
 
 export function unregisterMacroOnExtension() {
-  eventSource.removeListener(event_types.CHAT_CHANGED, renderAllMacrosDebounced);
+  eventSource.removeListener(event_types.CHAT_CHANGED, renderAllMacros);
   eventSource.removeListener(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
   eventSource.removeListener(event_types.GENERATE_AFTER_DATA, demacroOnPrompt);
   eventSource.removeListener(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
