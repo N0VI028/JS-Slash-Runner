@@ -3,64 +3,54 @@ import { createPinia } from 'pinia';
 import { App, createApp } from 'vue';
 import RepositoryPage from './components/RepositoryPage.vue';
 
-/**
- * Vue应用实例管理器
- */
-export class VueAppManager {
-  private static instance: VueAppManager;
+export class ScriptRepositoryManager {
+  private static instance: ScriptRepositoryManager;
   private app: App | null = null;
   private pinia: ReturnType<typeof createPinia> | null = null;
   private mountElement: HTMLElement | null = null;
 
   private constructor() {}
 
-  public static getInstance(): VueAppManager {
-    if (!VueAppManager.instance) {
-      VueAppManager.instance = new VueAppManager();
+  public static getInstance(): ScriptRepositoryManager {
+    if (!ScriptRepositoryManager.instance) {
+      ScriptRepositoryManager.instance = new ScriptRepositoryManager();
     }
-    return VueAppManager.instance;
+    return ScriptRepositoryManager.instance;
   }
 
   /**
-   * 挂载Vue应用
+   * 挂载应用
    * @param containerId 容器元素ID
    */
   public async mount(container: JQuery<HTMLElement>): Promise<void> {
     try {
-      // 查找容器元素
       this.mountElement = container[0];
       if (!this.mountElement) {
         throw new Error(`找不到挂载容器: ${container}`);
       }
 
-      // 清空容器
       this.mountElement.innerHTML = '';
 
-      // 创建Pinia实例
       this.pinia = createPinia();
 
-      // 创建Vue应用
       this.app = createApp(RepositoryPage);
 
-      // 注册Pinia
       this.app.use(this.pinia);
 
-      // 全局错误处理
       this.app.config.errorHandler = (err, _instance, info) => {
         log.error('[ScriptRepository] 应用错误:', err, info);
         console.error(err);
       };
 
-      // 挂载应用
       this.app.mount(this.mountElement);
     } catch (error) {
-      log.error('[ScriptRepository] 挂载Vue应用失败:', error);
+      log.error('[ScriptRepository] 挂载应用失败:', error);
       throw error;
     }
   }
 
   /**
-   * 卸载Vue应用
+   * 卸载应用
    */
   public unmount(): void {
     try {
@@ -76,9 +66,9 @@ export class VueAppManager {
 
       this.pinia = null;
 
-      log.info('[ScriptRepository] Vue应用已卸载');
+      log.info('[ScriptRepository] 应用已卸载');
     } catch (error) {
-      log.error('[ScriptRepository] 卸载Vue应用失败:', error);
+      log.error('[ScriptRepository] 卸载应用失败:', error);
     }
   }
 
@@ -97,19 +87,55 @@ export class VueAppManager {
   }
 
   /**
-   * 获取Vue应用实例
+   * 获取应用实例
    */
   public getApp() {
     return this.app;
   }
 
   /**
+   * 渲染Vue组件为HTML字符串
+   * @param component Vue组件
+   * @param props 组件props
+   * @returns HTML字符串
+   */
+  public static renderComponentToString(component: any, props: Record<string, any> = {}): string {
+    try {
+      // 创建一个临时的DOM元素
+      const container = document.createElement('div');
+
+      // 创建Vue应用实例
+      const app = createApp(component, props);
+
+      // 如果有Pinia实例，使用它
+      const instance = ScriptRepositoryManager.instance;
+      if (instance?.pinia) {
+        app.use(instance.pinia);
+      }
+
+      // 渲染到容器
+      app.mount(container);
+
+      // 获取HTML内容
+      const html = container.innerHTML;
+
+      // 清理
+      app.unmount();
+
+      return html;
+    } catch (error) {
+      log.error('[ScriptRepository] 渲染组件失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 销毁管理器实例
    */
   public static destroyInstance(): void {
-    if (VueAppManager.instance) {
-      VueAppManager.instance.unmount();
-      VueAppManager.instance = undefined as unknown as VueAppManager;
+    if (ScriptRepositoryManager.instance) {
+      ScriptRepositoryManager.instance.unmount();
+      ScriptRepositoryManager.instance = undefined as unknown as ScriptRepositoryManager;
     }
   }
 }

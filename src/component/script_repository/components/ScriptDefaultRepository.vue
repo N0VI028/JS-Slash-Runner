@@ -37,3 +37,16 @@ onMounted(() => {
 });
 
 </script>
+
+<style scoped>
+.script-item {
+  width: 100%;
+  border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 10px;
+  min-height: 35px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: 0 5px;
+}</style>

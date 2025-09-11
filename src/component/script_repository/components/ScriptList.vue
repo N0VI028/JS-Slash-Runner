@@ -127,20 +127,9 @@ useRootDrop(listContainer, props.repoType);
 const allItems = computed(() => {
   const items: Array<{ type: 'folder' | 'script'; id: string; data: any }> = [];
 
-  for (const item of props.repository) {
-    // 使用zod验证数据类型
-    const scriptResult = ScriptSchema.safeParse(item);
-    if (scriptResult.success) {
-      // 直接的脚本对象
-      const script = scriptResult.data;
-      // 根级脚本：按搜索关键字过滤名称
-      const show = !props.searchKeyword || matchesNameByQuery(script.name, props.searchKeyword);
-      if (show) {
-        items.push({ type: 'script', id: script.id, data: script });
-      }
-      continue;
-    }
-
+  const source = Array.isArray(props.repository) ? props.repository : [];
+  for (const item of source) {
+    // 先尝试作为仓库项目解析（folder/script 包装项）
     const repositoryItemResult = ScriptRepositoryItemSchema.safeParse(item);
     if (repositoryItemResult.success) {
       const repositoryItem = repositoryItemResult.data;
@@ -156,12 +145,35 @@ const allItems = computed(() => {
           });
         }
       } else if (repositoryItem.type === 'script') {
-        const script = repositoryItem.value as Script;
-        const show = !props.searchKeyword || matchesNameByQuery(script.name, props.searchKeyword);
-        if (show) {
-          items.push({ type: 'script', id: script.id, data: script });
+        const inner = repositoryItem.value as any;
+
+        const innerScriptResult = ScriptSchema.safeParse(inner);
+        if (innerScriptResult.success) {
+          const script = innerScriptResult.data as Script;
+          const show = !props.searchKeyword || matchesNameByQuery(script.name, props.searchKeyword);
+          if (show) {
+            console.log('[ScriptList] 添加脚本到列表:', {
+              id: script.id,
+              name: script.name,
+              enabled: script.enabled
+            });
+            items.push({ type: 'script', id: script.id, data: script });
+          }
         }
       }
+      // 仓库项已处理，继续下一个
+      continue;
+    }
+
+    // 再尝试作为纯脚本解析（兼容旧数据）
+    const scriptResult = ScriptSchema.safeParse(item);
+    if (scriptResult.success) {
+      const script = scriptResult.data;
+      const show = !props.searchKeyword || matchesNameByQuery(script.name, props.searchKeyword);
+      if (show) {
+        items.push({ type: 'script', id: script.id, data: script });
+      }
+      continue;
     }
   }
 

@@ -140,62 +140,6 @@ export const usePresetBundlesStore = defineStore('presetBundles', {
       }
     },
 
-    // 验证脚本和正则是否存在于系统中
-    async validateSystemReferences(): Promise<{ missingScripts: string[]; missingRegexes: string[] }> {
-      const result = { missingScripts: [] as string[], missingRegexes: [] as string[] };
-
-      try {
-        console.log('[PresetBundles] Validating system references...');
-
-        // 获取所有引用的 ID
-        const allScriptIds = new Set<string>();
-        const allRegexIds = new Set<string>();
-
-        Object.values(this.bindings).forEach(binding => {
-          binding.scripts.forEach(id => allScriptIds.add(id));
-          binding.regexes.forEach(id => allRegexIds.add(id));
-        });
-
-        // 验证脚本引用
-        if (allScriptIds.size > 0) {
-          const { ScriptManager } = await import('../../script_repository/script_controller');
-          const scriptManager = ScriptManager.getInstance();
-          const allSystemScripts = [...scriptManager.getGlobalScripts(), ...scriptManager.getCharacterScripts()];
-          const allSystemScriptIds = new Set(allSystemScripts.map(s => s.id));
-
-          allScriptIds.forEach(id => {
-            if (!allSystemScriptIds.has(id)) {
-              result.missingScripts.push(id);
-            }
-          });
-        }
-
-        // 验证正则引用
-        if (allRegexIds.size > 0) {
-          const { getTavernRegexes } = await import('../../../function/tavern_regex');
-          const allSystemRegexes = getTavernRegexes();
-          const allSystemRegexIds = new Set(allSystemRegexes.map((r: any) => r.id));
-
-          allRegexIds.forEach(id => {
-            if (!allSystemRegexIds.has(id)) {
-              result.missingRegexes.push(id);
-            }
-          });
-        }
-
-        if (result.missingScripts.length > 0 || result.missingRegexes.length > 0) {
-          console.warn('[PresetBundles] Found missing references:', result);
-        } else {
-          console.log('[PresetBundles] All system references are valid');
-        }
-
-        return result;
-      } catch (error) {
-        console.error('[PresetBundles] Error validating system references:', error);
-        return result;
-      }
-    },
-
     // 清理无效引用
     async cleanInvalidReferences(): Promise<void> {
       try {
@@ -260,39 +204,6 @@ export const usePresetBundlesStore = defineStore('presetBundles', {
         console.error(`[PresetBundles] Error applying bindings for preset ${presetName}:`, error);
         throw error;
       }
-    },
-
-    // 辅助方法 - 应用脚本绑定
-    async applyScriptBindings(scriptIds: string[]): Promise<void> {
-      const { ScriptManager } = await import('../../script_repository/script_controller');
-      const { ScriptType } = await import('../../script_repository/types');
-      const scriptManager = ScriptManager.getInstance();
-
-      // 获取所有脚本
-      const allGlobalScripts = scriptManager.getGlobalScripts();
-      const allCharacterScripts = scriptManager.getCharacterScripts();
-      const allScripts = [...allGlobalScripts, ...allCharacterScripts];
-
-      // 创建脚本 ID 到类型的映射
-      const scriptTypeMap = new Map<string, typeof ScriptType.GLOBAL | typeof ScriptType.CHARACTER>();
-      allGlobalScripts.forEach(s => scriptTypeMap.set(s.id, ScriptType.GLOBAL));
-      allCharacterScripts.forEach(s => scriptTypeMap.set(s.id, ScriptType.CHARACTER));
-
-      // 批量处理脚本状态变更
-      const promises: Promise<void>[] = [];
-
-      for (const script of allScripts) {
-        const shouldEnable = scriptIds.includes(script.id);
-        const scriptType = scriptTypeMap.get(script.id);
-
-        if (scriptType && script.enabled !== shouldEnable) {
-          // 使用 toggleScript 但不保存到持久化存储（userInput = false）
-          promises.push(scriptManager.toggleScript(script, scriptType, shouldEnable, false));
-        }
-      }
-
-      // 等待所有脚本状态变更完成
-      await Promise.all(promises);
     },
 
     // 辅助方法 - 应用正则绑定
@@ -548,28 +459,6 @@ export const usePresetBundlesStore = defineStore('presetBundles', {
       } catch (error) {
         console.error('[PresetBundles] Error during auto repair:', error);
         return false;
-      }
-    },
-
-    // 辅助方法 - 获取完整的脚本数据
-    async getFullScriptsData(scriptIds: string[]): Promise<any[]> {
-      try {
-        const { ScriptManager } = await import('../../script_repository/script_controller');
-        const scriptManager = ScriptManager.getInstance();
-
-        const allGlobalScripts = scriptManager.getGlobalScripts();
-        const allCharacterScripts = scriptManager.getCharacterScripts();
-        const allScripts = [...allGlobalScripts, ...allCharacterScripts];
-
-        // 找到对应的脚本对象
-        const fullScripts = scriptIds
-          .map(id => allScripts.find(script => script.id === id))
-          .filter((script): script is NonNullable<typeof script> => script !== undefined);
-
-        return fullScripts;
-      } catch (error) {
-        console.error('[PresetBundles] Error getting full scripts data:', error);
-        return [];
       }
     },
 

@@ -3,7 +3,7 @@ import third_party from '@/third_party.html';
 import log from 'loglevel';
 import type { Script, ScriptType } from '../schemas/script.schema';
 import { getStoreByType } from '../stores/factory';
-import { buttonManagerV2 } from '../utils/buttonManager';
+import { buttonManager } from '../utils/buttonManager';
 
 /**
  * 脚本运行时管理器
@@ -60,7 +60,7 @@ export function useScriptRuntime() {
     // 检查类型总开关
     // @ts-ignore
     if (!store.enabled) {
-      log.info(`[V2ScriptRuntime] ${type}脚本类型未启用，跳过启用脚本["${script.name}"]`);
+      log.info(`[ScriptRepository] ${type}脚本类型未启用，跳过启用脚本["${script.name}"]`);
       return;
     }
 
@@ -77,7 +77,7 @@ export function useScriptRuntime() {
       });
 
       $iframe.on('load', () => {
-        log.info(`[V2ScriptRuntime] 启用${type}脚本["${script.name}"]`);
+        log.info(`[ScriptRepository] 启用${type}脚本["${script.name}"]`);
       });
 
       $('body').append($iframe);
@@ -85,14 +85,14 @@ export function useScriptRuntime() {
       // 同步按钮：随脚本启用一起添加
       if (script.buttons && script.buttons.length > 0) {
         try {
-          buttonManagerV2.init();
-          buttonManagerV2.addButtonsForScript(script);
+          buttonManager.init();
+          buttonManager.addButtonsForScript(script);
         } catch (e) {
-          log.warn('[V2ScriptRuntime] 添加按钮失败:', e);
+          log.warn('[ScriptRepository] 添加按钮失败:', e);
         }
       }
     } catch (error) {
-      log.error(`[V2ScriptRuntime] ${type}脚本启用失败:["${script.name}"]`, error);
+      log.error(`[ScriptRepository] ${type}脚本启用失败:["${script.name}"]`, error);
       toastr.error(`${type}脚本启用失败:["${script.name}"]`);
       throw error;
     }
@@ -113,42 +113,42 @@ export function useScriptRuntime() {
       const $iframe = $(`iframe[script-id="${scriptId}"]`);
       if ($iframe.length > 0) {
         $iframe.remove();
-        log.info(`[V2ScriptRuntime] 禁用${type}脚本["${script.name}"]`);
+        log.info(`[ScriptRepository] 禁用${type}脚本["${script.name}"]`);
       }
 
       // 同步按钮：随脚本禁用一起移除
       if (script.buttons && script.buttons.length > 0) {
         try {
-          buttonManagerV2.removeButtonsByScriptId(scriptId);
+          buttonManager.removeButtonsByScriptId(scriptId);
         } catch (e) {
-          log.warn('[V2ScriptRuntime] 移除按钮失败:', e);
+          log.warn('[ScriptRepository] 移除按钮失败:', e);
         }
       }
     } catch (error) {
-      log.error(`[V2ScriptRuntime] ${type}脚本停止失败:["${script.name}"]`, error);
+      log.error(`[ScriptRepository] ${type}脚本停止失败:["${script.name}"]`, error);
     }
   }
 
   /**
    * 批量切换某类型的所有脚本
+   * @param type 脚本类型
+   * @param enable 是否启动
    */
   async function toggleScriptsByType(type: ScriptType, enable: boolean): Promise<void> {
     const store = storeByType[type];
     const scripts = store.allScripts.filter((script: any) => script.enabled);
 
     if (!enable) {
-      // 禁用：停止所有启用的脚本
       for (const script of scripts) {
         await stopScript(script.id, type);
       }
     } else {
-      // 启用：启动所有启用的脚本
       for (const script of scripts) {
         await startScript(script.id, type);
       }
     }
 
-    log.info(`[V2ScriptRuntime] ${enable ? '启用' : '禁用'}了${scripts.length}个${type}脚本`);
+    log.info(`[ScriptRepository] ${enable ? '启用' : '禁用'}了${scripts.length}个${type}脚本`);
   }
 
   /**
@@ -165,7 +165,7 @@ export function useScriptRuntime() {
       }
     }
 
-    log.info(`[V2ScriptRuntime] ${enable ? '启用' : '禁用'}了文件夹内${folderScripts.length}个脚本`);
+    log.info(`[ScriptRepository] ${enable ? '启用' : '禁用'}了文件夹内${folderScripts.length}个脚本`);
   }
 
   /**
@@ -174,7 +174,7 @@ export function useScriptRuntime() {
   async function cleanup(): Promise<void> {
     const $iframes = $('iframe[id^="tavern-helper-script-"]');
     $iframes.remove();
-    log.info(`[V2ScriptRuntime] 清理了${$iframes.length}个脚本iframe`);
+    log.info(`[ScriptRepository] 清理了${$iframes.length}个脚本iframe`);
   }
 
   return {

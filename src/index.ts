@@ -10,8 +10,8 @@ import {
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
 import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';
-import { initializeVueScriptRepository } from '@/component/script_repository';
-import { defaultScriptSettings } from '@/component/script_repository/types';
+import { initializeScriptRepository } from '@/component/script_repository';
+import { defaultScriptSettings } from '@/component/script_repository/schemas/script.schema';
 import { initVariableManager } from '@/component/variable_manager';
 import { disableIncompatibleOption } from '@/disable_incompatible_option';
 import { initTavernHelperObject } from '@/function';
@@ -247,14 +247,12 @@ jQuery(async () => {
     await initAudioComponents();
     initAudioSlashCommands();
     initSlashEventEmit();
-    // 直接初始化Vue版本的脚本库
-    await initializeVueScriptRepository();
+    await initializeScriptRepository();
     await initIframePanel();
     await initReference();
     await initListener();
     initVariableManager();
     initPromptView();
-    // await initPresetBundles();
   });
 
   // 通用Collapsible折叠功能

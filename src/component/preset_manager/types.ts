@@ -5,7 +5,6 @@
 
 import { z } from 'zod';
 // 导入现有类型
-import type { Script, ScriptType } from '@/component/script_repository/types';
 
 export type PresetName = string;
 
@@ -16,16 +15,9 @@ export type PresetBinding = {
 
 export type PresetBindingsMap = Record<PresetName, PresetBinding>;
 
-// 预设脚本：扩展现有 Script 类型，添加预设相关字段
-export type PresetScript = Script & {
-  type: 'preset';
-  presetName: PresetName;
-  originalScope: ScriptType; // 记录原始作用域
-};
 
 // 导出的绑定数据结构
 export type ExportedBundles = {
-  scripts?: PresetScript[];
   regexes?: TavernRegex[];
 };
 

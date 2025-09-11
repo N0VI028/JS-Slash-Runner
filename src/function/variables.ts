@@ -1,16 +1,16 @@
-import { scriptEvents, ScriptRepositoryEventType } from '@/component/script_repository/events';
-import { ScriptManager } from '@/component/script_repository/script_controller';
+import { repositoryService } from '@/component/script_repository/services/repository.service';
+import { getStoreByType } from '@/component/script_repository/stores/factory';
 import { getChatMessages, setChatMessages } from '@/function/chat_message';
 import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
 
 import {
-  characters,
-  chat,
-  chat_metadata,
-  eventSource,
-  saveMetadata,
-  saveSettings,
-  this_chid,
+    characters,
+    chat,
+    chat_metadata,
+    eventSource,
+    saveMetadata,
+    saveSettings,
+    this_chid,
 } from '@sillytavern/script';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 
@@ -50,12 +50,12 @@ function getVariablesByType({ type = 'chat', message_id = 'latest', script_id }:
       if (!script_id) {
         throw Error('获取脚本变量失败, 未指定 script_id');
       }
-      const script_manager = ScriptManager.getInstance();
-      const script = script_manager.getScriptById(script_id);
-      if (!script) {
+
+      const result = repositoryService.findScriptInAllTypes(script_id);
+      if (!result) {
         throw Error(`获取脚本变量失败, '${script_id}' 脚本不存在`);
       }
-      return script_manager.getScriptVariables(script_id);
+      return result.script.data || {};
     }
   }
 }
@@ -92,7 +92,11 @@ export function _getAllVariables(this: Window): Record<string, any> {
     characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables,
   );
   if (!is_message_iframe) {
-    data = _.merge(data, getVariables({ type: 'script', script_id: _getScriptId.call(this) }));
+    try {
+      data = _.merge(data, getVariables({ type: 'script', script_id: _getScriptId.call(this) }));
+    } catch (error) {
+      log.warn('获取脚本变量失败:', error);
+    }
   }
   data = _.merge(data, (chat_metadata as { variables: Record<string, any> | undefined }).variables);
   if (is_message_iframe) {
@@ -139,19 +143,23 @@ export async function replaceVariables(
         throw Error('保存变量失败, 未指定 script_id');
       }
       {
-        const script_manager = ScriptManager.getInstance();
-        const script = script_manager.getScriptById(script_id);
-        if (!script) {
+
+        const result = repositoryService.findScriptInAllTypes(script_id);
+        if (!result) {
           throw Error(`保存变量失败, '${script_id}' 脚本不存在`);
         }
-        script.data = variables;
-        const script_type = script_manager['scriptData'].getScriptType(script);
-        scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-          action: 'script_update',
-          script,
-          type: script_type,
+        const { script, type: script_type } = result;
+        
+
+        await repositoryService.updateScriptInType(script_type, {
+          ...script,
+          data: variables
         });
-        await script_manager.updateScriptVariables(script_id, variables, script_type);
+        
+        // 同步更新store中的数据
+        const storeByType = getStoreByType();
+        const store = storeByType[script_type];
+        await store.updateScript(script_id, { data: variables });
       }
       break;
   }

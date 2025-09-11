@@ -1,6 +1,7 @@
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { z } from 'zod';
 
+
 /**
  * 单个脚本的 Zod schema
  */
@@ -14,7 +15,7 @@ export const ScriptSchema = z.object({
       name: z.string().default(''),
       visible: z.boolean().default(true),
     }),
-  ),
+  ).default([]),
   data: z.record(z.string(), z.any()).default({}),
   enabled: z.boolean().default(false),
 });
@@ -100,3 +101,13 @@ export type Script = z.infer<typeof ScriptSchema>;
 export type ScriptRepository = z.infer<typeof ScriptRepositorySchema>;
 export type ScriptRepositoryItem = z.infer<typeof ScriptRepositoryItemSchema>;
 export type ScriptType = z.infer<typeof ScriptTypeSchema>;
+
+
+/**
+ * 默认脚本设置
+ */
+export const defaultScriptSettings = {
+  global_script_enabled: true,
+  scriptsRepository: [] as ScriptRepository,
+  characters_with_scripts: [] as string[],
+};

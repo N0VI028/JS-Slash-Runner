@@ -1,5 +1,4 @@
-import { ScriptType } from '@/component/script_repository/index';
-import { ScriptManager } from '@/component/script_repository/script_controller';
+import { useScriptRuntime } from '@/component/script_repository/composables/useScriptRuntime';
 import {
   extensionFolderPath,
   getOrSaveSettingValue,
@@ -36,11 +35,12 @@ async function refresh_iframe(): Promise<void> {
     await saveChatConditional();
   }
 
-  const scriptManager = ScriptManager.getInstance();
-  const globalScripts = scriptManager.getGlobalScripts();
 
-  await scriptManager.stopScriptsByType(globalScripts, ScriptType.GLOBAL);
-  await scriptManager.runScriptsByType(globalScripts, ScriptType.GLOBAL);
+  const runtime = useScriptRuntime();
+  
+  await runtime.toggleScriptsByType('global', false); 
+  await runtime.toggleScriptsByType('global', true);  
+  
   await reloadCurrentChat();
 }
 

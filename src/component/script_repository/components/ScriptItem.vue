@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import { useJQueryDrag } from '@/component/script_repository/composables/useJQueryDrag';
 import type { Script } from '@/component/script_repository/schemas/script.schema';
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 
 import type { ScriptType } from '@/component/script_repository/schemas/script.schema';
 
@@ -68,6 +68,18 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   batchMode: false,
   selected: false,
+});
+
+// 添加调试日志
+watchEffect(() => {
+  console.log('[ScriptItem] 渲染脚本:', {
+    id: props.script.id,
+    name: props.script.name,
+    enabled: props.script.enabled,
+    hasContent: !!props.script.content,
+    scriptObject: props.script,
+    repoType: props.repoType
+  });
 });
 
 defineEmits<{

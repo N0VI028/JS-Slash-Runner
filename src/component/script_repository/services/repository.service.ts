@@ -5,6 +5,7 @@ import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { download, uuidv4 } from '@sillytavern/scripts/utils';
 import _ from 'lodash';
 import log from 'loglevel';
+import { toRaw } from 'vue';
 import type { Script, ScriptFolder, ScriptRepository, ScriptRepositoryItem } from '../schemas/script.schema';
 
 import { ScriptFolderSchema, ScriptRepositoryItemSchema, ScriptSchema, ScriptType } from '../schemas/script.schema';
@@ -21,6 +22,32 @@ export class RepositoryService {
       RepositoryService.instance = new RepositoryService();
     }
     return RepositoryService.instance;
+  }
+
+  /**
+   * 递归去除 Vue 响应式代理，返回纯数据结构
+   */
+  private deepToRaw<T>(value: T, seen: WeakMap<any, any> = new WeakMap()): T {
+    const unwrapped: any = toRaw(value as any);
+    if (unwrapped === null || typeof unwrapped !== 'object') return unwrapped as T;
+
+    if (seen.has(unwrapped)) return seen.get(unwrapped);
+
+    if (Array.isArray(unwrapped)) {
+      const arr: any[] = [];
+      seen.set(unwrapped, arr);
+      for (const item of unwrapped) {
+        arr.push(this.deepToRaw(item, seen));
+      }
+      return arr as unknown as T;
+    }
+
+    const plain: Record<string, any> = {};
+    seen.set(unwrapped, plain);
+    for (const key of Object.keys(unwrapped)) {
+      plain[key] = this.deepToRaw(unwrapped[key], seen);
+    }
+    return plain as unknown as T;
   }
 
   /**
@@ -54,23 +81,75 @@ export class RepositoryService {
   public async saveRepositoryByType(type: ScriptType, repository: ScriptRepository): Promise<void> {
     switch (type) {
       case 'global':
-        saveSettingValue('script.scriptsRepository', repository);
+        saveSettingValue('script.scriptsRepository', this.deepToRaw(repository));
         return;
       case 'character':
         if (!this_chid) {
           throw new Error('保存失败：当前角色为空');
         }
         //@ts-ignore
-        await writeExtensionField(this_chid, 'TavernHelper_scripts', repository);
+        await writeExtensionField(this_chid, 'TavernHelper_scripts', this.deepToRaw(repository));
         return;
       case 'preset': {
         const presetManager = getPresetManager();
+        const isEnabled = presetManager.readPresetExtensionField({ path: 'tavern_helper_scripts.enabled' }) || false;
         // @ts-ignore
         await presetManager.writePresetExtensionField({
           path: 'tavern_helper_scripts',
-          value: { repository: repository },
+          value: { repository: this.deepToRaw(repository), enabled: isEnabled },
         });
         return;
+      }
+    }
+  }
+
+  /**
+   * 保存预设脚本开关状态
+   * @param {boolean} enabled 开关状态
+   */
+  public async savePresetEnabledState(enabled: boolean): Promise<void> {
+    const presetManager = getPresetManager();
+    // @ts-ignore
+    const currentExtension = presetManager.readPresetExtensionField({ path: 'tavern_helper_scripts' }) || {};
+    // @ts-ignore
+    await presetManager.writePresetExtensionField({
+      path: 'tavern_helper_scripts',
+      value: {
+        repository: this.deepToRaw(currentExtension.repository || []),
+        enabled: enabled,
+      },
+    });
+  }
+
+  /**
+   * 保存全局脚本开关状态
+   * @param {boolean} enabled 开关状态
+   */
+  public async saveGlobalEnabledState(enabled: boolean): Promise<void> {
+    saveSettingValue('script.global_script_enabled', enabled);
+  }
+
+  /**
+   * 保存角色脚本开关状态（通过白名单机制）
+   * @param {boolean} enabled 开关状态
+   */
+  public async saveCharacterEnabledState(enabled: boolean): Promise<void> {
+    const avatar = (this_chid && (characters as any)?.[this_chid]?.avatar) || '';
+    if (!avatar) return;
+
+    const allowList: string[] = getSettingValue('script.characters_with_scripts') || [];
+    const isCurrentlyWhitelisted = allowList.includes(avatar);
+
+    if (enabled && !isCurrentlyWhitelisted) {
+      // 启用且不在白名单中，添加到白名单
+      allowList.push(avatar);
+      saveSettingValue('script.characters_with_scripts', allowList);
+    } else if (!enabled && isCurrentlyWhitelisted) {
+      // 禁用且在白名单中，从白名单移除
+      const index = allowList.indexOf(avatar);
+      if (index > -1) {
+        allowList.splice(index, 1);
+        saveSettingValue('script.characters_with_scripts', allowList);
       }
     }
   }
@@ -281,18 +360,21 @@ export class RepositoryService {
       const repository = this.loadRepositoryByType(type);
       const idToItem = new Map<string, ScriptRepositoryItem>();
       
-      // 建立ID到项目的映射
+      // 先按仓库项建立ID映射，再兜底纯脚本
       for (const item of repository) {
-        if (ScriptSchema.safeParse(item).success) {
-          const script = item as unknown as Script;
-          idToItem.set(script.id, item);
-        } else if (ScriptRepositoryItemSchema.safeParse(item).success) {
-          const repoItem = item as any;
+        const repoItemResult = ScriptRepositoryItemSchema.safeParse(item);
+        if (repoItemResult.success) {
+          const repoItem = repoItemResult.data as any;
           if (repoItem.type === 'folder') {
             idToItem.set(repoItem.id, item);
           } else if (repoItem.type === 'script') {
             idToItem.set(repoItem.value.id, item);
           }
+          continue;
+        }
+        if (ScriptSchema.safeParse(item).success) {
+          const script = item as unknown as Script;
+          idToItem.set(script.id, item as unknown as ScriptRepositoryItem);
         }
       }
 
@@ -398,6 +480,20 @@ export class RepositoryService {
   }
 
   /**
+   * 在所有类型仓库中查找脚本
+   * 返回第一个匹配的脚本以及其所在类型
+   */
+  public findScriptInAllTypes(scriptId: string): { script: Script; type: ScriptType } | null {
+    const types: ScriptType[] = ['global', 'character', 'preset'];
+    for (const type of types) {
+      const repo = this.loadRepositoryByType(type);
+      const script = this.findScriptById(repo, scriptId);
+      if (script) return { script, type };
+    }
+    return null;
+  }
+
+  /**
    * 获取单个仓库中的所有脚本
    * @param repository 脚本仓库
    * @returns 该仓库中的所有脚本数组
@@ -406,21 +502,23 @@ export class RepositoryService {
     const scripts: Script[] = [];
     
     for (const item of repository) {
-      // 直接的脚本对象
-      if (ScriptSchema.safeParse(item).success) {
-        scripts.push(item as unknown as Script);
-        continue;
-      }
-      
-      // 仓库项目
+      // 先解析仓库项目，避免把包装项误判为纯脚本
       const repoItemResult = ScriptRepositoryItemSchema.safeParse(item);
       if (repoItemResult.success) {
         const repoItem = repoItemResult.data as any;
         if (repoItem.type === 'script' && repoItem.value) {
           scripts.push(repoItem.value as Script);
+          continue;
         } else if (repoItem.type === 'folder' && Array.isArray(repoItem.value)) {
           scripts.push(...(repoItem.value as Script[]));
+          continue;
         }
+      }
+
+      // 兼容顶层纯 Script
+      if (ScriptSchema.safeParse(item).success) {
+        scripts.push(item as unknown as Script);
+        continue;
       }
     }
     
@@ -459,46 +557,43 @@ export class RepositoryService {
    * @returns 被移除的脚本，如果不存在则返回null
    */
   public removeScriptById(repository: ScriptRepository, scriptId: string): Script | null {
-    const rootScriptItem = _.find(repository, item => {
-      if (ScriptSchema.safeParse(item).success) {
-        return (item as unknown as Script).id === scriptId;
-      } else if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as any;
-        return repositoryItem.type === 'script' && repositoryItem.value?.id === scriptId;
+    // 优先处理仓库项，避免误将包装项当作纯脚本
+    const repoItemIndex = repository.findIndex(item => {
+      const res = ScriptRepositoryItemSchema.safeParse(item);
+      if (!res.success) return false;
+      const repoItem = res.data as any;
+      if (repoItem.type === 'script') {
+        return repoItem.value?.id === scriptId;
+      } else if (repoItem.type === 'folder' && Array.isArray(repoItem.value)) {
+        return (repoItem.value as Script[]).some(s => s.id === scriptId);
       }
       return false;
     });
 
-    if (rootScriptItem) {
-      _.remove(repository, item => item === rootScriptItem);
-      if (ScriptSchema.safeParse(rootScriptItem).success) {
-        return rootScriptItem as unknown as Script;
-      } else {
-        const repositoryItem = rootScriptItem as any;
-        return repositoryItem.value as Script;
+    if (repoItemIndex !== -1) {
+      const repoItem = repository[repoItemIndex] as any;
+      if (repoItem.type === 'script') {
+        // 根级包装脚本
+        const script = repoItem.value as Script;
+        repository.splice(repoItemIndex, 1);
+        return script;
+      } else if (repoItem.type === 'folder') {
+        // 文件夹内脚本
+        const scripts = repoItem.value as Script[];
+        const idx = scripts.findIndex((s: Script) => s.id === scriptId);
+        if (idx !== -1) {
+          const [removed] = scripts.splice(idx, 1);
+          return removed;
+        }
       }
     }
 
-    const folderItem = _.find(repository, item => {
-      if (ScriptRepositoryItemSchema.safeParse(item).success) {
-        const repositoryItem = item as any;
-        return (
-          repositoryItem.type === 'folder' &&
-          Array.isArray(repositoryItem.value) &&
-          _.some(repositoryItem.value, (script: Script) => script.id === scriptId)
-        );
-      }
-      return false;
-    });
+    // 兼容顶层纯 Script
+    const rootScriptItem = _.find(repository, item => ScriptSchema.safeParse(item).success && (item as unknown as Script).id === scriptId);
 
-    if (folderItem) {
-      const repositoryItem = folderItem as any;
-      const script = _.find(repositoryItem.value, (s: Script) => s.id === scriptId);
-
-      if (script) {
-        _.remove(repositoryItem.value, (s: Script) => s.id === scriptId);
-        return script;
-      }
+    if (rootScriptItem) {
+      _.remove(repository, item => item === rootScriptItem);
+      return rootScriptItem as unknown as Script;
     }
 
     // 没有找到脚本
@@ -833,6 +928,25 @@ export class RepositoryService {
     return totalImported;
   }
 
+}
+
+/**
+ * 从脚本允许列表中删除角色
+ * @param param0
+ */
+export async function purgeEmbeddedScripts({ character }: { character: any }): Promise<void> {
+  const avatar = character?.character?.avatar;
+  const charactersWithScripts = getSettingValue('script.characters_with_scripts') || [];
+  if (avatar) {
+    localStorage.removeItem(`AlertScript_${avatar}`);
+    if (charactersWithScripts?.includes(avatar)) {
+      const index = charactersWithScripts.indexOf(avatar);
+      if (index !== -1) {
+        charactersWithScripts.splice(index, 1);
+        saveSettingValue('script.characters_with_scripts', charactersWithScripts);
+      }
+    }
+  }
 }
 
 // 导出单例实例

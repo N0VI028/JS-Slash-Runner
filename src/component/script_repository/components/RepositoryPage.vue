@@ -56,7 +56,7 @@
         />
 
         <ScriptList
-          :repository="repo.store.repository"
+          :repository="repo.repoItems.value"
           :expanded-folders="repo.expandedFolders.value"
           :is-searching="isSearching"
           :repo-type="repo.type"
@@ -98,10 +98,10 @@ import {
   useGlobalScriptStore,
   usePresetScriptStore,
 } from '@/component/script_repository/stores/factory';
+import { saveSettingValue } from '@/util/extension_variables';
 import { debounce } from 'lodash';
 import type { Ref } from 'vue';
-import { computed, onMounted, ref } from 'vue';
-
+import { computed, onMounted, ref, unref } from 'vue';
 const actions = useRepoActions();
 const actionsByType = {
   global: createRepoActionsForType('global'),
@@ -216,7 +216,17 @@ function toggleFolderExpand(expandedFolders: Ref<Set<string>>, id: string): void
   }
 }
 
-onMounted(async () => {});
+onMounted(async () => {
+  try {
+    await Promise.all([
+      storeByType.global.init(),
+      storeByType.character.init(),
+      storeByType.preset.init(),
+    ]);
+  } catch (e) {
+    console.warn('[RepositoryPage] 初始化仓库数据失败:', e);
+  }
+});
 
 
 /**
@@ -260,6 +270,7 @@ function buildRepositoryConfig(type: ScriptType) {
     description: meta.description,
     batchTitle: meta.batchTitle,
     store,
+    repoItems: computed(() => unref(store.repository) ?? []),
     enabled: computed(() => store.enabled),
     expandedFolders,
     toggleFolderExpand: (id: string) => toggleFolderExpand(expandedFolders, id),

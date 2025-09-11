@@ -2,13 +2,23 @@ import { eventSource } from '@sillytavern/script';
 import { getStringHash } from '@sillytavern/scripts/utils';
 import log from 'loglevel';
 import type { Script } from '../schemas/script.schema';
+import { repositoryService } from '../services/repository.service';
+
+
+
+export function getButtonId(scriptId: string, name: string): string {
+  return `${scriptId}_${getStringHash(name)}`;
+}
 
 /**
- * V2 按钮管理
+ * 获取指定脚本的按钮列表
  */
-
-function getButtonId(scriptId: string, name: string): string {
-  return `${scriptId}_${getStringHash(name)}`;
+export function getScriptButton(scriptId: string): Array<{ name: string; visible: boolean }> {
+  const found = repositoryService.findScriptInAllTypes(scriptId);
+  if (found && found.script) {
+    return (found.script.buttons || []) as Array<{ name: string; visible: boolean }>;
+  }
+  throw new Error(`脚本不存在: ${scriptId}`);
 }
 
 let isQrEnabled = false;
@@ -59,7 +69,7 @@ function createScriptButton(name: string, scriptId: string, visible: boolean = t
   return new ScriptButton(name, scriptId, visible);
 }
 
-export class ButtonManagerV2 {
+class ButtonManagerImpl {
   private buttonsByScript: Map<string, ButtonBase[]> = new Map();
   private isUpdating = false;
 
@@ -203,4 +213,5 @@ export class ButtonManagerV2 {
   }
 }
 
-export const buttonManagerV2 = new ButtonManagerV2();
+// 导出单例，供外部直接使用
+export const buttonManager = new ButtonManagerImpl();

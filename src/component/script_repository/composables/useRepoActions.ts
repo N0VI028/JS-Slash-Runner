@@ -40,7 +40,8 @@ export function useRepoActions() {
       const handleAddScript = async (scriptId: string, target: ScriptType): Promise<void> => {
         const builtinScript = await createDefaultScript(scriptId);
         if (builtinScript) {
-          await repositoryService.createScriptInType(target, {
+          const targetStore = storeByType[target];
+          await targetStore.createScript({
             name: builtinScript.name,
             content: builtinScript.content,
             info: builtinScript.info,

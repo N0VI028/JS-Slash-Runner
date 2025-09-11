@@ -24,6 +24,11 @@
 </template>
 
 <script lang="ts">
+/**
+ * 判断名称是否匹配查询
+ * @param name 名称
+ * @param rawQuery 查询
+ */
 export function matchesNameByQuery(name: string, rawQuery: string): boolean {
   const target = String(name ?? '');
   const query = String(rawQuery ?? '').trim();

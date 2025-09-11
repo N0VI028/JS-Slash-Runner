@@ -1,6 +1,6 @@
-import { getButtonId } from '@/component/script_repository/button';
-import { ScriptData } from '@/component/script_repository/data';
-import { ScriptManager } from '@/component/script_repository/script_controller';
+import type { Script } from '@/component/script_repository/schemas/script.schema';
+import { repositoryService } from '@/component/script_repository/services/repository.service';
+import { buttonManager, getButtonId, getScriptButton } from '@/component/script_repository/utils/buttonManager';
 import { _getScriptId } from '@/function/util';
 
 type ScriptButton = {
@@ -13,23 +13,24 @@ export function _getButtonEvent(this: Window, button_name: string): string {
 }
 
 export function _getScriptButtons(this: Window): ScriptButton[] {
-  return ScriptManager.getInstance().getScriptButton(_getScriptId.call(this));
+  const scriptId = _getScriptId.call(this);
+  return getScriptButton(scriptId) as ScriptButton[];
 }
 
 export function _replaceScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, param1: string | ScriptButton[], param2?: ScriptButton[]): void {
-  const script_id = _getScriptId.call(this);
+  const scriptId = typeof param1 === 'string' ? param1 : _getScriptId.call(this);
+  const newButtons = (typeof param1 === 'string' ? param2! : param1) as ScriptButton[];
 
-  const script = ScriptManager.getInstance().getScriptById(script_id);
-  if (!script) {
-    throw new Error(`脚本不存在: ${script_id}`);
-  }
+  const found = repositoryService.findScriptInAllTypes(scriptId);
+  if (!found) throw new Error(`脚本不存在: ${scriptId}`);
 
-  const type = ScriptData.getInstance().getScriptType(script);
-
-  script.buttons = typeof param1 === 'string' ? param2! : param1;
-  ScriptManager.getInstance().setScriptButton(script, type);
+  (found.script as Script).buttons = newButtons as any;
+  try {
+    buttonManager.rebuildButtonsForScript(found.script as Script);
+  } catch {}
+  repositoryService.updateScriptInType(found.type, found.script as Script).catch(() => {});
 }
 
 export function _appendInexistentScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
@@ -51,23 +52,16 @@ export function _appendInexistentScriptButtons(
 }
 
 export function _getScriptInfo(this: Window): string {
-  const script_id = _getScriptId.call(this);
-  const script = ScriptManager.getInstance().getScriptById(script_id);
-  if (!script) {
-    throw new Error(`脚本不存在: ${script_id}`);
-  }
-  return script.info;
+  const scriptId = _getScriptId.call(this);
+  const found = repositoryService.findScriptInAllTypes(scriptId);
+  if (found && found.script) return (found.script.info || '') as string;
+  throw new Error(`脚本不存在: ${scriptId}`);
 }
 
 export function _replaceScriptInfo(this: Window, info: string): void {
-  const script = ScriptManager.getInstance().getScriptById(_getScriptId.call(this));
-
-  if (!script) {
-    throw new Error(`脚本不存在: ${_getScriptId.call(this)}`);
-  }
-
-  const type = ScriptData.getInstance().getScriptType(script);
-
-  script.info = info;
-  ScriptManager.getInstance().updateScript(script, type);
+  const scriptId = _getScriptId.call(this);
+  const found = repositoryService.findScriptInAllTypes(scriptId);
+  if (!found) throw new Error(`脚本不存在: ${scriptId}`);
+  (found.script as Script).info = info;
+  repositoryService.updateScriptInType(found.type, found.script as Script).catch(() => {});
 }

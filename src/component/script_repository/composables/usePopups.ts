@@ -605,7 +605,7 @@ export function usePopups() {
       const builtinScripts = await getBuiltinScriptConfigs();
 
       // 创建容器
-      const $container = $('<div class="default-script-repository-container"></div>');
+      const $container = $('<div class="default-script-repository-container flex-container flexFlowColumn"></div>');
 
       // 为每个内置脚本创建项目
       for (const script of builtinScripts) {

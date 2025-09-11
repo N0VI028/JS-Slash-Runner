@@ -2,7 +2,7 @@ import type { Script, ScriptRepository, ScriptType, SearchFilters } from '@/comp
 import _ from 'lodash';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { matchesNameByQuery } from '../../../common/SearchBar.vue';
+import { matchesNameByQuery } from '../../common/SearchBar.vue';
 import { repositoryService } from '../services/repository.service';
 
 export function createScriptStore(type: ScriptType) {
@@ -24,14 +24,31 @@ export function createScriptStore(type: ScriptType) {
       for (const item of repository.value as any[]) {
         const anyItem: any = item as any;
         if (anyItem && anyItem.type === 'script' && anyItem.value) {
+          console.log('[Store] allScripts - 处理脚本类型项:', {
+            rootId: anyItem.id,
+            rootName: anyItem.name,
+            valueId: anyItem.value?.id,
+            valueName: anyItem.value?.name,
+            item: anyItem
+          });
           result.push(anyItem.value as Script);
         } else if (anyItem && anyItem.type === 'folder' && Array.isArray(anyItem.value)) {
+          console.log('[Store] allScripts - 处理文件夹类型项:', {
+            folderId: anyItem.id,
+            folderName: anyItem.name,
+            scriptsCount: anyItem.value.length
+          });
           result.push(...(anyItem.value as Script[]));
         } else if ((item as any)?.id && (item as any)?.content !== undefined) {
           // 顶层纯 Script 兼容
+          console.log('[Store] allScripts - 处理纯脚本对象:', {
+            id: (item as any).id,
+            name: (item as any).name
+          });
           result.push(item as unknown as Script);
         }
       }
+      console.log('[Store] allScripts - 总计脚本数量:', result.length);
       return result;
     });
 
@@ -85,8 +102,8 @@ export function createScriptStore(type: ScriptType) {
      * 加载仓库
      */
     async function loadRepository(): Promise<void> {
-      const data = await repositoryService.loadRepositoryByType(type);
-      repository.value = data;
+      const data = repositoryService.loadRepositoryByType(type);
+      repository.value = _.cloneDeep(data);
     }
 
     async function saveRepository(): Promise<void> {
@@ -163,8 +180,22 @@ export function createScriptStore(type: ScriptType) {
     function clearFilters(): void {
       filters.value = {};
     }
-
+    /**
+     * 设置类型开关
+     * @param isEnabled 是否启用
+     * @returns void
+    */
     async function setEnabled(isEnabled: boolean): Promise<void> {
+      enabled.value = isEnabled;
+    }
+
+    /**
+     * 初始化设置类型开关（不触发 watch）
+     * 用于初始化阶段避免触发持久化保存
+     * @param isEnabled 是否启用
+     * @returns void
+    */
+    function initEnabled(isEnabled: boolean): void {
       enabled.value = isEnabled;
     }
 
@@ -267,6 +298,7 @@ export function createScriptStore(type: ScriptType) {
       setFilters,
       clearFilters,
       setEnabled,
+      initEnabled,
       getFolderScripts,
       init,
       toggleScriptEnabled,

@@ -57,6 +57,35 @@ function bindRepositoryPersistence(store: any, type: ScriptType) {
   );
 }
 
+function bindEnabledPersistence(store: any, type: ScriptType) {
+  // 创建一个防抖函数，延迟 300ms 执行保存操作
+  const debouncedSaveEnabled = debounce(async (enabled: boolean) => {
+    try {
+      switch (type) {
+        case 'global':
+          await repositoryService.saveGlobalEnabledState(enabled);
+          break;
+        case 'character':
+          await repositoryService.saveCharacterEnabledState(enabled);
+          break;
+        case 'preset':
+          await repositoryService.savePresetEnabledState(enabled);
+          break;
+      }
+      log.info(`[ScriptRepository-Watcher] 已保存${type}脚本开关状态: ${enabled ? '启用' : '禁用'}`);
+    } catch (err) {
+      log.error(`[ScriptRepository-Watcher] 保存${type}脚本开关状态失败:`, err);
+    }
+  }, 300);
+
+  watch(
+    () => store.enabled,
+    (enabled: boolean) => {
+      debouncedSaveEnabled(enabled);
+    }
+  );
+}
+
 export async function registerScriptWatchers(pinia: Pinia): Promise<void> {
   if (!pinia) return;
   setActivePinia(pinia);
@@ -118,4 +147,9 @@ export async function registerScriptWatchers(pinia: Pinia): Promise<void> {
   bindRepositoryPersistence(globalStore, 'global');
   bindRepositoryPersistence(characterStore, 'character');
   bindRepositoryPersistence(presetStore, 'preset');
+
+  // 为所有类型添加开关状态持久化监听
+  bindEnabledPersistence(globalStore, 'global');
+  bindEnabledPersistence(characterStore, 'character');
+  bindEnabledPersistence(presetStore, 'preset');
 }
