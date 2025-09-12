@@ -27,13 +27,12 @@ const config = (_env: any, argv: any): webpack.Configuration => {
       path: path.join(__dirname, 'dist/'),
       chunkFilename: '[name].[contenthash].chunk.js',
       asyncChunks: true,
-      chunkLoading: 'import',
       clean: true,
       library: {
         type: 'module',
       },
     },
-    // plugins: [new eslintWebpackPlugin({ extensions: ['ts', 'js', 'tsx', '.jsx'] })],
+    plugins: [new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 })],
     resolve: {
       extensions: ['.ts', '.js', '.tsx', '.jsx'],
       plugins: [
