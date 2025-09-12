@@ -36,6 +36,7 @@ async function refresh_iframe(): Promise<void> {
 
   if (character) {
     await saveChatConditional();
+    await reloadChatWithoutEvents();
   }
   const scriptManager = ScriptManager.getInstance();
   await scriptManager.toggleScriptType(ScriptType.GLOBAL, false, false);
@@ -45,7 +46,6 @@ async function refresh_iframe(): Promise<void> {
   await scriptManager.toggleScriptType(ScriptType.GLOBAL, true, false);
   if (character) {
     await scriptManager.toggleScriptType(ScriptType.CHARACTER, true, false);
-    await reloadChatWithoutEvents();
     $('div .mes').each((_index, element) => {
       eventSource.emit(
         $(element).attr('is_user') ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
