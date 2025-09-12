@@ -15,11 +15,7 @@ interface Window {
     readonly builtin: typeof builtin;
 
     // character
-    readonly Character: typeof Character;
-    readonly getCharData: typeof getCharData;
-    readonly getCharAvatarPath: typeof getCharAvatarPath;
-    readonly getChatHistoryBrief: typeof getChatHistoryBrief;
-    readonly getChatHistoryDetail: typeof getChatHistoryDetail;
+    readonly Character: typeof RawCharacter;
 
     // chat_message
     readonly getChatMessages: typeof getChatMessages;
@@ -86,6 +82,13 @@ interface Window {
     readonly replacePreset: typeof replacePreset;
     readonly updatePresetWith: typeof updatePresetWith;
     readonly setPreset: typeof setPreset;
+
+    // raw_character
+    readonly RawCharacter: typeof RawCharacter;
+    readonly getCharData: typeof getCharData;
+    readonly getCharAvatarPath: typeof getCharAvatarPath;
+    readonly getChatHistoryBrief: typeof getChatHistoryBrief;
+    readonly getChatHistoryDetail: typeof getChatHistoryDetail;
 
     // script_repository
     readonly getScriptButtons: typeof getScriptButtons;

@@ -1,5 +1,9 @@
 ## 3.6.1
 
+### ⏫功能
+
+- (破坏性) 将原本的 `Character` 重命名为 `RawCharacter`, 为之后制作角色卡接口 `Character` 腾位置, **请尽量迁移原来使用的 `Character` 为 `RawCharacter`**
+
 ### 🐛修复
 
 - 优化实时监听对脚本和前端界面的重新渲染方式
