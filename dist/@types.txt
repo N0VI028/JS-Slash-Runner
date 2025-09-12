@@ -2641,6 +2641,19 @@ declare namespace Mvu {
  */
 declare const Mvu: {
   events: {
+    /** 加载初始变量开始时触发的事件 */
+    INITVAR_LOAD_STARTED: 'mag_initvar_load_started';
+
+    /**
+     * 加载初始变量结束时触发的事件, 便于在 0 层前端中解决时序问题, 获取到初始变量
+     *
+     * @example
+     * eventOn(Mvu.events.INITVAR_LOAD_ENDED, (variables) => {
+     *   console.log('初始变量加载结束: ', variables);
+     * });
+     */
+    INITVAR_LOAD_ENDED: 'mag_initvar_load_ended';
+
     /** 某轮变量更新开始时触发的事件 */
     VARIABLE_UPDATE_STARTED: 'mag_variable_update_started';
 
@@ -2796,6 +2809,9 @@ declare const Mvu: {
 };
 
 interface ListenerType {
+  [Mvu.events.INITVAR_LOAD_STARTED]: (variables: Mvu.MvuData) => void;
+  [Mvu.events.INITVAR_LOAD_ENDED]: (variables: Mvu.MvuData, is_updated: boolean) => void;
+
   [Mvu.events.VARIABLE_UPDATE_STARTED]: (variables: Mvu.MvuData) => void;
 
   [Mvu.events.SINGLE_VARIABLE_UPDATED]: (
