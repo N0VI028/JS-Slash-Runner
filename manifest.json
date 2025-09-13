@@ -1,0 +1,12 @@
+{
+  "display_name": "酒馆助手vue",
+  "loading_order": 100,
+  "requires": [],
+  "optional": [],
+  "js": "dist/index.js",
+  "css": "dist/main.css",
+  "author": "KAKAA",
+  "version": "3.6.1",
+  "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
+  "auto_update": true
+}
