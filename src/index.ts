@@ -1,3 +1,4 @@
+import { disableIncompatibleOption } from '@/compatibility/disable_incompatible_option';
 import '@/index.css';
 import Panel from '@/Panel.vue';
 import { createPinia } from 'pinia';
@@ -11,5 +12,6 @@ function initPanel() {
 }
 
 $(() => {
+  disableIncompatibleOption();
   initPanel();
 });
