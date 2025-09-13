@@ -35,8 +35,8 @@ class ScriptExecutor {
         destroyIframe(iframeElement);
       }
 
-      const is_debug_enabled = getSettingValue('render.render_blob_url', false);
-      const htmlContent = this.createScriptHtml(script, is_debug_enabled);
+      const is_render_blob_url_enabled = getSettingValue('render.render_blob_url', false);
+      const htmlContent = this.createScriptHtml(script, is_render_blob_url_enabled);
 
       const $iframe = $('<iframe>', {
         style: 'display: none;',
@@ -44,12 +44,12 @@ class ScriptExecutor {
         'script-id': script.id,
       });
 
-      if (is_debug_enabled) {
+      if (is_render_blob_url_enabled) {
         const blob = new Blob([htmlContent], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
         $iframe.attr('src', blobUrl);
         $iframe.on('pagehide', () => {
-          if (is_debug_enabled) {
+          if (is_render_blob_url_enabled) {
             URL.revokeObjectURL(blobUrl);
           }
         });
@@ -92,28 +92,13 @@ class ScriptExecutor {
    * @param script 脚本对象
    * @returns HTML内容
    */
-  private createScriptHtml(script: Script, is_debug_enabled: boolean): string {
+  private createScriptHtml(script: Script, is_render_blob_url_enabled: boolean): string {
     return `
       <html>
       <head>
         ${third_party}
-        ${is_debug_enabled ? `<base href="${window.location.origin}/">` : ``}
-        <script>
-          (function ($) {
-            var original$ = $;
-            window.$ = function (selector, context) {
-              if (context === undefined || context === null) {
-                if (window.parent && window.parent.document) {
-                  context = window.parent.document;
-                } else {
-                  log.warn('无法访问 window.parent.document，将使用当前 iframe 的 document 作为上下文。');
-                  context = window.document;
-                }
-              }
-              return original$(selector, context);
-            };
-          })(jQuery);
-        </script>
+        ${is_render_blob_url_enabled ? `<base href="${window.location.origin}/">` : ``}
+        <script src="${script_url.get('parent_jquery')}"></script>
         <script src="${script_url.get('predefine')}"></script>
       </head>
       <body>

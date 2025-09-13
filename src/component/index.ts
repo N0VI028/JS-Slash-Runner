@@ -10,7 +10,6 @@ import {
   renderAllIframes,
   renderMessageAfterDelete,
   renderPartialIframes,
-  viewport_adjust_script,
 } from '@/component/message_iframe/render_message';
 import {
   addRenderingOptimizeSettings,
@@ -24,7 +23,9 @@ import {
 } from '@/component/script_repository/index';
 import { initializeToastr } from '@/component/toastr';
 import { addVariableManagerQuickButton } from '@/component/variable_manager';
+import parent_jquery from '@/iframe/parent_jquery?raw';
 import predefine from '@/iframe/predefine?raw';
+import viewport_adjust from '@/iframe/viewport_adjust?raw';
 import { script_url } from '@/script_url';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 import { eventSource, event_types, reloadCurrentChat, saveSettingsDebounced, this_chid } from '@sillytavern/script';
@@ -91,8 +92,9 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     // 指示器样式
     $('#extension-status-icon').css('color', 'green').next().text('扩展已启用');
 
+    script_url.set('parent_jquery', parent_jquery);
     script_url.set('predefine', predefine);
-    script_url.set('viewport_adjust_script', viewport_adjust_script);
+    script_url.set('viewport_adjust', viewport_adjust);
 
     registerAllMacros();
     initializeToastr();
@@ -121,8 +123,9 @@ async function handleExtensionToggle(userAction: boolean = true, enable: boolean
     // 指示器样式
     $('#extension-status-icon').css('color', 'red').next().text('扩展已禁用');
 
+    script_url.delete('parent_jquery');
     script_url.delete('predefine');
-    script_url.delete('viewport_adjust_script');
+    script_url.delete('viewport_adjust');
 
     unregisterAllMacros();
     destroyCharacterLevelOnExtension();

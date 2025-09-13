@@ -157,7 +157,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
             </head>
             <body>
               ${extractedText}
-              ${needsVhHandling ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
+              ${needsVhHandling ? `<script src="${script_url.get('viewport_adjust')}"></script>` : ``}
             </body>
             </html>
           `;
@@ -215,18 +215,6 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     });
   }
 }
-
-/**
- * 使用了min-height:vh时，自动调整iframe高度
- */
-export const viewport_adjust_script = `
-$(window).on("message", function (event) {
-    if (event.originalEvent.data.request === "updateViewportHeight") {
-        const newHeight = event.originalEvent.data.newHeight;
-        $("html").css("--viewport-height", newHeight + "px");
-    }
-});
-`;
 
 /**
  * 转换代码块中所有vh单位（包括JavaScript动态设置）
