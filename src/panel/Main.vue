@@ -26,6 +26,7 @@
       <div class="major-divider-text"><i class="fa-solid fa-tools margin-r5"></i>开发工具</div>
       <div class="major-divider-line"></div>
     </div>
+    <Reference />
     <div class="major-divider-container">
       <div class="major-divider-text"><i class="fa-solid fa-shapes margin-r5"></i>扩展信息</div>
       <div class="major-divider-line"></div>
@@ -62,13 +63,27 @@
 
 <script setup lang="ts">
 import { event_bus } from '@/event_bus';
+import { Collapsible } from '@/panel/component/collapsible';
+import Reference from '@/panel/main/Reference.vue';
 import { useSettingsStore } from '@/store/settings';
 import { events } from '@/type/events';
 import { storeToRefs } from 'pinia';
-import { watchEffect } from 'vue';
+import { onMounted, watchEffect } from 'vue';
 
 const { settings } = storeToRefs(useSettingsStore());
 watchEffect(() => {
   event_bus.emit(settings.value.enabled ? events.extension_enabled : events.extension_disabled);
+});
+
+onMounted(() => {
+  Collapsible.initAll('.collapsible', {
+    headerSelector: 'div:first-child',
+    contentSelector: '.collapsible-content',
+    initiallyExpanded: false,
+    animationDuration: {
+      expand: 280,
+      collapse: 250,
+    },
+  });
 });
 </script>
