@@ -13,12 +13,12 @@
 <div class="divider"></div>
 <div class="extension-content-item">
   <div class="flex flexFlowColumn">
-    <div class="settings-title-text">启用渲染优化</div>
-    <div class="settings-title-description">取消代码高亮，加速渲染</div>
+    <div class="settings-title-text">启用代码折叠</div>
+    <div class="settings-title-description">折叠所有代码块，避免正则替换成前端代码时影响阅读</div>
   </div>
   <div class="toggle-switch">
-    <input type="checkbox" id="render-optimize-toggle" class="toggle-input" checked />
-    <label for="render-optimize-toggle" class="toggle-label">
+    <input type="checkbox" id="render-hide-style-toggle" class="toggle-input" checked />
+    <label for="render-hide-style-toggle" class="toggle-label">
       <span class="toggle-handle"></span>
     </label>
   </div>
@@ -26,12 +26,25 @@
 <div class="divider"></div>
 <div class="extension-content-item">
   <div class="flex flexFlowColumn">
-    <div class="settings-title-text">启用代码折叠</div>
-    <div class="settings-title-description">折叠所有代码块，避免正则替换成前端代码时影响阅读</div>
+    <div class="settings-title-text">启用加载动画</div>
+    <div class="settings-title-description">在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面</div>
   </div>
   <div class="toggle-switch">
-    <input type="checkbox" id="render-hide-style-toggle" class="toggle-input" checked />
-    <label for="render-hide-style-toggle" class="toggle-label">
+    <input type="checkbox" id="render-loading-toggle" class="toggle-input" checked />
+    <label for="render-loading-toggle" class="toggle-label">
+      <span class="toggle-handle"></span>
+    </label>
+  </div>
+</div>
+<div class="divider"></div>
+<div class="extension-content-item">
+  <div class="flex flexFlowColumn">
+    <div class="settings-title-text">启用 Blob URL 渲染</div>
+    <div class="settings-title-description">使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试</div>
+  </div>
+  <div class="toggle-switch">
+    <input type="checkbox" id="render-blob-url-toggle" class="toggle-input" checked />
+    <label for="render-blob-url-toggle" class="toggle-label">
       <span class="toggle-handle"></span>
     </label>
   </div>

@@ -4,7 +4,7 @@ import { initListener } from '@/component/listener';
 import {
   derenderAllMacrosDebounced,
   registerMacroOnExtension,
-  renderAllMacrosDebounced,
+  renderAllMacros,
   unregisterMacroOnExtension,
 } from '@/component/macrolike';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
@@ -166,7 +166,7 @@ async function initMacroReplace() {
       saveSettingValue('macro.replace', !should_disable);
       unregisterMacroOnExtension();
       if (!should_disable) {
-        renderAllMacrosDebounced();
+        renderAllMacros();
         registerMacroOnExtension();
       } else {
         derenderAllMacrosDebounced();
@@ -174,8 +174,8 @@ async function initMacroReplace() {
     });
   // TODO: 随 initExtensionMainPanel 初始化, 现在这样即便酒馆助手关闭依旧生效
   if (macro_replace_enabled) {
+    renderAllMacros();
     registerMacroOnExtension();
-    renderAllMacrosDebounced();
   }
 }
 

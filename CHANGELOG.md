@@ -1,8 +1,64 @@
+## 3.6.2
+
+### ⏫功能
+
+- 为前端和脚本默认置入了 [`pixi.js` 库](https://pixijs.com/), 便于制作 live2d、动画、播放器等.
+
+## 3.6.1
+
+### ⏫功能
+
+- (破坏性) 将原本的 `Character` 重命名为 `RawCharacter`, 为之后制作角色卡接口 `Character` 腾位置, **请尽量迁移原来使用的 `Character` 为 `RawCharacter`**
+
+### 🐛修复
+
+- 优化实时监听对脚本和前端界面的重新渲染方式
+
+## 3.6.0
+
+### 💻界面
+
+- 移除了 `渲染器` 页面的 `启用渲染优化` 开关, 现在会**始终启用渲染优化**, 且不会影响其他代码块的高亮.
+
+### 🐛修复
+
+- 确保了对 html 代码块中酒馆助手宏的替换发生在 html 代码块被渲染成前端界面前
+
+## 3.5.1
+
+### 💻界面
+
+- 拆分 `调试模式` 和 `Blob URL 渲染` 为两个独立的设置
+
+### 🐛修复
+
+- 修复 `insertOrAssignVariables`、`insertVariables` 和 `getAllVariables` 对数组合并方式的处理. 现在如果插入新数组, 将会覆盖旧数组, 而不是合并
+
+## 3.5.0
+
+### 💻界面
+
+- 现在你可以在酒馆助手设置中自行禁用 2.0.10 时添加的加载动画, 而不是期待作者在 html 里添加 `<!-- disable-default-loading -->` 来禁用
+- 现在启用调试模式还会将脚本和前端界面渲染为 Blob URL, 而不是自行在 html 里添加 `<!-- enable-blob-url-render -->` 来启用
+
+### ⏫功能
+
+- 新增 `importRawChat` 函数, 便于像酒馆界面里那样导入聊天文件
+- 现在 `setChatMessages` 支持使用深度参数, 如 `setChatMessages([{ message_id: -1, message: '新的消息' }])` 表示修改最后一楼的正文
+
+### 🐛修复
+
+- 让 `setChatMessages` 渲染结果更贴近酒馆原生
+
 ## 3.4.21
 
 ### ⏫功能
 
-- 使用`stopGenerationById`和`stopAllGeneration`时, 会发送`tavern_events.GENERATION_STOPPED`事件, 并携带停止的生成ID
+- 使用 `stopGenerationById` 和 `stopAllGeneration` 时, 会发送 `tavern_events.GENERATION_STOPPED` 事件, 并携带停止的生成 ID
+
+### 🐛修复
+
+- 让切换角色卡时对角色脚本的处理更正确, 例如在脚本卸载时使用 `replaceScriptButtons` 不会导致脚本被复制到其他角色卡中了
 
 ## 3.4.20
 

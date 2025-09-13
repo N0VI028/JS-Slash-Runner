@@ -5,8 +5,11 @@ const originalHighlightElement = hljs.highlightElement;
  * 添加前端卡渲染优化设置
  */
 export function addRenderingOptimizeSettings() {
-  hljs.highlightElement = function () {
-    return;
+  hljs.highlightElement = (element: HTMLElement) => {
+    if ($(element).text().includes('<body')) {
+      return;
+    }
+    originalHighlightElement(element);
   };
 }
 

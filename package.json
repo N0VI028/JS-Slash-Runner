@@ -1,6 +1,6 @@
 {
   "name": "JS-Slash-Runner",
-  "version": "3.4.20",
+  "version": "3.6.1",
   "main": "./dist/index.js",
   "scripts": {
     "build:dev": "webpack --mode development",
@@ -33,7 +33,7 @@
     "@typescript-eslint/parser": "^8.42.0",
     "autoprefixer": "^10.4.21",
     "css-loader": "^7.1.2",
-    "eslint": "^9.34.0",
+    "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import-x": "^4.16.1",

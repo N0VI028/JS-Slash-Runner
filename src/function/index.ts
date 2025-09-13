@@ -1,13 +1,6 @@
 import { registerMacroLike } from '@/component/macrolike';
 import { builtin } from '@/function/builtin';
 import {
-  Character,
-  getCharAvatarPath,
-  getCharData,
-  getChatHistoryBrief,
-  getChatHistoryDetail,
-} from '@/function/character';
-import {
   createChatMessages,
   deleteChatMessages,
   getChatMessages,
@@ -32,9 +25,22 @@ import {
   tavern_events,
 } from '@/function/event';
 import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
+import {
+  getCharAvatarPath,
+  getCharData,
+  getChatHistoryBrief,
+  getChatHistoryDetail,
+  RawCharacter,
+} from '@/function/raw_character';
 
 import { builtin_prompt_default_order } from '@/function/generate/types';
-import { importRawCharacter, importRawPreset, importRawTavernRegex, importRawWorldbook } from '@/function/import_raw';
+import {
+  importRawCharacter,
+  importRawChat,
+  importRawPreset,
+  importRawTavernRegex,
+  importRawWorldbook,
+} from '@/function/import_raw';
 import { injectPrompts, uninjectPrompts } from '@/function/inject';
 import {
   createLorebook,
@@ -175,11 +181,7 @@ function getTavernHelper() {
     builtin,
 
     // character
-    Character,
-    getCharData,
-    getCharAvatarPath,
-    getChatHistoryBrief,
-    getChatHistoryDetail,
+    Character: RawCharacter,
 
     // chat_message
     getChatMessages,
@@ -200,6 +202,7 @@ function getTavernHelper() {
     // import_raw
     importRawCharacter,
     importRawPreset,
+    importRawChat,
     importRawWorldbook,
     importRawTavernRegex,
 
@@ -213,6 +216,7 @@ function getTavernHelper() {
     generateRaw,
     stopGenerationById,
     stopAllGeneration,
+
     // lorebook_entry
     getLorebookEntries,
     replaceLorebookEntries,
@@ -252,6 +256,13 @@ function getTavernHelper() {
     replacePreset,
     updatePresetWith,
     setPreset,
+
+    // raw_character
+    RawCharacter,
+    getCharData,
+    getCharAvatarPath,
+    getChatHistoryBrief,
+    getChatHistoryDetail,
 
     // macrolike
     registerMacroLike,

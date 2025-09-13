@@ -11,7 +11,7 @@ import {
 import { registerScriptWatchers } from '@/component/script_repository/utils/watchers';
 import { tavern_events } from '@/function/event';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
-import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
+import { characters, event_types, eventSource, setCharacterId, this_chid } from '@sillytavern/script';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { setActivePinia } from 'pinia';
@@ -91,7 +91,10 @@ function registerGlobalEventListeners(): void {
 
       const runtime = useScriptRuntime();
 
+      const chid = this_chid;
+      setCharacterId(undefined); // 想找切换前的 chid 太难了, 临时改为空试试
       await runtime.toggleScriptsByType('character', false);
+      setCharacterId(chid);
 
       const characterStore = useCharacterScriptStore(pinia);
       await characterStore.loadRepository();

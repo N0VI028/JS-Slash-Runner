@@ -1,17 +1,9 @@
-import { ListenerType, tavern_events } from '@/function/event';
+import { ListenerType } from '@/function/event';
+import { highlight_code } from '@/util/highlight_code';
+import { reloadChatWithoutEvents } from '@/util/reload_chat_without_events';
 
-import {
-  chat,
-  chat_metadata,
-  clearChat,
-  event_types,
-  eventSource,
-  GenerateOptions,
-  printMessages,
-  saveChatConditional,
-} from '@sillytavern/script';
+import { chat, chat_metadata, event_types, eventSource, GenerateOptions } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
-import _ from 'lodash';
 
 interface MacroLike {
   regex: RegExp;
@@ -102,44 +94,35 @@ function demacroOnRender(message_id: string) {
   $mes_text.html((_index, html) => replace_html(html));
   $mes_text
     .find('code')
-    .filter((_index, node) => macros.some(macro => macro.regex.test($(node).text())))
-    .text((_index, text) => replace_html(text));
+    .filter((_index, element) => macros.some(macro => macro.regex.test($(element).text())))
+    .text((_index, text) => replace_html(text))
+    .removeClass('hljs')
+    .each((_index, element) => {
+      highlight_code(element);
+    });
 }
 
-function renderAllMacros() {
+export function renderAllMacros() {
   $('div.mes').each((_index, node) => {
     demacroOnRender($(node).attr('mesid')!);
   });
 }
 export const renderAllMacrosDebounced = _.debounce(renderAllMacros, 1000);
 
-async function derenderAllMacros() {
-  await saveChatConditional();
-  await clearChat();
-  await printMessages();
-  $('div.mes').each((_index, node) => {
-    eventSource.emit(
-      Boolean($(node).attr('is_user')) === true
-        ? tavern_events.USER_MESSAGE_RENDERED
-        : tavern_events.CHARACTER_MESSAGE_RENDERED,
-      Number($(node).attr('mesid')!),
-    );
-  });
-}
-export const derenderAllMacrosDebounced = _.debounce(derenderAllMacros, 1000);
+export const derenderAllMacrosDebounced = _.debounce(reloadChatWithoutEvents, 1000);
 
 export function registerMacroOnExtension() {
-  eventSource.on(event_types.CHAT_CHANGED, renderAllMacrosDebounced);
+  eventSource.on(event_types.CHAT_CHANGED, renderAllMacros);
   eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
   eventSource.on(event_types.GENERATE_AFTER_DATA, demacroOnPrompt);
-  eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
-  eventSource.on(event_types.USER_MESSAGE_RENDERED, demacroOnRender);
+  eventSource.makeFirst(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
+  eventSource.makeFirst(event_types.USER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.on(event_types.MESSAGE_UPDATED, demacroOnRender);
   eventSource.on(event_types.MESSAGE_SWIPED, demacroOnRender);
 }
 
 export function unregisterMacroOnExtension() {
-  eventSource.removeListener(event_types.CHAT_CHANGED, renderAllMacrosDebounced);
+  eventSource.removeListener(event_types.CHAT_CHANGED, renderAllMacros);
   eventSource.removeListener(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
   eventSource.removeListener(event_types.GENERATE_AFTER_DATA, demacroOnPrompt);
   eventSource.removeListener(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);

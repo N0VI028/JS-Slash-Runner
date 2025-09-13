@@ -5,8 +5,9 @@ import {
   getSettingValue,
   saveSettingValue,
 } from '@/util/extension_variables';
+import { reloadChatWithoutEvents } from '@/util/reload_chat_without_events';
 
-import { characters, reloadCurrentChat, saveChatConditional, this_chid } from '@sillytavern/script';
+import { characters, event_types, eventSource, saveChatConditional, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 
 import log from 'loglevel';
@@ -31,16 +32,27 @@ async function refresh_iframe(): Promise<void> {
 
   // @ts-expect-error
   const character = characters[this_chid];
+
   if (character) {
     await saveChatConditional();
+    await reloadChatWithoutEvents();
   }
 
   const runtime = useScriptRuntime();
-
   await runtime.toggleScriptsByType('global', false);
+  if (character) {
+    await runtime.toggleScriptsByType('character', false);
+  }
   await runtime.toggleScriptsByType('global', true);
-
-  await reloadCurrentChat();
+  if (character) {
+    await runtime.toggleScriptsByType('character', true);
+    $('div .mes').each((_index, element) => {
+      eventSource.emit(
+        $(element).attr('is_user') ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
+        $(element).attr('mesid'),
+      );
+    });
+  }
 }
 
 function toggle_status(should_enable: boolean) {

@@ -1,4 +1,4 @@
-import { Character } from '@/function/character';
+import { RawCharacter } from '@/function/raw_character';
 
 import {
   characters,
@@ -242,7 +242,7 @@ export function getCharLorebooks({
   name = (characters as any)[this_chid as string]?.avatar ?? null,
   type = 'all',
 }: GetCharLorebooksOption = {}): CharLorebooks {
-  const character = Character.find({ name: name ?? 'current' });
+  const character = RawCharacter.find({ name: name ?? 'current' });
   if (!character) {
     throw Error(`未找到${name === 'current' ? '当前打开' : `名为 '${name}' `}的角色卡`);
   }

@@ -1,13 +1,13 @@
 import { updateWorldInfoList } from '@/compatibility';
 import { render_tavern_regexes_debounced } from '@/function/tavern_regex';
 
-import { getRequestHeaders } from '@sillytavern/script';
+import { characters, getRequestHeaders, name1, this_chid } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
-export async function importRawCharacter(filename: string, content: Blob): Promise<Response> {
-  const file = new File([content], filename, { type: 'image/png' });
+export async function importRawCharacter(name: string, content: Blob): Promise<Response> {
+  const file = new File([content], name, { type: 'image/png' });
 
   const form_data = new FormData();
   form_data.append('avatar', file);
@@ -27,17 +27,41 @@ export async function importRawCharacter(filename: string, content: Blob): Promi
   });
 }
 
-export async function importRawPreset(filename: string, content: string): Promise<boolean> {
+export async function importRawChat(name: string, content: string): Promise<Response> {
+  if (this_chid === undefined) {
+    throw Error('导入聊天文件失败, 请先选择一张角色卡');
+  }
+
+  const form_data = new FormData();
+  form_data.append('avatar', new File([content], name + '.jsonl', { type: 'application/json' }));
+  form_data.append('file_type', 'jsonl');
+  // @ts-expect-error
+  form_data.append('avatar_url', characters[this_chid].avatar);
+  // @ts-expect-error
+  form_data.append('character_name', characters[this_chid].name);
+  form_data.append('user_name', name1);
+
+  const headers = getRequestHeaders();
+  _.unset(headers, 'Content-Type');
+  return fetch(`/api/chats/import`, {
+    method: 'POST',
+    headers: headers,
+    body: form_data,
+    cache: 'no-cache',
+  });
+}
+
+export async function importRawPreset(name: string, content: string): Promise<boolean> {
   try {
-    await getPresetManager('openai').savePreset(filename, JSON.parse(content));
+    await getPresetManager('openai').savePreset(name, JSON.parse(content));
     return true;
   } catch (error) {
     return false;
   }
 }
 
-export async function importRawWorldbook(filename: string, content: string): Promise<Response> {
-  const file = new File([content], filename, { type: 'application/json' });
+export async function importRawWorldbook(name: string, content: string): Promise<Response> {
+  const file = new File([content], name, { type: 'application/json' });
 
   const form_data = new FormData();
   form_data.append('avatar', file);
@@ -48,20 +72,21 @@ export async function importRawWorldbook(filename: string, content: string): Pro
     method: 'POST',
     headers: headers,
     body: form_data,
+    cache: 'no-cache',
   }).then(result => {
     updateWorldInfoList();
     return result;
   });
 }
 
-export function importRawTavernRegex(filename: string, content: string): boolean {
+export function importRawTavernRegex(name: string, content: string): boolean {
   const json = JSON.parse(content);
   if (!_.has(json, 'findRegex')) {
     return false;
   }
 
   _.set(json, 'id', uuidv4());
-  _.set(json, 'scriptName', filename);
+  _.set(json, 'scriptName', name);
 
   extension_settings.regex.push(json);
   render_tavern_regexes_debounced();

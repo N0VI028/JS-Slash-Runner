@@ -84,7 +84,7 @@ export class RepositoryService {
         saveSettingValue('script.scriptsRepository', this.deepToRaw(repository));
         return;
       case 'character':
-        if (!this_chid) {
+        if (this_chid === undefined) {
           throw new Error('保存失败：当前角色为空');
         }
         //@ts-ignore

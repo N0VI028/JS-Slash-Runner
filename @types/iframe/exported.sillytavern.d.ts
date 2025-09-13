@@ -287,11 +287,11 @@ declare namespace SillyTavern {
     /** Custom inputs to add to the popup. The display below the content and the input box, one by one. */
     customInputs?: CustomPopupInput[];
     /** Handler called before the popup closes, return `false` to cancel the close */
-    onClosing?: (popup: typeof SillyTavern.Popup) => Promise<boolean | void>;
+    onClosing?: (popup: InstanceType<typeof SillyTavern.Popup>) => Promise<boolean | void>;
     /** Handler called after the popup closes, but before the DOM is cleaned up */
-    onClose?: (popup: typeof SillyTavern.Popup) => Promise<void>;
+    onClose?: (popup: InstanceType<typeof SillyTavern.Popup>) => Promise<void>;
     /** Handler called after the popup opens */
-    onOpen?: (popup: typeof SillyTavern.Popup) => Promise<void>;
+    onOpen?: (popup: InstanceType<typeof SillyTavern.Popup>) => Promise<void>;
     /** Aspect ratio for the crop popup */
     cropAspect?: number;
     /** Image URL to display in the crop popup */

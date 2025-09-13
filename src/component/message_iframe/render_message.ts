@@ -2,8 +2,8 @@ import {
   addToggleButtonToCodeBlock,
   removeCodeToggleButtonsByMesId,
 } from '@/component/message_iframe/render_hide_style';
+import third_party from '@/iframe/third_party_frontend.html';
 import { script_url } from '@/script_url';
-import third_party from '@/third_party.html';
 import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue } from '@/util/extension_variables';
 
 import { eventSource, event_types, reloadCurrentChat, this_chid, updateMessageBlock } from '@sillytavern/script';
@@ -85,8 +85,14 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     $codeElements.each(function () {
       let extractedText = $(this).text();
       if (extractedText.includes('<body') && extractedText.includes('</body>')) {
-        const disableLoading = /<!--\s*disable-default-loading\s*-->/.test(extractedText);
-        const enableBlobUrlRendering = /<!--\s*enable-blob-url-render\s*-->/.test(extractedText);
+        const enableLoading =
+          /<!--\s*disable-default-loading\s*-->/.test(extractedText) === true
+            ? false
+            : getSettingValue('render.render_loading', true);
+        const enableBlobUrlRendering =
+          /<!--\s*enable-blob-url-render\s*-->/.test(extractedText) === true
+            ? true
+            : getSettingValue('render.render_blob_url', false);
         const hasMinVh = /min-height:\s*[^;]*vh/.test(extractedText);
         const hasJsVhUsage = /\d+vh/.test(extractedText);
 
@@ -118,7 +124,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
         }
 
         let loadingTimeout: NodeJS.Timeout | null = null;
-        if (!disableLoading) {
+        if (enableLoading) {
           const $loadingOverlay = $('<div>').addClass('iframe-loading-overlay').html(`
                 <div class="iframe-loading-content">
                   <i class="fa-solid fa-spinner fa-spin"></i>
@@ -147,11 +153,11 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
               </style>
               ${enableBlobUrlRendering ? `<base href="${window.location.origin}/">` : ``}
               ${third_party}
-              <script src="${script_url.get('iframe')}"></script>
+              <script src="${script_url.get('predefine')}"></script>
             </head>
             <body>
               ${extractedText}
-              ${needsVhHandling ? `<script src="${script_url.get('viewport_adjust_script')}"></script>` : ``}
+              ${needsVhHandling ? `<script src="${script_url.get('viewport_adjust')}"></script>` : ``}
             </body>
             </html>
           `;
@@ -160,6 +166,11 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
           const blob = new Blob([srcContent], { type: 'text/html' });
           const blobUrl = URL.createObjectURL(blob);
           $iframe.attr('src', blobUrl);
+          $iframe.on('pagehide', () => {
+            if (enableBlobUrlRendering) {
+              URL.revokeObjectURL(blobUrl);
+            }
+          });
         } else {
           $iframe.attr('srcdoc', srcContent);
         }
@@ -204,18 +215,6 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
     });
   }
 }
-
-/**
- * 使用了min-height:vh时，自动调整iframe高度
- */
-export const viewport_adjust_script = `
-$(window).on("message", function (event) {
-    if (event.originalEvent.data.request === "updateViewportHeight") {
-        const newHeight = event.originalEvent.data.newHeight;
-        $("html").css("--viewport-height", newHeight + "px");
-    }
-});
-`;
 
 /**
  * 转换代码块中所有vh单位（包括JavaScript动态设置）

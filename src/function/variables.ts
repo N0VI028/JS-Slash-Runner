@@ -68,16 +68,14 @@ export function getVariables({ type = 'chat', message_id = 'latest', script_id }
 
   log.info(
     `获取${
-      type === 'message'
-        ? `'${message_id}' 消息`
-        : type === 'chat'
-          ? '聊天'
-          : type === 'character'
-            ? '角色'
-            : type === 'script'
-              ? `'${script_id}' 脚本`
-              : '全局'
-    }变量表:\n${JSON.stringify(result)}`,
+      {
+        message: `'${message_id}' 消息`,
+        chat: '聊天',
+        character: '角色',
+        script: `'${script_id}' 脚本`,
+        global: '全局',
+      }[type]
+    }变量表`,
   );
   return structuredClone(result);
 }
@@ -85,29 +83,24 @@ export function getVariables({ type = 'chat', message_id = 'latest', script_id }
 export function _getAllVariables(this: Window): Record<string, any> {
   const is_message_iframe = _getIframeName.call(this).startsWith('message-iframe');
 
-  let data = _.merge(
-    {},
+  let result = _({});
+  result = result.assign(
     extension_settings.variables.global,
     // @ts-expect-error
     characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables,
   );
   if (!is_message_iframe) {
-    try {
-      data = _.merge(data, getVariables({ type: 'script', script_id: _getScriptId.call(this) }));
-    } catch (error) {
-      log.warn('获取脚本变量失败:', error);
-    }
+    result = result.assign(getVariables({ type: 'script', script_id: _getScriptId.call(this) }));
   }
-  data = _.merge(data, (chat_metadata as { variables: Record<string, any> | undefined }).variables);
+  result = result.assign((chat_metadata as { variables: Record<string, any> | undefined }).variables);
   if (is_message_iframe) {
-    data = _.merge(
-      data,
+    result = result.assign(
       ...chat
         .slice(0, _getCurrentMessageId.call(this) + 1)
         .map((chat_message: any) => chat_message?.variables?.[chat_message?.swipe_id ?? 0]),
     );
   }
-  return structuredClone(data);
+  return structuredClone(result.value());
 }
 
 export async function replaceVariables(
@@ -127,7 +120,7 @@ export async function replaceVariables(
       await saveMetadata();
       break;
     case 'character':
-      if (!this_chid) {
+      if (this_chid === undefined) {
         throw new Error('保存变量失败，当前角色为空');
       }
       //@ts-ignore
@@ -163,17 +156,15 @@ export async function replaceVariables(
   }
 
   log.info(
-    `将${
-      type === 'message'
-        ? `'${message_id}' 消息`
-        : type === 'chat'
-          ? '聊天'
-          : type === 'character'
-            ? '角色'
-            : type === 'script'
-              ? `'${script_id}' 脚本`
-              : '全局'
-    }变量表替换为:\n${JSON.stringify(variables)}`,
+    `替换${
+      {
+        message: `'${message_id}' 消息`,
+        chat: '聊天',
+        character: '角色',
+        script: `'${script_id}' 脚本`,
+        global: '全局',
+      }[type]
+    }变量表`,
   );
 }
 
@@ -208,18 +199,24 @@ export async function insertOrAssignVariables(
   variables: Record<string, any>,
   { type = 'chat', message_id = 'latest', script_id }: VariableOption = {},
 ): Promise<Record<string, any>> {
-  return await updateVariablesWith(old_variables => _.merge(old_variables, variables), { type, message_id, script_id });
+  return await updateVariablesWith(
+    old_variables => _.mergeWith(old_variables, variables, (_lhs, rhs) => (_.isArray(rhs) ? rhs : undefined)),
+    { type, message_id, script_id },
+  );
 }
 
 export async function insertVariables(
   variables: Record<string, any>,
   { type = 'chat', message_id = 'latest', script_id }: VariableOption = {},
 ): Promise<Record<string, any>> {
-  return await updateVariablesWith(old_variables => _.defaultsDeep(old_variables, variables), {
-    type,
-    message_id,
-    script_id,
-  });
+  return await updateVariablesWith(
+    old_variables => _.mergeWith({}, variables, old_variables, (_lhs, rhs) => (_.isArray(rhs) ? rhs : undefined)),
+    {
+      type,
+      message_id,
+      script_id,
+    },
+  );
 }
 
 export async function deleteVariable(

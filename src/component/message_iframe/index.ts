@@ -9,10 +9,6 @@ import {
   setupIframeRemovalListener,
   updateIframeViewportHeight,
 } from '@/component/message_iframe/render_message';
-import {
-  addRenderingOptimizeSettings,
-  removeRenderingOptimizeSettings,
-} from '@/component/message_iframe/render_optimize';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
 
 import { reloadCurrentChat, this_chid } from '@sillytavern/script';
@@ -22,6 +18,8 @@ export const defaultIframeSettings = {
   render_depth: 0,
   render_optimize: false,
   render_hide_style: false,
+  render_loading: true,
+  render_blob_url: false,
 };
 
 /**
@@ -100,14 +98,6 @@ export function addRenderQuickButton() {
  * 初始化iframe控制面板
  */
 export async function initIframePanel() {
-  // 处理重型前端卡渲染优化
-  const isRenderingOptimizeEnabled = getSettingValue('render.render_optimize') ?? defaultIframeSettings.render_optimize;
-  if (isRenderingOptimizeEnabled) {
-    await handleRenderingOptimizationToggle(true, false);
-  }
-  $('#render-optimize-toggle')
-    .prop('checked', isRenderingOptimizeEnabled)
-    .on('click', (event: JQuery.ClickEvent) => handleRenderingOptimizationToggle(event.target.checked, true));
   // 处理处理深度设置
   const renderDepth = getSettingValue('render.render_depth') ?? defaultIframeSettings.render_depth;
   $('#render-depth')
@@ -131,6 +121,20 @@ export async function initIframePanel() {
   $('#render-hide-style-toggle')
     .prop('checked', isRenderingHideStyleEnabled)
     .on('click', (event: JQuery.ClickEvent) => handleRenderingHideStyleToggle(event.target.checked, true));
+
+  const isRenderingLoadingEnabled = getSettingValue('render.render_loading') ?? defaultIframeSettings.render_loading;
+  $('#render-loading-toggle')
+    .prop('checked', isRenderingLoadingEnabled)
+    .on('click', async (event: JQuery.ClickEvent) => {
+      saveSettingValue('render.render_loading', event.target.checked);
+    });
+
+  const isRenderingBlobUrlEnabled = getSettingValue('render.render_blob_url') ?? defaultIframeSettings.render_blob_url;
+  $('#render-blob-url-toggle')
+    .prop('checked', isRenderingBlobUrlEnabled)
+    .on('click', async (event: JQuery.ClickEvent) => {
+      saveSettingValue('render.render_blob_url', event.target.checked);
+    });
 
   $(window).on('resize', function () {
     if ($('iframe[data-needs-vh="true"]').length) {
@@ -199,29 +203,6 @@ export async function handleRenderingHideStyleToggle(enable: boolean, userInput:
     }
   } else {
     removeRenderingHideStyleSettings();
-    if (userInput) {
-      await clearAndRenderAllIframes();
-    }
-  }
-}
-
-/**
- * 处理重型前端卡渲染优化
- * @param enable 是否启用重型前端卡渲染优化
- * @param userInput 是否由用户手动触发
- */
-export async function handleRenderingOptimizationToggle(enable: boolean, userInput: boolean = true) {
-  if (userInput) {
-    saveSettingValue('render.render_optimize', enable);
-  }
-
-  if (enable) {
-    addRenderingOptimizeSettings();
-    if (userInput) {
-      await clearAndRenderAllIframes();
-    }
-  } else {
-    removeRenderingOptimizeSettings();
     if (userInput) {
       await clearAndRenderAllIframes();
     }

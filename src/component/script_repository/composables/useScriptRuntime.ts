@@ -1,5 +1,6 @@
+import third_party from '@/iframe/third_party_script.html';
 import { script_url } from '@/script_url';
-import third_party from '@/third_party.html';
+import { getSettingValue } from '@/util/extension_variables';
 import log from 'loglevel';
 import type { Script, ScriptType } from '../schemas/script.schema';
 import { getStoreByType } from '../stores/factory';
@@ -15,27 +16,14 @@ export function useScriptRuntime() {
    * 创建脚本运行的HTML内容
    */
   function createScriptHtml(script: Script): string {
+    const is_render_blob_url_enabled = getSettingValue('render.render_blob_url', false);
     return `
       <html>
       <head>
         ${third_party}
-        <script>
-          (function ($) {
-            var original$ = $;
-            window.$ = function (selector, context) {
-              if (context === undefined || context === null) {
-                if (window.parent && window.parent.document) {
-                  context = window.parent.document;
-                } else {
-                  console.warn('无法访问 window.parent.document，将使用当前 iframe 的 document 作为上下文。');
-                  context = window.document;
-                }
-              }
-              return original$(selector, context);
-            };
-          })(jQuery);
-        </script>
-        <script src="${script_url.get('iframe')}"></script>
+        ${is_render_blob_url_enabled ? `<base href="${window.location.origin}/">` : ``}
+        <script src="${script_url.get('parent_jquery')}"></script>
+        <script src="${script_url.get('predefine')}"></script>
       </head>
       <body>
         <script type="module">
