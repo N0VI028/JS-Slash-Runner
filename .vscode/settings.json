@@ -25,6 +25,9 @@
   "typescript.inlayHints.propertyDeclarationTypes.enabled": true,
   "typescript.inlayHints.variableTypes.enabled": true,
   "typescript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

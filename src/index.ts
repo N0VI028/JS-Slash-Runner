@@ -15,6 +15,7 @@ import { defaultScriptSettings } from '@/component/script_repository/schemas/scr
 import { initVariableManager } from '@/component/variable_manager';
 import { disableIncompatibleOption } from '@/disable_incompatible_option';
 import { initTavernHelperObject } from '@/function';
+import '@/index.css';
 import { initAudioSlashCommands } from '@/slash_command/audio';
 import { initSlashEventEmit } from '@/slash_command/event';
 import {

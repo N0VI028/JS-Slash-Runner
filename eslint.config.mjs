@@ -27,7 +27,7 @@ export default [
       'no-lonely-if': 'error',
       'no-multi-spaces': 'error',
       'no-redeclare': 'off',
-      'no-shadow': ['error', { allow: ['err', 'resolve', 'reject'] }],
+      'no-shadow': 'off',
       'no-undef': 'off',
       'no-unused-vars': 'off',
       'no-var': 'error',
@@ -36,5 +36,5 @@ export default [
     },
   },
   eslintConfigPrettier,
-  globalIgnores(['dist/**/*', 'eslint.config.mjs', 'webpack.config.ts']),
+  globalIgnores(['dist/**', 'node_modules/**', 'eslint.config.js', 'webpack.config.ts']),
 ];

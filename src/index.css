@@ -1,3 +1,4 @@
+/* @import 'tailwindcss'; */
 
 /* 编写参考 */
 .extension-reference-button {
@@ -83,7 +84,9 @@
 .title-item-active {
   background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 80%, transparent);
   color: var(--SmartThemeBodyColor);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .extension-content {

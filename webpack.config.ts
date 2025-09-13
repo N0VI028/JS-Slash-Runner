@@ -1,4 +1,5 @@
 //import eslintWebpackPlugin from 'eslint-webpack-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
@@ -29,7 +30,6 @@ const config = (_env: any, argv: any): webpack.Configuration => {
       path: path.join(__dirname, 'dist/'),
       chunkFilename: '[name].[contenthash].chunk.js',
       asyncChunks: true,
-      chunkLoading: 'import',
       clean: true,
       library: {
         type: 'module',
@@ -82,38 +82,18 @@ const config = (_env: any, argv: any): webpack.Configuration => {
               exclude: /node_modules/,
             },
             {
-              test: /\.vue\.s(a|c)ss$/,
-              use: [
-                'vue-style-loader',
-                { loader: 'css-loader', options: { url: false } },
-                'postcss-loader',
-                'sass-loader',
-              ],
-              exclude: /node_modules/,
-            },
-            {
-              test: /\.vue\.css$/,
-              use: ['vue-style-loader', { loader: 'css-loader', options: { url: false } }, 'postcss-loader'],
-              exclude: /node_modules/,
-            },
-            {
-              test: /\.s(a|c)ss$/,
-              use: [{ loader: 'css-loader', options: { url: false } }, 'postcss-loader', 'sass-loader'],
-              exclude: /node_modules/,
-            },
-            {
               test: /\.css$/,
-              use: [{ loader: 'css-loader', options: { url: false } }, 'postcss-loader'],
+              use: [MiniCssExtractPlugin.loader, { loader: 'css-loader', options: { url: false } }, 'postcss-loader'],
               exclude: /node_modules/,
             },
           ],
         },
       ],
     },
-    plugins: [new VueLoaderPlugin()],
+    plugins: [new VueLoaderPlugin(), new MiniCssExtractPlugin()],
     optimization: {
       minimize: true,
-      minimizer: [new TerserPlugin({ terserOptions: { mangle: { reserved: ['_', '$'] } } })],
+      minimizer: [new TerserPlugin({ terserOptions: { mangle: { reserved: ['_', 'hljs', 'toastr', '$'] } } })],
       splitChunks: {
         chunks: 'async',
         minSize: 20000,

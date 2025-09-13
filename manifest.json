@@ -4,7 +4,7 @@
   "requires": [],
   "optional": [],
   "js": "dist/index.js",
-  "css": "style.css",
+  "css": "dist/main.css",
   "author": "KAKAA",
   "version": "3.4.20",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
