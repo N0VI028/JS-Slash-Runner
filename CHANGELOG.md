@@ -4,6 +4,10 @@
 
 - 为前端和脚本默认置入了 [`pixi.js` 库](https://pixijs.com/), 便于制作 live2d、动画、播放器等.
 
+### 🐛修复
+
+- 修复 `setLorebookSettings` 不能正确设置某些设置的问题
+
 ## 3.6.1
 
 ### ⏫功能
