@@ -8,8 +8,8 @@ import {
   ScriptRepositoryItem,
   ScriptType,
 } from '@/component/script_repository/types';
+import third_party from '@/iframe/third_party_script.html';
 import { script_url } from '@/script_url';
-import third_party from '@/third_party.html';
 import { getSettingValue } from '@/util/extension_variables';
 
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
@@ -114,7 +114,7 @@ class ScriptExecutor {
             };
           })(jQuery);
         </script>
-        <script src="${script_url.get('iframe')}"></script>
+        <script src="${script_url.get('predefine')}"></script>
       </head>
       <body>
         <script type="module">

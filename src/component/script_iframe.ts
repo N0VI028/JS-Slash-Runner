@@ -1,6 +1,6 @@
 import { getCharacterRegexes, getGlobalRegexes, isCharacterTavernRegexEnabled } from '@/function/tavern_regex';
 import { script_url } from '@/script_url';
-import third_party from '@/third_party.html';
+import third_party from '@/iframe/third_party_script.html';
 
 import { event_types, eventSource } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
@@ -45,7 +45,7 @@ function makeScriptIframe(script: Script): { iframe: HTMLIFrameElement; load_pro
     <html>
     <head>
       ${third_party}
-      <script src="${script_url.get('iframe')}"></script>
+      <script src="${script_url.get('predefine')}"></script>
     </head>
     <body>
       ${script.code}

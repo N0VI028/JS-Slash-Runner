@@ -2,8 +2,8 @@ import {
   addToggleButtonToCodeBlock,
   removeCodeToggleButtonsByMesId,
 } from '@/component/message_iframe/render_hide_style';
+import third_party from '@/iframe/third_party_frontend.html';
 import { script_url } from '@/script_url';
-import third_party from '@/third_party.html';
 import { getCharAvatarPath, getSettingValue, getUserAvatarPath, saveSettingValue } from '@/util/extension_variables';
 
 import { eventSource, event_types, reloadCurrentChat, this_chid, updateMessageBlock } from '@sillytavern/script';
@@ -153,7 +153,7 @@ async function renderMessagesInIframes(mode = RENDER_MODES.FULL, specificMesId: 
               </style>
               ${enableBlobUrlRendering ? `<base href="${window.location.origin}/">` : ``}
               ${third_party}
-              <script src="${script_url.get('iframe')}"></script>
+              <script src="${script_url.get('predefine')}"></script>
             </head>
             <body>
               ${extractedText}
