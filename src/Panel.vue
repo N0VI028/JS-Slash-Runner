@@ -7,8 +7,12 @@
     <div class="inline-drawer-content">
       <div class="extension-status flex spaceBetween alignItemsCenter paddingLeftRight5">
         <div class="flex alignItemsCenter">
-          <i id="extension-status-icon" class="fa-solid fa-power-off margin-r5"></i>
-          <div id="extension-status" class="inline-block"></div>
+          <i
+            id="extension-status-icon"
+            class="fa-solid fa-power-off margin-r5"
+            :style="{ color: settings.enabled ? 'green' : 'red' }"
+          ></i>
+          <div id="extension-status" class="inline-block">{{ settings.enabled ? '扩展已启用' : '扩展已禁用' }}</div>
         </div>
         <div class="version"></div>
       </div>
@@ -38,7 +42,11 @@ import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
+import { useSettingsStore } from './store/settings';
+
+const { settings } = storeToRefs(useSettingsStore());
 
 const views = ['主设置', '渲染器', '脚本库', '工具箱'] as const;
 const active_view = ref<(typeof views)[number]>('主设置');
