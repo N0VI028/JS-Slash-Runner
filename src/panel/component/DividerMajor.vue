@@ -1,6 +1,6 @@
 <template>
   <div class="tavern-helper-divider-major-container">
-    <div class="tavern-helper-divier-major-text">
+    <div class="tavern-helper-divider-major-text">
       <slot></slot>
     </div>
     <div class="tavern-helper-divider-major-line"></div>
@@ -15,7 +15,7 @@
   margin: 10px 0;
 }
 
-.tavern-helper-divier-major-text {
+.tavern-helper-divider-major-text {
   font-size: calc(var(--mainFontSize) * 0.8);
   white-space: nowrap;
   word-spacing: 1.5;
