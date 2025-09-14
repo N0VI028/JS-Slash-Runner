@@ -1,3 +1,4 @@
+import { Script } from '@/type/scripts';
 import { z } from 'zod';
 
 export const setting_field = 'tavern_helper';
@@ -5,6 +6,18 @@ export const setting_field = 'tavern_helper';
 export const ExtensionSettings = z
   .object({
     enabled: z.boolean().default(true),
+    script: z
+      .object({
+        enabled: z
+          .object({
+            global: z.boolean().default(true),
+            characters: z.array(z.string()).default([]),
+            presets: z.array(z.string()).default([]),
+          })
+          .prefault({}),
+        scripts: z.array(Script).default([]),
+      })
+      .prefault({}),
   })
   .prefault({});
 export type ExtensionSettings = z.infer<typeof ExtensionSettings>;
@@ -53,3 +66,17 @@ export type ExtensionSettings = z.infer<typeof ExtensionSettings>;
 //     enabled: z.boolean().default(false),
 //   }),
 // });
+
+export const CharacterSettings = z
+  .object({
+    scripts: z.array(Script).default([]),
+  })
+  .prefault({});
+export type CharacterSettings = z.infer<typeof CharacterSettings>;
+
+export const PresetSettings = z
+  .object({
+    scripts: z.array(Script).default([]),
+  })
+  .prefault({});
+export type PresetSettings = z.infer<typeof CharacterSettings>;
