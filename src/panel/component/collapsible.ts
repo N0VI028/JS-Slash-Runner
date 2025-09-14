@@ -1,4 +1,4 @@
-// TODO: 制作一个可折叠组件, 而不是调用函数
+// TODO: 制作一个可折叠组件 (或者就是个 Item?), 而不是调用函数
 
 /**
  * 折叠展开配置接口
@@ -117,11 +117,11 @@ export class Collapsible {
 
     // 检查是否点击在开关或其子元素上
     if (
-      $target.hasClass('toggle-switch') ||
-      $target.hasClass('toggle-input') ||
-      $target.hasClass('toggle-label') ||
-      $target.hasClass('toggle-handle') ||
-      $target.closest('.toggle-switch').length > 0
+      $target.hasClass('tavern-helper-toggle') ||
+      $target.hasClass('tavern-helper-toggle-input') ||
+      $target.hasClass('tavern-helper-toggle-label') ||
+      $target.hasClass('tavern-helper-toggle-handle') ||
+      $target.closest('.tavern-helper-toggle').length > 0
     ) {
       return true;
     }
@@ -130,8 +130,8 @@ export class Collapsible {
     if (
       $target.hasClass('menu_button') ||
       $target.closest('.menu_button').length > 0 ||
-      $target.hasClass('TavernHelper-button') ||
-      $target.closest('.TavernHelper-button').length > 0
+      $target.hasClass('tavern-helper-button') ||
+      $target.closest('.tavern-helper-button').length > 0
     ) {
       return true;
     }

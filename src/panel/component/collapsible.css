@@ -1,5 +1,4 @@
-/* TODO: 制作一个可折叠组件, 将 collapsible 样式移动到组件内 */
-
+/* TODO: 制作一个可折叠组件, 将 collapsible 样式移动到组件内, 或者应该就是个 Item? 注意使用 deep 处理 settings-title-text */
 .collapsible > div:first-child {
   cursor: pointer;
 }

@@ -4,12 +4,7 @@
       <div class="settings-title-text">启用扩展</div>
       <div class="settings-title-description">扩展总开关</div>
     </div>
-    <div class="toggle-switch">
-      <input type="checkbox" id="extension-enable-toggle" class="toggle-input" v-model="settings.enabled" />
-      <label for="extension-enable-toggle" class="toggle-label">
-        <span class="toggle-handle"></span>
-      </label>
-    </div>
+    <Toggle id="tavern_helper_settings_enabled" v-model="settings.enabled" />
   </div>
   <Divider />
   <div class="extension-content-item">
@@ -19,7 +14,7 @@
       </div>
       <div class="settings-title-description">查看最新特性，检查并更新扩展</div>
     </div>
-    <div id="update-extension" class="TavernHelper-button">更新</div>
+    <Button :on_click="TODO">更新</Button>
   </div>
   <DividerMajor><i class="fa-solid fa-tools margin-r5"></i>开发工具</DividerMajor>
   <Reference />
@@ -29,12 +24,15 @@
 
 <script setup lang="ts">
 import { event_bus } from '@/event_bus';
+import Button from '@/panel/component/Button.vue';
 import { Collapsible } from '@/panel/component/collapsible';
 import Divider from '@/panel/component/Divider.vue';
 import DividerMajor from '@/panel/component/DividerMajor.vue';
+import Toggle from '@/panel/component/Toggle.vue';
 import Info from '@/panel/main/Info.vue';
 import Reference from '@/panel/main/Reference.vue';
 import { useSettingsStore } from '@/store/settings';
+import { TODO } from '@/todo';
 import { events } from '@/type/events';
 import { storeToRefs } from 'pinia';
 import { onMounted, watchEffect } from 'vue';
