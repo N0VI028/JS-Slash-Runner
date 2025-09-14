@@ -1,5 +1,5 @@
 import { disableIncompatibleOption } from '@/compatibility/disable_incompatible_option';
-import '@/index.css';
+import '@/global.css';
 import Panel from '@/Panel.vue';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
