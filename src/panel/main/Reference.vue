@@ -184,9 +184,9 @@ function downloadSlashCommands(event: Event) {
   font-size: calc(var(--mainFontSize) * 0.8);
   color: var(--SmartThemeBodyColor);
   gap: 5px;
-}
 
-.tavern-helper-reference-button a {
-  color: var(--SmartThemeBodyColor);
+  a {
+    color: var(--SmartThemeBodyColor);
+  }
 }
 </style>
