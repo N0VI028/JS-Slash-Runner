@@ -5,7 +5,7 @@
     <template #content>
       <div class="flex-container width100p">
         <div class="buttons-group flex-container">
-          <DividerMajor>酒馆助手</DividerMajor>
+          <Divider>酒馆助手</Divider>
           <div class="tavern-helper-reference-button">
             <a
               href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
@@ -41,7 +41,7 @@
               手机或 AI 官网用
             </a>
           </div>
-          <DividerMajor>酒馆 /STScript</DividerMajor>
+          <Divider style="margin-top: 10px">酒馆 /STScript</Divider>
           <div class="tavern-helper-reference-button">
             <a
               href="https://rentry.org/sillytavern-script-book"
@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import DividerMajor from '@/panel/component/DividerMajor.vue';
+import Divider from '@/panel/component/Divider.vue';
 import ItemCollapsible from '@/panel/component/ItemCollapsible.vue';
 import * as Popper from '@popperjs/core';
 import {

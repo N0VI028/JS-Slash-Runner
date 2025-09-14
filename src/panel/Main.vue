@@ -14,9 +14,9 @@
       <Button :on_click="TODO">更新</Button>
     </template>
   </ItemPlain>
-  <DividerMajor><i class="fa-solid fa-tools margin-r5"></i>开发工具</DividerMajor>
+  <Divider type="major"><i class="fa-solid fa-tools margin-r5"></i>开发工具</Divider>
   <Reference />
-  <DividerMajor><i class="fa-solid fa-shapes margin-r5"></i>扩展信息</DividerMajor>
+  <Divider type="major"><i class="fa-solid fa-shapes margin-r5"></i>扩展信息</Divider>
   <Info />
 </template>
 
@@ -25,7 +25,6 @@ import { event_bus } from '@/event_bus';
 import Button from '@/panel/component/Button.vue';
 import { Collapsible } from '@/panel/component/collapsible';
 import Divider from '@/panel/component/Divider.vue';
-import DividerMajor from '@/panel/component/DividerMajor.vue';
 import ItemPlain from '@/panel/component/ItemPlain.vue';
 import Toggle from '@/panel/component/Toggle.vue';
 import Info from '@/panel/main/Info.vue';
