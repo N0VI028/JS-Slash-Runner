@@ -1,13 +1,20 @@
 <template>
-  <div class="tavern-helper-button" @click="props.on_click">
+  <div
+    :class="type === 'tavern_helper' ? 'tavern-helper-button' : 'menu_button menu_button_icon interactable'"
+    @click="onClick"
+  >
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  on_click: () => void;
-}>();
+withDefaults(
+  defineProps<{
+    type?: 'tavern_helper' | 'tavern';
+    onClick: () => void;
+  }>(),
+  { type: 'tavern_helper' },
+);
 </script>
 
 <style lang="scss" scoped>

@@ -15,7 +15,7 @@
           </a>
           <i class="fa-solid fa-external-link"></i>
         </div>
-        <div class="tavern-helper-reference-button" ref="tavern_helper_types_button">
+        <div ref="tavern_helper_types_button" class="tavern-helper-reference-button">
           <a
             style="cursor: pointer"
             title="下载提供给 VSCode/Cursor 的 TypeScript 类型声明文件, 既让 VSCode/Cursor 能提供代码提示, 也可以发给 ai 让它了解"

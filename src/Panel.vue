@@ -7,16 +7,17 @@
     <div class="inline-drawer-content">
       <div class="extension-status flex spaceBetween alignItemsCenter paddingLeftRight5">
         <div class="flex alignItemsCenter">
-          <i class="fa-solid fa-power-off margin-r5" :style="{ color: settings.enabled ? 'green' : 'red' }"></i>
-          <div class="inline-block">{{ settings.enabled ? '扩展已启用' : '扩展已禁用' }}</div>
+          <i class="fa-solid fa-power-off margin-r5" :style="{ color: enabled ? 'green' : 'red' }"></i>
+          <div class="inline-block">{{ enabled ? '扩展已启用' : '扩展已禁用' }}</div>
         </div>
         <div class="version"></div>
       </div>
       <div class="marginTop5 marginBot10">
         <div class="tavern-helper-tab-title flex alignItemsCenter width100p padding5">
           <div
-            class="tavern-helper-tab-title-text flex flex1 justifyCenter alignItemsCenter height100p"
             v-for="(_view, name) in views"
+            :key="name"
+            class="tavern-helper-tab-title-text flex flex1 justifyCenter alignItemsCenter height100p"
             :class="{ 'tavern-helper-tab-title-text-active': active_view === name }"
           >
             <div class="flex alignItemsCenter" @click="active_view = name">
@@ -25,9 +26,10 @@
           </div>
         </div>
         <div
-          class="tavern-helper-tab-page flex flexFlowColumn gap10px"
           v-for="(view, name) in views"
           v-show="active_view === name"
+          :key="name"
+          class="tavern-helper-tab-page flex flexFlowColumn gap10px"
         >
           <component :is="view" />
         </div>
@@ -41,11 +43,10 @@ import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
-import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
-import { useSettingsStore } from './store/settings';
+import { useExtensionStore } from '@/store/extension';
+import { ref, toRefs } from 'vue';
 
-const { settings } = storeToRefs(useSettingsStore());
+const { enabled } = toRefs(useExtensionStore().settings);
 
 const views = { 主设置: Main, 渲染器: Render, 脚本库: Script, 工具箱: Toolbox } as const;
 const active_view = ref<keyof typeof views>('主设置');

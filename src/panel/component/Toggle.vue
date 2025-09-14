@@ -1,6 +1,6 @@
 <template>
   <div class="tavern-helper-toggle">
-    <input type="checkbox" :id="props.id" class="tavern-helper-toggle-input" v-model="model" />
+    <input :id="props.id" v-model="model" type="checkbox" class="tavern-helper-toggle-input" />
     <label :for="props.id" class="tavern-helper-toggle-label">
       <span class="tavern-helper-toggle-handle"></span>
     </label>
