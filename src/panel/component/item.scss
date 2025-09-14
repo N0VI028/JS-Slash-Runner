@@ -1,0 +1,17 @@
+.tavern-helper-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tavern-helper-item-title {
+  font-size: var(--mainFontSize);
+  font-weight: 600;
+}
+
+.tavern-helper-item-description {
+  margin-top: 2px;
+  font-size: calc(var(--mainFontSize) * 0.8);
+  opacity: 0.7;
+}

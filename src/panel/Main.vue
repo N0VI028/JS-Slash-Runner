@@ -1,21 +1,19 @@
 <template>
-  <div class="extension-content-item">
-    <div class="flex flexFlowColumn">
-      <div class="settings-title-text">启用扩展</div>
-      <div class="settings-title-description">扩展总开关</div>
-    </div>
-    <Toggle id="tavern_helper_settings_enabled" v-model="settings.enabled" />
-  </div>
+  <ItemPlain>
+    <template #title>启用扩展</template>
+    <template #description>扩展总开关</template>
+    <template #content>
+      <Toggle id="tavern_helper_settings_enabled" v-model="settings.enabled" />
+    </template>
+  </ItemPlain>
   <Divider />
-  <div class="extension-content-item">
-    <div class="flex flexFlowColumn">
-      <div class="flex-container alignItemsCenter">
-        <div class="settings-title-text" id="version-update-text">版本更新</div>
-      </div>
-      <div class="settings-title-description">查看最新特性，检查并更新扩展</div>
-    </div>
-    <Button :on_click="TODO">更新</Button>
-  </div>
+  <ItemPlain type="plain">
+    <template #title>版本更新</template>
+    <template #description>查看最新特性，检查并更新扩展</template>
+    <template #content>
+      <Button :on_click="TODO">更新</Button>
+    </template>
+  </ItemPlain>
   <DividerMajor><i class="fa-solid fa-tools margin-r5"></i>开发工具</DividerMajor>
   <Reference />
   <DividerMajor><i class="fa-solid fa-shapes margin-r5"></i>扩展信息</DividerMajor>
@@ -28,6 +26,7 @@ import Button from '@/panel/component/Button.vue';
 import { Collapsible } from '@/panel/component/collapsible';
 import Divider from '@/panel/component/Divider.vue';
 import DividerMajor from '@/panel/component/DividerMajor.vue';
+import ItemPlain from '@/panel/component/ItemPlain.vue';
 import Toggle from '@/panel/component/Toggle.vue';
 import Info from '@/panel/main/Info.vue';
 import Reference from '@/panel/main/Reference.vue';

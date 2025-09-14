@@ -29,36 +29,12 @@
   padding-top: 0;
 }
 
-.extension-content-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.settings-title-text {
-  font-size: var(--mainFontSize);
-  font-weight: 600;
-}
-
-.settings-title-description {
-  margin-top: 2px;
-  font-size: calc(var(--mainFontSize) * 0.8);
-  opacity: 0.7;
-}
-
 #update-extension {
   cursor: pointer;
 }
 
 .input-number-wrapper input {
   width: 50px !important;
-}
-
-.box-container {
-  padding: 1em;
-  border-radius: 10px;
-  border: 1px solid var(--grey5050a);
 }
 
 /* 变量管理器 */

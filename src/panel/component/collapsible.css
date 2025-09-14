@@ -1,15 +1,15 @@
-/* TODO: 制作一个可折叠组件, 将 collapsible 样式移动到组件内, 或者应该就是个 Item? 注意使用 deep 处理 settings-title-text */
+/* TODO: 制作一个可折叠组件, 将 collapsible 样式移动到组件内, 或者应该就是个 Item? 注意使用 deep 处理 tavern-helper-item-title */
 .collapsible > div:first-child {
   cursor: pointer;
 }
 
-.collapsible .settings-title-text {
+.collapsible .tavern-helper-item-title {
   position: relative;
   cursor: pointer;
   padding-left: 15px;
 }
 
-.collapsible .settings-title-text::before {
+.collapsible .tavern-helper-item-title::before {
   content: '';
   position: absolute;
   left: 0;
@@ -24,7 +24,7 @@
   transform-origin: center;
 }
 
-.collapsible.expanded .settings-title-text::before {
+.collapsible.expanded .tavern-helper-item-title::before {
   transform: translateY(-50%) rotate(90deg);
 }
 
