@@ -8,10 +8,7 @@
     </div>
     <div class="flex-container collapsible-content width100p">
       <div class="buttons-group flex-container">
-        <div class="major-divider-container">
-          <div class="major-divider-text">酒馆助手</div>
-          <div class="major-divider-line"></div>
-        </div>
+        <DividerMajor>酒馆助手</DividerMajor>
         <div class="tavern-helper-reference-button">
           <a
             href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
@@ -47,10 +44,7 @@
             手机或 AI 官网用
           </a>
         </div>
-        <div class="major-divider-container">
-          <div class="major-divider-text">酒馆 /STScript</div>
-          <div class="major-divider-line"></div>
-        </div>
+        <DividerMajor>酒馆 /STScript</DividerMajor>
         <div class="tavern-helper-reference-button">
           <a
             href="https://rentry.org/sillytavern-script-book"
@@ -77,13 +71,13 @@
 </template>
 
 <script setup lang="ts">
+import DividerMajor from '@/panel/component/DividerMajor.vue';
+import * as Popper from '@popperjs/core';
 import {
   SlashCommandArgument,
   SlashCommandNamedArgument,
 } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
-
-import * as Popper from '@popperjs/core';
 import { onMounted, useTemplateRef } from 'vue';
 
 function formatSlashCommands(): string {

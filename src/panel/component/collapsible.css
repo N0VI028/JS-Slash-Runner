@@ -1,0 +1,49 @@
+/* TODO: 制作一个可折叠组件, 将 collapsible 样式移动到组件内 */
+
+.collapsible > div:first-child {
+  cursor: pointer;
+}
+
+.collapsible .settings-title-text {
+  position: relative;
+  cursor: pointer;
+  padding-left: 15px;
+}
+
+.collapsible .settings-title-text::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: calc(var(--mainFontSize) * 0.35) 0 calc(var(--mainFontSize) * 0.35) calc(var(--mainFontSize) * 0.5);
+  border-color: transparent transparent transparent currentColor;
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transform-origin: center;
+}
+
+.collapsible.expanded .settings-title-text::before {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.collapsible-content {
+  display: none;
+  transform-origin: top;
+  overflow: hidden;
+}
+
+.collapsible.expanded .collapsible-content {
+  display: flex;
+}
+
+.collapsible-content.animating {
+  display: flex;
+}
+
+/* 整个标题区域可点击 */
+.collapsible .flex.flexFlowColumn {
+  cursor: pointer;
+}

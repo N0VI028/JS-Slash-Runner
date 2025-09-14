@@ -1,3 +1,5 @@
+@import '@/panel/component/collapsible.css';
+
 #render-depth,
 .script-editor-container input:not([type='checkbox']) {
   width: 100%;
@@ -9,22 +11,6 @@
 
 #render-depth {
   padding: 0 2px;
-}
-
-#extension-info {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  position: relative;
-  width: 100%;
-  background-color: var(--grey5020a);
-  border-radius: 5px;
-  padding: 20px;
-}
-
-#extension-info .info-text {
-  font-size: calc(var(--mainFontSize) * 0.7);
-  opacity: 0.7;
 }
 
 .text-decoration {
@@ -90,37 +76,6 @@
   width: 50px !important;
 }
 
-.major-divider-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin: 10px 0;
-}
-
-.major-divider-text {
-  font-size: calc(var(--mainFontSize) * 0.8);
-  white-space: nowrap;
-  word-spacing: 1.5;
-  margin-right: 10px;
-}
-
-.major-divider-line {
-  flex-grow: 1;
-  height: 2px;
-  background-color: var(--grey5050a);
-}
-
-.major-divider {
-  height: 2px;
-  background-color: var(--grey5050a);
-  margin: 10px 0;
-}
-
-.divider {
-  height: 1px;
-  background-color: var(--grey5050a);
-}
-
 .box-container {
   padding: 1em;
   border-radius: 10px;
@@ -175,68 +130,6 @@
 
 .toggle-input:focus + .toggle-label {
   box-shadow: 0 0 1px var(--SmartThemeQuoteColor);
-}
-
-/* 可折叠项样式 */
-.collapsible > div:first-child {
-  cursor: pointer;
-}
-
-.collapsible .settings-title-text {
-  position: relative;
-  cursor: pointer;
-  padding-left: 15px;
-}
-
-.collapsible .settings-title-text::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: calc(var(--mainFontSize) * 0.35) 0 calc(var(--mainFontSize) * 0.35) calc(var(--mainFontSize) * 0.5);
-  border-color: transparent transparent transparent currentColor;
-  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-  transform-origin: center;
-}
-
-.collapsible.expanded .settings-title-text::before {
-  transform: translateY(-50%) rotate(90deg);
-}
-
-.collapsible-content {
-  display: none;
-  transform-origin: top;
-  overflow: hidden;
-}
-
-.collapsible.expanded .collapsible-content {
-  display: flex;
-}
-
-.collapsible-content.animating {
-  display: flex;
-}
-
-/* 整个标题区域可点击 */
-.collapsible .flex.flexFlowColumn {
-  cursor: pointer;
-}
-
-/* 指示器 */
-.status_indicator {
-  font-size: var(--mainFontSize);
-}
-
-#online_status_indicator.success {
-  color: green;
-}
-
-#online_status_indicator {
-  color: rgb(170, 0, 0);
 }
 
 /* 变量管理器 */
