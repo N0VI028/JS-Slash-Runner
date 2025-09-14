@@ -12,22 +12,25 @@
         </div>
         <div class="version"></div>
       </div>
-      <div id="extension-container" class="marginTop5 marginBot10">
-        <div class="extension-title flex alignItemsCenter width100p padding5">
+      <div class="marginTop5 marginBot10">
+        <div class="tavern-helper-tab-title flex alignItemsCenter width100p padding5">
           <div
-            class="title-item flex flex1 justifyCenter alignItemsCenter height100p"
-            v-for="view in views"
-            :class="{ 'title-item-active': active_view === view }"
+            class="tavern-helper-tab-title-text flex flex1 justifyCenter alignItemsCenter height100p"
+            v-for="(_view, name) in views"
+            :class="{ 'tavern-helper-tab-title-text-active': active_view === name }"
           >
-            <div class="settings-title flex alignItemsCenter" @click="active_view = view">
-              <i class="fa-solid fa-gear margin-r5 fontsize80p"></i>{{ view }}
+            <div class="flex alignItemsCenter" @click="active_view = name">
+              <i class="fa-solid fa-gear margin-r5 fontsize80p"></i>{{ name }}
             </div>
           </div>
         </div>
-        <Main v-show="active_view === '主设置'" />
-        <Render v-show="active_view === '渲染器'" />
-        <Script v-show="active_view === '脚本库'" />
-        <Toolbox v-show="active_view === '工具箱'" />
+        <div
+          class="tavern-helper-tab-page flex flexFlowColumn gap10px"
+          v-for="(view, name) in views"
+          v-show="active_view === name"
+        >
+          <component :is="view" />
+        </div>
       </div>
     </div>
   </div>
@@ -44,8 +47,8 @@ import { useSettingsStore } from './store/settings';
 
 const { settings } = storeToRefs(useSettingsStore());
 
-const views = ['主设置', '渲染器', '脚本库', '工具箱'] as const;
-const active_view = ref<(typeof views)[number]>('主设置');
+const views = { 主设置: Main, 渲染器: Render, 脚本库: Script, 工具箱: Toolbox } as const;
+const active_view = ref<keyof typeof views>('主设置');
 </script>
 
 <style lang="scss" scoped>
@@ -58,5 +61,29 @@ const active_view = ref<(typeof views)[number]>('主设置');
     opacity: 1;
     filter: brightness(1.5);
   }
+}
+
+.tavern-helper-tab-title {
+  height: calc(var(--mainFontSize) * 2.5);
+  border: 1px solid var(--grey5050a);
+  border-radius: 50px;
+}
+
+.tavern-helper-tab-title-text {
+  border-radius: 50px;
+  color: var(--grey50);
+}
+
+.tavern-helper-tab-title-text-active {
+  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 80%, transparent);
+  color: var(--SmartThemeBodyColor);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.tavern-helper-tab-page {
+  margin: 10px 0;
+  padding: 10px 10px;
 }
 </style>
