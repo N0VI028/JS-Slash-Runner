@@ -11,16 +11,6 @@
   padding: 0 2px;
 }
 
-.extension-status,
-.extension-status i {
-  font-size: calc(var(--mainFontSize) * 0.8) !important;
-  opacity: 0.7;
-}
-
-.extension-status i {
-  opacity: 1;
-  filter: brightness(1.5);
-}
 
 #extension-info {
   display: flex;

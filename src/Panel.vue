@@ -7,12 +7,8 @@
     <div class="inline-drawer-content">
       <div class="extension-status flex spaceBetween alignItemsCenter paddingLeftRight5">
         <div class="flex alignItemsCenter">
-          <i
-            id="extension-status-icon"
-            class="fa-solid fa-power-off margin-r5"
-            :style="{ color: settings.enabled ? 'green' : 'red' }"
-          ></i>
-          <div id="extension-status" class="inline-block">{{ settings.enabled ? '扩展已启用' : '扩展已禁用' }}</div>
+          <i class="fa-solid fa-power-off margin-r5" :style="{ color: settings.enabled ? 'green' : 'red' }"></i>
+          <div class="inline-block">{{ settings.enabled ? '扩展已启用' : '扩展已禁用' }}</div>
         </div>
         <div class="version"></div>
       </div>
@@ -51,3 +47,16 @@ const { settings } = storeToRefs(useSettingsStore());
 const views = ['主设置', '渲染器', '脚本库', '工具箱'] as const;
 const active_view = ref<(typeof views)[number]>('主设置');
 </script>
+
+<style lang="scss" scoped>
+.extension-status {
+  font-size: calc(var(--mainFontSize) * 0.8) !important;
+  opacity: 0.7;
+
+  i {
+    font-size: calc(var(--mainFontSize) * 0.8) !important;
+    opacity: 1;
+    filter: brightness(1.5);
+  }
+}
+</style>
