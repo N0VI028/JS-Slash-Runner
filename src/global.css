@@ -1,4 +1,4 @@
-@import '@/panel/component/collapsible.css';
+@import './panel/component/collapsible.css';
 
 #render-depth,
 .script-editor-container input:not([type='checkbox']) {
