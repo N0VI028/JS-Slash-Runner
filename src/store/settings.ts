@@ -7,12 +7,16 @@ import { ref, toRaw, watch } from 'vue';
 
 const extension_setting_name = 'tavern_helper';
 export const useSettingsStore = defineStore('settings', () => {
-  const settings = ref(validateInplace(Settings, _.get(extension_settings, extension_setting_name, {})));
+  const settings = ref(validateInplace(Settings, _.get(extension_settings, extension_setting_name)));
 
-  watch(settings, new_settings => {
-    _.set(extension_settings, extension_setting_name, toRaw(new_settings));
-    saveSettingsDebounced();
-  });
+  watch(
+    settings,
+    new_settings => {
+      _.set(extension_settings, extension_setting_name, toRaw(new_settings));
+      saveSettingsDebounced();
+    },
+    { deep: true },
+  );
 
   return { settings };
 });

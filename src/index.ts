@@ -4,11 +4,10 @@ import Panel from '@/Panel.vue';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 
-const pinia = createPinia();
-const app = createApp(Panel);
+const app = createApp(Panel).use(createPinia());
 function initPanel() {
   const $app = $('<div id="tavern_helper_new">').appendTo('#extensions_settings');
-  app.use(pinia).mount($app[0]);
+  app.mount($app[0]);
 }
 
 $(() => {
