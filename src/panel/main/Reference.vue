@@ -12,7 +12,7 @@
           <div class="major-divider-text">酒馆助手</div>
           <div class="major-divider-line"></div>
         </div>
-        <div class="extension-reference-button">
+        <div class="tavern-helper-reference-button">
           <a
             href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
             style="cursor: pointer"
@@ -22,7 +22,7 @@
           </a>
           <i class="fa-solid fa-external-link"></i>
         </div>
-        <div class="extension-reference-button" ref="tavern_helper_types_button">
+        <div class="tavern-helper-reference-button" ref="tavern_helper_types_button">
           <a
             style="cursor: pointer"
             title="下载提供给 VSCode/Cursor 的 TypeScript 类型声明文件, 既让 VSCode/Cursor 能提供代码提示, 也可以发给 ai 让它了解"
@@ -51,7 +51,7 @@
           <div class="major-divider-text">酒馆 /STScript</div>
           <div class="major-divider-line"></div>
         </div>
-        <div class="extension-reference-button">
+        <div class="tavern-helper-reference-button">
           <a
             href="https://rentry.org/sillytavern-script-book"
             style="cursor: pointer"
@@ -61,7 +61,7 @@
           </a>
           <i class="fa-solid fa-external-link"></i>
         </div>
-        <div class="extension-reference-button">
+        <div class="tavern-helper-reference-button">
           <a
             target="_blank"
             style="cursor: pointer"
@@ -171,3 +171,22 @@ function downloadSlashCommands(event: Event) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 </script>
+
+<style lang="scss" scoped>
+.tavern-helper-reference-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--grey5020a);
+  border-radius: 50px;
+  padding: 5px 10px;
+  margin-top: 5px;
+  font-size: calc(var(--mainFontSize) * 0.8);
+  color: var(--SmartThemeBodyColor);
+  gap: 5px;
+}
+
+.tavern-helper-reference-button a {
+  color: var(--SmartThemeBodyColor);
+}
+</style>
