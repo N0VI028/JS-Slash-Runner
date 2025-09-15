@@ -30,9 +30,9 @@ import Info from '@/panel/main/Info.vue';
 import Reference from '@/panel/main/Reference.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { TODO } from '@/todo';
-import { onMounted, toRefs } from 'vue';
+import { onMounted, toRef } from 'vue';
 
-const { enabled } = toRefs(useGlobalSettingsStore().settings);
+const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 
 onMounted(() => {
   Collapsible.initAll('.collapsible', {

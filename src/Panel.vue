@@ -44,9 +44,9 @@ import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { ref, toRefs } from 'vue';
+import { ref, toRef } from 'vue';
 
-const { enabled } = toRefs(useGlobalSettingsStore().settings);
+const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 
 const views = { 主设置: Main, 渲染器: Render, 脚本库: Script, 工具箱: Toolbox } as const;
 const active_view = ref<keyof typeof views>('主设置');
