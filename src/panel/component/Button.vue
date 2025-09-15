@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="type === 'tavern_helper' ? 'tavern-helper-button' : 'menu_button menu_button_icon interactable'"
+    :class="type === 'tavern_helper' ? 'tavern-helper-Button--container' : 'menu_button menu_button_icon interactable'"
     @click="onClick"
   >
     <slot />
@@ -17,25 +17,27 @@ withDefaults(
 );
 </script>
 
-<style lang="scss" scoped>
-.tavern-helper-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 55px;
-  border: 1px solid var(--SmartThemeQuoteColor);
-  border-radius: 5px;
-  padding: 3px 5px;
-  font-size: calc(var(--mainFontSize) * 0.8);
-  color: var(--SmartThemeBodyColor);
-
-  a {
+<style lang="scss">
+.tavern-helper-Button-- {
+  &container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    border: 1px solid var(--SmartThemeQuoteColor);
+    border-radius: 5px;
+    padding: 3px 5px;
+    font-size: calc(var(--mainFontSize) * 0.8);
     color: var(--SmartThemeBodyColor);
-  }
 
-  i {
-    font-size: calc(var(--mainFontSize) * 0.6) !important;
-    margin-left: 5px;
+    a {
+      color: var(--SmartThemeBodyColor);
+    }
+
+    i {
+      font-size: calc(var(--mainFontSize) * 0.6) !important;
+      margin-left: 5px;
+    }
   }
 }
 </style>

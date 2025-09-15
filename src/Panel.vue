@@ -5,7 +5,7 @@
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
-      <div class="extension-status flex spaceBetween alignItemsCenter paddingLeftRight5">
+      <div class="tavern-helper-status flex spaceBetween alignItemsCenter paddingLeftRight5">
         <div class="flex alignItemsCenter">
           <i class="fa-solid fa-power-off margin-r5" :style="{ color: enabled ? 'green' : 'red' }"></i>
           <div class="inline-block">{{ enabled ? '扩展已启用' : '扩展已禁用' }}</div>
@@ -55,7 +55,7 @@ const active_view = ref<(typeof views)[number]['name']>('主设置');
 </script>
 
 <style lang="scss" scoped>
-.extension-status {
+.tavern-helper-status {
   font-size: calc(var(--mainFontSize) * 0.8) !important;
   opacity: 0.7;
 

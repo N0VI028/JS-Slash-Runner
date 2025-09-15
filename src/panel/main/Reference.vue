@@ -40,7 +40,7 @@
             手机或 AI 官网用
           </a>
         </div>
-        <Divider style="margin-top: 10px">酒馆 /STScript</Divider>
+        <Divider>酒馆 /STScript</Divider>
         <div class="tavern-helper-reference-button">
           <a
             href="https://rentry.org/sillytavern-script-book"
