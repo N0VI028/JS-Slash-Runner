@@ -13,9 +13,9 @@
 <script setup lang="ts">
 import SearchBar from '@/panel/component/SearchBar.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
-import { TODO_hint } from '@/todo';
+import { make_TODO } from '@/todo';
 import { ref, watch } from 'vue';
 
 const search_input = ref('');
-watch(search_input, TODO_hint('按照搜索结果筛选脚本'));
+watch(search_input, make_TODO('按照搜索结果筛选脚本'));
 </script>
