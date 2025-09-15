@@ -55,6 +55,5 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
 
   const name = computed(() => Object.keys(preset_manager.getPresetList().preset_names)[Number(id.value)]);
 
-  // eslint-disable-next-line pinia/require-setup-store-properties-export
   return { id: readonly(id), settings, name };
 });

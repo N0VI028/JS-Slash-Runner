@@ -10,6 +10,5 @@ export const useChatSettingsStore = defineStore('chat_settings', () => {
     }
   });
 
-  // eslint-disable-next-line pinia/require-setup-store-properties-export
   return { id: readonly(id) };
 });

@@ -44,6 +44,5 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
 
   const name = computed(() => characters.at(id.value as unknown as number)?.name);
 
-  // eslint-disable-next-line pinia/require-setup-store-properties-export
   return { id: readonly(id), settings, name };
 });
