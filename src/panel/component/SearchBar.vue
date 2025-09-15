@@ -11,7 +11,7 @@
       />
       <button
         v-if="clearable && input.length > 0"
-        class="tavern-helper-SearchBar--clear_search flex alignItemsCenter justifyContentCenter"
+        class="tavern-helper-SearchBar--clear_search alignItemsCenter justifyContentCenter flex"
         title="清除"
         @click="input = ''"
       >
@@ -23,8 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import _ from 'lodash';
-import { computed } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 
 const input = defineModel<string>({ required: true });
 const props = withDefaults(
@@ -40,10 +39,11 @@ const props = withDefaults(
   },
 );
 
-const onInput = computed(() =>
-  _.debounce((event: Event) => {
+const onInput = useDebounceFn(
+  (event: Event) => {
     input.value = (event.target as HTMLInputElement).value;
-  }, props.debounce),
+  },
+  () => props.debounce,
 );
 </script>
 
