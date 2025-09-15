@@ -26,7 +26,7 @@ function saveSettingsToFile(id: string, settings: PresetSettings) {
 }
 const saveSettingsToFileDebounced = _.debounce(saveSettingsToFile, 1000);
 
-export const usePresetStore = defineStore('preset', () => {
+export const usePresetSettingsStore = defineStore('preset_settings', () => {
   const id = ref<string>(preset_manager.getSelectedPreset());
   const settings = ref<PresetSettings>(getSettings(id.value));
   // 切换预设时刷新 id 和 settings

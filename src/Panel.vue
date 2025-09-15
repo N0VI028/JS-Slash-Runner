@@ -43,10 +43,10 @@ import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
-import { useExtensionStore } from '@/store/extension';
+import { useGlobalSettingsStore } from '@/store/settings';
 import { ref, toRefs } from 'vue';
 
-const { enabled } = toRefs(useExtensionStore().settings);
+const { enabled } = toRefs(useGlobalSettingsStore().settings);
 
 const views = { 主设置: Main, 渲染器: Render, 脚本库: Script, 工具箱: Toolbox } as const;
 const active_view = ref<keyof typeof views>('主设置');

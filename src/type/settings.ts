@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const setting_field = 'tavern_helper';
 
-export const ExtensionSettings = z
+export const GlobalSettings = z
   .object({
     enabled: z.boolean().default(true),
     script: z
@@ -20,7 +20,7 @@ export const ExtensionSettings = z
       .prefault({}),
   })
   .prefault({});
-export type ExtensionSettings = z.infer<typeof ExtensionSettings>;
+export type GlobalSettings = z.infer<typeof GlobalSettings>;
 
 // const Settings = z.object({
 //   enabled_extension: z.boolean().default(true),

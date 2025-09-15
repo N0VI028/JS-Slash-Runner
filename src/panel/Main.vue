@@ -28,11 +28,11 @@ import Item from '@/panel/component/Item.vue';
 import Toggle from '@/panel/component/Toggle.vue';
 import Info from '@/panel/main/Info.vue';
 import Reference from '@/panel/main/Reference.vue';
-import { useExtensionStore } from '@/store/extension';
+import { useGlobalSettingsStore } from '@/store/settings';
 import { TODO } from '@/todo';
 import { onMounted, toRefs } from 'vue';
 
-const { enabled } = toRefs(useExtensionStore().settings);
+const { enabled } = toRefs(useGlobalSettingsStore().settings);
 
 onMounted(() => {
   Collapsible.initAll('.collapsible', {

@@ -17,7 +17,7 @@ function saveSettings(id: string, settings: CharacterSettings) {
 }
 const saveSettingsDebounced = _.debounce(saveSettings, 1000);
 
-export const useCharacterStore = defineStore('character', () => {
+export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
   const settings = ref<CharacterSettings>(getSettings(id.value));
   // 切换角色卡时刷新 id 和 settings
