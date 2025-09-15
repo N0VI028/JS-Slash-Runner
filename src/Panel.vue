@@ -25,14 +25,11 @@
             </div>
           </div>
         </div>
-        <div
-          v-for="(view, name) in views"
-          v-show="active_view === name"
-          :key="name"
-          class="tavern-helper-tab-page flex flexFlowColumn gap10px"
-        >
-          <component :is="view" />
-        </div>
+        <template v-for="(view, name) in views" :key="name">
+          <div v-show="active_view === name" class="tavern-helper-tab-page flex flexFlowColumn gap10px">
+            <component :is="view" />
+          </div>
+        </template>
       </div>
     </div>
   </div>
