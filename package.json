@@ -72,6 +72,7 @@
     "@gitbeaker/requester-utils": "^42.5.0",
     "@gitbeaker/rest": "^42.5.0",
     "@popperjs/core": "^2.11.8",
+    "@vueuse/core": "^13.9.0",
     "compare-versions": "^6.1.1",
     "emittery": "^1.2.0",
     "loglevel": "^1.9.2",
