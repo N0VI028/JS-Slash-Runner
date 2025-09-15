@@ -3,7 +3,7 @@ import { validateInplace } from '@/util/zod';
 import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
 import { defineStore } from 'pinia';
-import { readonly, ref, toRaw, watch } from 'vue';
+import { computed, readonly, ref, toRaw, watch } from 'vue';
 
 function getSettings(id: string | undefined): CharacterSettings {
   return validateInplace(
@@ -20,7 +20,6 @@ const saveSettingsDebounced = _.debounce(saveSettings, 1000);
 export const useCharacterStore = defineStore('character', () => {
   const id = ref<string | undefined>(this_chid);
   const settings = ref<CharacterSettings>(getSettings(id.value));
-
   // 切换角色卡时刷新 id 和 settings
   eventSource.on(event_types.CHAT_CHANGED, () => {
     if (id.value !== this_chid) {
@@ -43,6 +42,8 @@ export const useCharacterStore = defineStore('character', () => {
     { deep: true },
   );
 
+  const name = computed(() => characters.at(id.value as unknown as number)?.name);
+
   // eslint-disable-next-line pinia/require-setup-store-properties-export
-  return { id: readonly(id), settings };
+  return { id: readonly(id), settings, name };
 });

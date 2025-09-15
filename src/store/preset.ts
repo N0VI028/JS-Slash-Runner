@@ -2,9 +2,8 @@ import { PresetSettings, setting_field } from '@/type/settings';
 import { preset_manager } from '@/util/preset_manager';
 import { validateInplace } from '@/util/zod';
 import { eventSource, event_types, saveSettingsDebounced } from '@sillytavern/script';
-import _ from 'lodash';
 import { defineStore } from 'pinia';
-import { readonly, ref, toRaw, watch } from 'vue';
+import { computed, readonly, ref, toRaw, watch } from 'vue';
 
 function getSettings(id: string): PresetSettings {
   return validateInplace(
@@ -30,7 +29,6 @@ const saveSettingsToFileDebounced = _.debounce(saveSettingsToFile, 1000);
 export const usePresetStore = defineStore('preset', () => {
   const id = ref<string>(preset_manager.getSelectedPreset());
   const settings = ref<PresetSettings>(getSettings(id.value));
-
   // 切换预设时刷新 id 和 settings
   eventSource.on(event_types.OAI_PRESET_CHANGED_AFTER, () => {
     const new_id = preset_manager.getSelectedPreset();
@@ -55,6 +53,8 @@ export const usePresetStore = defineStore('preset', () => {
     { deep: true },
   );
 
+  const name = computed(() => Object.keys(preset_manager.getPresetList().preset_names)[Number(id.value)]);
+
   // eslint-disable-next-line pinia/require-setup-store-properties-export
-  return { id: readonly(id), settings };
+  return { id: readonly(id), settings, name };
 });
