@@ -1,13 +1,18 @@
 <template>
-  <div class="info-container">
-    <div class="info-text flex flex1 flexFlowColumn">
-      <div style="font-size: calc(var(--mainFontSize) * 0.8); margin-bottom: 5px; font-weight: 500">
+  <div class="relative flex w-full justify-between gap-[15px] rounded-md bg-[var(--grey5020a)] p-[20px]">
+    <div
+class="
+  flex flex-1 flex-col
+  text-[length:var(--TH-FontSizeS)]
+  opacity-70
+">
+      <div class="mb-1.5">
         作者：KAKAA，青空莉想做舞台少女的狗
       </div>
       <div>本扩展免费使用，禁止任何形式的商业用途</div>
       <div>脚本可能存在风险，请确保安全后再运行</div>
     </div>
-    <div class="flex-container alignItemsCenter" style="gap: 12px">
+    <div class="flex items-center gap-[10px]">
       <a
         href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/关于酒馆助手/常见问题/安装与更新问题.html"
         target="_blank"
@@ -24,24 +29,11 @@
         <i class="fa-brands fa-discord"></i>
       </a>
     </div>
-    <div class="text-decoration">About Us</div>
+    <div
+class="
+  pointer-events-none absolute top-[50%] right-[10px] z-[-1] translate-y-[-50%]
+  text-[length:var(--TH-FontSizeL)]
+  font-bold opacity-10
+">About Us</div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.info-container {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  position: relative;
-  width: 100%;
-  background-color: var(--grey5020a);
-  border-radius: 5px;
-  padding: 20px;
-}
-
-.info-text {
-  font-size: calc(var(--mainFontSize) * 0.7);
-  opacity: 0.7;
-}
-</style>
