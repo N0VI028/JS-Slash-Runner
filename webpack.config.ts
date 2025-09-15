@@ -112,7 +112,7 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         return callback();
       }
       if (/^@sillytavern/.test(request)) {
-        const script = path.join(relative_sillytavern_path, request.replace('@sillytavern/', ''));
+        const script = path.join(relative_sillytavern_path, request.replace('@sillytavern/', '')).replaceAll('\\', '/');
         return callback(null, 'module ' + (path.extname(script) === '.js' ? script : `${script}.js`));
       }
       const builtin = {
