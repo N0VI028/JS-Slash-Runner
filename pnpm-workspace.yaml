@@ -1,3 +1,4 @@
 onlyBuiltDependencies:
+  - '@parcel/watcher'
   - '@tailwindcss/oxide'
   - unrs-resolver
