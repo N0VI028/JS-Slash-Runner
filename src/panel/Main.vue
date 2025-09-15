@@ -12,7 +12,7 @@
       <template #title>版本更新</template>
       <template #description>查看最新特性，检查并更新扩展</template>
       <template #content>
-        <Button :on-click="TODO">更新</Button>
+        <Button :on-click="TODO_hint('实现检查酒馆助手版本并更新的功能')">更新</Button>
       </template>
     </Item>
     <Divider type="major"><i class="fa-solid fa-tools margin-r5"></i>开发工具</Divider>
@@ -31,7 +31,7 @@ import Toggle from '@/panel/component/Toggle.vue';
 import Info from '@/panel/main/Info.vue';
 import Reference from '@/panel/main/Reference.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { TODO } from '@/todo';
+import { TODO_hint } from '@/todo';
 import { onMounted, toRef } from 'vue';
 
 const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
