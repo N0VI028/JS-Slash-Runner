@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import _ from 'lodash';
+import { computed } from 'vue';
 
 const input = defineModel<string>({ required: true });
 const props = withDefaults(
@@ -39,9 +40,11 @@ const props = withDefaults(
   },
 );
 
-const onInput = _.debounce((event: Event) => {
-  input.value = (event.target as HTMLInputElement).value;
-}, props.debounce);
+const onInput = computed(() =>
+  _.debounce((event: Event) => {
+    input.value = (event.target as HTMLInputElement).value;
+  }, props.debounce),
+);
 </script>
 
 <style lang="scss">
