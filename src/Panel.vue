@@ -5,28 +5,28 @@
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
-      <div class="tavern-helper-status flex spaceBetween alignItemsCenter paddingLeftRight5">
-        <div class="flex alignItemsCenter">
+      <div class="tavern-helper-status spaceBetween alignItemsCenter paddingLeftRight5 flex">
+        <div class="alignItemsCenter flex">
           <i class="fa-solid fa-power-off margin-r5" :style="{ color: enabled ? 'green' : 'red' }"></i>
           <div class="inline-block">{{ enabled ? '扩展已启用' : '扩展已禁用' }}</div>
         </div>
         <div class="version"></div>
       </div>
       <div class="marginTop5 marginBot10">
-        <div class="tavern-helper-tab-title flex alignItemsCenter width100p padding5">
+        <div class="tavern-helper-tab-title alignItemsCenter width100p padding5 flex">
           <div
-            v-for="{ name, icon } in views"
+            v-for="{ name, icon } in tabs"
             :key="name"
-            class="tavern-helper-tab-title-text flex flex1 justifyCenter alignItemsCenter height100p"
-            :class="{ 'tavern-helper-tab-title-text-active': active_view === name }"
+            class="tavern-helper-tab-title-text flex1 justifyCenter alignItemsCenter height100p flex"
+            :class="{ 'tavern-helper-tab-title-text-active': active_tab === name }"
           >
-            <div class="flex alignItemsCenter" @click="active_view = name">
+            <div class="alignItemsCenter flex" @click="active_tab = name">
               <i class="margin-r5 fontsize80p" :class="icon"></i>{{ name }}
             </div>
           </div>
         </div>
-        <template v-for="{ name, component } in views" :key="name">
-          <div v-show="active_view === name" class="tavern-helper-tab-page flex flexFlowColumn gap10px">
+        <template v-for="{ name, component } in tabs" :key="name">
+          <div v-show="active_tab === name" class="tavern-helper-tab-page flexFlowColumn gap10px flex">
             <component :is="component" />
           </div>
         </template>
@@ -41,17 +41,18 @@ import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { ref, toRef } from 'vue';
+import { useLocalStorage } from '@vueuse/core';
+import { toRef } from 'vue';
 
 const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 
-const views = [
+const tabs = [
   { name: '主设置', icon: 'fa-solid fa-gear', component: Main },
   { name: '渲染器', icon: 'fa-solid fa-magic-wand-sparkles', component: Render },
   { name: '脚本库', icon: 'fa-solid fa-dice-d6', component: Script },
   { name: '工具箱', icon: 'fa-solid fa-toolbox', component: Toolbox },
 ] as const;
-const active_view = ref<(typeof views)[number]['name']>('主设置');
+const active_tab = useLocalStorage<(typeof tabs)[number]['name']>('tavern_helper_active_tab', '主设置');
 </script>
 
 <style lang="scss" scoped>
