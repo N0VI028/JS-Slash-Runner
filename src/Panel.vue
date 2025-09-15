@@ -15,19 +15,19 @@
       <div class="marginTop5 marginBot10">
         <div class="tavern-helper-tab-title flex alignItemsCenter width100p padding5">
           <div
-            v-for="(_view, name) in views"
+            v-for="{ name, icon } in views"
             :key="name"
             class="tavern-helper-tab-title-text flex flex1 justifyCenter alignItemsCenter height100p"
             :class="{ 'tavern-helper-tab-title-text-active': active_view === name }"
           >
             <div class="flex alignItemsCenter" @click="active_view = name">
-              <i class="fa-solid fa-gear margin-r5 fontsize80p"></i>{{ name }}
+              <i class="margin-r5 fontsize80p" :class="icon"></i>{{ name }}
             </div>
           </div>
         </div>
-        <template v-for="(view, name) in views" :key="name">
+        <template v-for="{ name, component } in views" :key="name">
           <div v-show="active_view === name" class="tavern-helper-tab-page flex flexFlowColumn gap10px">
-            <component :is="view" />
+            <component :is="component" />
           </div>
         </template>
       </div>
@@ -45,8 +45,13 @@ import { ref, toRef } from 'vue';
 
 const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 
-const views = { 主设置: Main, 渲染器: Render, 脚本库: Script, 工具箱: Toolbox } as const;
-const active_view = ref<keyof typeof views>('主设置');
+const views = [
+  { name: '主设置', icon: 'fa-solid fa-gear', component: Main },
+  { name: '渲染器', icon: 'fa-solid fa-magic-wand-sparkles', component: Render },
+  { name: '脚本库', icon: 'fa-solid fa-dice-d6', component: Script },
+  { name: '工具箱', icon: 'fa-solid fa-toolbox', component: Toolbox },
+] as const;
+const active_view = ref<(typeof views)[number]['name']>('主设置');
 </script>
 
 <style lang="scss" scoped>
