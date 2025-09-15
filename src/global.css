@@ -1,4 +1,16 @@
+@import 'tailwindcss';
 @import './panel/component/collapsible.css';
+
+@layer base {
+  /* 重置dialog的样式，防止popup位置偏移 */
+  dialog {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+  }
+}
 
 #render-depth,
 .script-editor-container input:not([type='checkbox']) {
