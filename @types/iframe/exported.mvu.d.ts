@@ -89,7 +89,7 @@ declare const Mvu: {
   getMvuData: (options: VariableOption) => Mvu.MvuData;
 
   /**
-   * 完全替换变量表为包含 mvu 数据的 `mvu_data` (但更建议监听 mvu 事件来修改 mvu 数据!)
+   * 完全替换变量表为包含 mvu 数据的 `mvu_data` (但如果没用 parseMessages 自行处理变量, 则更建议监听 mvu 事件来修改 mvu 数据!)
    *
    * @param variables 要用于替换的变量表
    * @param option 可选选项
