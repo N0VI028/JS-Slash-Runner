@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Toolbar />
+    <Toolbar class="width100p flex-container" />
     <SearchBar
       v-model="search_input"
       class="width100p flex-container alignItemsCenter"
