@@ -28,7 +28,7 @@ declare namespace Mvu {
 
 /**
  * mvu 变量框架脚本提供的额外功能, 必须额外安装 mvu 变量框架脚本, 具体内容见于 https://github.com/MagicalAstrogy/MagVarUpdate/blob/master/src/export_globals.ts
- * **要使用它, 你必须保证你的脚本/界面加载在 mvu 脚本之后
+ * **在使用它之前, 你应该先通过 `await waitGlobalInitialized('Mvu')` 来等待 Mvu 初始化完毕**
  * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.Mvu` 来查看当前 Mvu 变量框架所提供的接口
  */
 declare const Mvu: {
