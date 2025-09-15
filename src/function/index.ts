@@ -34,6 +34,7 @@ import {
 } from '@/function/raw_character';
 
 import { builtin_prompt_default_order } from '@/function/generate/types';
+import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
 import {
   importRawCharacter,
   importRawChat,
@@ -152,6 +153,10 @@ function getTavernHelper() {
       _eventClearEvent,
       _eventClearListener,
       _eventClearAll,
+
+      // global
+      _initializeGlobal,
+      _waitGlobalInitialized,
 
       // script
       _getButtonEvent,
