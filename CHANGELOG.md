@@ -3,6 +3,19 @@
 ### ⏫功能
 
 - 为前端和脚本默认置入了 [`pixi.js` 库](https://pixijs.com/), 便于制作 live2d、动画、播放器等.
+- 新增 `waitGlobalInitialized` 函数, 便于等待其他 iframe 中共享出来的全局接口初始化完毕, 并使之在当前 iframe 中可用. 如 `Mvu`:
+
+  ```typescript
+  await waitGlobalInitialized('Mvu');
+  ...此后可以直接使用 Mvu
+  ```
+
+- 新增 `initializeGlobal` 函数, 便于将接口共享到全局, 使之在其他 iframe 中可用. 如 `Mvu`:
+
+  ```typescript
+  initializeGlobal('Mvu', Mvu);
+  ...此后其他 iframe 将能通过 `await waitGlobalInitialized('Mvu')` 来等待初始化完毕, 从而用 `Mvu` 为变量名访问该接口
+  ```
 
 ### 🐛修复
 
