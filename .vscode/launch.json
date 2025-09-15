@@ -2,8 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "编译代码并调试酒馆网页",
+      "name": "编译代码并调试酒馆网页-chrome",
       "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "开始监听源代码并编译",
+      "postDebugTask": "结束监听源代码并编译",
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}/../../../../",
+      "sourceMapPathOverrides": {
+        "webpack-internal:///*": "${webRoot}/scripts/extensions/third-party/*",
+        "webpack:/*": "${webRoot}/scripts/extensions/third-party/*",
+      },
+      "internalConsoleOptions": "openOnSessionStart",
+      "cwd": "${workspaceFolder}",
+    },
+    {
+      "name": "编译代码并调试酒馆网页-edge",
+      "type": "msedge",
       "request": "launch",
       "preLaunchTask": "开始监听源代码并编译",
       "postDebugTask": "结束监听源代码并编译",
