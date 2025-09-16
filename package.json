@@ -24,15 +24,15 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.34.0",
+    "@eslint/js": "^9.35.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/jquery": "^3.5.33",
     "@types/jqueryui": "^1.12.24",
     "@types/lodash": "^4.17.20",
     "@types/mark.js": "^8.11.12",
     "@types/toastr": "^2.1.43",
-    "@typescript-eslint/parser": "^8.42.0",
-    "@typescript-eslint/utils": "^8.43.0",
+    "@typescript-eslint/parser": "^8.44.0",
+    "@typescript-eslint/utils": "^8.44.0",
     "autoprefixer": "^10.4.21",
     "css-loader": "^7.1.2",
     "eslint": "^9.35.0",
@@ -61,7 +61,7 @@
     "tsconfig-paths-webpack-plugin": "^4.2.0",
     "tslib": "^2.8.1",
     "typescript": "6.0.0-dev.20250807",
-    "typescript-eslint": "^8.43.0",
+    "typescript-eslint": "^8.44.0",
     "unplugin-auto-import": "^20.1.0",
     "vue-eslint-parser": "^10.2.0",
     "vue-loader": "^17.4.2",
@@ -81,6 +81,6 @@
     "socket.io-client": "^4.8.1",
     "type-fest": "^4.41.0",
     "vue": "^3.5.21",
-    "zod": "^4.1.5"
+    "zod": "^4.1.8"
   }
 }
