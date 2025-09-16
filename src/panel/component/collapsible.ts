@@ -117,11 +117,11 @@ export class Collapsible {
 
     // 检查是否点击在开关或其子元素上
     if (
-      $target.hasClass('tavern-helper-toggle') ||
-      $target.hasClass('tavern-helper-toggle-input') ||
-      $target.hasClass('tavern-helper-toggle-label') ||
-      $target.hasClass('tavern-helper-toggle-handle') ||
-      $target.closest('.tavern-helper-toggle').length > 0
+      $target.hasClass('tavern-helper-Toggle--container') ||
+      $target.hasClass('tavern-helper-Toggle--input') ||
+      $target.hasClass('tavern-helper-Toggle--label') ||
+      $target.hasClass('tavern-helper-Toggle--handle') ||
+      $target.closest('.tavern-helper-Toggle--container').length > 0
     ) {
       return true;
     }
@@ -130,8 +130,8 @@ export class Collapsible {
     if (
       $target.hasClass('menu_button') ||
       $target.closest('.menu_button').length > 0 ||
-      $target.hasClass('tavern-helper-button') ||
-      $target.closest('.tavern-helper-button').length > 0
+      $target.hasClass('tavern-helper-Button--container') ||
+      $target.closest('.tavern-helper-Button--container').length > 0
     ) {
       return true;
     }
