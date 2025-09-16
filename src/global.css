@@ -4,9 +4,11 @@
 
 @theme {
   --TH-FontSize: var(--mainFontSize);
-  --TH-FontSizeS: calc(var(--mainFontSize) * 0.7);
+  --TH-FontSizeXs: calc(var(--mainFontSize) * 0.7);
+  --TH-FontSizeSm: calc(var(--mainFontSize) * 0.8);
   --TH-FontSizeM: calc(var(--mainFontSize) * 1.5);
   --TH-FontSizeL: calc(var(--mainFontSize) * 2);
+  --TH-FontSizeXl: calc(var(--mainFontSize) * 2.5);
 }
 
 @layer base {

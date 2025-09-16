@@ -4,7 +4,7 @@
     <div
       class="
         flex flex-1 flex-col
-        text-[length:var(--TH-FontSizeS)]
+        text-[length:var(--TH-FontSizeSm)]
         opacity-70
       "
     >

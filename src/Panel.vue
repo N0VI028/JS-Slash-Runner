@@ -2,31 +2,42 @@
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
       <b>{{ t`酒馆助手新` }}</b>
-      <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+      <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
     </div>
     <div class="inline-drawer-content">
-      <div class="tavern-helper-status spaceBetween alignItemsCenter paddingLeftRight5 flex">
-        <div class="alignItemsCenter flex">
-          <i class="fa-solid fa-power-off margin-r5" :style="{ color: enabled ? 'green' : 'red' }"></i>
+      <div class="flex items-center justify-between py-[5px] text-[length:var(--TH-FontSizeSm)] opacity-70">
+        <div class="flex items-center">
+          <i class="fa-solid fa-power-off mr-[5px]" :style="{ color: enabled ? 'green' : 'red' }"></i>
           <div class="inline-block">{{ enabled ? t`扩展已启用` : t`扩展已禁用` }}</div>
         </div>
-        <div class="version"></div>
+        <div id="version"></div>
       </div>
-      <div class="marginTop5 marginBot10">
-        <div class="tavern-helper-tab-title alignItemsCenter width100p padding5 flex">
+      <div class="mt-[5px] mb-[10px]">
+        <div
+          class="flex w-full items-center rounded-full border border-(--grey5050a) p-[5px] text-[length:var(--TH-FontSize)]"
+        >
           <div
             v-for="({ name, icon }, index) in tabs"
             :key="index"
-            class="tavern-helper-tab-title-text flex1 justifyCenter alignItemsCenter height100p flex"
-            :class="{ 'tavern-helper-tab-title-text-active': active_tab === index }"
+            class="flex h-full flex-1 items-center justify-center rounded-full text-(--grey50)"
+            :class="{
+              'bg-[color-mix(in_srgb,_var(--SmartThemeQuoteColor)_80%,_transparent)] transition duration-300 ease-in-out':
+                active_tab === index,
+            }"
+            @click="active_tab = index"
           >
-            <div class="alignItemsCenter flex" @click="active_tab = index">
-              <i class="margin-r5 fontsize80p" :class="icon"></i>{{ name }}
+            <div
+              class="flex items-center"
+              :style="{
+                'mix-blend-mode': active_tab === index ? 'color-dodge' : 'normal',
+              }"
+            >
+              <i class="mr-[5px] text-[80%]" :class="icon"></i>{{ name }}
             </div>
           </div>
         </div>
         <template v-for="({ component }, index) in tabs" :key="index">
-          <div v-show="active_tab === index" class="tavern-helper-tab-page flexFlowColumn gap10px flex">
+          <div v-show="active_tab === index" class="mt-[10px] flex flex-col gap-[10px] p-[10px]">
             <component :is="component" />
           </div>
         </template>
@@ -53,40 +64,3 @@ const tabs = [
 ] as const;
 const active_tab = useLocalStorage<number>('tavern_helper_active_tab', 0);
 </script>
-
-<style lang="scss" scoped>
-.tavern-helper-status {
-  font-size: calc(var(--mainFontSize) * 0.8) !important;
-  opacity: 0.7;
-
-  i {
-    font-size: calc(var(--mainFontSize) * 0.8) !important;
-    opacity: 1;
-    filter: brightness(1.5);
-  }
-}
-
-.tavern-helper-tab-title {
-  height: calc(var(--mainFontSize) * 2.5);
-  border: 1px solid var(--grey5050a);
-  border-radius: 50px;
-}
-
-.tavern-helper-tab-title-text {
-  border-radius: 50px;
-  color: var(--grey50);
-}
-
-.tavern-helper-tab-title-text-active {
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 80%, transparent);
-  color: var(--SmartThemeBodyColor);
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
-}
-
-.tavern-helper-tab-page {
-  margin: 10px 0;
-  padding: 10px 10px;
-}
-</style>
