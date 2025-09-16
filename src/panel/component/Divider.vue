@@ -1,9 +1,20 @@
 <template>
   <div class="tavern-helper-Divider--container">
-    <div v-if="$slots.default" class="tavern-helper-Divider--text" :class="`tavern-helper-Divider--text-${type}`">
+    <div
+      v-if="$slots.default"
+      class="tavern-helper-Divider--text"
+      :class="`
+        tavern-helper-Divider--text-${type}
+      `"
+    >
       <slot></slot>
     </div>
-    <div class="tavern-helper-Divider--line" :class="`tavern-helper-Divider--line-${type}`"></div>
+    <div
+      class="tavern-helper-Divider--line"
+      :class="`
+        tavern-helper-Divider--line-${type}
+      `"
+    ></div>
   </div>
 </template>
 

@@ -8,5 +8,8 @@
   "author": "KAKAA",
   "version": "3.6.1",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
-  "auto_update": true
+  "auto_update": true,
+  "i18n": {
+    "en": "i18n/en.json"
+  }
 }

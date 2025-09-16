@@ -1,16 +1,18 @@
 <template>
   <div class="relative flex w-full justify-between gap-[15px] rounded-md bg-[var(--grey5020a)] p-[20px]">
+    <!-- prettier-ignore-attribute -->
     <div
-class="
-  flex flex-1 flex-col
-  text-[length:var(--TH-FontSizeS)]
-  opacity-70
-">
+      class="
+        flex flex-1 flex-col
+        text-[length:var(--TH-FontSizeS)]
+        opacity-70
+      "
+    >
       <div class="mb-1.5">
-        作者：KAKAA，青空莉想做舞台少女的狗
+        {{ t`作者：KAKAA，青空莉想做舞台少女的狗` }}
       </div>
-      <div>本扩展免费使用，禁止任何形式的商业用途</div>
-      <div>脚本可能存在风险，请确保安全后再运行</div>
+      <div>{{ t`本扩展免费使用，禁止任何形式的商业用途` }}</div>
+      <div>{{ t`脚本可能存在风险，请确保安全后再运行` }}</div>
     </div>
     <div class="flex items-center gap-[10px]">
       <a
@@ -29,11 +31,15 @@ class="
         <i class="fa-brands fa-discord"></i>
       </a>
     </div>
+    <!-- prettier-ignore-attribute -->
     <div
-class="
-  pointer-events-none absolute top-[50%] right-[10px] z-[-1] translate-y-[-50%]
-  text-[length:var(--TH-FontSizeL)]
-  font-bold opacity-10
-">About Us</div>
+      class="
+        pointer-events-none absolute top-[50%] right-[10px] z-[-1] translate-y-[-50%]
+        text-[length:var(--TH-FontSizeL)]
+        font-bold opacity-10
+      "
+    >
+      About Us
+    </div>
   </div>
 </template>

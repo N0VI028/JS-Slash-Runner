@@ -1,5 +1,4 @@
 import { Script } from '@/type/scripts';
-import { z } from 'zod';
 
 export const setting_field = 'tavern_helper';
 

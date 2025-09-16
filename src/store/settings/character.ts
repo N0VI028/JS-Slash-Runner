@@ -2,8 +2,6 @@ import { CharacterSettings, setting_field } from '@/type/settings';
 import { validateInplace } from '@/util/zod';
 import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
-import { defineStore } from 'pinia';
-import { computed, readonly, ref, toRaw, watch } from 'vue';
 
 function getSettings(id: string | undefined): CharacterSettings {
   return validateInplace(

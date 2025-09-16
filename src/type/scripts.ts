@@ -1,5 +1,4 @@
 import { uuidv4 } from '@sillytavern/scripts/utils';
-import { z } from 'zod';
 
 export const ScriptButton = z.object({
   name: z.string(),

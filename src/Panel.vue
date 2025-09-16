@@ -1,32 +1,32 @@
 <template>
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
-      <b>酒馆助手新</b>
+      <b>{{ t`酒馆助手新` }}</b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
       <div class="tavern-helper-status spaceBetween alignItemsCenter paddingLeftRight5 flex">
         <div class="alignItemsCenter flex">
           <i class="fa-solid fa-power-off margin-r5" :style="{ color: enabled ? 'green' : 'red' }"></i>
-          <div class="inline-block">{{ enabled ? '扩展已启用' : '扩展已禁用' }}</div>
+          <div class="inline-block">{{ enabled ? t`扩展已启用` : t`扩展已禁用` }}</div>
         </div>
         <div class="version"></div>
       </div>
       <div class="marginTop5 marginBot10">
         <div class="tavern-helper-tab-title alignItemsCenter width100p padding5 flex">
           <div
-            v-for="{ name, icon } in tabs"
-            :key="name"
+            v-for="({ name, icon }, index) in tabs"
+            :key="index"
             class="tavern-helper-tab-title-text flex1 justifyCenter alignItemsCenter height100p flex"
-            :class="{ 'tavern-helper-tab-title-text-active': active_tab === name }"
+            :class="{ 'tavern-helper-tab-title-text-active': active_tab === index }"
           >
-            <div class="alignItemsCenter flex" @click="active_tab = name">
+            <div class="alignItemsCenter flex" @click="active_tab = index">
               <i class="margin-r5 fontsize80p" :class="icon"></i>{{ name }}
             </div>
           </div>
         </div>
-        <template v-for="{ name, component } in tabs" :key="name">
-          <div v-show="active_tab === name" class="tavern-helper-tab-page flexFlowColumn gap10px flex">
+        <template v-for="({ component }, index) in tabs" :key="index">
+          <div v-show="active_tab === index" class="tavern-helper-tab-page flexFlowColumn gap10px flex">
             <component :is="component" />
           </div>
         </template>
@@ -42,17 +42,16 @@ import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { useLocalStorage } from '@vueuse/core';
-import { toRef } from 'vue';
 
 const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 
 const tabs = [
-  { name: '主设置', icon: 'fa-solid fa-gear', component: Main },
-  { name: '渲染器', icon: 'fa-solid fa-magic-wand-sparkles', component: Render },
-  { name: '脚本库', icon: 'fa-solid fa-dice-d6', component: Script },
-  { name: '工具箱', icon: 'fa-solid fa-toolbox', component: Toolbox },
+  { name: t`主设置`, icon: 'fa-solid fa-gear', component: Main },
+  { name: t`渲染器`, icon: 'fa-solid fa-magic-wand-sparkles', component: Render },
+  { name: t`脚本库`, icon: 'fa-solid fa-dice-d6', component: Script },
+  { name: t`工具箱`, icon: 'fa-solid fa-toolbox', component: Toolbox },
 ] as const;
-const active_tab = useLocalStorage<(typeof tabs)[number]['name']>('tavern_helper_active_tab', '主设置');
+const active_tab = useLocalStorage<number>('tavern_helper_active_tab', 0);
 </script>
 
 <style lang="scss" scoped>

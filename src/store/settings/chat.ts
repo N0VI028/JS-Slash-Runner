@@ -1,6 +1,4 @@
 import { eventSource, event_types, getCurrentChatId } from '@sillytavern/script';
-import { defineStore } from 'pinia';
-import { readonly, ref } from 'vue';
 
 export const useChatSettingsStore = defineStore('chat_settings', () => {
   const id = ref<string | undefined>(getCurrentChatId());

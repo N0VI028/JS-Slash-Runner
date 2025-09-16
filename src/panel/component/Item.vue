@@ -2,12 +2,14 @@
   <div
     class="tavern-helper-Item--container"
     :class="[
-      `tavern-helper-item-${type}`,
+      `
+        tavern-helper-Item--container-${type}
+      `,
       { 'tavern-helper-Item--container-collapsible collapsible flexFlowColumn': has_detail },
     ]"
   >
     <template v-if="!has_detail">
-      <div class="flex flexFlowColumn">
+      <div class="flexFlowColumn flex">
         <div class="tavern-helper-Item--title">
           <slot name="title" />
         </div>
@@ -25,7 +27,7 @@
           'tavern-helper-Item--head-collapsible_with_content spaceBetween': has_content,
         }"
       >
-        <div class="flex flexFlowColumn">
+        <div class="flexFlowColumn flex">
           <div class="tavern-helper-Item--title">
             <slot name="title" />
           </div>
@@ -43,8 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useSlots } from 'vue';
-
 withDefaults(
   defineProps<{
     type?: 'plain' | 'box';

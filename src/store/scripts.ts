@@ -1,7 +1,5 @@
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { Script } from '@/type/scripts';
-import { defineStore } from 'pinia';
-import { Ref, toRef } from 'vue';
 
 function createScriptsStore(type: 'global' | 'character' | 'preset') {
   return defineStore(`${type}_scripts`, () => {

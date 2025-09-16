@@ -4,6 +4,7 @@ import path from 'node:path';
 import url from 'node:url';
 import TerserPlugin from 'terser-webpack-plugin';
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin';
+import unpluginAutoImport from 'unplugin-auto-import/webpack';
 import { VueLoaderPlugin } from 'vue-loader';
 import webpack from 'webpack';
 
@@ -41,6 +42,10 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
       }),
       new MiniCssExtractPlugin(),
+      unpluginAutoImport({
+        dts: './src/auto-imports.d.ts',
+        imports: ['pinia', 'vue', { '@sillytavern/scripts/i18n': ['t'] }, { from: 'zod', imports: ['z'], type: true }],
+      }),
       new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
     ],
     resolve: {

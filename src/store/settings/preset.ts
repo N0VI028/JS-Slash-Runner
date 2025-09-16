@@ -2,8 +2,6 @@ import { PresetSettings, setting_field } from '@/type/settings';
 import { preset_manager } from '@/util/preset_manager';
 import { validateInplace } from '@/util/zod';
 import { eventSource, event_types, saveSettingsDebounced } from '@sillytavern/script';
-import { defineStore } from 'pinia';
-import { computed, readonly, ref, toRaw, watch } from 'vue';
 
 function getSettings(id: string): PresetSettings {
   return validateInplace(
