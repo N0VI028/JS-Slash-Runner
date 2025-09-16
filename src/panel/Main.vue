@@ -15,9 +15,9 @@
         <Button :on-click="make_TODO('实现检查酒馆助手版本并更新的功能')">{{ t`更新` }}</Button>
       </template>
     </Item>
-    <Divider type="major"><i class="fa-solid fa-tools margin-r5"></i>{{ t`开发工具` }}</Divider>
+    <Divider type="major"><i class="fa-solid fa-tools mr-[5px]"></i><div style="word-spacing: 1.5">{{ t`开发工具` }}</div></Divider>
     <Reference />
-    <Divider type="major"><i class="fa-solid fa-shapes margin-r5"></i>{{ t`扩展信息` }}</Divider>
+    <Divider type="major"><i class="fa-solid fa-shapes mr-[5px]"></i><div style="word-spacing: 1.5">{{ t`扩展信息` }}</div></Divider>
     <Info />
   </div>
 </template>
