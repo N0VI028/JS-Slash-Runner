@@ -44,7 +44,13 @@ const config = (_env: any, argv: any): webpack.Configuration => {
       new MiniCssExtractPlugin(),
       unpluginAutoImport({
         dts: './src/auto-imports.d.ts',
-        imports: ['pinia', 'vue', { '@sillytavern/scripts/i18n': ['t'] }, { from: 'zod', imports: ['z'], type: true }],
+        dtsMode: 'overwrite',
+        imports: [
+          'pinia',
+          'vue',
+          { from: '@sillytavern/scripts/i18n', imports: ['t'] },
+          { from: 'zod', imports: ['z'] },
+        ],
       }),
       new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
     ],
