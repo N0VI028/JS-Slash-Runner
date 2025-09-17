@@ -48,6 +48,7 @@ const config = (_env: any, argv: any): webpack.Configuration => {
         imports: [
           'pinia',
           'vue',
+          '@vueuse/core',
           { from: '@sillytavern/scripts/i18n', imports: ['t'] },
           { from: 'zod', imports: ['z'] },
         ],

@@ -52,7 +52,6 @@ import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { useLocalStorage } from '@vueuse/core';
 
 const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 

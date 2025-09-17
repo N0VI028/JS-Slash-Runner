@@ -23,8 +23,6 @@
 </template>
 
 <script setup lang="ts">
-import { useDebounceFn } from '@vueuse/core';
-
 const input = defineModel<string>({ required: true });
 const props = withDefaults(
   defineProps<{

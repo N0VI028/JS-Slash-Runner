@@ -41,8 +41,6 @@
 </template>
 
 <script setup lang="ts">
-import { createReusableTemplate } from '@vueuse/core';
-
 const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
 
 withDefaults(
