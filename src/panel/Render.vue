@@ -4,7 +4,7 @@
       <template #title>{{ t`启用渲染器` }}</template>
       <template #description>{{ t`启用后，符合条件的代码块将被渲染` }}</template>
       <template #content>
-        <Toggle id="tavern_helper_settings_script_enabled" v-model="enabled" />
+        <Toggle id="TH-render-enabled" v-model="enabled" />
       </template>
     </Item>
     <Divider />
@@ -12,7 +12,7 @@
       <template #title>{{ t`启用代码折叠` }}</template>
       <template #description>{{ t`折叠所有代码块，避免正则替换成前端代码时影响阅读` }}</template>
       <template #content>
-        <Toggle id="tavern_helper_settings_script_enabled" v-model="hide_style" />
+        <Toggle id="TH-render-hide-style" v-model="hide_style" />
       </template>
     </Item>
     <Divider />
@@ -20,7 +20,7 @@
       <template #title>{{ t`启用加载动画` }}</template>
       <template #description>{{ t`在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面` }}</template>
       <template #content>
-        <Toggle id="tavern_helper_settings_script_enabled" v-model="loading" />
+        <Toggle id="TH-render-loading" v-model="loading" />
       </template>
     </Item>
     <Divider />
@@ -30,7 +30,7 @@
         t`使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试`
       }}</template>
       <template #content>
-        <Toggle id="tavern_helper_settings_script_enabled" v-model="blob_url" />
+        <Toggle id="TH-render-blob-url" v-model="blob_url" />
       </template>
     </Item>
     <Divider />
@@ -38,7 +38,7 @@
       <template #title>{{ t`渲染深度` }}</template>
       <template #description>{{ t`设置需要渲染的楼层数，从最新楼层开始计数。为0时，将渲染所有楼层` }}</template>
       <template #content>
-        <input v-model="depth" type="number" :min="0" />
+        <input v-model="depth" :min="0" @change="make_TODO('渲染深度')" />
       </template>
     </Item>
   </div>
@@ -49,6 +49,7 @@ import Divider from '@/panel/component/Divider.vue';
 import Item from '@/panel/component/Item.vue';
 import Toggle from '@/panel/component/Toggle.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
+import { make_TODO } from '@/todo';
 
 const { enabled, hide_style, loading, blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
 </script>
