@@ -4,7 +4,7 @@ import { saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
 export const useGlobalSettingsStore = defineStore('global_settings', () => {
-  const settings = ref(validateInplace(GlobalSettings, _.get(extension_settings, setting_field)));
+  const settings = ref(validateInplace(GlobalSettings, _.get(extension_settings, setting_field, {})));
   watch(
     settings,
     new_settings => {
