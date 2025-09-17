@@ -11,14 +11,14 @@
       />
       <button
         v-if="clearable && input.length > 0"
-        class="tavern-helper-SearchBar--clear_search alignItemsCenter justifyContentCenter flex"
+        class="TH-SearchBar--clear_search alignItemsCenter justifyContentCenter flex"
         title="清除"
         @click="input = ''"
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <i class="tavern-helper-SearchBar--search_icon fa-solid fa-search"></i>
+    <i class="TH-SearchBar--search_icon fa-solid fa-search"></i>
   </div>
 </template>
 
@@ -46,7 +46,7 @@ const onInput = useDebounceFn(
 </script>
 
 <style lang="scss">
-.tavern-helper-SearchBar--clear_search {
+.TH-SearchBar--clear_search {
   position: absolute;
   right: 6px;
   top: 50%;
@@ -61,7 +61,7 @@ const onInput = useDebounceFn(
   color: var(--SmartThemeBodyColor);
 }
 
-.tavern-helper-SearchBar--search_icon {
+.TH-SearchBar--search_icon {
   margin-left: 6px;
   color: var(--SmartThemeBodyColor);
   opacity: 0.6;

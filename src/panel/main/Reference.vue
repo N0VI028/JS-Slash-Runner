@@ -1,5 +1,5 @@
 <template>
-  <Item type="collapsible">
+  <Item type="box">
     <template #title>{{ t`编写参考` }}</template>
     <template #description>{{ t`编写脚本的参考文档` }}</template>
     <template #detail>

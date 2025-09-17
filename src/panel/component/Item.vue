@@ -3,7 +3,7 @@
     ref="containerRef"
     class="flex items-center justify-between gap-0.75"
     :class="[
-      type === 'collapsible' ? 'rounded-md border border-(--grey5050a) p-1' : 'items-center',
+      type === 'box' ? 'rounded-md border border-(--grey5050a) p-1' : 'items-center',
       { 'TH-collapsible flex-col items-center': has_detail, expanded: has_detail && isExpanded },
     ]"
   >
@@ -47,7 +47,7 @@ const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
 
 const props = withDefaults(
   defineProps<{
-    type?: 'plain' | 'collapsible';
+    type?: 'plain' | 'box';
     initiallyExpanded?: boolean;
     duration?: number;
   }>(),
