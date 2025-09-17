@@ -8,7 +8,7 @@
       { 'tavern-helper-Item--container-collapsible collapsible flexFlowColumn': has_detail },
     ]"
   >
-    <template v-if="!has_detail">
+    <DefineTemplate>
       <div class="flexFlowColumn flex">
         <div class="tavern-helper-Item--title">
           <slot name="title" />
@@ -18,6 +18,10 @@
         </div>
       </div>
       <slot name="content" />
+    </DefineTemplate>
+
+    <template v-if="!has_detail">
+      <ReuseTemplate />
     </template>
 
     <template v-else>
@@ -27,15 +31,7 @@
           'tavern-helper-Item--head-collapsible_with_content spaceBetween': has_content,
         }"
       >
-        <div class="flexFlowColumn flex">
-          <div class="tavern-helper-Item--title">
-            <slot name="title" />
-          </div>
-          <div class="tavern-helper-Item--description">
-            <slot name="description" />
-          </div>
-        </div>
-        <slot name="content" />
+        <ReuseTemplate />
       </div>
       <div class="collapsible-content flex-container width100p">
         <slot name="detail" />
@@ -45,6 +41,10 @@
 </template>
 
 <script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core';
+
+const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
+
 withDefaults(
   defineProps<{
     type?: 'plain' | 'box';
