@@ -1,5 +1,5 @@
 <template>
-  <div class="my-(--TH-FontSize) flex w-full items-center">
+  <div class="my-(--TH-FontSize) flex w-full items-center" :style="{ marginTop: marginY, marginBottom: marginY }">
     <div
       v-if="$slots.default"
       class="mr-(--TH-FontSizeSm) flex text-[length:var(--TH-FontSizeSm)] whitespace-nowrap"
@@ -15,7 +15,8 @@
 withDefaults(
   defineProps<{
     type?: 'plain' | 'major';
+    marginY?: string;
   }>(),
-  { type: 'plain' },
+  { type: 'plain', marginY: 'var(--TH-FontSize)' },
 );
 </script>

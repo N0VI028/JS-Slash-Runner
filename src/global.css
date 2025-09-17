@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 /* TODO: 制作一个可折叠组件 (或者就是个 Item?), 而不是调用函数 */
-@import './panel/component/collapsible.css';
 
 :root {
   --spacing: var(--mainFontSize);
