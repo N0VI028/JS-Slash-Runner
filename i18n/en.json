@@ -43,5 +43,10 @@
   "启用 Blob URL 渲染": "Enable Blob URL Rendering",
   "使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试": "Use Blob URL to render frontend interface, may have style issues and not available on some browsers, but easier for F12 developer tool debugging",
   "渲染深度": "Rendering Depth",
-  "设置需要渲染的楼层数，从最新楼层开始计数。为0时，将渲染所有楼层": "Set the number of floors to render, counting from the latest floor. When 0, all floors will be rendered"
+  "设置需要渲染的楼层数，从最新楼层开始计数。为0时，将渲染所有楼层": "Set the number of floors to render, counting from the latest floor. When 0, all floors will be rendered",
+  "提示词查看器": "Prompt Viewer",
+  "查看当前提示词发送情况，窗口开启时会监听新的发送及时更新显示": "View the current prompt sending situation, the window will listen for new sending and update the display in time",
+  "变量管理器": "Variable Manager",
+  "查看和管理全局、角色、聊天、消息楼层变量": "View and manage global, role, chat, message variables",
+  "打开": "Open"
 }
