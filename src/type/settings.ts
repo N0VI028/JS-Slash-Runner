@@ -7,12 +7,11 @@ export const GlobalSettings = z
     enabled: z.boolean().default(true),
     render: z
       .object({
-        render_enabled: z.boolean().default(true),
-        render_depth: z.number().default(0),
-        render_optimize: z.boolean().default(false),
-        render_hide_style: z.boolean().default(false),
-        render_loading: z.boolean().default(true),
-        render_blob_url: z.boolean().default(false),
+        enabled: z.boolean().default(true),
+        hide_style: z.boolean().default(false),
+        loading: z.boolean().default(true),
+        blob_url: z.boolean().default(false),
+        depth: z.number().default(0),
       })
       .prefault({}),
     script: z
