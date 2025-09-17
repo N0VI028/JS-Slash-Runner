@@ -1,6 +1,5 @@
 <template>
-  <div class="relative flex w-full justify-between gap-[15px] rounded-md bg-[var(--grey5020a)] p-[20px]">
-    <!-- prettier-ignore-attribute -->
+  <div class="relative flex w-full justify-between gap-1 rounded-md bg-[var(--grey5020a)] p-1.5">
     <div
       class="
         flex flex-1 flex-col
@@ -14,7 +13,7 @@
       <div>{{ t`本扩展免费使用，禁止任何形式的商业用途` }}</div>
       <div>{{ t`脚本可能存在风险，请确保安全后再运行` }}</div>
     </div>
-    <div class="flex items-center gap-[10px]">
+    <div class="flex items-center gap-0.75">
       <a
         href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/关于酒馆助手/常见问题/安装与更新问题.html"
         target="_blank"
@@ -34,7 +33,7 @@
     <!-- prettier-ignore-attribute -->
     <div
       class="
-        pointer-events-none absolute top-[50%] right-[10px] z-[-1] translate-y-[-50%]
+        pointer-events-none absolute top-[50%] right-0.75 z-[-1] translate-y-[-50%]
         text-[length:var(--TH-FontSizeL)]
         font-bold opacity-10
       "

@@ -5,16 +5,16 @@
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
     </div>
     <div class="inline-drawer-content">
-      <div class="flex items-center justify-between py-[5px] text-[length:var(--TH-FontSizeSm)] opacity-70">
+      <div class="flex items-center justify-between py-0.5 text-[length:var(--TH-FontSizeSm)] opacity-70">
         <div class="flex items-center">
           <i class="fa-solid fa-power-off mr-[5px]" :style="{ color: enabled ? 'green' : 'red' }"></i>
           <div class="inline-block">{{ enabled ? t`扩展已启用` : t`扩展已禁用` }}</div>
         </div>
         <div id="version"></div>
       </div>
-      <div class="mt-[5px] mb-[10px]">
+      <div class="mt-0.5 mb-0.75">
         <div
-          class="flex w-full items-center rounded-full border border-(--grey5050a) p-[5px] text-[length:var(--TH-FontSize)]"
+          class="flex w-full items-center rounded-full border border-(--grey5050a) p-0.5 text-[length:var(--TH-FontSize)]"
         >
           <div
             v-for="({ name, icon }, index) in tabs"
@@ -32,12 +32,12 @@
                 'mix-blend-mode': active_tab === index ? 'color-dodge' : 'normal',
               }"
             >
-              <i class="mr-[5px] text-[80%]" :class="icon"></i>{{ name }}
+              <i class="mr-0.5 text-[80%]" :class="icon"></i>{{ name }}
             </div>
           </div>
         </div>
         <template v-for="({ component }, index) in tabs" :key="index">
-          <div v-show="active_tab === index" class="mt-[10px] flex flex-col gap-[10px] p-[10px]">
+          <div v-show="active_tab === index" class="mt-0.75 flex flex-col gap-0.75 p-0.75">
             <component :is="component" />
           </div>
         </template>
