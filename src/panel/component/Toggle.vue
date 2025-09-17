@@ -1,13 +1,10 @@
 <template>
   <div class="relative inline-block h-1 w-2">
-    <input :id="props.id" v-model="model" type="checkbox" class="opacity-0" />
+    <input :id="props.id" v-model="model" type="checkbox" class="peer sr-only" />
     <label
       :for="props.id"
-      class="absolute top-0 right-0 bottom-0 left-0 cursor-pointer rounded-full bg-gray-300 transition-all duration-300 checked:bg-[var(--SmartThemeQuoteColor)] focus:shadow-[0_0_1px_var(--SmartThemeQuoteColor)]"
+      class="absolute inset-0 cursor-pointer overflow-hidden rounded-full bg-gray-300 transition-all duration-300 peer-checked:bg-[var(--SmartThemeQuoteColor)] peer-focus:shadow-[0_0_1px_var(--SmartThemeQuoteColor)] after:absolute after:top-[0.125rem] after:left-[0.125rem] after:h-0.75 after:w-0.75 after:rounded-full after:bg-white after:transition-all after:duration-300 after:content-[''] peer-checked:after:right-[0.125rem] peer-checked:after:left-auto"
     >
-      <span
-        class="absolute bottom-0.25 left-0.25 h-0.75 w-0.75 rounded-full bg-white transition-all duration-300 content-[''] checked:translate-x-1"
-      ></span>
     </label>
   </div>
 </template>

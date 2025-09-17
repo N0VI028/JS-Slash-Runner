@@ -30,7 +30,6 @@
 
 <script setup lang="ts">
 import Button from '@/panel/component/Button.vue';
-import { Collapsible } from '@/panel/component/collapsible';
 import Divider from '@/panel/component/Divider.vue';
 import Item from '@/panel/component/Item.vue';
 import Toggle from '@/panel/component/Toggle.vue';
@@ -40,16 +39,4 @@ import { useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
 
 const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
-
-onMounted(() => {
-  Collapsible.initAll('.TH-collapsible', {
-    headerSelector: '.TH-collapsible-header',
-    contentSelector: '.TH-collapsible-content',
-    initiallyExpanded: false,
-    animationDuration: {
-      expand: 280,
-      collapse: 250,
-    },
-  });
-});
 </script>

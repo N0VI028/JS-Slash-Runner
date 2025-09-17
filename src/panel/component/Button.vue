@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="type === 'tavern_helper' ? 'tavern-helper-Button--container' : 'menu_button menu_button_icon interactable'"
+    :class="type === 'tavern_helper' ? 'TH-Button--container' : 'menu_button menu_button_icon interactable'"
     @click="onClick"
   >
     <slot />
@@ -18,7 +18,7 @@ withDefaults(
 </script>
 
 <style lang="scss">
-.tavern-helper-Button-- {
+.TH-Button-- {
   &container {
     display: flex;
     align-items: center;
@@ -27,7 +27,7 @@ withDefaults(
     border: 1px solid var(--SmartThemeQuoteColor);
     border-radius: 5px;
     padding: 3px 5px;
-    font-size: calc(var(--mainFontSize) * 0.8);
+    font-size: var(--TH-FontSizeSm);
     color: var(--SmartThemeBodyColor);
 
     a {
@@ -35,7 +35,7 @@ withDefaults(
     }
 
     i {
-      font-size: calc(var(--mainFontSize) * 0.6) !important;
+      font-size: var(--TH-FontSizeXs) !important;
       margin-left: 5px;
     }
   }
