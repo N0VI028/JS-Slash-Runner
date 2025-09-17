@@ -26,9 +26,9 @@
     <Divider />
     <Item type="plain">
       <template #title>{{ t`启用 Blob URL 渲染` }}</template>
-      <template #description>{{
-        t`使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试`
-      }}</template>
+      <template #description>
+        {{t`使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试`}}
+      </template>
       <template #content>
         <Toggle id="TH-render-blob-url" v-model="blob_url" />
       </template>
