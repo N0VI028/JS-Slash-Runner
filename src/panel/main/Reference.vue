@@ -1,67 +1,71 @@
 <template>
-  <Item type="box">
+  <Item type="collapsible">
     <template #title>{{ t`编写参考` }}</template>
     <template #description>{{ t`编写脚本的参考文档` }}</template>
     <template #detail>
-      <div class="buttons-group flex-container">
-        <Divider>{{ t`酒馆助手` }}</Divider>
-        <div class="tavern-helper-reference-button">
-          <a
-            href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
-            style="cursor: pointer"
-            :title="t`查看酒馆助手文档`"
-          >
-            {{ t`查看教程及文档` }}
-          </a>
-          <i class="fa-solid fa-external-link"></i>
+      <div class="flex w-full flex-wrap gap-0.5">
+        <Divider margin-y="0">{{ t`酒馆助手` }}</Divider>
+        <div class="mb-0.5 flex items-center justify-center gap-0.5">
+          <div class="TH-reference-button">
+            <a
+              href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
+              style="cursor: pointer"
+              :title="t`查看酒馆助手文档`"
+            >
+              {{ t`查看教程及文档` }}
+            </a>
+            <i class="fa-solid fa-external-link"></i>
+          </div>
+          <div ref="tavern_helper_types_button" class="TH-reference-button">
+            <a
+              style="cursor: pointer"
+              :title="
+                t`下载提供给 VSCode/Cursor 的 TypeScript 类型声明文件, 既让 VSCode/Cursor 能提供代码提示, 也可以发给 ai 让它了解`
+              "
+            >
+              {{ t`下载参考文件` }}
+            </a>
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </div>
+          <div ref="tavern_helper_types_popup" class="list-group" style="display: none">
+            <a
+              href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.zip?ref_type=heads&inline=false"
+              class="list-group-item"
+              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSizeSm); cursor: pointer"
+            >
+              {{ t`电脑编写模板用` }}
+            </a>
+            <a
+              href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.txt?ref_type=heads&inline=false"
+              class="list-group-item"
+              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSizeSm); cursor: pointer"
+            >
+              {{ t`手机或 AI 官网用` }}
+            </a>
+          </div>
         </div>
-        <div ref="tavern_helper_types_button" class="tavern-helper-reference-button">
-          <a
-            style="cursor: pointer"
-            :title="
-              t`下载提供给 VSCode/Cursor 的 TypeScript 类型声明文件, 既让 VSCode/Cursor 能提供代码提示, 也可以发给 ai 让它了解`
-            "
-          >
-            {{ t`下载参考文件` }}
-          </a>
-          <i class="fa-solid fa-ellipsis-vertical"></i>
-        </div>
-        <div ref="tavern_helper_types_popup" class="list-group" style="display: none">
-          <a
-            href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.zip?ref_type=heads&inline=false"
-            class="list-group-item"
-            style="padding: 3px 3px; padding-bottom: 3px; font-size: medium; cursor: pointer"
-          >
-            {{ t`电脑编写模板用` }}
-          </a>
-          <a
-            href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.txt?ref_type=heads&inline=false"
-            class="list-group-item"
-            style="padding: 3px 3px; padding-bottom: 3px; font-size: medium; cursor: pointer"
-          >
-            {{ t`手机或 AI 官网用` }}
-          </a>
-        </div>
-        <Divider>{{ t`酒馆 /STScript` }}</Divider>
-        <div class="tavern-helper-reference-button">
-          <a
-            href="https://rentry.org/sillytavern-script-book"
-            style="cursor: pointer"
-            :title="t`查看酒馆 /STScript 命令手册`"
-          >
-            {{ t`查看手册` }}
-          </a>
-          <i class="fa-solid fa-external-link"></i>
-        </div>
-        <div class="tavern-helper-reference-button">
-          <a
-            target="_blank"
-            style="cursor: pointer"
-            :title="t`下载你所用酒馆版本及扩展所提供的酒馆 STScript 命令列表, 可发给 ai 参考了解`"
-            @click="downloadSlashCommands"
-          >
-            {{ t`下载参考文件` }}
-          </a>
+        <Divider margin-y="0">{{ t`酒馆 /STScript` }}</Divider>
+        <div class="mb-0.5 flex items-center justify-center gap-0.5">
+          <div class="TH-reference-button">
+            <a
+              href="https://rentry.org/sillytavern-script-book"
+              style="cursor: pointer"
+              :title="t`查看酒馆 /STScript 命令手册`"
+            >
+              {{ t`查看手册` }}
+            </a>
+            <i class="fa-solid fa-external-link"></i>
+          </div>
+          <div class="TH-reference-button">
+            <a
+              target="_blank"
+              style="cursor: pointer"
+              :title="t`下载你所用酒馆版本及扩展所提供的酒馆 STScript 命令列表, 可发给 ai 参考了解`"
+              @click="downloadSlashCommands"
+            >
+              {{ t`下载参考文件` }}
+            </a>
+          </div>
         </div>
       </div>
     </template>
@@ -165,7 +169,7 @@ function downloadSlashCommands(event: Event) {
 </script>
 
 <style lang="scss" scoped>
-.tavern-helper-reference-button {
+.TH-reference-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +177,7 @@ function downloadSlashCommands(event: Event) {
   border-radius: 50px;
   padding: 5px 10px;
   margin-top: 5px;
-  font-size: calc(var(--mainFontSize) * 0.8);
+  font-size: var(--TH-FontSizeSm);
   color: var(--SmartThemeBodyColor);
   gap: 5px;
 

@@ -28,7 +28,7 @@ export default [
       'better-tailwindcss/enforce-consistent-line-wrapping': ['off', { printWidth: 120 }],
       'better-tailwindcss/no-unregistered-classes': [
         'warn',
-        { ignore: ['fa-*', 'inline-drawer-*', 'TH-*', 'collapsible*'] },
+        { ignore: ['fa-*', 'inline-drawer-*', 'TH-*', 'list-*'] },
       ],
     },
     settings: {

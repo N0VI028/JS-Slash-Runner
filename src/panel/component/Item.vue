@@ -1,19 +1,17 @@
 <template>
   <div
-    class="tavern-helper-Item--container"
+    class="flex items-center justify-between gap-0.75"
     :class="[
-      `
-        tavern-helper-Item--container-${type}
-      `,
-      { 'tavern-helper-Item--container-collapsible collapsible flexFlowColumn': has_detail },
+      type === 'collapsible' ? 'rounded-md border border-(--grey5050a) p-1' : 'items-center',
+      { 'TH-collapsible flex-col items-center': has_detail },
     ]"
   >
     <DefineTemplate>
-      <div class="flexFlowColumn flex">
-        <div class="tavern-helper-Item--title">
+      <div class="flex flex-col">
+        <div class="TH-Item-title font-bold text-(--mainFontSize)">
           <slot name="title" />
         </div>
-        <div class="tavern-helper-Item--description">
+        <div class="mt-0.25 text-(length:--TH-FontSizeSm) opacity-70">
           <slot name="description" />
         </div>
       </div>
@@ -26,14 +24,14 @@
 
     <template v-else>
       <div
-        class="flex-container alignItemsCenter width100p"
+        class="TH-collapsible-header flex w-full flex-wrap items-center justify-between gap-0.75"
         :class="{
-          'tavern-helper-Item--head-collapsible_with_content spaceBetween': has_content,
+          'justify-between': has_content,
         }"
       >
         <ReuseTemplate />
       </div>
-      <div class="collapsible-content flex-container width100p">
+      <div class="TH-collapsible-content flex w-full flex-wrap gap-0.75">
         <slot name="detail" />
       </div>
     </template>
@@ -41,11 +39,13 @@
 </template>
 
 <script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core';
+
 const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
 
 withDefaults(
   defineProps<{
-    type?: 'plain' | 'box';
+    type?: 'plain' | 'collapsible';
   }>(),
   { type: 'plain' },
 );
@@ -55,39 +55,52 @@ const has_content = computed(() => !!slots.content);
 const has_detail = computed(() => !!slots.detail);
 </script>
 
-<style lang="scss">
-.tavern-helper-Item-- {
-  &container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+<style scoped>
+/* 可折叠组件样式 */
+.TH-collapsible > div:first-child {
+  cursor: pointer;
+}
 
-    &-box {
-      padding: 1em;
-      border-radius: 10px;
-      border: 1px solid var(--grey5050a);
-    }
+.TH-collapsible :deep(.TH-Item-title) {
+  position: relative;
+  cursor: pointer;
+  padding-left: 15px;
+}
 
-    &-collapsible {
-      align-items: flex-start;
-    }
-  }
+.TH-collapsible :deep(.TH-Item-title::before) {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: calc(var(--mainFontSize) * 0.35) 0 calc(var(--mainFontSize) * 0.35) calc(var(--mainFontSize) * 0.5);
+  border-color: transparent transparent transparent currentColor;
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transform-origin: center;
+}
 
-  &head-collapsible_with_content {
-    flex: 0.9;
-    flex-wrap: nowrap;
-  }
+.TH-collapsible.expanded :deep(.TH-Item-title::before) {
+  transform: translateY(-50%) rotate(90deg);
+}
 
-  &title {
-    font-size: var(--mainFontSize);
-    font-weight: 600;
-  }
+.TH-collapsible-content {
+  display: none;
+  transform-origin: top;
+  overflow: hidden;
+}
 
-  &description {
-    margin-top: 2px;
-    font-size: calc(var(--mainFontSize) * 0.8);
-    opacity: 0.7;
-  }
+.TH-collapsible.expanded .TH-collapsible-content {
+  display: flex;
+}
+
+.TH-collapsible-content.animating {
+  display: flex;
+}
+
+.TH-collapsible .flex.flex-col {
+  cursor: pointer;
 }
 </style>

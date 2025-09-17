@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Item>
+    <Item type="plain">
       <template #title>{{ t`启用扩展` }}</template>
       <template #description>{{ t`扩展总开关` }}</template>
       <template #content>
@@ -15,9 +15,15 @@
         <Button :on-click="make_TODO('实现检查酒馆助手版本并更新的功能')">{{ t`更新` }}</Button>
       </template>
     </Item>
-    <Divider type="major"><i class="fa-solid fa-tools mr-[5px]"></i><div style="word-spacing: 1.5">{{ t`开发工具` }}</div></Divider>
+    <Divider type="major"
+      ><i class="fa-solid fa-tools mr-0.5"></i>
+      <div style="word-spacing: 1.5">{{ t`开发工具` }}</div></Divider
+    >
     <Reference />
-    <Divider type="major"><i class="fa-solid fa-shapes mr-[5px]"></i><div style="word-spacing: 1.5">{{ t`扩展信息` }}</div></Divider>
+    <Divider type="major"
+      ><i class="fa-solid fa-shapes mr-0.5"></i>
+      <div style="word-spacing: 1.5">{{ t`扩展信息` }}</div></Divider
+    >
     <Info />
   </div>
 </template>
@@ -36,9 +42,9 @@ import { make_TODO } from '@/todo';
 const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 
 onMounted(() => {
-  Collapsible.initAll('.collapsible', {
-    headerSelector: 'div:first-child',
-    contentSelector: '.collapsible-content',
+  Collapsible.initAll('.TH-collapsible', {
+    headerSelector: '.TH-collapsible-header',
+    contentSelector: '.TH-collapsible-content',
     initiallyExpanded: false,
     animationDuration: {
       expand: 280,
