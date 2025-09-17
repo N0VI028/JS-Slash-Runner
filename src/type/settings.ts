@@ -5,6 +5,16 @@ export const setting_field = 'tavern_helper';
 export const GlobalSettings = z
   .object({
     enabled: z.boolean().default(true),
+    render: z
+      .object({
+        render_enabled: z.boolean().default(true),
+        render_depth: z.number().default(0),
+        render_optimize: z.boolean().default(false),
+        render_hide_style: z.boolean().default(false),
+        render_loading: z.boolean().default(true),
+        render_blob_url: z.boolean().default(false),
+      })
+      .prefault({}),
     script: z
       .object({
         enabled: z
@@ -23,14 +33,6 @@ export type GlobalSettings = z.infer<typeof GlobalSettings>;
 
 // const Settings = z.object({
 //   enabled_extension: z.boolean().default(true),
-//   render: z.object({
-//     render_enabled: z.boolean().default(true),
-//     render_depth: z.number().default(0),
-//     render_optimize: z.boolean().default(false),
-//     render_hide_style: z.boolean().default(false),
-//     render_loading: z.boolean().default(true),
-//     render_blob_url: z.boolean().default(false),
-//   }),
 //   script: z.object({
 //     global_script_enabled: z.boolean().default(true),
 //     scriptsRepository: z.array(ScriptRepositoryItemSchema),
