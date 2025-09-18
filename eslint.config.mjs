@@ -25,7 +25,7 @@ export default [
     rules: {
       ...eslintPluginBetterTailwindcss.configs['recommended-warn'].rules,
       ...eslintPluginBetterTailwindcss.configs['recommended-error'].rules,
-      'better-tailwindcss/enforce-consistent-line-wrapping': ['off', { printWidth: 120 }],
+      'better-tailwindcss/enforce-consistent-line-wrapping': ['warn', { printWidth: 120 }],
       'better-tailwindcss/no-unregistered-classes': [
         'warn',
         { ignore: ['fa-*', 'inline-drawer-*', 'TH-*', 'list-*', 'menu_button*', 'interactable', 'text_pole'] },
