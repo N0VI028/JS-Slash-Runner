@@ -1,6 +1,6 @@
 import { ListenerType } from '@/function/event';
 import { highlight_code } from '@/util/highlight_code';
-import { reloadChatWithoutEvents } from '@/util/reload_chat_without_events';
+import { reloadChatWithoutEventsButRender } from '@/util/reload_chat_without_events';
 
 import { chat, chat_metadata, event_types, eventSource, GenerateOptions } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
@@ -108,7 +108,7 @@ export function renderAllMacros() {
   });
 }
 
-export const derenderAllMacrosDebounced = _.debounce(reloadChatWithoutEvents, 1000);
+export const derenderAllMacrosDebounced = _.debounce(reloadChatWithoutEventsButRender, 1000);
 
 export function registerMacroOnExtension() {
   eventSource.on(event_types.CHAT_CHANGED, renderAllMacros);

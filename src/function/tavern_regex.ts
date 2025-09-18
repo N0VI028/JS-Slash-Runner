@@ -1,12 +1,12 @@
 import { macros } from '@/component/macrolike';
+import { reloadChatWithoutEventsButRender } from '@/util/reload_chat_without_events';
 import {
   characters,
   chat,
-  reloadCurrentChat,
   saveChatConditional,
   saveSettings,
   substituteParams,
-  this_chid,
+  this_chid
 } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
@@ -209,7 +209,7 @@ export async function render_tavern_regexes() {
   if (characters[this_chid]) {
     await saveChatConditional();
   }
-  await reloadCurrentChat();
+  await reloadChatWithoutEventsButRender();
 }
 export const render_tavern_regexes_debounced = _.debounce(render_tavern_regexes, 1000);
 

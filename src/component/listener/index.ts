@@ -6,9 +6,9 @@ import {
   getSettingValue,
   saveSettingValue,
 } from '@/util/extension_variables';
-import { reloadChatWithoutEvents } from '@/util/reload_chat_without_events';
+import { reloadChatWithoutEvents, rerenderMessageIframes } from '@/util/reload_chat_without_events';
 
-import { characters, event_types, eventSource, saveChatConditional, this_chid } from '@sillytavern/script';
+import { characters, saveChatConditional, this_chid } from '@sillytavern/script';
 import { renderExtensionTemplateAsync } from '@sillytavern/scripts/extensions';
 
 import log from 'loglevel';
@@ -31,7 +31,6 @@ function reset_refresh_duration() {
 async function refresh_iframe(): Promise<void> {
   log.info(`[Listener] 已将 iframe 刷新为最新版本`);
 
-  // @ts-expect-error
   const character = characters[this_chid];
 
   if (character) {
@@ -46,12 +45,7 @@ async function refresh_iframe(): Promise<void> {
   await scriptManager.toggleScriptType(ScriptType.GLOBAL, true, false);
   if (character) {
     await scriptManager.toggleScriptType(ScriptType.CHARACTER, true, false);
-    $('div .mes').each((_index, element) => {
-      eventSource.emit(
-        $(element).attr('is_user') ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
-        $(element).attr('mesid'),
-      );
-    });
+    rerenderMessageIframes();
   }
 }
 
