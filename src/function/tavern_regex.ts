@@ -1,13 +1,6 @@
 import { macros } from '@/component/macrolike';
 import { reloadChatWithoutEventsButRender } from '@/util/reload_chat_without_events';
-import {
-  characters,
-  chat,
-  saveChatConditional,
-  saveSettings,
-  substituteParams,
-  this_chid
-} from '@sillytavern/script';
+import { characters, chat, saveChatConditional, saveSettings, substituteParams, this_chid } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
