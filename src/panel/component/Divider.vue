@@ -1,8 +1,13 @@
 <template>
+  <!-- prettier-ignore -->
   <div class="my-(--TH-FontSize) flex w-full items-center" :style="{ marginTop: marginY, marginBottom: marginY }">
     <div
       v-if="$slots.default"
-      class="mr-(--TH-FontSizeSm) flex text-[length:var(--TH-FontSizeSm)] whitespace-nowrap"
+      class="
+        mr-(--TH-FontSizeSm) flex
+        text-[length:var(--TH-FontSizeSm)]
+        whitespace-nowrap
+      "
       :style="type === 'plain' ? '' : 'word-spacing: 1.5'"
     >
       <slot></slot>

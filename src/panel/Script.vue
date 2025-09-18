@@ -7,11 +7,13 @@
       :placeholder="t`搜索（支持普通和正则）`"
       clearable
     />
+    <ScriptContainer />
   </div>
 </template>
 
 <script setup lang="ts">
 import SearchBar from '@/panel/component/SearchBar.vue';
+import ScriptContainer from '@/panel/script/ScriptContainer.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
 import { make_TODO } from '@/todo';
 
