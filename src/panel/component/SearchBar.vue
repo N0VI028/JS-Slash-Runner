@@ -1,24 +1,32 @@
 <template>
-  <div class="width100p flex-container alignItemsCenter">
-    <div style="position: relative; flex: 1 1 auto; min-width: 0">
+  <!-- prettier-ignore -->
+  <div class="flex w-full flex-wrap items-center gap-0.5">
+    <div class="relative flex min-w-0 flex-1">
       <input
         :value="input"
         :placeholder="placeholder"
-        class="text_pole width100p"
-        style="padding-right: 28px"
+        class="text_pole w-full pr-2! pl-2!"
         type="text"
         @input="onInput"
       />
+      <i
+        class="
+          fa-solid fa-search pointer-events-none absolute top-1/2 left-0.5 z-1 -translate-y-[50%]
+          text-(--SmartThemeBodyColor) opacity-60
+        "
+      ></i>
       <button
         v-if="clearable && input.length > 0"
-        class="TH-SearchBar--clear_search alignItemsCenter justifyContentCenter flex"
+        class="
+          absolute top-1/2 right-0.5 z-2 flex h-1.5 w-1.5 -translate-y-[50%] cursor-pointer border-none bg-transparent
+          text-(--SmartThemeBodyColor) opacity-80
+        "
         title="清除"
         @click="input = ''"
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <i class="TH-SearchBar--search_icon fa-solid fa-search"></i>
   </div>
 </template>
 
@@ -45,26 +53,8 @@ const onInput = useDebounceFn(
 );
 </script>
 
-<style lang="scss">
-.TH-SearchBar--clear_search {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  height: calc(var(--mainFontSize) * 1.5);
-  width: calc(var(--mainFontSize) * 1.5);
-  opacity: 0.8;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  z-index: 2;
-  color: var(--SmartThemeBodyColor);
-}
-
-.TH-SearchBar--search_icon {
-  margin-left: 6px;
-  color: var(--SmartThemeBodyColor);
-  opacity: 0.6;
-  cursor: pointer;
+<style scoped lang="scss">
+.fa-xmark:before {
+  vertical-align: sub;
 }
 </style>

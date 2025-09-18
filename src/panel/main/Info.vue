@@ -1,12 +1,6 @@
 <template>
   <div class="relative flex w-full justify-between gap-1 rounded-md bg-[var(--grey5020a)] p-1.5">
-    <div
-      class="
-        flex flex-1 flex-col
-        text-[length:var(--TH-FontSizeSm)]
-        opacity-70
-      "
-    >
+    <div class="flex flex-1 flex-col text-[length:var(--TH-FontSizeSm)] opacity-70">
       <div class="mb-1.5">
         {{ t`作者：KAKAA，青空莉想做舞台少女的狗` }}
       </div>
