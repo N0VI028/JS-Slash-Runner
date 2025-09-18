@@ -1,10 +1,12 @@
 {
+  "eslint.useFlatConfig": true,
+  "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.addMissingImports.ts": "explicit",
     "source.convertImportFormat": "explicit",
-    "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortImports": "explicit",
+    "source.fixAll.eslint": "explicit"
   },
   "prettier.arrowParens": "avoid",
   "prettier.bracketSameLine": false,
@@ -41,10 +43,10 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[yaml]": {
-    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.defaultFormatter": "redhat.vscode-yaml"
   },
   "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

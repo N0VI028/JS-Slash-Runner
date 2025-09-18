@@ -1,6 +1,6 @@
 import js from '@eslint/js';
 import tsParser from '@typescript-eslint/parser';
-import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
 import importx from 'eslint-plugin-import-x';
 import pinia from 'eslint-plugin-pinia';
@@ -19,16 +19,20 @@ export default [
   ...vue.configs['flat/recommended'],
   pinia.configs['recommended-flat'],
   {
+    files: ['**/*.vue'],
     plugins: {
       'better-tailwindcss': eslintPluginBetterTailwindcss,
     },
     rules: {
       ...eslintPluginBetterTailwindcss.configs['recommended-warn'].rules,
       ...eslintPluginBetterTailwindcss.configs['recommended-error'].rules,
-      'better-tailwindcss/enforce-consistent-line-wrapping': ['off', { printWidth: 120 }],
+      'better-tailwindcss/sort-classes': ['warn', { order: 'official' }],
+      'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
+      'better-tailwindcss/multiline': ['warn', { printWidth: 120, preferSingleLine: true, group: 'newLine' }],
+      'better-tailwindcss/no-unnecessary-whitespace': ['warn', { allowMultiline: true }],
       'better-tailwindcss/no-unregistered-classes': [
         'warn',
-        { ignore: ['fa-*', 'inline-drawer-*', 'TH-*', 'list-*', 'menu_button*', 'interactable'] },
+        { ignore: ['fa-*', 'inline-drawer-*', 'TH-*', 'list-*', 'menu_button*', 'interactable', 'text_pole'] },
       ],
     },
     settings: {
@@ -76,7 +80,6 @@ export default [
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },
-  eslintConfigPrettier,
   globalIgnores([
     'dist/**',
     'node_modules/**',
@@ -85,4 +88,5 @@ export default [
     'postcss.config.js',
     'webpack.config.ts',
   ]),
+  eslintConfigPrettier,
 ];
