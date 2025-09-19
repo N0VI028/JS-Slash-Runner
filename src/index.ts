@@ -39,7 +39,7 @@ import { extension_settings, renderExtensionTemplateAsync } from '@sillytavern/s
 
 import log_object from 'loglevel';
 import YAML_object from 'yaml';
-import z_object from 'zod';
+import * as z_object from 'zod';
 
 const defaultSettings = {
   enabled_extension: true,
