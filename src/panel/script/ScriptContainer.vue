@@ -4,7 +4,7 @@
     <div class="flex flex-col">
       <div class="flex items-center">
         <div class="font-bold">全局脚本</div>
-        <div class="ml-0.5 cursor-pointer">
+        <div class="ml-0.5 flex cursor-pointer items-center justify-center" title="批量操作">
           <i class="fa-solid fa-cog"></i>
         </div>
       </div>
@@ -19,7 +19,8 @@ class="
   </div>
 
   <div class="flex h-full flex-col overflow-hidden">
-    <div class="TH-script-list flex flex-grow flex-col gap-0.5 overflow-y-auto py-1">
+    <div ref="rootListRef" class="script-list TH-script-list flex flex-grow flex-col gap-0.5 overflow-y-auto py-1">
+      <FolderItem data-sortable-item data-folder />
       <ScriptItem />
     </div>
   </div>
@@ -27,10 +28,32 @@ class="
 
 <script setup lang="ts">
 import Toggle from '@/panel/component/Toggle.vue';
+import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
+import { useSortable } from '@vueuse/integrations/useSortable';
+type SortableMoveEvent = { to: Element; dragged: Element };
 
-const enabled = toRef(useGlobalSettingsStore().settings.script.enabled, 'global');
+const store = useGlobalSettingsStore();
+const enabled = computed<boolean>({
+  get: () => store.settings.script.enabled.global,
+  set: v => (store.settings.script.enabled.global = v),
+});
+
+const rootListRef = ref<HTMLElement | null>(null);
+const rootListItems = ref<unknown[]>([]);
+
+useSortable(rootListRef, rootListItems, {
+  group: { name: 'scripts', pull: true, put: true },
+  handle: '.TH-handle',
+  draggable: '[data-sortable-item]',
+  onMove: (evt: SortableMoveEvent) => {
+    const to = evt.to as HTMLElement | null;
+    const dragged = evt.dragged as HTMLElement | null;
+    if (to?.hasAttribute('data-folder-content') && dragged?.dataset.type === 'folder') return false;
+    return true;
+  },
+});
 </script>
 
 <style scoped lang="scss">

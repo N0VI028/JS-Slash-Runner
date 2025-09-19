@@ -9,7 +9,7 @@
     ]"
   >
     <DefineTemplate>
-      <div class="flex flex-col">
+      <div class="flex min-w-0 flex-1 flex-col">
         <div class="TH-Item-title font-bold text-(--mainFontSize)">
           <slot name="title" />
         </div>
@@ -22,7 +22,9 @@
           <slot name="description" />
         </div>
       </div>
-      <slot name="content" />
+      <div class="flex-none shrink-0" style="max-width: 30%">
+        <slot name="content" />
+      </div>
     </DefineTemplate>
 
     <template v-if="!has_detail">

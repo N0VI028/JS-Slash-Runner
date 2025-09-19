@@ -2,10 +2,12 @@
   <!-- prettier-ignore -->
   <div
     class="flex w-full flex-wrap items-center justify-between rounded-md border border-(--SmartThemeBorderColor) px-0.5"
+    data-type="script"
+    data-sortable-item
   >
     <span
 class="
-  cursor-grab select-none
+  TH-handle cursor-grab select-none
   active:cursor-grabbing
 ">☰</span>
     <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">占位</div>
