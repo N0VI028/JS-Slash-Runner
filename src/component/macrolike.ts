@@ -114,8 +114,8 @@ export function registerMacroOnExtension() {
   eventSource.on(event_types.CHAT_CHANGED, renderAllMacros);
   eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
   eventSource.on(event_types.GENERATE_AFTER_DATA, demacroOnPrompt);
-  eventSource.makeFirst(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
-  eventSource.makeFirst(event_types.USER_MESSAGE_RENDERED, demacroOnRender);
+  eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, demacroOnRender);
+  eventSource.on(event_types.USER_MESSAGE_RENDERED, demacroOnRender);
   eventSource.on(event_types.MESSAGE_UPDATED, demacroOnRender);
   eventSource.on(event_types.MESSAGE_SWIPED, demacroOnRender);
 }
