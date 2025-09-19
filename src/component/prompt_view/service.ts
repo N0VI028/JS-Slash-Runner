@@ -110,24 +110,22 @@ function isPostProcessing() {
 
   const hasCustomPostProcessing = oai_settings.custom_prompt_post_processing != '';
 
+  insertMessageMergeWarning($header, '💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况');
+
   if (hasSquashMessages) {
-    insertMessageMergeWarning($header, 'squash');
+    insertMessageMergeWarning($header, '⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理');
   }
 
   if (hasCustomPostProcessing) {
-    insertMessageMergeWarning($header, 'post-processing');
+    insertMessageMergeWarning($header, '⚠️ 本次提示词发送经过了API中的“提示词后处理”合并处理');
   }
 }
 
 /**
  * 在顶部插入系统消息压缩/后处理的警告
  */
-export function insertMessageMergeWarning(scope: JQuery<HTMLElement>, type: 'squash' | 'post-processing') {
+export function insertMessageMergeWarning(scope: JQuery<HTMLElement>, message: string) {
   const $warning = $('<div class="prompt-view-process-warning">');
-  if (type === 'squash') {
-    $warning.text('⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理');
-  } else if (type === 'post-processing') {
-    $warning.text('⚠️ 本次提示词发送经过了API中的“提示词后处理”合并处理');
-  }
+  $warning.text(message);
   scope.prepend($warning);
 }
