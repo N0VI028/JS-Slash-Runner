@@ -233,7 +233,7 @@ export class VariableView implements IDomUpdater {
       // 如果楼层范围为空，设置默认范围
       if (minFloor === null && maxFloor === null) {
         const lastMessageId = getLastMessageId();
-        const newMinFloor = Math.max(0, lastMessageId - 4);
+        const newMinFloor = Math.max(0, lastMessageId);
         const newMaxFloor = lastMessageId;
         (this.controller as any).model.updateFloorRange(newMinFloor, newMaxFloor);
         this.updateFloorRangeInputs(newMinFloor, newMaxFloor);
