@@ -8,7 +8,7 @@
     <div class="inline-drawer-content">
       <div
 class="
-  flex items-center justify-between py-0.5
+  flex items-center justify-between
   text-[length:var(--TH-FontSizeSm)]
   opacity-70
 ">

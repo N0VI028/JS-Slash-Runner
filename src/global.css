@@ -83,27 +83,6 @@
   opacity: 0.8;
 }
 
-.floating-dialog.content-collapsed {
-  min-height: auto !important;
-  height: auto !important;
-}
-
-.floating-dialog.content-collapsed .dialog-content {
-  display: none;
-}
-
-.floating-dialog .dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 12px;
-  background-color: var(--SmartThemeQuoteColor);
-  cursor: move;
-  user-select: none;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  min-height: 32px;
-}
 
 .floating-dialog .dialog-title {
   font-weight: bold;

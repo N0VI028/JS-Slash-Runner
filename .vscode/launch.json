@@ -12,9 +12,12 @@
       "sourceMapPathOverrides": {
         "webpack-internal:///*": "${webRoot}/scripts/extensions/third-party/*",
         "webpack:/*": "${webRoot}/scripts/extensions/third-party/*",
+        "e:/SillyTavern/*": "${webRoot}/*",
+        "webpack:///./src/*": "${workspaceFolder}/src/*",
+        "webpack:///src/*": "${workspaceFolder}/src/*"
       },
       "internalConsoleOptions": "openOnSessionStart",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}"
     },
     {
       "name": "编译代码并调试酒馆网页-edge",
@@ -27,9 +30,12 @@
       "sourceMapPathOverrides": {
         "webpack-internal:///*": "${webRoot}/scripts/extensions/third-party/*",
         "webpack:/*": "${webRoot}/scripts/extensions/third-party/*",
+        "e:/SillyTavern/*": "${webRoot}/*",
+        "webpack:///./src/*": "${workspaceFolder}/src/*",
+        "webpack:///src/*": "${workspaceFolder}/src/*"
       },
       "internalConsoleOptions": "openOnSessionStart",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}"
     },
     {
       "name": "仅调试酒馆网页",
@@ -40,9 +46,12 @@
       "sourceMapPathOverrides": {
         "webpack-internal:///*": "${webRoot}/scripts/extensions/third-party/*",
         "webpack:/*": "${webRoot}/scripts/extensions/third-party/*",
+        "e:/SillyTavern/*": "${webRoot}/*",
+        "webpack:///./src/*": "${workspaceFolder}/src/*",
+        "webpack:///src/*": "${workspaceFolder}/src/*"
       },
       "internalConsoleOptions": "openOnSessionStart",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}"
     }
   ]
 }
