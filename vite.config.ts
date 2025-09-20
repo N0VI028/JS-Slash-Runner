@@ -1,0 +1,101 @@
+import vue from '@vitejs/plugin-vue';
+import path from 'node:path';
+import unpluginAutoImport from 'unplugin-auto-import/vite';
+import { defineConfig } from 'vite';
+import pluginExternal from 'vite-plugin-external';
+
+const externals = {
+  jquery: '$',
+  hljs: 'hljs',
+  lodash: '_',
+  toastr: 'toastr',
+  '@popperjs/core': 'Popper',
+} as const;
+
+/**
+ * 计算相对于 SillyTavern 的路径
+ * 从 dist 目录到 SillyTavern 根目录的相对路径
+ */
+const relative_sillytavern_path = path.relative(
+  path.join(__dirname, 'dist'),
+  __dirname.substring(0, __dirname.lastIndexOf('public') + 6),
+);
+
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    vue(),
+    unpluginAutoImport({
+      dts: './src/auto-imports.d.ts',
+      dtsMode: 'overwrite',
+      imports: [
+        'vue',
+        'pinia',
+        '@vueuse/core',
+        { from: '@sillytavern/scripts/i18n', imports: ['t'] },
+        { from: 'zod', imports: ['z'] },
+      ],
+    }),
+    {
+      name: 'sillytavern_resolver',
+      enforce: 'post',
+      resolveId(id) {
+        if (id.startsWith('@sillytavern/')) {
+          return {
+            id: path.join(relative_sillytavern_path, id.replace('@sillytavern/', '')).replaceAll('\\', '/') + '.js',
+            external: true,
+          };
+        }
+      },
+    },
+    pluginExternal({
+      externals: libname => {
+        if (libname in externals) {
+          return externals[libname as keyof typeof externals];
+        }
+      },
+    }),
+  ],
+
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
+
+  build: {
+    rollupOptions: {
+      external: result => {
+        return result.includes('../../../../');
+      },
+
+      input: 'src/index.ts',
+      output: {
+        format: 'es',
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name].[hash].chunk.js',
+        assetFileNames: '[name].[ext]',
+        preserveModules: false,
+      },
+    },
+
+    outDir: 'dist',
+    emptyOutDir: true,
+
+    sourcemap: mode === 'production' ? true : 'inline',
+
+    minify: mode === 'production' ? 'terser' : false,
+    terserOptions:
+      mode === 'production'
+        ? {
+            format: { quote_style: 1 },
+            mangle: { reserved: ['_', 'toastr', 'YAML', '$', 'z'] },
+          }
+        : {
+            format: { beautify: true, indent_level: 2 },
+            compress: false,
+            mangle: false,
+          },
+
+    target: 'esnext',
+  },
+}));

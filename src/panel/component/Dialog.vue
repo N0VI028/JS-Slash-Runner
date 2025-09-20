@@ -47,7 +47,7 @@
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
 import log from 'loglevel';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import Vue3DraggableResizable from 'vue3-draggable-resizable';
+// import Vue3DraggableResizable from 'vue3-draggable-resizable';
 
 type Dimension = number | string | undefined;
 

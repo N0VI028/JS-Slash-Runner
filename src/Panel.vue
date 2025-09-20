@@ -1,17 +1,18 @@
 <template>
-  <!-- prettier-ignore -->
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
       <b>{{ t`酒馆助手新` }}</b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
     </div>
     <div class="inline-drawer-content">
+      <!-- prettier-ignore-attribute -->
       <div
-class="
-  flex items-center justify-between
-  text-[length:var(--TH-FontSizeSm)]
-  opacity-70
-">
+        class="
+          flex items-center justify-between
+          text-[length:var(--TH-FontSizeSm)]
+          opacity-70
+        "
+      >
         <div class="flex items-center">
           <i class="fa-solid fa-power-off mr-[5px]" :style="{ color: enabled ? 'green' : 'red' }"></i>
           <div class="inline-block">{{ enabled ? t`扩展已启用` : t`扩展已禁用` }}</div>
@@ -19,6 +20,7 @@ class="
         <div id="version"></div>
       </div>
       <div class="mt-0.5 mb-0.75">
+        <!-- prettier-ignore-attribute -->
         <div
           class="
             flex w-full items-center rounded-full border border-(--grey5050a) p-0.5

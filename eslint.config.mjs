@@ -83,6 +83,6 @@ export default [
     'src/auto-imports.zod.d.ts',
     'eslint.config.mjs',
     'postcss.config.js',
-    'webpack.config.ts',
+    'vite.config.ts',
   ]),
 ];
