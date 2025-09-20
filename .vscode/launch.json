@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-    
     {
       "name": "调试酒馆网页-chrome",
       "type": "chrome",
@@ -11,13 +10,12 @@
       "url": "http://localhost:8000",
       "webRoot": "${workspaceFolder}/../../../../",
       "sourceMapPathOverrides": {
-        "webpack-internal:///*": "${webRoot}/scripts/extensions/third-party/*",
-        "webpack:/*": "${webRoot}/scripts/extensions/third-party/*",
+        "src://tavern_helper/*": "${workspaceFolder}/*",
+        "webpack://tavern_helper/*": "${workspaceFolder}/*",
       },
       "disableNetworkCache": true,
       "internalConsoleOptions": "openOnSessionStart",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
     },
     {
       "name": "调试酒馆网页-edge",
@@ -28,13 +26,12 @@
       "url": "http://localhost:8000",
       "webRoot": "${workspaceFolder}/../../../../",
       "sourceMapPathOverrides": {
-        "webpack-internal:///*": "${webRoot}/scripts/extensions/third-party/*",
-        "webpack:/*": "${webRoot}/scripts/extensions/third-party/*",
+        "src://tavern_helper/*": "${workspaceFolder}/*",
+        "webpack://tavern_helper/*": "${workspaceFolder}/*",
       },
       "disableNetworkCache": true,
       "internalConsoleOptions": "openOnSessionStart",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
     }
   ]
 }
