@@ -23,6 +23,17 @@ const config = (_env: any, argv: any): webpack.Configuration => {
     entry: './src/index.ts',
     target: 'browserslist',
     output: {
+      devtoolNamespace: 'tavern_helper',
+      devtoolModuleFilenameTemplate: info => {
+        const resource_path = decodeURIComponent(info.resourcePath.replace(/^\.\//, ''));
+        const is_direct = info.allLoaders === '';
+        const is_vue_script =
+          resource_path.match(/\.vue$/) &&
+          info.query.match(/\btype=script\b/) &&
+          !info.allLoaders.match(/\bts-loader\b/);
+
+        return `${is_direct === true ? 'src' : 'webpack'}://${info.namespace}/${resource_path}${is_direct || is_vue_script ? '' : '?' + info.hash}`;
+      },
       filename: 'index.js',
       path: path.join(__dirname, 'dist/'),
       chunkFilename: '[name].[contenthash].chunk.js',
