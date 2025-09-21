@@ -1,5 +1,4 @@
 <template>
-  <!-- prettier-ignore -->
   <div class="mt-0.5 flex items-center justify-between">
     <div class="flex flex-col">
       <div class="flex items-center">
@@ -8,12 +7,16 @@
           <i class="fa-solid fa-cog"></i>
         </div>
       </div>
+      <!-- prettier-ignore-attribute -->
       <div
-class="
-  mt-0.25
-  text-(length:--TH-FontSizeSm)
-  opacity-70
-">应用于酒馆所有聊天</div>
+        class="
+          mt-0.25
+          text-(length:--TH-FontSizeSm)
+          opacity-70
+        "
+      >
+        应用于酒馆所有聊天
+      </div>
     </div>
     <Toggle id="global-script-enable-toggle" v-model="enabled" />
   </div>
@@ -27,7 +30,6 @@ class="
 </template>
 
 <script setup lang="ts">
-import Toggle from '@/panel/component/Toggle.vue';
 import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useGlobalSettingsStore } from '@/store/settings';

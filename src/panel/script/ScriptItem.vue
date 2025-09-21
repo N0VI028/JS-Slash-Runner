@@ -1,15 +1,17 @@
 <template>
-  <!-- prettier-ignore -->
   <div
     class="flex w-full flex-wrap items-center justify-between rounded-md border border-(--SmartThemeBorderColor) px-0.5"
     data-type="script"
     data-sortable-item
   >
+    <!-- prettier-ignore-attribute -->
     <span
-class="
-  TH-handle cursor-grab select-none
-  active:cursor-grabbing
-">☰</span>
+      class="
+        TH-handle cursor-grab select-none
+        active:cursor-grabbing
+      "
+      >☰</span
+    >
     <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">占位</div>
     <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->

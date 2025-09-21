@@ -1,8 +1,8 @@
 <template>
-  <!-- prettier-ignore -->
   <div class="relative inline-block h-1 w-2">
     <input :id="props.id" v-model="model" type="checkbox" class="peer sr-only" />
-      <label
+    <!-- prettier-ignore-attribute -->
+    <label
       :for="props.id"
       class="
         absolute inset-0 cursor-pointer overflow-hidden rounded-full bg-gray-300 transition-all duration-300

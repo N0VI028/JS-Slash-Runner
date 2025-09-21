@@ -29,10 +29,6 @@
 </template>
 
 <script setup lang="ts">
-import Button from '@/panel/component/Button.vue';
-import Divider from '@/panel/component/Divider.vue';
-import Item from '@/panel/component/Item.vue';
-import Toggle from '@/panel/component/Toggle.vue';
 import Info from '@/panel/main/Info.vue';
 import Reference from '@/panel/main/Reference.vue';
 import { useGlobalSettingsStore } from '@/store/settings';

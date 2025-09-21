@@ -1,5 +1,4 @@
 <template>
-  <!-- prettier-ignore -->
   <div class="flex w-full flex-wrap items-center gap-0.5">
     <div class="relative flex min-w-0 flex-1">
       <input
@@ -9,12 +8,14 @@
         type="text"
         @input="onInput"
       />
+      <!-- prettier-ignore-attribute -->
       <i
         class="
           fa-solid fa-search pointer-events-none absolute top-1/2 left-0.5 z-1 -translate-y-[50%]
           text-(--SmartThemeBodyColor) opacity-60
         "
       ></i>
+      <!-- prettier-ignore-attribute -->
       <button
         v-if="clearable && input.length > 0"
         class="

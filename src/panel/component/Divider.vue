@@ -1,6 +1,6 @@
 <template>
-  <!-- prettier-ignore -->
   <div class="my-(--TH-FontSize) flex w-full items-center" :style="{ marginTop: marginY, marginBottom: marginY }">
+    <!-- prettier-ignore-attribute -->
     <div
       v-if="$slots.default"
       class="

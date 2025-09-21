@@ -45,9 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import Divider from '@/panel/component/Divider.vue';
-import Item from '@/panel/component/Item.vue';
-import Toggle from '@/panel/component/Toggle.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
 

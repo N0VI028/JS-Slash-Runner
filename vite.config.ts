@@ -1,6 +1,7 @@
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 import unpluginAutoImport from 'unplugin-auto-import/vite';
+import unpluginVueComponents from 'unplugin-vue-components/vite';
 import { defineConfig } from 'vite';
 import pluginExternal from 'vite-plugin-external';
 
@@ -21,6 +22,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
     unpluginAutoImport({
+      dts: true,
       dtsMode: 'overwrite',
       imports: [
         'vue',
@@ -29,6 +31,10 @@ export default defineConfig(({ mode }) => ({
         { from: '@sillytavern/scripts/i18n', imports: ['t'] },
         { from: 'zod', imports: ['z'] },
       ],
+    }),
+    unpluginVueComponents({
+      dts: true,
+      globs: ['src/panel/component/*.vue']
     }),
     {
       name: 'sillytavern_resolver',

@@ -73,8 +73,6 @@
 </template>
 
 <script setup lang="ts">
-import Divider from '@/panel/component/Divider.vue';
-import Item from '@/panel/component/Item.vue';
 import * as Popper from '@popperjs/core';
 import {
   SlashCommandArgument,

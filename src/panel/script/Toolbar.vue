@@ -16,6 +16,5 @@
 </template>
 
 <script setup lang="ts">
-import Button from '@/panel/component/Button.vue';
 import { make_TODO } from '@/todo';
 </script>

@@ -1,7 +1,11 @@
 ﻿<template>
-  <!-- prettier-ignore -->
-  <div class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)" data-type="folder" data-folder>
+  <div
+    class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)"
+    data-type="folder"
+    data-folder
+  >
     <div ref="folderHeaderRef" class="TH-folder-header flex flex-nowrap items-center justify-between px-0.5">
+      <!-- prettier-ignore-attribute -->
       <span
         class="
           TH-handle cursor-grab select-none
@@ -12,11 +16,10 @@
         ☰
       </span>
       <i class="fa-solid fa-folder-open ml-0.5"></i>
-      <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden">
-        占位文件夹
-      </span>
+      <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden"> 占位文件夹 </span>
       <div class="flex flex-nowrap items-center gap-[5px]">
         <!-- 批量开关文件夹内脚本 -->
+        <!-- prettier-ignore-attribute -->
         <div
           class="
             menu_button interactable cursor-pointer p-0.5
@@ -29,42 +32,27 @@
         </div>
 
         <!-- 编辑文件夹 -->
-        <div
-          class="menu_button interactable mr-0.5"
-          title="编辑文件夹"
-        >
+        <div class="menu_button interactable mr-0.5" title="编辑文件夹">
           <i class="fa-solid fa-pencil"></i>
         </div>
 
         <!-- 导出文件夹 -->
-        <div
-          class="menu_button interactable mr-0.5"
-          title="导出文件夹"
-        >
+        <div class="menu_button interactable mr-0.5" title="导出文件夹">
           <i class="fa-solid fa-file-export"></i>
         </div>
 
         <!-- 移动文件夹 -->
-        <div
-          class="menu_button interactable"
-          title="移动到其他脚本库"
-        >
+        <div class="menu_button interactable" title="移动到其他脚本库">
           <i class="fa-solid fa-exchange-alt"></i>
         </div>
 
         <!-- 删除文件夹 -->
-        <div
-          class="menu_button interactable"
-          title="删除文件夹"
-        >
+        <div class="menu_button interactable" title="删除文件夹">
           <i class="fa-solid fa-trash"></i>
         </div>
 
         <!-- 展开/折叠 -->
-        <div
-          class="menu_button interactable"
-          title="展开或折叠文件夹"
-        >
+        <div class="menu_button interactable" title="展开或折叠文件夹">
           <i class="fa-solid fa-chevron-down"></i>
         </div>
       </div>
