@@ -71,10 +71,6 @@ export default defineConfig(({ mode }) => ({
 
   build: {
     rollupOptions: {
-      external: result => {
-        return result.includes('../../../../');
-      },
-
       input: 'src/index.ts',
       output: {
         format: 'es',
