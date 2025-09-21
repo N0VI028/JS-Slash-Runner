@@ -20,7 +20,13 @@ const relative_sillytavern_path = path.relative(
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    vue(),
+    vue({
+      features: {
+        optionsAPI: false,
+        prodDevtools: process.env.CI !== 'true',
+        prodHydrationMismatchDetails: false,
+      },
+    }),
     unpluginAutoImport({
       dts: true,
       dtsMode: 'overwrite',
@@ -34,7 +40,7 @@ export default defineConfig(({ mode }) => ({
     }),
     unpluginVueComponents({
       dts: true,
-      globs: ['src/panel/component/*.vue']
+      globs: ['src/panel/component/*.vue'],
     }),
     {
       name: 'sillytavern_resolver',
@@ -61,12 +67,6 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
-  },
-
-  define: {
-    __VUE_OPTIONS_API__: false,
-    __VUE_PROD_DEVTOOLS__: process.env.CI !== 'true',
-    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
 
   build: {
