@@ -12,6 +12,7 @@
       "internalConsoleOptions": "openOnSessionStart",
       "webRoot": "${workspaceFolder}/../../../../",
       "cwd": "${workspaceFolder}",
+      "timeout": 100000,
       "skipFiles": [
         "**/jquery*.min.js"
       ],
@@ -27,12 +28,13 @@
       "internalConsoleOptions": "openOnSessionStart",
       "webRoot": "${workspaceFolder}/../../../../",
       "cwd": "${workspaceFolder}",
+      "timeout": 100000,
       "skipFiles": [
         "**/jquery*.min.js"
       ],
     },
     {
-      "name": "仅调试酒馆网页",
+      "name": "仅调试酒馆网页 (Chrome)",
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:8000",
@@ -40,6 +42,21 @@
       "internalConsoleOptions": "openOnSessionStart",
       "webRoot": "${workspaceFolder}/../../../../",
       "cwd": "${workspaceFolder}",
+      "timeout": 100000,
+      "skipFiles": [
+        "**/jquery*.min.js"
+      ],
+    },
+    {
+      "name": "仅调试酒馆网页 (Edge)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:8000",
+      "disableNetworkCache": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "webRoot": "${workspaceFolder}/../../../../",
+      "cwd": "${workspaceFolder}",
+      "timeout": 100000,
       "skipFiles": [
         "**/jquery*.min.js"
       ],
