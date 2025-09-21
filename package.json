@@ -56,7 +56,6 @@
     "@vueuse/core": "^13.9.0",
     "@vueuse/integrations": "^13.9.0",
     "compare-versions": "^6.1.1",
-    "vue-draggable-resizable": "^3.0.0",
     "emittery": "^1.2.0",
     "loglevel": "^1.9.2",
     "marked": "^16.3.0",

@@ -84,7 +84,7 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     emptyOutDir: true,
 
-    sourcemap: mode === 'production' ? true : 'inline',
+    sourcemap: true,
 
     minify: mode === 'production' ? 'terser' : false,
     terserOptions:

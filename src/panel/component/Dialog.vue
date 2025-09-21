@@ -1,357 +1,274 @@
 <template>
-  <Teleport to="body">
-    <Vue3DraggableResizable
-      ref="dialogRef"
-      v-model:w="w"
-      v-model:h="h"
-      v-model:x="x"
-      v-model:y="y"
-      class="TH-floating-dialog"
-      :style="null"
-      :data-dialog-id="id"
-      :init-w="initialW"
-      :init-h="initialH"
-      :min-w="minWpx"
-      :min-h="minHpx"
-      :draggable="draggable && draggableNow"
-      :resizable="resizable && !collapsed"
-      :handles="handles"
-      :parent="true"
-      class-name-dragging="dragging"
-      class-name-resizing="resizing"
-      @activated="bringToFront"
-      @resize-end="onResizeEnd"
+  <!-- prettier-ignore -->
+  <div
+    ref="dialogRef"
+    :style="dialogStyle"
+  >
+    <div
+      class="flex h-full flex-col overflow-hidden rounded-sm bg-(--SmartThemeBlurTintColor) shadow-lg"
+      role="dialog"
+      aria-modal="true"
     >
-      <div ref="headerRef" class="dialog-header" @mousedown="onHeaderPointerDown">
-        <div class="dialog-title">{{ title }}</div>
-
-        <div class="dialog-controls">
-          <button v-if="collapsible" title="折叠/展开内容" @click.stop="toggleCollapsed" @mousedown.stop>
-            <i :class="collapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i>
-          </button>
-
-          <button class="dialog-close-btn" title="关闭" @click.stop="handleClose" @mousedown.stop>
-            <i class="fa-solid fa-times"></i>
-          </button>
+      <div
+        ref="headerRef"
+        class="
+          flex flex-shrink-0 cursor-move items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1
+          select-none
+        "
+      >
+        <div class="flex-1 text-sm font-bold text-(--SmartThemeBodyColor)">{{ title }}</div>
+        <div class="flex flex-shrink-0 gap-1">
+          <button
+            class="
+              relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
+              text-(length:--TH-FontSizeM)!
+              text-(--SmartThemeBodyColor)
+            " 
+            :title="t`关闭`" 
+            @click="onClose"
+          >×</button>
         </div>
       </div>
-
-      <div v-show="!collapsed" ref="contentRef" class="dialog-content" @mousedown.stop>
-        <slot />
+      <div class="flex flex-1 flex-col overflow-hidden">
+        <slot>
+        </slot>
       </div>
-    </Vue3DraggableResizable>
-  </Teleport>
+    </div>
+    
+    <!-- 调整大小手柄 - 不可见，但可拖动（桌面与移动端均可用） -->
+    <!-- 右边缘 -->
+    <div
+      class="absolute top-0 right-0 bottom-0 z-10 w-1 cursor-ew-resize opacity-0"
+      @mousedown="startResize('right', $event)"
+      @touchstart="startResize('right', $event)"
+    ></div>
+    
+    <!-- 底边缘 -->
+    <div
+      class="absolute right-0 bottom-0 left-0 z-10 h-1 cursor-ns-resize opacity-0"
+      @mousedown="startResize('bottom', $event)"
+      @touchstart="startResize('bottom', $event)"
+    ></div>
+    
+    <!-- 右下角 -->
+    <div
+      class="absolute right-0 bottom-0 z-10 h-3 w-3 cursor-nw-resize opacity-0"
+      @mousedown="startResize('bottom-right', $event)"
+      @touchstart="startResize('bottom-right', $event)"
+    ></div>
+    
+    <!-- 左边缘 -->
+    <div
+      class="absolute top-0 bottom-0 left-0 z-10 w-1 cursor-ew-resize opacity-0"
+      @mousedown="startResize('left', $event)"
+      @touchstart="startResize('left', $event)"
+    ></div>
+    
+    <!-- 顶边缘 -->
+    <div
+      class="absolute top-0 right-0 left-0 z-10 h-1 cursor-ns-resize opacity-0"
+      @mousedown="startResize('top', $event)"
+      @touchstart="startResize('top', $event)"
+    ></div>
+    
+    <!-- 左上角 -->
+    <div
+      class="absolute top-0 left-0 z-10 h-3 w-3 cursor-nw-resize opacity-0"
+      @mousedown="startResize('top-left', $event)"
+      @touchstart="startResize('top-left', $event)"
+    ></div>
+    
+    <!-- 右上角 -->
+    <div
+      class="absolute top-0 right-0 z-10 h-3 w-3 cursor-ne-resize opacity-0"
+      @mousedown="startResize('top-right', $event)"
+      @touchstart="startResize('top-right', $event)"
+    ></div>
+    
+    <!-- 左下角 -->
+    <div
+      class="absolute bottom-0 left-0 z-10 h-3 w-3 cursor-ne-resize opacity-0"
+      @mousedown="startResize('bottom-left', $event)"
+      @touchstart="startResize('bottom-left', $event)"
+    ></div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
-import log from 'loglevel';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-// import Vue3DraggableResizable from 'vue3-draggable-resizable';
+import { useDraggable, useWindowSize } from '@vueuse/core';
+import { computed, ref, useTemplateRef } from 'vue';
 
-type Dimension = number | string | undefined;
-
-const DEFAULT_MIN_WIDTH = 300;
-const DEFAULT_MIN_HEIGHT = 250;
-const DEFAULT_WIDTH = 600;
-const DEFAULT_HEIGHT = 400;
-
-const MOBILE_DEFAULT_MIN_WIDTH = 280;
-const MOBILE_DEFAULT_MIN_HEIGHT = 200;
-const MOBILE_DEFAULT_WIDTH = 200;
-const MOBILE_DEFAULT_HEIGHT = 100;
-
-const STORAGE_KEY_PREFIX = 'TH_floating_dialog_size_';
-
+/**
+ * 对话框组件属性定义
+ */
 const props = withDefaults(
   defineProps<{
-    title: string;
-    id: string;
-    minWidth?: number | string;
-    minHeight?: number | string;
-    width?: number | string;
-    height?: number | string;
-    mobileMinWidth?: number | string;
-    mobileMinHeight?: number | string;
-    mobileWidth?: number | string;
-    mobileHeight?: number | string;
-    resizable?: boolean;
-    draggable?: boolean;
-    collapsible?: boolean;
+    /** 桌面端宽度，单位可以是px、vw等 */
+    width?: string | number;
+    /** 桌面端高度，单位可以是px、vh等 */
+    height?: string | number;
+    /** 移动端宽度，单位可以是px、vw等 */
+    mobileWidth?: string | number;
+    /** 移动端高度，单位可以是px、vh等 */
+    mobileHeight?: string | number;
+    /** 标题文本，由外部传入 */
+    title?: string;
   }>(),
   {
-    resizable: true,
-    draggable: true,
-    collapsible: true,
-    // dimension defaults for linter and runtime consistency
-    minWidth: DEFAULT_MIN_WIDTH,
-    minHeight: DEFAULT_MIN_HEIGHT,
-    width: DEFAULT_WIDTH,
-    height: DEFAULT_HEIGHT,
-    mobileMinWidth: MOBILE_DEFAULT_MIN_WIDTH,
-    mobileMinHeight: MOBILE_DEFAULT_MIN_HEIGHT,
-    mobileWidth: MOBILE_DEFAULT_WIDTH,
-    mobileHeight: MOBILE_DEFAULT_HEIGHT,
+    width: '50vw',
+    height: '70vh',
+    mobileWidth: '90vw',
+    mobileHeight: '70vh',
+    title: '',
   },
 );
+const emit = defineEmits<{ (e: 'close'): void }>();
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'toggle', collapsed: boolean): void;
-}>();
+// 获取窗口尺寸（用于初始居中与 vw 转换）
+const { width: windowWidth } = useWindowSize();
 
-const dialogRef = ref<any | null>(null);
-const headerRef = ref<HTMLDivElement | null>(null);
-const contentRef = ref<HTMLDivElement | null>(null);
+const dialogRef = useTemplateRef<HTMLElement>('dialogRef');
+const headerRef = useTemplateRef<HTMLElement>('headerRef');
 
-const isMobileDevice = ref<boolean>(isMobile());
-const collapsed = ref<boolean>(false);
-const draggableNow = ref<boolean>(false);
-
-function saveWindowSize(id: string, width: number, height: number, isMobileDeviceParam: boolean): void {
-  try {
-    const key = `${STORAGE_KEY_PREFIX}${id}`;
-    const sizeData = { width, height, isMobile: isMobileDeviceParam };
-    localStorage.setItem(key, JSON.stringify(sizeData));
-  } catch (error) {
-    log.warn('保存窗口大小失败:', error);
-  }
-}
-
-function loadWindowSize(id: string, isMobileDeviceParam: boolean): { width: number; height: number } | null {
-  try {
-    const key = `${STORAGE_KEY_PREFIX}${id}`;
-    const stored = localStorage.getItem(key);
-    if (!stored) return null;
-    const sizeData = JSON.parse(stored);
-    if (sizeData.isMobile === isMobileDeviceParam && sizeData.width && sizeData.height) {
-      return { width: sizeData.width, height: sizeData.height };
-    }
-  } catch (error) {
-    log.warn('加载窗口大小失败:', error);
-  }
-  return null;
-}
-
-// removed unused resolveCssSize helper after migrating to component-controlled sizing
-
-function computePixelSize(value: Dimension, axis: 'w' | 'h'): number {
-  const viewportW = window.innerWidth || 0;
-  const viewportH = window.innerHeight || 0;
-  const mobile = isMobileDevice.value;
-  const fallback =
-    axis === 'w'
-      ? mobile
-        ? MOBILE_DEFAULT_MIN_WIDTH
-        : DEFAULT_MIN_WIDTH
-      : mobile
-        ? MOBILE_DEFAULT_MIN_HEIGHT
-        : DEFAULT_MIN_HEIGHT;
-
-  if (typeof value === 'number' || typeof value === 'undefined') {
-    return typeof value === 'number' ? value : fallback;
-  }
-
-  const trimmed = value.trim();
-  const percentMatch = trimmed.match(/^([0-9]+(?:\.[0-9]+)?)%$/);
-  if (percentMatch) {
-    const ratio = parseFloat(percentMatch[1]) / 100;
-    return Math.max(0, Math.round((axis === 'w' ? viewportW : viewportH) * ratio));
-  }
-  const vwMatch = trimmed.match(/^([0-9]+(?:\.[0-9]+)?)vw$/i);
-  if (vwMatch && axis === 'w') {
-    const ratio = parseFloat(vwMatch[1]) / 100;
-    return Math.max(0, Math.round(viewportW * ratio));
-  }
-  const vhMatch = trimmed.match(/^([0-9]+(?:\.[0-9]+)?)vh$/i);
-  if (vhMatch && axis === 'h') {
-    const ratio = parseFloat(vhMatch[1]) / 100;
-    return Math.max(0, Math.round(viewportH * ratio));
-  }
-
-  // Measure other CSS units using a temporary element
-  const temp = document.createElement('div');
-  temp.style.position = 'absolute';
-  temp.style.visibility = 'hidden';
-  if (axis === 'w') temp.style.width = trimmed;
-  else temp.style.height = trimmed;
-  document.body.appendChild(temp);
-  const measured = axis === 'w' ? temp.getBoundingClientRect().width : temp.getBoundingClientRect().height;
-  temp.remove();
-  return measured || fallback;
-}
-
-// Compute initial numeric sizes and position for the draggable-resizable component
-const mobile = isMobileDevice.value;
-const savedSize = loadWindowSize(props.id, mobile);
-const initialW =
-  savedSize?.width ??
-  computePixelSize(mobile ? (props.mobileWidth ?? MOBILE_DEFAULT_WIDTH) : (props.width ?? DEFAULT_WIDTH), 'w');
-const initialH =
-  savedSize?.height ??
-  computePixelSize(mobile ? (props.mobileHeight ?? MOBILE_DEFAULT_HEIGHT) : (props.height ?? DEFAULT_HEIGHT), 'h');
-const minWpx = computePixelSize(
-  mobile ? (props.mobileMinWidth ?? MOBILE_DEFAULT_MIN_WIDTH) : (props.minWidth ?? DEFAULT_MIN_WIDTH),
-  'w',
-);
-const minHpx = computePixelSize(
-  mobile ? (props.mobileMinHeight ?? MOBILE_DEFAULT_MIN_HEIGHT) : (props.minHeight ?? DEFAULT_MIN_HEIGHT),
-  'h',
-);
-
-const w = ref<number>(initialW);
-const h = ref<number>(initialH);
-const x = ref<number>(Math.max(0, Math.round(((window.innerWidth || 0) - initialW) / 2)));
-const y = ref<number>(Math.max(0, Math.round(((window.innerHeight || 0) - initialH) / 2)));
-
-const handles = computed<string[]>(() => {
-  if (!props.resizable || collapsed.value) return [];
-  return isMobileDevice.value ? ['br'] : ['tl', 'tm', 'tr', 'ml', 'mr', 'bl', 'bm', 'br'];
+// 当前对话框的实际尺寸
+const dialogSize = ref({
+  width: 0,
+  height: 0,
 });
 
-function bringToFront() {
-  const refVal = dialogRef.value as any;
-  const el = refVal && refVal.$el ? (refVal.$el as HTMLElement) : (refVal as HTMLElement | null);
-  const target = el ?? document.querySelector<HTMLElement>(`.TH-floating-dialog[data-dialog-id="${props.id}"]`);
-  if (!target) return;
-  const dialogs = Array.from(document.querySelectorAll<HTMLElement>('.TH-floating-dialog'));
-  const maxZ = dialogs.reduce((max, d) => {
-    const z = parseInt(window.getComputedStyle(d).zIndex || '4000', 10);
-    return Math.max(max, isNaN(z) ? 4000 : z);
-  }, 4000);
-  target.style.zIndex = String(maxZ + 1);
+// 初始化对话框尺寸
+const initializeSize = () => {
+  const targetWidth = isMobile() ? props.mobileWidth : props.width;
+  const targetHeight = isMobile() ? props.mobileHeight : props.height;
+
+  // 转换尺寸值为像素
+  const convertToPixels = (value: string | number) => {
+    if (typeof value === 'number') return value;
+    if (value.endsWith('vw')) {
+      return (parseFloat(value) * windowWidth.value) / 100;
+    }
+    if (value.endsWith('vh')) {
+      return (parseFloat(value) * window.innerHeight) / 100;
+    }
+    if (value.endsWith('px')) {
+      return parseFloat(value);
+    }
+    return parseFloat(value) || 400;
+  };
+
+  dialogSize.value.width = convertToPixels(targetWidth);
+  dialogSize.value.height = convertToPixels(targetHeight);
+};
+
+// 仅在打开时确定一次尺寸
+initializeSize();
+
+// 拖动功能 - 只有头部可以拖动
+const { x, y } = useDraggable(headerRef, {
+  initialValue: {
+    x: Math.max(0, (windowWidth.value - dialogSize.value.width) / 2),
+    y: 50,
+  },
+  preventDefault: true,
+});
+
+// 调整大小状态
+const isResizing = ref(false);
+const resizeDirection = ref<string>('');
+
+/**
+ * 从鼠标或触摸事件中提取坐标
+ * @param e 鼠标或触摸事件
+ */
+function getClientPoint(e: MouseEvent | TouchEvent) {
+  if (e instanceof TouchEvent) {
+    const touch = e.touches[0] || (e as any).changedTouches?.[0];
+    return {
+      clientX: touch ? touch.clientX : 0,
+      clientY: touch ? touch.clientY : 0,
+    };
+  }
+  const me = e as MouseEvent;
+  return { clientX: me.clientX, clientY: me.clientY };
 }
 
-function handleClose() {
+// 鼠标/触摸按下开始调整大小（移动端也启用）
+const startResize = (direction: string, event: MouseEvent | TouchEvent) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  isResizing.value = true;
+  resizeDirection.value = direction;
+
+  const startPoint = getClientPoint(event);
+  const startX = startPoint.clientX;
+  const startY = startPoint.clientY;
+  const startWidth = dialogSize.value.width;
+  const startHeight = dialogSize.value.height;
+  const startLeft = x.value;
+  const startTop = y.value;
+
+  const handlePointerMove = (e: MouseEvent | TouchEvent) => {
+    const point = getClientPoint(e);
+    const deltaX = point.clientX - startX;
+    const deltaY = point.clientY - startY;
+
+    let newWidth = startWidth;
+    let newHeight = startHeight;
+
+    if (direction.includes('right')) {
+      newWidth = Math.max(300, startWidth + deltaX);
+    }
+    if (direction.includes('left')) {
+      newWidth = Math.max(300, startWidth - deltaX);
+      x.value = startLeft + (startWidth - newWidth);
+    }
+    if (direction.includes('bottom')) {
+      newHeight = Math.max(200, startHeight + deltaY);
+    }
+    if (direction.includes('top')) {
+      newHeight = Math.max(200, startHeight - deltaY);
+      y.value = startTop + (startHeight - newHeight);
+    }
+
+    dialogSize.value.width = newWidth;
+    dialogSize.value.height = newHeight;
+
+    // 边界保护，避免位置为负
+    if (!Number.isNaN(x.value)) x.value = Math.max(0, x.value);
+    if (!Number.isNaN(y.value)) y.value = Math.max(0, y.value);
+  };
+
+  const handlePointerUp = () => {
+    isResizing.value = false;
+    resizeDirection.value = '';
+    document.removeEventListener('mousemove', handlePointerMove as any);
+    document.removeEventListener('mouseup', handlePointerUp as any);
+    document.removeEventListener('touchmove', handlePointerMove as any);
+    document.removeEventListener('touchend', handlePointerUp as any);
+    document.removeEventListener('touchcancel', handlePointerUp as any);
+  };
+
+  document.addEventListener('mousemove', handlePointerMove as any);
+  document.addEventListener('mouseup', handlePointerUp as any);
+  document.addEventListener('touchmove', handlePointerMove as any, { passive: false });
+  document.addEventListener('touchend', handlePointerUp as any);
+  document.addEventListener('touchcancel', handlePointerUp as any);
+};
+
+// 计算对话框样式
+const dialogStyle = computed(() => ({
+  position: 'fixed' as const,
+  left: `${x.value}px`,
+  top: `${y.value}px`,
+  width: `${dialogSize.value.width}px`,
+  height: `${dialogSize.value.height}px`,
+  zIndex: 10000,
+  userSelect: isResizing.value ? ('none' as const) : ('auto' as const),
+}));
+
+function onClose() {
   emit('close');
 }
-
-function toggleCollapsed() {
-  collapsed.value = !collapsed.value;
-  emit('toggle', collapsed.value);
-}
-
-function onResizeEnd() {
-  try {
-    saveWindowSize(props.id, Math.round(w.value), Math.round(h.value), isMobileDevice.value);
-  } catch (error) {
-    log.warn('保存窗口大小失败:', error);
-  }
-}
-
-function onHeaderPointerDown() {
-  draggableNow.value = true;
-  bringToFront();
-}
-
-onMounted(() => {
-  try {
-    bringToFront();
-  } catch (err) {
-    log.error('初始化浮窗失败', err);
-  }
-});
-
-onMounted(() => {
-  const onUp = () => {
-    draggableNow.value = false;
-  };
-  window.addEventListener('pointerup', onUp, { passive: true });
-  cleanupUpListener = () => window.removeEventListener('pointerup', onUp);
-});
-
-let cleanupUpListener: (() => void) | null = null;
-
-onBeforeUnmount(() => {
-  if (cleanupUpListener) cleanupUpListener();
-});
-
-// When collapsed state changes, optionally hide/show handles handled by v-if; nothing else needed
-watch(
-  () => collapsed.value,
-  () => {
-    // no-op; template controls handle visibility
-  },
-);
 </script>
-
-<style scoped>
-.TH-floating-dialog .dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 12px;
-  background-color: var(--SmartThemeQuoteColor);
-  cursor: move;
-  user-select: none;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  min-height: 32px;
-}
-.th-resize-handle {
-  position: absolute;
-  touch-action: none;
-}
-.th-n,
-.th-s {
-  left: 0;
-  width: 100%;
-  height: 6px;
-}
-.th-n {
-  top: 0;
-  cursor: n-resize;
-}
-.th-s {
-  bottom: 0;
-  cursor: s-resize;
-}
-
-.th-e,
-.th-w {
-  top: 0;
-  height: 100%;
-  width: 6px;
-}
-.th-e {
-  right: 0;
-  cursor: e-resize;
-}
-.th-w {
-  left: 0;
-  cursor: w-resize;
-}
-
-.th-ne,
-.th-se,
-.th-sw,
-.th-nw {
-  width: 12px;
-  height: 12px;
-}
-.th-ne {
-  top: 0;
-  right: 0;
-  cursor: ne-resize;
-}
-.th-se {
-  bottom: 0;
-  right: 0;
-  cursor: se-resize;
-}
-.th-sw {
-  bottom: 0;
-  left: 0;
-  cursor: sw-resize;
-}
-.th-nw {
-  top: 0;
-  left: 0;
-  cursor: nw-resize;
-}
-
-.dialog-header {
-  /* Improve drag on touch devices */
-  touch-action: none;
-}
-</style>
