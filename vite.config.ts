@@ -12,10 +12,6 @@ const externals = {
   '@popperjs/core': 'Popper',
 } as const;
 
-/**
- * 计算相对于 SillyTavern 的路径
- * 从 dist 目录到 SillyTavern 根目录的相对路径
- */
 const relative_sillytavern_path = path.relative(
   path.join(__dirname, 'dist'),
   __dirname.substring(0, __dirname.lastIndexOf('public') + 6),
@@ -25,7 +21,6 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
     unpluginAutoImport({
-      dts: './src/auto-imports.d.ts',
       dtsMode: 'overwrite',
       imports: [
         'vue',
