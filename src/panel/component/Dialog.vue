@@ -13,13 +13,14 @@
       <div
         ref="headerRef"
         class="
-          flex flex-shrink-0 cursor-move items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1
-          select-none
+          flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1 select-none
         "
-        style="touch-action: none;"
-        @pointerdown="startDrag"
       >
-        <div class="flex-1 text-sm font-bold text-(--SmartThemeBodyColor)">{{ title }}</div>
+        <div 
+          class="flex-1 cursor-move text-sm font-bold text-(--SmartThemeBodyColor)"
+          style="touch-action: none;"
+          @pointerdown="startDrag"
+        >{{ title }}</div>
         <div class="flex flex-shrink-0 gap-1">
           <button
             class="
@@ -42,7 +43,7 @@
         </div>
       </div>
       <div v-if="!isCollapsed" class="flex flex-1 flex-col overflow-hidden">
-        <slot>
+        <slot name="content">
         </slot>
       </div>
     </div>
@@ -140,7 +141,7 @@ const props = withDefaults(
     edgeSnap: true,
     snapDistance: 50,
     aspectRatio: false,
-    handles: () => ['tl', 'tm', 'tr', 'mr', 'br', 'bm', 'bl', 'ml'],
+    handles: () => ['tl', 'tm', 'mr', 'br', 'bm', 'bl'],
     showHandles: false,
     initX: '10%',
     initY: () => Math.max(50, window.innerHeight * 0.15),

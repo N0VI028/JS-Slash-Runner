@@ -17,12 +17,27 @@
     </Item>
   </div>
   <teleport to="body">
-    <Dialog v-if="isPromptViewerDialogOpen" :title="t`提示词查看器`" :storage-id="`prompt-viewer`" @close="isPromptViewerDialogOpen = false" />
-    <Dialog v-if="isVariableManagerDialogOpen" :title="t`变量管理器`" :storage-id="`variable-manager`" @close="isVariableManagerDialogOpen = false" />
+    <Dialog
+      v-if="isPromptViewerDialogOpen"
+      :title="t`提示词查看器`"
+      :storage-id="`prompt-viewer`"
+      @close="isPromptViewerDialogOpen = false"
+    >
+      <template #content>
+        <Content />
+      </template>
+    </Dialog>
+    <Dialog
+      v-if="isVariableManagerDialogOpen"
+      :title="t`变量管理器`"
+      :storage-id="`variable-manager`"
+      @close="isVariableManagerDialogOpen = false"
+    />
   </teleport>
 </template>
 
 <script setup lang="ts">
+import Content from './toolbox/prompt_viewer/Content.vue';
 
 const isPromptViewerDialogOpen = ref(false);
 const isVariableManagerDialogOpen = ref(false);
