@@ -54,7 +54,7 @@ const onInput = useDebounceFn(
 );
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .fa-xmark:before {
   vertical-align: sub;
 }

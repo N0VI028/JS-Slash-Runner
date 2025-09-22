@@ -58,7 +58,7 @@ useSortable(rootListRef, rootListItems, {
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .empty-state {
   display: flex;
   flex-direction: column;

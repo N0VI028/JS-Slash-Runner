@@ -84,7 +84,7 @@ useSortable(folderContentRef, folderContentItems, {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .batch-mode.selected {
   background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
   border-color: var(--SmartThemeQuoteColor);

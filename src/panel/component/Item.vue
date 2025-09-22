@@ -197,7 +197,7 @@ function collapse() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 /* 可折叠组件样式 */
 .TH-collapsible > div:first-child {
   cursor: pointer;

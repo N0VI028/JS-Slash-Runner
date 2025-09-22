@@ -17,7 +17,7 @@ withDefaults(
 );
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .TH-Button-- {
   &container {
     display: flex;

@@ -48,9 +48,7 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
-
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .TH-batch-mode.selected {
   background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
   border-color: var(--SmartThemeQuoteColor);
