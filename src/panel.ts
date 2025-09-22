@@ -1,13 +1,10 @@
 import Panel from '@/Panel.vue';
 import { App } from 'vue';
-// @ts-expect-error 没有类型声明文件
-import VueDragResize from 'vue-drag-resize';
 
 const app = createApp(Panel);
 
 const pinia = createPinia();
 app.use(pinia);
-app.component('VueDragResize', VueDragResize);
 declare module 'vue' {
   interface ComponentCustomProperties {
     t: typeof t;

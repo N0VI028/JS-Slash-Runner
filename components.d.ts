@@ -12,6 +12,8 @@ declare module 'vue' {
     Dialog: typeof import('./src/panel/component/Dialog.vue')['default']
     Divider: typeof import('./src/panel/component/Divider.vue')['default']
     Item: typeof import('./src/panel/component/Item.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
     SearchBar: typeof import('./src/panel/component/SearchBar.vue')['default']
     Toggle: typeof import('./src/panel/component/Toggle.vue')['default']
   }
