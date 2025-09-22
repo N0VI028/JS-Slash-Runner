@@ -22,7 +22,7 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.35.0",
+    "@eslint/js": "^9.36.0",
     "@types/jquery": "^3.5.33",
     "@types/jqueryui": "^1.12.24",
     "@types/lodash": "^4.17.20",
@@ -30,7 +30,7 @@
     "@types/toastr": "^2.1.43",
     "@typescript-eslint/parser": "^8.44.0",
     "css-loader": "^7.1.2",
-    "eslint": "^9.35.0",
+    "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import-x": "^4.16.1",
@@ -60,6 +60,6 @@
     "mark.js": "^8.11.1",
     "socket.io-client": "^4.8.1",
     "type-fest": "^4.41.0",
-    "zod": "^4.1.9"
+    "zod": "^4.1.11"
   }
 }
