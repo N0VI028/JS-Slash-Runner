@@ -16,37 +16,17 @@
       </template>
     </Item>
   </div>
-  <teleport to="body">
-    <Dialog
-      v-if="isPromptViewerDialogOpen"
-      :title="t`提示词查看器`"
-      :storage-id="`prompt-viewer`"
-      @close="isPromptViewerDialogOpen = false"
-    >
-      <template #content>
-        <Content />
-      </template>
-    </Dialog>
-    <Dialog
-      v-if="isVariableManagerDialogOpen"
-      :title="t`变量管理器`"
-      :storage-id="`variable-manager`"
-      @close="isVariableManagerDialogOpen = false"
-    />
-  </teleport>
 </template>
 
 <script setup lang="ts">
-import Content from './toolbox/prompt_viewer/Content.vue';
+import { openDialogOnceById } from '@/composables/useFloatingDialog';
+import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 
-const isPromptViewerDialogOpen = ref(false);
-const isVariableManagerDialogOpen = ref(false);
-
-function openPromptViewer() {
-  isPromptViewerDialogOpen.value = true;
+function openPromptViewer(): void {
+  openDialogOnceById('prompt-viewer', t`提示词查看器`, Content);
 }
 
-function openVariableManager() {
-  isVariableManagerDialogOpen.value = true;
+function openVariableManager(): void {
+  // 预留：变量管理器浮窗接入点
 }
 </script>

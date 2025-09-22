@@ -55,9 +55,13 @@
       </div>
     </div>
   </div>
+
+  <!-- 渲染浮窗 -->
+  <component :is="() => renderFloatingDialogs()" />
 </template>
 
 <script setup lang="ts">
+import { renderFloatingDialogs } from '@/composables/useFloatingDialog';
 import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';

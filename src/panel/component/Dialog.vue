@@ -801,6 +801,9 @@ const dialogClasses = computed(() => ({
   'dialog-resizable': props.resizable,
 }));
 
+/**
+ * 关闭处理函数
+ */
 function onClose() {
   emit('close');
 }

@@ -28,7 +28,20 @@ export default [
       'better-tailwindcss/enforce-consistent-line-wrapping': ['warn', { printWidth: 120 }],
       'better-tailwindcss/no-unregistered-classes': [
         'warn',
-        { ignore: ['fa-*', 'inline-drawer-*', 'TH-*', 'list-*', 'menu_button*', 'interactable', 'text_pole'] },
+        {
+          ignore: [
+            'fa-*',
+            'inline-drawer-*',
+            'TH-*',
+            'list-*',
+            'menu_button*',
+            'interactable',
+            'text_pole',
+            'flex-container',
+            'flexGap5',
+            'extensionsMenuExtensionButton',
+          ],
+        },
       ],
     },
     settings: {
