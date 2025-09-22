@@ -23,10 +23,7 @@
 </template>
 
 <script setup lang="ts">
-/**
- * 打开提示词查看器
- * 点击按钮后以浮窗形式显示 Dialog 组件
- */
+
 const isPromptViewerDialogOpen = ref(false);
 const isVariableManagerDialogOpen = ref(false);
 
