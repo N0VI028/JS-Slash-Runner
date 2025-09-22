@@ -16,10 +16,23 @@
       </template>
     </Item>
   </div>
+
+  <Teleport to="#extensionsMenu">
+    <div class="extension_container">
+      <div class="list-group-item flex-container flexGap5 interactable" tabindex="0" role="listitem">
+        <div class="fa-solid fa-magnifying-glass extensionsMenuExtensionButton" />
+        <span @click="openPromptViewer">提示词查看器</span>
+      </div>
+      <div class="list-group-item flex-container flexGap5 interactable" tabindex="0" role="listitem">
+        <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
+        <span @click="openVariableManager">变量管理器</span>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { openDialogOnceById } from '@/composables/useFloatingDialog';
+import { openDialogOnceById } from '@/panel/composables/useFloatingDialog';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 
 function openPromptViewer(): void {

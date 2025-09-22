@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { renderFloatingDialogs } from '@/composables/useFloatingDialog';
+import { renderFloatingDialogs } from '@/panel/composables/useFloatingDialog';
 import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
