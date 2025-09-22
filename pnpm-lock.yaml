@@ -4327,7 +4327,7 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
-  vue-eslint-parser@10.2.0(eslint@9.36.0(jiti@2.5.1)):
+  vue-eslint-parser@10.2.0(eslint@9.35.0(jiti@2.5.1)):
     dependencies:
       debug: 4.4.3
       eslint: 9.36.0(jiti@2.5.1)

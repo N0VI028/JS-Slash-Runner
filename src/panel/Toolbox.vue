@@ -17,8 +17,8 @@
     </Item>
   </div>
   <teleport to="body">
-    <Dialog v-if="isPromptViewerDialogOpen" :title="t`提示词查看器`" @close="isPromptViewerDialogOpen = false" />
-    <Dialog v-if="isVariableManagerDialogOpen" :title="t`变量管理器`" @close="isVariableManagerDialogOpen = false" />
+    <Dialog v-if="isPromptViewerDialogOpen" :title="t`提示词查看器`" :storage-id="`prompt-viewer`" @close="isPromptViewerDialogOpen = false" />
+    <Dialog v-if="isVariableManagerDialogOpen" :title="t`变量管理器`" :storage-id="`variable-manager`" @close="isVariableManagerDialogOpen = false" />
   </teleport>
 </template>
 
