@@ -183,6 +183,7 @@ export const tavern_events = {
   CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',
   TOOL_CALLS_PERFORMED: 'tool_calls_performed',
   TOOL_CALLS_RENDERED: 'tool_calls_rendered',
+  WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded',
 } as const;
 
 export type ListenerType = {
@@ -327,5 +328,11 @@ export type ListenerType = {
   [tavern_events.CONNECTION_PROFILE_LOADED]: (profile_name: string) => void;
   [tavern_events.TOOL_CALLS_PERFORMED]: (tool_invocations: Object[]) => void;
   [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: Object[]) => void;
+  [tavern_events.WORLDINFO_ENTRIES_LOADED]: (lores: {
+    globalLore: Record<string, any>[];
+    characterLore: Record<string, any>[];
+    chatLore: Record<string, any>[];
+    personaLore: Record<string, any>[];
+  }) => void;
   [custom_event: string]: (...args: any) => any;
 };
