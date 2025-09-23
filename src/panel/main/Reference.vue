@@ -31,14 +31,14 @@
             <a
               href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.zip?ref_type=heads&inline=false"
               class="list-group-item"
-              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSizeSm); cursor: pointer"
+              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSize-sm); cursor: pointer"
             >
               {{ t`电脑编写模板用` }}
             </a>
             <a
               href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.txt?ref_type=heads&inline=false"
               class="list-group-item"
-              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSizeSm); cursor: pointer"
+              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSize-sm); cursor: pointer"
             >
               {{ t`手机或 AI 官网用` }}
             </a>
@@ -175,7 +175,7 @@ function downloadSlashCommands(event: Event) {
   border-radius: 50px;
   padding: 5px 10px;
   margin-top: 5px;
-  font-size: var(--TH-FontSizeSm);
+  font-size: var(--TH-FontSize-sm);
   color: var(--SmartThemeBodyColor);
   gap: 5px;
 

@@ -9,7 +9,7 @@
       <div
         class="
           flex items-center justify-between
-          text-[length:var(--TH-FontSizeSm)]
+          text-[length:var(--TH-FontSize-sm)]
           opacity-70
         "
       >
@@ -24,7 +24,7 @@
         <div
           class="
             flex w-full items-center rounded-full border border-(--grey5050a) p-0.5
-            text-[length:var(--TH-FontSize)]
+            text-[length:var(--TH-FontSize-base)]
           "
         >
           <div

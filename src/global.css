@@ -3,12 +3,13 @@
   --spacing: var(--mainFontSize);
 }
 @theme {
-  --TH-FontSize: var(--mainFontSize);
-  --TH-FontSizeXs: calc(var(--mainFontSize) * 0.7);
-  --TH-FontSizeSm: calc(var(--mainFontSize) * 0.8);
-  --TH-FontSizeM: calc(var(--mainFontSize) * 1.5);
-  --TH-FontSizeL: calc(var(--mainFontSize) * 2);
-  --TH-FontSizeXl: calc(var(--mainFontSize) * 2.5);
+  --TH-FontSize-base: var(--mainFontSize);
+  --TH-FontSize-xs: calc(var(--mainFontSize) * 0.7);
+  --TH-FontSize-sm: calc(var(--mainFontSize) * 0.8);
+  --TH-FontSize-md: calc(var(--mainFontSize) * 1.2);
+  --TH-FontSize-lg: calc(var(--mainFontSize) * 1.5);
+  --TH-FontSize-xl: calc(var(--mainFontSize) * 2);
+  --TH-FontSize-2xl: calc(var(--mainFontSize) * 2.5);
 }
 
 @layer base {

@@ -6,7 +6,7 @@
           <!-- prettier-ignore-attribute -->
           <div
             class="
-              text-(length:--TH-FontSize)
+              text-(length:--TH-FontSize-base)
               font-bold text-(--SmartThemeQuoteColor)
             "
           >
@@ -15,7 +15,7 @@
           <!-- prettier-ignore-attribute -->
           <div
             class="
-              text-(length:--TH-FontSizeSm)
+              text-(length:--TH-FontSize-sm)
               text-(--SmartThemeQuoteColor)
             "
           >
@@ -27,7 +27,7 @@
           :class="[
             `
               fa-solid fa-rotate-right cursor-pointer
-              text-(length:--TH-FontSize)
+              text-(length:--TH-FontSize-base)
               duration-200
             `,
             { 'animate-spin': isRefreshing },
@@ -42,7 +42,7 @@
           <div
             id="prompt-filter-icon"
             class="
-              flex h-(--TH-FontSizeL) w-(--TH-FontSizeL) cursor-pointer items-center justify-center
+              flex h-(--TH-FontSize-xl) w-(--TH-FontSize-xl) cursor-pointer items-center justify-center
               text-(--SmartThemeQuoteColor)
             "
             title="筛选消息类型"
@@ -55,9 +55,9 @@
               id="prompt-search"
               type="text"
               class="
-                h-(--TH-FontSizeL) w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8
+                h-(--TH-FontSize-xl) w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8
                 pl-1
-                text-(length:--TH-FontSize)
+                text-(length:--TH-FontSize-base)
                 text-(--mainTextColor)
               "
               placeholder="搜索消息内容..."
@@ -66,14 +66,14 @@
             <div
               class="
                 pointer-events-auto absolute top-[25%] right-1 flex items-center rounded-sm
-                text-(length:--TH-FontSizeSm)
+                text-(length:--TH-FontSize-sm)
                 whitespace-nowrap text-(--SmartThemeBodyColor)
               "
             >
               <input
                 id="prompt-search-compact-mode"
                 type="checkbox"
-                class="mr-0.25 mb-0 h-(--TH-FontSizeSm) w-(--TH-FontSizeSm)"
+                class="mr-0.25 mb-0 h-(--TH-FontSize-sm) w-(--TH-FontSize-sm)"
               />
               <label for="prompt-search-compact-mode">仅显示匹配</label>
             </div>

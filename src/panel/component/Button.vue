@@ -27,7 +27,7 @@ withDefaults(
     border: 1px solid var(--SmartThemeQuoteColor);
     border-radius: 5px;
     padding: 3px 5px;
-    font-size: var(--TH-FontSizeSm);
+    font-size: var(--TH-FontSize-sm);
     color: var(--SmartThemeBodyColor);
 
     a {
@@ -35,7 +35,7 @@ withDefaults(
     }
 
     i {
-      font-size: var(--TH-FontSizeXs) !important;
+      font-size: var(--TH-FontSize-xs) !important;
       margin-left: 5px;
     }
   }

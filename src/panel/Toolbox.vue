@@ -33,13 +33,14 @@
 
 <script setup lang="ts">
 import { openDialogOnceById } from '@/panel/composables/useFloatingDialog';
-import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
+import PromptViewerContent from '@/panel/toolbox/prompt_viewer/Content.vue';
+import VariableManagerContent from '@/panel/toolbox/variable_manager/Content.vue';
 
 function openPromptViewer(): void {
-  openDialogOnceById('prompt-viewer', t`提示词查看器`, Content);
+  openDialogOnceById('prompt-viewer', t`提示词查看器`, PromptViewerContent);
 }
 
 function openVariableManager(): void {
-  // 预留：变量管理器浮窗接入点
+  openDialogOnceById('variable-manager', t`变量管理器`, VariableManagerContent);
 }
 </script>

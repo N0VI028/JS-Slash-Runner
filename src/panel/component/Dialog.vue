@@ -25,7 +25,7 @@
           <button
             class="
               relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
-              text-(length:--TH-FontSizeM)!
+              text-(length:--TH-FontSize-lg)!
               text-(--SmartThemeBodyColor)
             " 
             :title="isCollapsed ? t`展开` : t`折叠`" 
@@ -34,7 +34,7 @@
           <button
             class="
               relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
-              text-(length:--TH-FontSizeM)!
+              text-(length:--TH-FontSize-lg)!
               text-(--SmartThemeBodyColor)
             " 
             :title="t`关闭`" 

@@ -16,7 +16,7 @@
         <div
           class="
             mt-0.25
-            text-(length:--TH-FontSizeSm)
+            text-(length:--TH-FontSize-sm)
             opacity-70
           "
         >

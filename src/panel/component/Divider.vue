@@ -1,11 +1,11 @@
 <template>
-  <div class="my-(--TH-FontSize) flex w-full items-center" :style="{ marginTop: marginY, marginBottom: marginY }">
+  <div class="my-(--TH-FontSize-base) flex w-full items-center" :style="{ marginTop: marginY, marginBottom: marginY }">
     <!-- prettier-ignore-attribute -->
     <div
       v-if="$slots.default"
       class="
-        mr-(--TH-FontSizeSm) flex
-        text-[length:var(--TH-FontSizeSm)]
+        mr-(--TH-FontSize-sm) flex
+        text-[length:var(--TH-FontSize-sm)]
         whitespace-nowrap
       "
       :style="type === 'plain' ? '' : 'word-spacing: 1.5'"
@@ -22,6 +22,6 @@ withDefaults(
     type?: 'plain' | 'major';
     marginY?: string;
   }>(),
-  { type: 'plain', marginY: 'var(--TH-FontSize)' },
+  { type: 'plain', marginY: 'var(--TH-FontSize-base)' },
 );
 </script>
