@@ -48,6 +48,8 @@
   "查看当前提示词发送情况，窗口开启时会监听新的发送及时更新显示": "View the current prompt sending situation, the window will listen for new sending and update the display in time",
   "变量管理器": "Variable Manager",
   "查看和管理全局、角色、聊天、消息楼层变量": "View and manage global, role, chat, message variables",
+  "未命名变量": "{{Unnamed Variable}}",
+  "暂无变量值": "{{No Variable Value}}",
   "打开": "Open",
   "批量操作": "Batch Operation",
   "全局脚本": "Global Script",

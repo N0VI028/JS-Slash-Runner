@@ -16,7 +16,7 @@
             text-(length:--TH-FontSize-sm)!
             font-bold text-(--SmartThemeBodyColor)!
           "
-          value="{{name}}"
+          :value="name"
         />
       </div>
       <div class="flex flex-shrink-0 gap-0.75">
@@ -33,19 +33,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
-    name: string;
-    content: string;
+    name?: string;
+    content?: string;
   }>(),
   {
-    name: '{{t`未命名变量`}}',
-    content: '{{t`暂无变量值`}}',
+    name: t`{{未命名变量}}`,
+    content: t`{{暂无变量值}}`,
   },
 );
-
-const name = ref(props.name);
-const content = ref(props.content);
 </script>
