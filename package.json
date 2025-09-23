@@ -1,6 +1,6 @@
 {
   "name": "JS-Slash-Runner",
-  "version": "3.6.4",
+  "version": "3.6.5",
   "main": "./dist/index.js",
   "scripts": {
     "build:dev": "webpack --mode development",
@@ -23,7 +23,7 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.34.0",
+    "@eslint/js": "^9.36.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/jquery": "^3.5.33",
     "@types/jqueryui": "^1.12.24",
@@ -33,7 +33,7 @@
     "@typescript-eslint/parser": "^8.44.0",
     "autoprefixer": "^10.4.21",
     "css-loader": "^7.1.2",
-    "eslint": "^9.35.0",
+    "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import-x": "^4.16.1",
@@ -69,6 +69,6 @@
     "type-fest": "^4.41.0",
     "vue": "^3.5.21",
     "vue-loader": "^17.4.2",
-    "zod": "^4.1.9"
+    "zod": "^4.1.11"
   }
 }
