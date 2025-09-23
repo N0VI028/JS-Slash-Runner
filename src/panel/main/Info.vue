@@ -4,7 +4,7 @@
     <div
       class="
         flex flex-1 flex-col
-        text-[length:var(--TH-FontSize-sm)]
+        text-(length:--TH-FontSize-sm)
         opacity-70
       "
     >
@@ -35,7 +35,7 @@
     <div
       class="
         pointer-events-none absolute top-[50%] right-0.75 z-[-1] translate-y-[-50%]
-        text-[length:var(--TH-FontSize-xl)]
+        text-(length:--TH-FontSize-xl)
         font-bold opacity-10
       "
     >

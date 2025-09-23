@@ -5,7 +5,7 @@
       v-if="$slots.default"
       class="
         mr-(--TH-FontSize-sm) flex
-        text-[length:var(--TH-FontSize-sm)]
+        text-(length:--TH-FontSize-sm)
         whitespace-nowrap
       "
       :style="type === 'plain' ? '' : 'word-spacing: 1.5'"

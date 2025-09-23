@@ -55,8 +55,8 @@
               id="prompt-search"
               type="text"
               class="
-                h-(--TH-FontSize-xl) w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8
-                pl-1
+                h-(--TH-FontSize-xl) w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5
+                pr-8 pl-1
                 text-(length:--TH-FontSize-base)
                 text-(--mainTextColor)
               "

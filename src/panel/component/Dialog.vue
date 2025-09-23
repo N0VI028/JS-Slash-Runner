@@ -17,7 +17,7 @@
         "
       >
         <div 
-          class="flex-1 cursor-move text-sm font-bold text-(--SmartThemeBodyColor)"
+          class="flex-1 cursor-move font-bold text-(--SmartThemeBodyColor)"
           style="touch-action: none;"
           @pointerdown="startDrag"
         >{{ title }}</div>
@@ -25,7 +25,7 @@
           <button
             class="
               relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
-              text-(length:--TH-FontSize-lg)!
+              text-(length:--TH-FontSize-base)!
               text-(--SmartThemeBodyColor)
             " 
             :title="isCollapsed ? t`展开` : t`折叠`" 
@@ -33,13 +33,14 @@
           ><i :class="isCollapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i></button>
           <button
             class="
-              relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
-              text-(length:--TH-FontSize-lg)!
+              fa-solid fa-close relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none
+              bg-transparent
+              text-(length:--TH-FontSize-base)!
               text-(--SmartThemeBodyColor)
             " 
             :title="t`关闭`" 
             @click="onClose"
-          >×</button>
+          ></button>
         </div>
       </div>
       <div v-if="!isCollapsed" class="flex flex-1 flex-col overflow-hidden">
@@ -68,7 +69,7 @@
 
 <script setup lang="ts">
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
-import { useEventListener, useThrottleFn, useWindowSize } from '@vueuse/core';
+import { useEventListener, useLocalStorage, useThrottleFn, useWindowSize } from '@vueuse/core';
 import { computed, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
 
 interface ResizeHandle {
@@ -147,7 +148,7 @@ const props = withDefaults(
     initY: () => Math.max(50, window.innerHeight * 0.15),
     mobileInitX: () => Math.max(0, window.innerWidth * 0.05),
     mobileInitY: () => Math.max(20, window.innerHeight * 0.15),
-    storagePrefix: 'TH-FloatingDialog:',
+    storagePrefix: 'tavern_helper_floating_dialog:',
     storageId: undefined,
   },
 );
@@ -317,28 +318,29 @@ function getSizeStorageKey(): string | null {
   return __storageKey ? `${__storageKey}:size` : null;
 }
 
-/**
- * 读取本地存储
- */
-function readStorageJSON<T extends Record<string, any>>(key: string): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : ({} as T);
-  } catch {
-    return {} as T;
-  }
+// 定义存储数据的类型
+interface PositionStorage {
+  left?: number;
+  top?: number;
+  mobileLeft?: number;
+  mobileTop?: number;
 }
 
-/**
- * 写入本地存储
- */
-function writeStorageJSON(key: string, value: Record<string, any>) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (err) {
-    console.warn('[TH-Dialog] 本地存储写入失败:', err);
-  }
+interface SizeStorage {
+  width?: number;
+  height?: number;
+  mobileWidth?: number;
+  mobileHeight?: number;
 }
+
+// 使用 useLocalStorage 创建响应式存储
+const positionStorage = __storageKey
+  ? useLocalStorage<PositionStorage>(getPositionStorageKey()!, {}, { mergeDefaults: true })
+  : ref<PositionStorage>({});
+
+const sizeStorage = __storageKey
+  ? useLocalStorage<SizeStorage>(getSizeStorageKey()!, {}, { mergeDefaults: true })
+  : ref<SizeStorage>({});
 
 function pickPersistedValue(
   obj: Record<string, any>,
@@ -360,18 +362,15 @@ function pickPersistedValue(
  * 保存位置
  */
 function savePosition(left: number, top: number) {
-  const key = getPositionStorageKey();
-  if (!key) return;
+  if (!__storageKey) return;
   try {
-    const existing = readStorageJSON<Record<string, any>>(key);
     if (isMobile()) {
-      existing.mobileLeft = left;
-      existing.mobileTop = top;
+      positionStorage.value.mobileLeft = left;
+      positionStorage.value.mobileTop = top;
     } else {
-      existing.left = left;
-      existing.top = top;
+      positionStorage.value.left = left;
+      positionStorage.value.top = top;
     }
-    writeStorageJSON(key, existing);
   } catch (err) {
     console.warn('[TH-Dialog] 保存位置失败:', err);
   }
@@ -381,18 +380,15 @@ function savePosition(left: number, top: number) {
  * 保存大小
  */
 function saveSize(width: number, height: number) {
-  const key = getSizeStorageKey();
-  if (!key) return;
+  if (!__storageKey) return;
   try {
-    const existing = readStorageJSON<Record<string, any>>(key);
     if (isMobile()) {
-      existing.mobileWidth = width;
-      existing.mobileHeight = height;
+      sizeStorage.value.mobileWidth = width;
+      sizeStorage.value.mobileHeight = height;
     } else {
-      existing.width = width;
-      existing.height = height;
+      sizeStorage.value.width = width;
+      sizeStorage.value.height = height;
     }
-    writeStorageJSON(key, existing);
   } catch (err) {
     console.warn('[TH-Dialog] 保存大小失败:', err);
   }
@@ -402,10 +398,9 @@ function saveSize(width: number, height: number) {
  * 加载位置
  */
 function loadPosition(): { left: number; top: number } | null {
-  const key = getPositionStorageKey();
-  if (!key) return null;
+  if (!__storageKey) return null;
   try {
-    const parsed = readStorageJSON<Record<string, any>>(key);
+    const parsed = positionStorage.value;
     const isM = isMobile();
     const picked = pickPersistedValue(
       parsed,
@@ -425,10 +420,9 @@ function loadPosition(): { left: number; top: number } | null {
  * 加载大小
  */
 function loadSize(): { width: number; height: number } | null {
-  const key = getSizeStorageKey();
-  if (!key) return null;
+  if (!__storageKey) return null;
   try {
-    const parsed = readStorageJSON<Record<string, any>>(key);
+    const parsed = sizeStorage.value;
     const isM = isMobile();
     const picked = pickPersistedValue(
       parsed,
