@@ -190,6 +190,9 @@ const initAspectRatio = ref(1);
 const tempPosition = { x: 0, y: 0 };
 const tempSize = { width: 0, height: 0 };
 
+const wasSnapped = ref(false);
+const preSnapRect = ref<{ left: number; top: number; width: number; height: number } | null>(null);
+
 function applyTempToDOM() {
   if (!dialogRef.value) return;
   dialogRef.value.style.left = `${tempPosition.x}px`;
@@ -476,6 +479,8 @@ const startDrag = (event: PointerEvent) => {
   const startLeft = x.value;
   const startTop = y.value;
 
+  let hasRestoredFromSnap = false;
+
   tempPosition.x = startLeft;
   tempPosition.y = startTop;
 
@@ -483,8 +488,34 @@ const startDrag = (event: PointerEvent) => {
     const newXRaw = startLeft + (e.clientX - startX);
     const newYRaw = startTop + (e.clientY - startY);
 
-    const newX = newXRaw;
-    const newY = newYRaw;
+    if (wasSnapped.value && !hasRestoredFromSnap && preSnapRect.value) {
+      const screenWidth = window.innerWidth;
+      const snapDist = props.snapDistance;
+      const nearLeft = newXRaw <= snapDist;
+      const nearRight = newXRaw + dialogSize.value.width >= screenWidth - snapDist;
+      const stillNearEdge = nearLeft || nearRight;
+      if (!stillNearEdge) {
+        dialogSize.value.width = preSnapRect.value.width;
+        dialogSize.value.height = preSnapRect.value.height;
+        tempSize.width = preSnapRect.value.width;
+        tempSize.height = preSnapRect.value.height;
+        hasRestoredFromSnap = true;
+        wasSnapped.value = false;
+      }
+    }
+
+    let newX = newXRaw;
+    let newY = newYRaw;
+
+    const parent = dialogRef.value?.parentElement;
+    if (parent) {
+      const parentRect = parent.getBoundingClientRect();
+      const dialogWidth = tempSize.width;
+      const dialogHeight = isCollapsed.value ? headerHeight.value : tempSize.height;
+
+      newX = Math.max(parentRect.left, Math.min(newX, parentRect.right - dialogWidth));
+      newY = Math.max(parentRect.top, Math.min(newY, parentRect.bottom - dialogHeight));
+    }
 
     tempPosition.x = newX;
     tempPosition.y = newY;
@@ -505,6 +536,18 @@ const startDrag = (event: PointerEvent) => {
     isDragging.value = false;
 
     const snapResult = checkEdgeSnap(tempPosition.x, tempPosition.y, dialogSize.value.width, dialogSize.value.height);
+
+    if (snapResult.snapped) {
+      preSnapRect.value = {
+        left: tempPosition.x,
+        top: tempPosition.y,
+        width: dialogSize.value.width,
+        height: dialogSize.value.height,
+      };
+      wasSnapped.value = true;
+    } else {
+      wasSnapped.value = false;
+    }
 
     x.value = snapResult.left;
     y.value = snapResult.top;
