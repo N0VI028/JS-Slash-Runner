@@ -38,7 +38,7 @@
       <template #title>{{ t`渲染深度` }}</template>
       <template #description>{{ t`设置需要渲染的楼层数，从最新楼层开始计数。为0时，将渲染所有楼层` }}</template>
       <template #content>
-        <input v-model="depth" class="w-3" type="number" :min="0" @change="make_TODO('渲染深度')" />
+        <input v-model="depth" class="w-3" type="number" :min="0" />
       </template>
     </Item>
   </div>
@@ -49,4 +49,9 @@ import { useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
 
 const { enabled, hide_style, loading, blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
+watch(enabled, make_TODO('启用渲染器'), { immediate: true });
+watch(hide_style, make_TODO('启用代码折叠'), { immediate: true });
+watch(loading, make_TODO('启用加载动画'), { immediate: true });
+watch(blob_url, make_TODO('启用 Blob URL 渲染'), { immediate: true });
+watch(depth, make_TODO('渲染深度'), { immediate: true });
 </script>
