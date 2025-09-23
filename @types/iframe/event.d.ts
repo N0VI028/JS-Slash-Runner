@@ -324,7 +324,9 @@ interface ListenerType {
     prompt: { role: 'user' | 'assistant' | 'system'; content: string }[];
   }) => void;
   [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
-  [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
+  [tavern_events.WORLD_INFO_ACTIVATED]: (
+    entries: ({ uid: string; world: string } & SillyTavern.v2DataWorldInfoEntry)[],
+  ) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
   [tavern_events.CHAT_COMPLETION_SETTINGS_READY]: (generate_data: {
     messages: { role: 'user' | 'assistant' | 'system'; content: string }[];
