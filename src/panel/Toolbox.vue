@@ -21,11 +21,11 @@
     <div class="extension_container">
       <div class="list-group-item flex-container flexGap5 interactable" tabindex="0" role="listitem">
         <div class="fa-solid fa-magnifying-glass extensionsMenuExtensionButton" />
-        <span @click="openPromptViewer">提示词查看器</span>
+        <span @click="openPromptViewer">{{ t`提示词查看器` }}</span>
       </div>
       <div class="list-group-item flex-container flexGap5 interactable" tabindex="0" role="listitem">
         <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
-        <span @click="openVariableManager">变量管理器</span>
+        <span @click="openVariableManager">{{ t`变量管理器` }}</span>
       </div>
     </div>
   </Teleport>
@@ -44,3 +44,5 @@ function openVariableManager(): void {
   openDialogOnceById('variable-manager', t`变量管理器`, VariableManagerContent);
 }
 </script>
+
+

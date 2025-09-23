@@ -27,6 +27,12 @@ export function closeDialogById(id: string): void {
   }
 }
 
+/**
+ * 打开一个浮窗，如果浮窗已经存在，则不打开
+ * @param id 浮窗的id
+ * @param title 浮窗的标题
+ * @param contentComponent 浮窗的内容组件
+ */
 export function openDialogOnceById(id: string, title: string, contentComponent: Component): void {
   const existingState = dialogStates.value.get(id);
   if (existingState?.isOpen) {

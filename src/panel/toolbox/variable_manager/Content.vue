@@ -1,103 +1,134 @@
 <template>
   <!-- prettier-ignore -->
-  <div class="flex h-full w-full flex-col overflow-hidden py-1">
+  <div class="flex h-full w-full flex-col overflow-hidden py-0.5">
     <div class="relative flex h-4 justify-start py-0.5">
-      <div id="global-tab" class="TH-tab-item active">
-        <div
-class="TH-tab-item-text">全局</div>
-      </div>
-      <div id="character-tab" class="TH-tab-item"><div class="TH-tab-item-text">角色</div></div>
-      <div id="chat-tab" class="TH-tab-item"><div class="TH-tab-item-text">聊天</div></div>
-      <div id="message-tab" class="TH-tab-item"><div class="TH-tab-item-text">消息楼层</div></div>
+      <DefineTabTemplate v-slot="{ id, active, name }">
+        <div :id="id" :class="['TH-tab-item', { 'TH-active': active }]">
+          <div class="TH-tab-item-text">{{ name }}</div>
+        </div>
+      </DefineTabTemplate>
+      <ReuseTabTemplate id="global-tab" :active="true" :name="t`全局`" />
+      <ReuseTabTemplate id="character-tab" :active="false" :name="t`角色`" />
+      <ReuseTabTemplate id="chat-tab" :active="false" :name="t`聊天`" />
+      <ReuseTabTemplate id="message-tab" :active="false" :name="t`消息楼层`" />
     </div>
-    <div class="flex-container" style="margin: 1px; justify-content: space-between">
+    <div class="flex-container justify-between px-1">
       <div class="flex max-w-[calc(100%-200px)] flex-grow items-center gap-1">
         <div
-id="filter-icon" class="flex h-2 w-2 cursor-pointer items-center justify-center rounded-sm transition-all duration-300" title="筛选变量类型">
+          id="filter-icon"
+          class="flex h-2 w-2 cursor-pointer items-center justify-center rounded-sm transition-all duration-300"
+          title="筛选变量类型"
+        >
           <i class="fa-solid fa-filter"></i>
         </div>
         <div class="min-w-5 flex-grow">
-          <input
-id="variable-search" type="text" class="
-  h-2 w-full rounded-sm bg-(--SmartThemeQuoteColor) px-1 py-0.5 text-(--SmartThemeTextColor)
-" placeholder="搜索变量..." />
+          <input id="variable-search" type="text" class="TH-variable-search" placeholder="搜索变量..." />
         </div>
       </div>
-      <div class="right-controls">
+      <div class="flex gap-0.5 whitespace-nowrap">
         <div id="add-variable" class="menu_button_icon menu_button interactable">
           <i class="fa-solid fa-plus"></i>
-          <span>新建</span>
+          <span>{{ t`新建` }}</span>
         </div>
         <div id="clear-all" class="menu_button_icon menu_button interactable">
           <i class="fa-solid fa-trash"></i>
-          <span>清空</span>
+          <span>{{ t`清空` }}</span>
         </div>
       </div>
     </div>
-    <div id="filter-options" class="filter-options" style="display: none">
-      <div class="filter-option">
-        <input id="filter-string" type="checkbox" class="filter-checkbox" data-type="string" checked />
-        <label for="filter-string">字符串</label>
-      </div>
-      <div class="filter-option">
-        <input id="filter-object" type="checkbox" class="filter-checkbox" data-type="object" checked />
-        <label for="filter-object">对象</label>
-      </div>
-      <div class="filter-option">
-        <input id="filter-array" type="checkbox" class="filter-checkbox" data-type="array" checked />
-        <label for="filter-array">数组</label>
-      </div>
-      <div class="filter-option">
-        <input id="filter-number" type="checkbox" class="filter-checkbox" data-type="number" checked />
-        <label for="filter-number">数字</label>
-      </div>
-      <div class="filter-option">
-        <input id="filter-boolean" type="checkbox" class="filter-checkbox" data-type="boolean" checked />
-        <label for="filter-boolean">布尔值</label>
-      </div>
+    <div
+      id="TH-filter-options"
+      class="mb-1 flex flex-wrap gap-1 rounded-sm bg-(--SmartThemeQuoteColor) p-1"
+      style="display: none"
+    >
+      <DefineOptionTemplate v-slot="{ type, checked, name }">
+        <div class="TH-filter-option">
+          <input
+            :id="`filter-${type}`"
+            type="checkbox"
+            class="TH-filter-checkbox"
+            :data-type="type"
+            :checked="checked"
+          />
+          <label :for="`filter-${type}`">{{ name }}</label>
+        </div>
+      </DefineOptionTemplate>
+      <ReuseOptionTemplate type="string" :checked="true" :name="t`字符串`" />
+      <ReuseOptionTemplate type="object" :checked="true" :name="t`对象`" />
+      <ReuseOptionTemplate type="array" :checked="true" :name="t`数组`" />
+      <ReuseOptionTemplate type="number" :checked="true" :name="t`数字`" />
+      <ReuseOptionTemplate type="boolean" :checked="true" :name="t`布尔值`" />
     </div>
 
-    <div id="floor-filter-container" class="floor-filter-container" style="display: none">
-      <div class="floor-filter-content">
-        <div class="floor-range-inputs">
-          <div class="floor-input-group">
-            <input id="floor-min" type="number" class="floor-input" min="0" placeholder="最小" />楼
-            <span class="floor-separator">~</span>
-            <input id="floor-max" type="number" class="floor-input" min="0" placeholder="最大" />楼
+    <div
+      id="floor-filter-container"
+      class="
+        text-(length:var(--TH-FontSize-sm))
+        my-0.75 hidden rounded-sm bg-(--SmartThemeQuoteColor) p-0.75
+      "
+    >
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center justify-between gap-0.75">
+          <div class="flex flex-1 items-center">
+            <input id="floor-min" type="number" class="TH-floor-input" min="0" placeholder="最小" />
+            <span class="mx-0.5 text-(--SmartThemeBodyColor)">~</span>
+            <input id="floor-max" type="number" class="TH-floor-input" min="0" placeholder="最大" />
           </div>
-          <button id="floor-filter-btn" class="floor-filter-btn">
+          <button
+            id="floor-filter-btn"
+            class="
+              text-(length:var(--TH-FontSize-sm))
+              flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25
+              text-(--SmartThemeTextColor)
+            "
+          >
             <i class="fa-solid fa-check"></i>
             <span>确认</span>
           </button>
         </div>
-        <div id="floor-filter-error" class="floor-filter-error" style="display: none">最大楼层不能小于最小楼层</div>
+        <div
+id="floor-filter-error" class="
+  text-(length:var(--TH-FontSize-sm))
+  hidden py-0.25 text-(--warning)
+">
+          最大楼层不能小于最小楼层
+        </div>
       </div>
     </div>
+    <DefineContentTemplate v-slot="{ id, hidden }">
+      <div :id="id" :class="[hidden ? 'hidden' : '']">
+        <div class="variable-list">
+          <Card name="示例变量" value="示例值" />
+        </div>
+      </div>
+    </DefineContentTemplate>
 
-    <div class="tab-content-container">
-      <div id="global-content" class="tab-content active">
-        <div class="variable-list"></div>
-      </div>
-      <div id="character-content" class="tab-content">
-        <div class="variable-list"></div>
-      </div>
-      <div id="chat-content" class="tab-content">
-        <div class="variable-list"></div>
-      </div>
-      <div id="message-content" class="tab-content">
-        <div class="variable-list"></div>
-      </div>
+    <div class="flex-1 overflow-y-auto p-1">
+      <ReuseContentTemplate id="global-content" />
+      <ReuseContentTemplate id="character-content" :hidden="true" />
+      <ReuseContentTemplate id="chat-content" :hidden="true" />
+      <ReuseContentTemplate id="message-content" :hidden="true" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Card from '@/panel/toolbox/variable_manager/Card.vue';
+import { createReusableTemplate } from '@vueuse/core';
 import { ref } from 'vue';
+
+const [DefineContentTemplate, ReuseContentTemplate] = createReusableTemplate<{ id: string; hidden?: boolean }>();
+const [DefineOptionTemplate, ReuseOptionTemplate] = createReusableTemplate<{
+  type: string;
+  checked?: boolean;
+  name?: string;
+}>();
+const [DefineTabTemplate, ReuseTabTemplate] = createReusableTemplate<{ id: string; active?: boolean; name?: string }>();
 
 const activeTab = ref('global');
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 @reference "tailwindcss";
 .TH-tab-item {
   @apply px-1 cursor-pointer relative flex items-center z-1 h-full;
@@ -112,11 +143,24 @@ const activeTab = ref('global');
     transform-origin: center;
   }
 
-  &.active &-text {
+  &.TH-active &-text {
     @apply font-bold text-[length:var(--TH-FontSize-lg)];
   }
-  &.active &-text::after {
+  &.TH-active &-text::after {
     transform: scaleX(1);
   }
+}
+
+.TH-filter-option {
+  @apply flex items-center gap-0.5;
+}
+
+.TH-filter-checkbox {
+  @apply m-0;
+}
+
+.TH-floor-input,
+.TH-variable-search {
+  @apply w-full h-2 rounded-sm bg-(--SmartThemeQuoteColor) px-1 py-0.5 text-(--SmartThemeTextColor);
 }
 </style>

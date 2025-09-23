@@ -629,49 +629,49 @@ const handleConfigs: Record<string, ResizeHandle> = {
   tl: {
     name: 'top-left',
     cursor: 'cursor-nw-resize',
-    class: 'z-20 top-0 left-0 h-3 w-3',
+    class: 'z-20 top-0 left-0 h-[5px] w-[5px]',
     style: { top: '0', left: '0' },
   },
   tm: {
     name: 'top',
     cursor: 'cursor-ns-resize',
-    class: 'z-10 top-0 left-0 h-2',
+    class: 'z-10 top-0 left-0 h-[5px]',
     style: { top: '0', left: '0', width: '100%' },
   },
   tr: {
     name: 'top-right',
     cursor: 'cursor-ne-resize',
-    class: 'z-20 top-0 right-0 h-3 w-3',
+    class: 'z-20 top-0 right-0 h-[5px] w-[5px]',
     style: { top: '0', right: '0' },
   },
   mr: {
     name: 'right',
     cursor: 'cursor-ew-resize',
-    class: 'z-10 top-0 right-0 w-2',
+    class: 'z-10 top-0 right-0 w-[5px]',
     style: { top: '0', right: '0', height: '100%' },
   },
   br: {
     name: 'bottom-right',
     cursor: 'cursor-nw-resize',
-    class: 'z-20 bottom-0 right-0 h-3 w-3',
+    class: 'z-20 bottom-0 right-0 h-[5px] w-[5px]',
     style: { bottom: '0', right: '0' },
   },
   bm: {
     name: 'bottom',
     cursor: 'cursor-ns-resize',
-    class: 'z-10 bottom-0 left-0 h-2',
+    class: 'z-10 bottom-0 left-0 h-[5px]',
     style: { bottom: '0', left: '0', width: '100%' },
   },
   bl: {
     name: 'bottom-left',
     cursor: 'cursor-ne-resize',
-    class: 'z-20 bottom-0 left-0 h-3 w-3',
+    class: 'z-20 bottom-0 left-0 h-[5px] w-[5px]',
     style: { bottom: '0', left: '0' },
   },
   ml: {
     name: 'left',
     cursor: 'cursor-ew-resize',
-    class: 'z-10 top-0 left-0 w-2',
+    class: 'z-10 top-0 left-0 w-[5px]',
     style: { top: '0', left: '0', height: '100%' },
   },
 };
@@ -685,14 +685,14 @@ const enabledHandles = computed(() => {
 
   const topHandle = cloned.find(h => h.name === 'top');
   if (topHandle) {
-    topHandle.style.top = `${headerHeight.value}px`;
+    topHandle.style.top = `0px`;
     topHandle.style.left = `${inset}px`;
     topHandle.style.right = `${inset}px`;
     delete (topHandle.style as any).width;
   }
   const rightHandle = cloned.find(h => h.name === 'right');
   if (rightHandle) {
-    rightHandle.style.top = `${headerHeight.value + inset}px`;
+    rightHandle.style.top = `${inset}px`;
     rightHandle.style.bottom = `${inset}px`;
     delete (rightHandle.style as any).height;
   }
@@ -710,12 +710,12 @@ const enabledHandles = computed(() => {
   }
   const topRightCorner = cloned.find(h => h.name === 'top-right');
   if (topRightCorner) {
-    topRightCorner.style.top = `${headerHeight.value}px`;
+    topRightCorner.style.top = `0px`;
     (topRightCorner.style as any).right = `${inset}px`;
   }
   const topLeftCorner = cloned.find(h => h.name === 'top-left');
   if (topLeftCorner) {
-    topLeftCorner.style.top = `${headerHeight.value}px`;
+    topLeftCorner.style.top = `0px`;
     (topLeftCorner.style as any).left = `${inset}px`;
   }
 
