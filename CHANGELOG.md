@@ -2,7 +2,8 @@
 
 ### ⏫功能
 
-- 补充 @zonde306 在酒馆 1.13.4 新增的事件 `tavern_events.WORLDINFO_ENTRIES_LOADED` 的[类型定义](https://github.com/N0VI028/JS-Slash-Runner/blob/main/%40types/iframe/event.d.ts#L379-L384), 监听该事件可以调整世界书条目的激活情况.
+- 补充 @zonde306 在酒馆 1.13.4 新增的事件 `tavern_events.WORLDINFO_ENTRIES_LOADED` 的[类型定义](https://github.com/N0VI028/JS-Slash-Runner/blob/3eb2beaa13e5f11626ff37e20d55b0f8e4cb3a60/%40types/iframe/event.d.ts#L381-L386), 监听该事件可以在世界书激活前调整预激活的世界书条目
+- 调整`tavern_events.WORLD_INFO_ACTIVATED` 的[类型定义](https://github.com/N0VI028/JS-Slash-Runner/blob/3eb2beaa13e5f11626ff37e20d55b0f8e4cb3a60/%40types/iframe/event.d.ts#L327-L329), 监听该事件可以在世界书激活后调整激活的世界书条目
 
 ## 3.6.4
 
