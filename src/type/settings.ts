@@ -4,7 +4,6 @@ export const setting_field = 'tavern_helper';
 
 export const GlobalSettings = z
   .object({
-    enabled: z.boolean().default(true),
     render: z
       .object({
         enabled: z.boolean().default(true),

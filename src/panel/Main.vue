@@ -1,14 +1,6 @@
 <template>
   <div>
     <Item type="plain">
-      <template #title>{{ t`启用扩展` }}</template>
-      <template #description>{{ t`扩展总开关` }}</template>
-      <template #content>
-        <Toggle id="tavern_helper_settings_enabled" v-model="enabled" />
-      </template>
-    </Item>
-    <Divider />
-    <Item type="plain">
       <template #title>{{ t`版本更新` }}</template>
       <template #description>{{ t`查看最新特性，检查并更新扩展` }}</template>
       <template #content>
@@ -31,8 +23,5 @@
 <script setup lang="ts">
 import Info from '@/panel/main/Info.vue';
 import Reference from '@/panel/main/Reference.vue';
-import { useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
-
-const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 </script>

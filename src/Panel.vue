@@ -5,20 +5,6 @@
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
     </div>
     <div class="inline-drawer-content">
-      <!-- prettier-ignore-attribute -->
-      <div
-        class="
-          flex items-center justify-between
-          text-(length:--TH-FontSize-sm)
-          opacity-70
-        "
-      >
-        <div class="flex items-center">
-          <i class="fa-solid fa-power-off mr-[5px]" :style="{ color: enabled ? 'green' : 'red' }"></i>
-          <div class="inline-block">{{ enabled ? t`扩展已启用` : t`扩展已禁用` }}</div>
-        </div>
-        <div id="version"></div>
-      </div>
       <div class="mt-0.5 mb-0.75">
         <!-- prettier-ignore-attribute -->
         <div
@@ -66,9 +52,6 @@ import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
-import { useGlobalSettingsStore } from '@/store/settings';
-
-const enabled = toRef(useGlobalSettingsStore().settings, 'enabled');
 
 const tabs = [
   { name: t`主设置`, icon: 'fa-solid fa-gear', component: Main },
