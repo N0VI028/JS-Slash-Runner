@@ -8,15 +8,7 @@
         </div>
       </div>
       <!-- prettier-ignore-attribute -->
-      <div
-        class="
-          mt-0.25
-          text-(length:--TH-FontSize-sm)
-          opacity-70
-        "
-      >
-        应用于酒馆所有聊天
-      </div>
+      <div class="mt-0.25 text-(length:--TH-FontSize-sm) opacity-70">应用于酒馆所有聊天</div>
     </div>
     <Toggle id="global-script-enable-toggle" v-model="enabled" />
   </div>

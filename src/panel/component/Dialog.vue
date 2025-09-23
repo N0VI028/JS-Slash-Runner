@@ -1,54 +1,55 @@
 <template>
-  <!-- prettier-ignore -->
-  <div
-    ref="dialogRef"
-    :style="dialogStyle"
-    :class="dialogClasses"
-  >
+  <div ref="dialogRef" :style="dialogStyle" :class="dialogClasses">
     <div
       class="flex h-full flex-col overflow-hidden rounded-sm bg-(--SmartThemeBlurTintColor) shadow-lg"
       role="dialog"
       aria-modal="true"
     >
+      <!-- prettier-ignore-attribute -->
       <div
         ref="headerRef"
         class="
           flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1 select-none
         "
       >
-        <div 
+        <div
           class="flex-1 cursor-move font-bold text-(--SmartThemeBodyColor)"
-          style="touch-action: none;"
+          style="touch-action: none"
           @pointerdown="startDrag"
-        >{{ title }}</div>
+        >
+          {{ title }}
+        </div>
         <div class="flex flex-shrink-0 gap-1">
+          <!-- prettier-ignore-attribute -->
           <button
             class="
               relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
               text-(length:--TH-FontSize-base)!
               text-(--SmartThemeBodyColor)
-            " 
-            :title="isCollapsed ? t`展开` : t`折叠`" 
+            "
+            :title="isCollapsed ? t`展开` : t`折叠`"
             @click="toggleCollapse"
-          ><i :class="isCollapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i></button>
+          >
+            <i :class="isCollapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i>
+          </button>
+          <!-- prettier-ignore-attribute -->
           <button
             class="
               fa-solid fa-close relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none
               bg-transparent
               text-(length:--TH-FontSize-base)!
               text-(--SmartThemeBodyColor)
-            " 
-            :title="t`关闭`" 
+            "
+            :title="t`关闭`"
             @click="onClose"
           ></button>
         </div>
       </div>
       <div v-if="!isCollapsed" class="flex flex-1 flex-col overflow-hidden">
-        <slot name="content">
-        </slot>
+        <slot name="content"> </slot>
       </div>
     </div>
-    
+
     <!-- 调整大小手柄 -->
     <div
       v-for="handle in enabledHandles"
@@ -58,8 +59,8 @@
         handle.cursor,
         handle.class,
         {
-          'opacity-100': showHandles
-        }
+          'opacity-100': showHandles,
+        },
       ]"
       :style="handle.style"
       @pointerdown="startResize(handle.name, $event)"
@@ -122,8 +123,6 @@ const props = withDefaults(
     mobileInitX?: number | (() => number);
     /** 移动端初始Y位置（top） */
     mobileInitY?: number | (() => number);
-    /** 本地存储键前缀 */
-    storagePrefix?: string;
     /** 本地存储ID */
     storageId?: string;
   }>(),
@@ -148,7 +147,6 @@ const props = withDefaults(
     initY: () => Math.max(50, window.innerHeight * 0.15),
     mobileInitX: () => Math.max(0, window.innerWidth * 0.05),
     mobileInitY: () => Math.max(20, window.innerHeight * 0.15),
-    storagePrefix: 'tavern_helper_floating_dialog:',
     storageId: undefined,
   },
 );
@@ -295,7 +293,7 @@ const throttledUpdateUI = useThrottleFn(() => {
  */
 function getStorageKey(): string | null {
   if (!props.storageId) return null;
-  return `${props.storagePrefix}${props.storageId}`;
+  return `TH-Dialog-${props.storageId}`;
 }
 
 const __storageKey = getStorageKey();

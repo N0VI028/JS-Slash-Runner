@@ -1,5 +1,4 @@
 <template>
-  <!-- prettier-ignore -->
   <div
     ref="containerRef"
     class="flex items-center justify-between gap-0.75"
@@ -10,22 +9,12 @@
   >
     <DefineTemplate>
       <div class="flex min-w-0 flex-1 flex-col">
-        <div
-class="
-  TH-Item-title
-  text-(length:--TH-FontSize-base)
-  font-bold
-">
+        <!-- prettier-ignore-attribute -->
+        <div class="TH-Item-title text-(length:--TH-FontSize-base) font-bold">
           <slot name="title" />
         </div>
         <!-- prettier-ignore-attribute -->
-        <div
-          class="
-            mt-0.25
-            text-(length:--TH-FontSize-sm)
-            opacity-70
-          "
-        >
+        <div class="mt-0.25 text-(length:--TH-FontSize-sm) opacity-70">
           <slot name="description" />
         </div>
       </div>

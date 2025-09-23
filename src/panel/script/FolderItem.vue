@@ -6,25 +6,14 @@
   >
     <div ref="folderHeaderRef" class="TH-folder-header flex flex-nowrap items-center justify-between px-0.5">
       <!-- prettier-ignore-attribute -->
-      <span
-        class="
-          TH-handle cursor-grab select-none
-          active:cursor-grabbing
-        "
-        aria-hidden="true"
-      >
-        ☰
-      </span>
+      <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true"> ☰ </span>
       <i class="fa-solid fa-folder-open ml-0.5"></i>
       <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden"> 占位文件夹 </span>
       <div class="flex flex-nowrap items-center gap-[5px]">
         <!-- 批量开关文件夹内脚本 -->
         <!-- prettier-ignore-attribute -->
         <div
-          class="
-            menu_button interactable cursor-pointer p-0.5
-            hover:bg-(--SmartThemeBlurTintColor)
-          "
+          class="menu_button interactable cursor-pointer p-0.5 hover:bg-(--SmartThemeBlurTintColor)"
           :class="{ enabled: true }"
           title="批量开关文件夹内脚本"
         >

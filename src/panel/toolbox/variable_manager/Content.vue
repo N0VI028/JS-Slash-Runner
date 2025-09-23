@@ -1,5 +1,4 @@
 <template>
-  <!-- prettier-ignore -->
   <div class="flex h-full w-full flex-col overflow-hidden py-0.5">
     <div class="relative flex h-4 justify-start py-0.5">
       <DefineTabTemplate v-slot="{ id, active, name }">
@@ -60,10 +59,7 @@
 
     <div
       id="floor-filter-container"
-      class="
-        my-0.75 hidden rounded-sm bg-(--SmartThemeQuoteColor) p-0.75
-        text-(length:--TH-FontSize-sm)
-      "
+      class="my-0.75 hidden rounded-sm bg-(--SmartThemeQuoteColor) p-0.75 text-(length:--TH-FontSize-sm)"
     >
       <div class="flex flex-col gap-0.5">
         <div class="flex items-center justify-between gap-0.75">
@@ -72,6 +68,7 @@
             <span class="mx-0.5 text-(--SmartThemeBodyColor)">~</span>
             <input id="floor-max" type="number" class="TH-floor-input" min="0" placeholder="最大" />
           </div>
+          <!-- prettier-ignore-attribute -->
           <button
             id="floor-filter-btn"
             class="
@@ -84,12 +81,7 @@
             <span>确认</span>
           </button>
         </div>
-        <div
-id="floor-filter-error" class="
-  hidden py-0.25
-  text-(length:--TH-FontSize-sm)
-  text-(--warning)
-">
+        <div id="floor-filter-error" class="hidden py-0.25 text-(length:--TH-FontSize-sm) text-(--warning)">
           最大楼层不能小于最小楼层
         </div>
       </div>

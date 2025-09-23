@@ -4,32 +4,14 @@
       <div class="mb-0.75 flex items-center justify-between p-1">
         <div class="flex flex-col gap-0.25">
           <!-- prettier-ignore-attribute -->
-          <div
-            class="
-              text-(length:--TH-FontSize-base)
-              font-bold text-(--SmartThemeQuoteColor)
-            "
-          >
-            总token数: 0
-          </div>
+          <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">总token数: 0</div>
           <!-- prettier-ignore-attribute -->
-          <div
-            class="
-              text-(length:--TH-FontSize-sm)
-              text-(--SmartThemeQuoteColor)
-            "
-          >
-            共 0 条消息
-          </div>
+          <div class="text-(length:--TH-FontSize-sm) text-(--SmartThemeQuoteColor)">共 0 条消息</div>
         </div>
         <div
           id="prompt-view-status-fresh"
           :class="[
-            `
-              fa-solid fa-rotate-right cursor-pointer
-              text-(length:--TH-FontSize-base)
-              duration-200
-            `,
+            `fa-solid fa-rotate-right cursor-pointer text-(length:--TH-FontSize-base) duration-200`,
             { 'animate-spin': isRefreshing },
           ]"
           title="刷新"

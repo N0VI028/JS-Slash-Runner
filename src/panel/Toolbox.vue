@@ -44,5 +44,3 @@ function openVariableManager(): void {
   openDialogOnceById('variable-manager', t`变量管理器`, VariableManagerContent);
 }
 </script>
-
-

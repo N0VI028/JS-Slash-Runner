@@ -5,13 +5,7 @@
     data-sortable-item
   >
     <!-- prettier-ignore-attribute -->
-    <span
-      class="
-        TH-handle cursor-grab select-none
-        active:cursor-grabbing
-      "
-      >☰</span
-    >
+    <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
     <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">占位</div>
     <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
