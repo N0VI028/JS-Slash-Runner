@@ -46,12 +46,8 @@
 
 <script setup lang="ts">
 import { useGlobalSettingsStore } from '@/store/settings';
-import { make_TODO } from '@/todo';
 
 const { enabled, hide_style, loading, blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
-watch(enabled, make_TODO('启用渲染器'), { immediate: true });
-watch(hide_style, make_TODO('启用代码折叠'), { immediate: true });
-watch(loading, make_TODO('启用加载动画'), { immediate: true });
-watch(blob_url, make_TODO('启用 Blob URL 渲染'), { immediate: true });
-watch(depth, make_TODO('渲染深度'), { immediate: true });
+// TODO: watch(enabled, () => {启用渲染器}, { immediate: true });
+// TODO: watch(hide_style, () => {启用代码折叠}, { immediate: true });
 </script>

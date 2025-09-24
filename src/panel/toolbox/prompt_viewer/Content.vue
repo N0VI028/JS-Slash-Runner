@@ -12,7 +12,7 @@
           id="prompt-view-status-fresh"
           :class="[
             `fa-solid fa-rotate-right cursor-pointer text-(length:--TH-FontSize-base) duration-200`,
-            { 'animate-spin': isRefreshing },
+            { 'animate-spin': is_refreshing },
           ]"
           title="刷新"
           @click="handleRefresh"
@@ -98,17 +98,13 @@ interface PromptData {
   token: number;
 }
 
-const isRefreshing = ref<boolean>(false);
+const is_refreshing = ref<boolean>(false);
 const promptViewUpdater: ((prompts: PromptData[], totalTokens: number) => void | Promise<void>) | null = null;
-let isRefreshPromptViewCall = false;
+let is_refresh_prompt_view_call = false;
 
-/**
- * 检查当前API是否为 Chat Completion 类型
- * @returns {boolean} 如果 mainApi 在 chat_completion_sources 的值中则返回 true
- */
-function isChatCompletion() {
-  const mainApi = getContext().mainApi;
-  return typeof mainApi === 'string' && Object.values(chat_completion_sources).includes(mainApi);
+function isChatCompletion(): boolean {
+  const main_api = getContext().mainApi;
+  return typeof main_api === 'string' && Object.values(chat_completion_sources).includes(main_api);
 }
 
 function onChatCompletionPromptReady(data: { chat: { role: string; content: string }[]; dryRun: boolean }): void {
@@ -121,9 +117,9 @@ function onChatCompletionPromptReady(data: { chat: { role: string; content: stri
     return;
   }
 
-  if (isRefreshPromptViewCall) {
+  if (is_refresh_prompt_view_call) {
     stopGeneration();
-    isRefreshPromptViewCall = false;
+    is_refresh_prompt_view_call = false;
   }
 
   setTimeout(async () => {
@@ -140,9 +136,9 @@ function onChatCompletionPromptReady(data: { chat: { role: string; content: stri
         };
       }),
     );
-    const totalTokens = await getTokenCountAsync(prompts.map(prompt => prompt.content).join('\n'));
-    await promptViewUpdater(prompts, totalTokens);
-    isPostProcessing();
+    const total_tokens = await getTokenCountAsync(prompts.map(prompt => prompt.content).join('\n'));
+    await promptViewUpdater(prompts, total_tokens);
+    notifyPostProcessing();
   });
 }
 
@@ -150,24 +146,15 @@ function onChatCompletionPromptReady(data: { chat: { role: string; content: stri
  * 检查是否经过了系统消息压缩或者后处理
  * 检查两个条件，如果都符合则插入两个警告条幅
  */
-function isPostProcessing(): void {
+function notifyPostProcessing(): void {
   const $header = $('.prompt-view-header');
   if ($header.find('.prompt-view-process-warning').length > 0) {
     $header.find('.prompt-view-process-warning').remove();
   }
 
-  const hasSquashMessages = oai_settings.squash_system_messages === true;
-
-  const hasCustomPostProcessing = oai_settings.custom_prompt_post_processing != '';
-
   insertMessageMergeWarning($header, '💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况');
-
-  if (hasSquashMessages) {
+  if (oai_settings.squash_system_messages === true) {
     insertMessageMergeWarning($header, '⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理');
-  }
-
-  if (hasCustomPostProcessing) {
-    insertMessageMergeWarning($header, '⚠️ 本次提示词发送经过了API中的“提示词后处理”合并处理');
   }
 }
 
@@ -191,12 +178,12 @@ function stopListening(): void {
  * 处理刷新按钮点击事件
  */
 function handleRefresh(): void {
-  if (isRefreshing.value) {
+  if (is_refreshing.value) {
     return;
   }
-  isRefreshing.value = true;
+  is_refreshing.value = true;
   setTimeout(() => {
-    isRefreshing.value = false;
+    is_refreshing.value = false;
   }, 2000);
 
   // 如果不是聊天补全，直接返回
@@ -213,7 +200,7 @@ function handleRefresh(): void {
     return;
   }
 
-  isRefreshPromptViewCall = true;
+  is_refresh_prompt_view_call = true;
   Generate('normal');
 }
 

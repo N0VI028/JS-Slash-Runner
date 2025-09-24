@@ -6,10 +6,10 @@
           <div class="TH-tab-item-text">{{ name }}</div>
         </div>
       </DefineTabTemplate>
-      <ReuseTabTemplate id="global-tab" :active="activeTab === 'global'" :name="t`全局`" />
-      <ReuseTabTemplate id="character-tab" :active="activeTab === 'character'" :name="t`角色`" />
-      <ReuseTabTemplate id="chat-tab" :active="activeTab === 'chat'" :name="t`聊天`" />
-      <ReuseTabTemplate id="message-tab" :active="activeTab === 'message'" :name="t`消息楼层`" />
+      <ReuseTabTemplate id="global-tab" :active="active_tab === 'global'" :name="t`全局`" />
+      <ReuseTabTemplate id="character-tab" :active="active_tab === 'character'" :name="t`角色`" />
+      <ReuseTabTemplate id="chat-tab" :active="active_tab === 'chat'" :name="t`聊天`" />
+      <ReuseTabTemplate id="message-tab" :active="active_tab === 'message'" :name="t`消息楼层`" />
     </div>
     <div class="flex-container justify-between px-1">
       <div class="flex items-center gap-1">
@@ -95,10 +95,10 @@
     </DefineContentTemplate>
 
     <div class="flex-1 overflow-y-auto p-1">
-      <ReuseContentTemplate id="global-content" :hidden="activeTab !== 'global'" />
-      <ReuseContentTemplate id="character-content" :hidden="activeTab !== 'character'" />
-      <ReuseContentTemplate id="chat-content" :hidden="activeTab !== 'chat'" />
-      <ReuseContentTemplate id="message-content" :hidden="activeTab !== 'message'" />
+      <ReuseContentTemplate id="global-content" :hidden="active_tab !== 'global'" />
+      <ReuseContentTemplate id="character-content" :hidden="active_tab !== 'character'" />
+      <ReuseContentTemplate id="chat-content" :hidden="active_tab !== 'chat'" />
+      <ReuseContentTemplate id="message-content" :hidden="active_tab !== 'message'" />
     </div>
   </div>
 </template>
@@ -115,13 +115,13 @@ const [DefineOptionTemplate, ReuseOptionTemplate] = createReusableTemplate<{
 }>();
 const [DefineTabTemplate, ReuseTabTemplate] = createReusableTemplate<{ id: string; active?: boolean; name?: string }>();
 
-const activeTab = useLocalStorage<string>('tavern_helper_variable_manager_active_tab', 'global');
+const active_tab = useLocalStorage<string>('tavern_helper_variable_manager_active_tab', 'global');
 const search_input = ref('');
 
 const handleTabClick = (tabId: string) => {
-  // 从tab id中提取tab名称 (例如: "character-tab" -> "character")
-  const tabName = tabId.replace('-tab', '');
-  activeTab.value = tabName;
+  // 从 tab id 中提取 tab 名称 (例如: "character-tab" -> "character")
+  const tab_name = tabId.replace('-tab', '');
+  active_tab.value = tab_name;
 };
 </script>
 

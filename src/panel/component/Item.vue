@@ -1,10 +1,10 @@
 <template>
   <div
-    ref="containerRef"
+    ref="container_ref"
     class="flex items-center justify-between gap-0.75"
     :class="[
       type === 'box' ? 'rounded-md border border-(--grey5050a) p-1' : 'items-center',
-      { 'TH-collapsible flex-col items-center': has_detail, expanded: has_detail && isExpanded },
+      { 'TH-collapsible flex-col items-center': has_detail, expanded: has_detail && is_expanded },
     ]"
   >
     <DefineTemplate>
@@ -37,7 +37,7 @@
       >
         <ReuseTemplate />
       </div>
-      <div ref="contentRef" class="TH-collapsible-content flex w-full flex-wrap gap-0.75">
+      <div ref="content_ref" class="TH-collapsible-content flex w-full flex-wrap gap-0.75">
         <slot name="detail" />
       </div>
     </template>
@@ -66,10 +66,10 @@ const slots = useSlots();
 const has_content = computed(() => !!slots.content);
 const has_detail = computed(() => !!slots.detail);
 
-const isExpanded = ref<boolean>(props.initiallyExpanded);
-const isAnimating = ref<boolean>(false);
-const containerRef = ref<HTMLDivElement | null>(null);
-const contentRef = ref<HTMLDivElement | null>(null);
+const is_expanded = ref<boolean>(props.initiallyExpanded);
+const is_animating = ref<boolean>(false);
+const container_ref = ref<HTMLDivElement | null>(null);
+const content_ref = ref<HTMLDivElement | null>(null);
 
 function onHeaderClick(event: MouseEvent) {
   if (!has_detail.value) return;
@@ -92,8 +92,8 @@ function shouldIgnoreClick(event: MouseEvent): boolean {
 }
 
 function toggle() {
-  if (isAnimating.value) return;
-  if (isExpanded.value) {
+  if (is_animating.value) return;
+  if (is_expanded.value) {
     collapse();
   } else {
     expand();
@@ -101,12 +101,12 @@ function toggle() {
 }
 
 function expand() {
-  if (isAnimating.value || isExpanded.value) return;
-  const content = contentRef.value;
-  const container = containerRef.value;
+  if (is_animating.value || is_expanded.value) return;
+  const content = content_ref.value;
+  const container = container_ref.value;
   if (!content || !container) return;
 
-  isAnimating.value = true;
+  is_animating.value = true;
   container.classList.add('expanded');
   content.classList.add('animating');
 
@@ -118,7 +118,7 @@ function expand() {
   content.style.transform = 'translateY(-6px) scaleY(0.98)';
   content.style.willChange = 'height, opacity, transform';
   void content.offsetHeight;
-  const fullHeight = content.scrollHeight;
+  const full_height = content.scrollHeight;
   content.style.height = '0px';
 
   requestAnimationFrame(() => {
@@ -126,7 +126,7 @@ function expand() {
       const easing = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
       content.style.transition = `height ${props.duration}ms ${easing}, opacity ${props.duration}ms ${easing}, transform ${props.duration}ms ${easing}`;
       content.style.visibility = '';
-      content.style.height = `${fullHeight}px`;
+      content.style.height = `${full_height}px`;
       content.style.opacity = '1';
       content.style.transform = 'translateY(0) scaleY(1)';
 
@@ -140,26 +140,26 @@ function expand() {
         void content.offsetHeight;
         content.style.transitionProperty = '';
         content.classList.remove('animating');
-        isAnimating.value = false;
-        isExpanded.value = true;
+        is_animating.value = false;
+        is_expanded.value = true;
       }, props.duration);
     });
   });
 }
 
 function collapse() {
-  if (isAnimating.value || !isExpanded.value) return;
-  const content = contentRef.value;
-  const container = containerRef.value;
+  if (is_animating.value || !is_expanded.value) return;
+  const content = content_ref.value;
+  const container = container_ref.value;
   if (!content || !container) return;
 
-  isAnimating.value = true;
+  is_animating.value = true;
   content.classList.add('animating');
 
-  const fullHeight = content.scrollHeight;
+  const full_height = content.scrollHeight;
   content.style.display = 'flex';
   content.style.overflow = 'hidden';
-  content.style.height = `${fullHeight}px`;
+  content.style.height = `${full_height}px`;
   content.style.opacity = '1';
   content.style.transform = 'translateY(0) scaleY(1)';
   content.style.willChange = 'height, opacity, transform';
@@ -184,8 +184,8 @@ function collapse() {
         content.style.transitionProperty = '';
         content.classList.remove('animating');
         container.classList.remove('expanded');
-        isAnimating.value = false;
-        isExpanded.value = false;
+        is_animating.value = false;
+        is_expanded.value = false;
       }, props.duration);
     });
   });

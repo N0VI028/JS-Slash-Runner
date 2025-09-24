@@ -1,5 +1,5 @@
 <template>
-  <div ref="dialogRef" :style="dialogStyle" :class="dialogClasses">
+  <div ref="dialog_ref" :style="dialog_style" :class="dialog_classes">
     <div
       class="flex h-full flex-col overflow-hidden rounded-sm bg-(--SmartThemeBlurTintColor) shadow-lg"
       role="dialog"
@@ -7,7 +7,7 @@
     >
       <!-- prettier-ignore-attribute -->
       <div
-        ref="headerRef"
+        ref="header_ref"
         class="
           flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1 select-none
         "
@@ -27,10 +27,10 @@
               text-(length:--TH-FontSize-base)!
               text-(--SmartThemeBodyColor)
             "
-            :title="isCollapsed ? t`展开` : t`折叠`"
+            :title="is_collapsed ? t`展开` : t`折叠`"
             @click="toggleCollapse"
           >
-            <i :class="isCollapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i>
+            <i :class="is_collapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i>
           </button>
           <!-- prettier-ignore-attribute -->
           <button
@@ -41,18 +41,18 @@
               text-(--SmartThemeBodyColor)
             "
             :title="t`关闭`"
-            @click="onClose"
+            @click="emit('close')"
           ></button>
         </div>
       </div>
-      <div v-if="!isCollapsed" class="flex flex-1 flex-col overflow-hidden">
+      <div v-if="!is_collapsed" class="flex flex-1 flex-col overflow-hidden">
         <slot name="content"> </slot>
       </div>
     </div>
 
     <!-- 调整大小手柄 -->
     <div
-      v-for="handle in enabledHandles"
+      v-for="handle in enabled_handles"
       :key="handle.name"
       :class="[
         'absolute opacity-0',
@@ -116,13 +116,13 @@ const props = withDefaults(
     /** 显示调整大小手柄 */
     showHandles?: boolean;
     /** 初始X位置（left）*/
-    initX?: number | string | (() => number);
+    initialX?: number | string | (() => number);
     /** 初始Y位置（top） */
-    initY?: number | (() => number);
+    initialY?: number | (() => number);
     /** 移动端初始X位置（left） */
-    mobileInitX?: number | (() => number);
+    mobileInitialX?: number | (() => number);
     /** 移动端初始Y位置（top） */
-    mobileInitY?: number | (() => number);
+    mobileInitialY?: number | (() => number);
     /** 本地存储ID */
     storageId?: string;
   }>(),
@@ -143,10 +143,10 @@ const props = withDefaults(
     aspectRatio: false,
     handles: () => ['tl', 'tm', 'mr', 'br', 'bm', 'bl'],
     showHandles: false,
-    initX: '10%',
-    initY: () => Math.max(50, window.innerHeight * 0.15),
-    mobileInitX: () => Math.max(0, window.innerWidth * 0.05),
-    mobileInitY: () => Math.max(20, window.innerHeight * 0.15),
+    initialX: '10%',
+    initialY: () => Math.max(50, window.innerHeight * 0.15),
+    mobileInitialX: () => Math.max(0, window.innerWidth * 0.05),
+    mobileInitialY: () => Math.max(20, window.innerHeight * 0.15),
     storageId: undefined,
   },
 );
@@ -161,14 +161,14 @@ const emit = defineEmits<{
   (e: 'deactivated'): void;
 }>();
 
-const { width: windowWidth } = useWindowSize();
+const { width: window_width } = useWindowSize();
 
-const dialogRef = useTemplateRef<HTMLElement>('dialogRef');
-const headerRef = useTemplateRef<HTMLElement>('headerRef');
+const dialog_ref = useTemplateRef<HTMLElement>('dialog_ref');
+const header_ref = useTemplateRef<HTMLElement>('header_ref');
 
-const headerHeight = ref(32);
+const header_height = ref(32);
 function updateHeaderHeight() {
-  headerHeight.value = headerRef.value?.offsetHeight ?? 32;
+  header_height.value = header_ref.value?.offsetHeight ?? 32;
 }
 watchEffect(() => {
   updateHeaderHeight();
@@ -177,36 +177,36 @@ useEventListener(window, 'resize', () => {
   updateHeaderHeight();
 });
 
-const dialogSize = ref({
+const dialog_size = ref({
   width: 0,
   height: 0,
 });
 
-const isResizing = ref(false);
-const resizeDirection = ref<string>('');
-const initAspectRatio = ref(1);
+const is_resizing = ref(false);
+const resize_direction = ref<string>('');
+const initial_aspect_ratio = ref(1);
 
-const tempPosition = { x: 0, y: 0 };
-const tempSize = { width: 0, height: 0 };
+const temp_position = { x: 0, y: 0 };
+const temp_size = { width: 0, height: 0 };
 
-const wasSnapped = ref(false);
-const preSnapRect = ref<{ left: number; top: number; width: number; height: number } | null>(null);
+const was_snapped = ref(false);
+const pre_snap_rect = ref<{ left: number; top: number; width: number; height: number } | null>(null);
 
 function applyTempToDOM() {
-  if (!dialogRef.value) return;
-  dialogRef.value.style.left = `${tempPosition.x}px`;
-  dialogRef.value.style.top = `${tempPosition.y}px`;
-  dialogRef.value.style.width = `${tempSize.width}px`;
-  const collapsedHeight = `${headerHeight.value}px`;
-  dialogRef.value.style.height = isCollapsed.value ? collapsedHeight : `${tempSize.height}px`;
+  if (!dialog_ref.value) return;
+  dialog_ref.value.style.left = `${temp_position.x}px`;
+  dialog_ref.value.style.top = `${temp_position.y}px`;
+  dialog_ref.value.style.width = `${temp_size.width}px`;
+  const collapsedHeight = `${header_height.value}px`;
+  dialog_ref.value.style.height = is_collapsed.value ? collapsedHeight : `${temp_size.height}px`;
 }
 
-const isCollapsed = ref(false);
+const is_collapsed = ref(false);
 
 function toggleCollapse() {
-  isResizing.value = false;
-  resizeDirection.value = '';
-  isCollapsed.value = !isCollapsed.value;
+  is_resizing.value = false;
+  resize_direction.value = '';
+  is_collapsed.value = !is_collapsed.value;
 }
 
 /**
@@ -215,7 +215,7 @@ function toggleCollapse() {
 const convertToPixels = (value: string | number): number => {
   if (typeof value === 'number') return value;
   if (value.endsWith('vw')) {
-    return (parseFloat(value) * windowWidth.value) / 100;
+    return (parseFloat(value) * window_width.value) / 100;
   }
   if (value.endsWith('vh')) {
     return (parseFloat(value) * window.innerHeight) / 100;
@@ -224,7 +224,7 @@ const convertToPixels = (value: string | number): number => {
     return parseFloat(value);
   }
   if (value.endsWith('%')) {
-    return (parseFloat(value) * windowWidth.value) / 100;
+    return (parseFloat(value) * window_width.value) / 100;
   }
   if (value.endsWith('rem')) {
     const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
@@ -233,19 +233,21 @@ const convertToPixels = (value: string | number): number => {
   return parseFloat(value) || 400;
 };
 
+const is_mobile = isMobile();
+
 /**
  * 初始化大小
  */
 const initizeSize = () => {
-  const targetWidth = isMobile() ? props.mobileWidth : props.width;
-  const targetHeight = isMobile() ? props.mobileHeight : props.height;
+  const target_width = is_mobile ? props.mobileWidth : props.width;
+  const target_height = is_mobile ? props.mobileHeight : props.height;
 
-  dialogSize.value.width = convertToPixels(targetWidth);
-  dialogSize.value.height = convertToPixels(targetHeight);
-  tempSize.width = dialogSize.value.width;
-  tempSize.height = dialogSize.value.height;
+  dialog_size.value.width = convertToPixels(target_width);
+  dialog_size.value.height = convertToPixels(target_height);
+  temp_size.width = dialog_size.value.width;
+  temp_size.height = dialog_size.value.height;
 
-  initAspectRatio.value = dialogSize.value.width / dialogSize.value.height;
+  initial_aspect_ratio.value = dialog_size.value.width / dialog_size.value.height;
 };
 
 initizeSize();
@@ -261,28 +263,27 @@ const throttledEmitResizing = useThrottleFn((payload: { left: number; top: numbe
  * 获取初始位置
  */
 const getinitPosition = () => {
-  const isM = isMobile();
-
   const getInitValue = (value: number | string | (() => number)): number => {
-    if (typeof value === 'function') return value();
-    if (typeof value === 'string') return convertToPixels(value);
+    if (typeof value === 'function') {
+      return value();
+    }
+    if (typeof value === 'string') {
+      return convertToPixels(value);
+    }
     return value;
   };
 
-  const targetinitX = getInitValue(isM ? props.mobileInitX : props.initX);
-  const targetinitY = getInitValue(isM ? props.mobileInitY : props.initY);
-
-  const finalinitX = targetinitX || Math.max(0, windowWidth.value * 0.1);
-  const finalinitY = targetinitY || Math.max(20, window.innerHeight * 0.15);
-
-  return { x: finalinitX, y: finalinitY };
+  return {
+    x: getInitValue(is_mobile ? props.mobileInitialX : props.initialX) || Math.max(0, window_width.value * 0.1),
+    y: getInitValue(is_mobile ? props.mobileInitialY : props.initialY) || Math.max(20, window.innerHeight * 0.15),
+  };
 };
 
-const initPos = getinitPosition();
-const x = ref(initPos.x);
-const y = ref(initPos.y);
+const initial_position = getinitPosition();
+const x = ref(initial_position.x);
+const y = ref(initial_position.y);
 
-const isDragging = ref(false);
+const is_dragging = ref(false);
 
 const throttledUpdateUI = useThrottleFn(() => {
   applyTempToDOM();
@@ -292,28 +293,16 @@ const throttledUpdateUI = useThrottleFn(() => {
  * 获取存储键
  */
 function getStorageKey(): string | null {
-  if (!props.storageId) return null;
+  if (!props.storageId) {
+    return null;
+  }
   return `TH-Dialog-${props.storageId}`;
 }
 
-const __storageKey = getStorageKey();
+const __storage_key = getStorageKey();
 
 if (!props.storageId) {
   console.warn('[TH-Dialog] storageId 未提供，状态将不会持久化到本地存储。');
-}
-
-/**
- * 获取位置存储键
- */
-function getPositionStorageKey(): string | null {
-  return __storageKey ? `${__storageKey}:pos` : null;
-}
-
-/**
- * 获取大小存储键
- */
-function getSizeStorageKey(): string | null {
-  return __storageKey ? `${__storageKey}:size` : null;
 }
 
 // 定义存储数据的类型
@@ -332,12 +321,12 @@ interface SizeStorage {
 }
 
 // 使用 useLocalStorage 创建响应式存储
-const positionStorage = __storageKey
-  ? useLocalStorage<PositionStorage>(getPositionStorageKey()!, {}, { mergeDefaults: true })
+const position_storage = props.storageId
+  ? useLocalStorage<PositionStorage>(`TH-Dialog-${props.storageId}:pos`, {}, { mergeDefaults: true })
   : ref<PositionStorage>({});
 
-const sizeStorage = __storageKey
-  ? useLocalStorage<SizeStorage>(getSizeStorageKey()!, {}, { mergeDefaults: true })
+const size_storage = props.storageId
+  ? useLocalStorage<SizeStorage>(`TH-Dialog-${props.storageId}:size`, {}, { mergeDefaults: true })
   : ref<SizeStorage>({});
 
 function pickPersistedValue(
@@ -360,14 +349,14 @@ function pickPersistedValue(
  * 保存位置
  */
 function savePosition(left: number, top: number) {
-  if (!__storageKey) return;
+  if (!__storage_key) return;
   try {
-    if (isMobile()) {
-      positionStorage.value.mobileLeft = left;
-      positionStorage.value.mobileTop = top;
+    if (is_mobile) {
+      position_storage.value.mobileLeft = left;
+      position_storage.value.mobileTop = top;
     } else {
-      positionStorage.value.left = left;
-      positionStorage.value.top = top;
+      position_storage.value.left = left;
+      position_storage.value.top = top;
     }
   } catch (err) {
     console.warn('[TH-Dialog] 保存位置失败:', err);
@@ -378,32 +367,28 @@ function savePosition(left: number, top: number) {
  * 保存大小
  */
 function saveSize(width: number, height: number) {
-  if (!__storageKey) return;
+  if (!__storage_key) return;
   try {
-    if (isMobile()) {
-      sizeStorage.value.mobileWidth = width;
-      sizeStorage.value.mobileHeight = height;
+    if (is_mobile) {
+      size_storage.value.mobileWidth = width;
+      size_storage.value.mobileHeight = height;
     } else {
-      sizeStorage.value.width = width;
-      sizeStorage.value.height = height;
+      size_storage.value.width = width;
+      size_storage.value.height = height;
     }
   } catch (err) {
     console.warn('[TH-Dialog] 保存大小失败:', err);
   }
 }
 
-/**
- * 加载位置
- */
 function loadPosition(): { left: number; top: number } | null {
-  if (!__storageKey) return null;
+  if (!__storage_key) return null;
   try {
-    const parsed = positionStorage.value;
-    const isM = isMobile();
+    const parsed = position_storage.value;
     const picked = pickPersistedValue(
       parsed,
-      isM ? (['mobileLeft', 'mobileTop'] as const) : (['left', 'top'] as const),
-      isM ? (['left', 'top'] as const) : (['mobileLeft', 'mobileTop'] as const),
+      is_mobile ? (['mobileLeft', 'mobileTop'] as const) : (['left', 'top'] as const),
+      is_mobile ? (['left', 'top'] as const) : (['mobileLeft', 'mobileTop'] as const),
     );
     if (picked && typeof picked.a === 'number' && typeof picked.b === 'number') {
       return { left: picked.a, top: picked.b };
@@ -414,18 +399,14 @@ function loadPosition(): { left: number; top: number } | null {
   return null;
 }
 
-/**
- * 加载大小
- */
 function loadSize(): { width: number; height: number } | null {
-  if (!__storageKey) return null;
+  if (!__storage_key) return null;
   try {
-    const parsed = sizeStorage.value;
-    const isM = isMobile();
+    const parsed = size_storage.value;
     const picked = pickPersistedValue(
       parsed,
-      isM ? (['mobileWidth', 'mobileHeight'] as const) : (['width', 'height'] as const),
-      isM ? (['width', 'height'] as const) : (['mobileWidth', 'mobileHeight'] as const),
+      is_mobile ? (['mobileWidth', 'mobileHeight'] as const) : (['width', 'height'] as const),
+      is_mobile ? (['width', 'height'] as const) : (['mobileWidth', 'mobileHeight'] as const),
     );
     if (picked && typeof picked.a === 'number' && typeof picked.b === 'number') {
       return { width: picked.a, height: picked.b };
@@ -442,15 +423,15 @@ onMounted(() => {
     x.value = pos.left;
     y.value = pos.top;
   }
-  tempPosition.x = x.value;
-  tempPosition.y = y.value;
+  temp_position.x = x.value;
+  temp_position.y = y.value;
 
   const size = loadSize();
   if (size) {
-    dialogSize.value.width = size.width;
-    dialogSize.value.height = size.height;
-    tempSize.width = size.width;
-    tempSize.height = size.height;
+    dialog_size.value.width = size.width;
+    dialog_size.value.height = size.height;
+    temp_size.width = size.width;
+    temp_size.height = size.height;
   }
   applyTempToDOM();
 });
@@ -464,7 +445,7 @@ const startDrag = (event: PointerEvent) => {
   event.preventDefault();
   event.stopPropagation();
 
-  isDragging.value = true;
+  is_dragging.value = true;
 
   const startX = event.clientX;
   const startY = event.clientY;
@@ -473,90 +454,95 @@ const startDrag = (event: PointerEvent) => {
 
   let hasRestoredFromSnap = false;
 
-  tempPosition.x = startLeft;
-  tempPosition.y = startTop;
+  temp_position.x = startLeft;
+  temp_position.y = startTop;
 
   const handleDragMove = (e: PointerEvent) => {
     const newXRaw = startLeft + (e.clientX - startX);
     const newYRaw = startTop + (e.clientY - startY);
 
-    if (wasSnapped.value && !hasRestoredFromSnap && preSnapRect.value) {
+    if (was_snapped.value && !hasRestoredFromSnap && pre_snap_rect.value) {
       const screenWidth = window.innerWidth;
       const snapDist = props.snapDistance;
       const nearLeft = newXRaw <= snapDist;
-      const nearRight = newXRaw + dialogSize.value.width >= screenWidth - snapDist;
+      const nearRight = newXRaw + dialog_size.value.width >= screenWidth - snapDist;
       const stillNearEdge = nearLeft || nearRight;
       if (!stillNearEdge) {
-        dialogSize.value.width = preSnapRect.value.width;
-        dialogSize.value.height = preSnapRect.value.height;
-        tempSize.width = preSnapRect.value.width;
-        tempSize.height = preSnapRect.value.height;
+        dialog_size.value.width = pre_snap_rect.value.width;
+        dialog_size.value.height = pre_snap_rect.value.height;
+        temp_size.width = pre_snap_rect.value.width;
+        temp_size.height = pre_snap_rect.value.height;
         hasRestoredFromSnap = true;
-        wasSnapped.value = false;
+        was_snapped.value = false;
       }
     }
 
     let newX = newXRaw;
     let newY = newYRaw;
 
-    const parent = dialogRef.value?.parentElement;
+    const parent = dialog_ref.value?.parentElement;
     if (parent) {
       const parentRect = parent.getBoundingClientRect();
-      const dialogWidth = tempSize.width;
-      const dialogHeight = isCollapsed.value ? headerHeight.value : tempSize.height;
+      const dialogWidth = temp_size.width;
+      const dialogHeight = is_collapsed.value ? header_height.value : temp_size.height;
 
       newX = Math.max(parentRect.left, Math.min(newX, parentRect.right - dialogWidth));
       newY = Math.max(parentRect.top, Math.min(newY, parentRect.bottom - dialogHeight));
     }
 
-    tempPosition.x = newX;
-    tempPosition.y = newY;
+    temp_position.x = newX;
+    temp_position.y = newY;
 
     throttledUpdateUI();
 
     throttledEmitDragging({
       left: newX,
       top: newY,
-      width: dialogSize.value.width,
-      height: dialogSize.value.height,
+      width: dialog_size.value.width,
+      height: dialog_size.value.height,
     });
   };
 
   const cleanupStops: Array<() => void> = [];
 
   const handleDragEnd = () => {
-    isDragging.value = false;
+    is_dragging.value = false;
 
-    const snapResult = checkEdgeSnap(tempPosition.x, tempPosition.y, dialogSize.value.width, dialogSize.value.height);
+    const snapResult = checkEdgeSnap(
+      temp_position.x,
+      temp_position.y,
+      dialog_size.value.width,
+      dialog_size.value.height,
+    );
 
     if (snapResult.snapped) {
-      preSnapRect.value = {
-        left: tempPosition.x,
-        top: tempPosition.y,
-        width: dialogSize.value.width,
-        height: dialogSize.value.height,
+      pre_snap_rect.value = {
+        left: temp_position.x,
+        top: temp_position.y,
+        width: dialog_size.value.width,
+        height: dialog_size.value.height,
       };
-      wasSnapped.value = true;
+      was_snapped.value = true;
     } else {
-      wasSnapped.value = false;
+      was_snapped.value = false;
     }
 
     x.value = snapResult.left;
     y.value = snapResult.top;
 
     if (snapResult.snapped) {
-      dialogSize.value.width = snapResult.width;
-      dialogSize.value.height = snapResult.height;
-      tempSize.width = snapResult.width;
-      tempSize.height = snapResult.height;
-      tempPosition.x = snapResult.left;
-      tempPosition.y = snapResult.top;
+      dialog_size.value.width = snapResult.width;
+      dialog_size.value.height = snapResult.height;
+      temp_size.width = snapResult.width;
+      temp_size.height = snapResult.height;
+      temp_position.x = snapResult.left;
+      temp_position.y = snapResult.top;
 
-      if (dialogRef.value) {
-        dialogRef.value.style.left = `${snapResult.left}px`;
-        dialogRef.value.style.top = `${snapResult.top}px`;
-        dialogRef.value.style.width = `${snapResult.width}px`;
-        dialogRef.value.style.height = isCollapsed.value ? `${headerHeight.value}px` : `${snapResult.height}px`;
+      if (dialog_ref.value) {
+        dialog_ref.value.style.left = `${snapResult.left}px`;
+        dialog_ref.value.style.top = `${snapResult.top}px`;
+        dialog_ref.value.style.width = `${snapResult.width}px`;
+        dialog_ref.value.style.height = is_collapsed.value ? `${header_height.value}px` : `${snapResult.height}px`;
       }
     }
 
@@ -565,8 +551,8 @@ const startDrag = (event: PointerEvent) => {
     emit('dragstop', {
       left: x.value,
       top: y.value,
-      width: dialogSize.value.width,
-      height: dialogSize.value.height,
+      width: dialog_size.value.width,
+      height: dialog_size.value.height,
     });
 
     savePosition(x.value, y.value);
@@ -583,30 +569,30 @@ const startDrag = (event: PointerEvent) => {
  * 边缘吸附
  */
 const checkEdgeSnap = (left: number, top: number, width: number, height: number) => {
-  if (!props.edgeSnap || isMobile()) {
+  if (!props.edgeSnap || is_mobile) {
     return { left, top, width, height, snapped: false };
   }
 
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
-  const snapDist = props.snapDistance;
+  const screen_width = window.innerWidth;
+  const screen_height = window.innerHeight;
+  const snap_dist = props.snapDistance;
 
-  if (left <= snapDist) {
+  if (left <= snap_dist) {
     return {
       left: 0,
       top: 0,
       width,
-      height: screenHeight,
+      height: screen_height,
       snapped: true,
     };
   }
 
-  if (left + width >= screenWidth - snapDist) {
+  if (left + width >= screen_width - snap_dist) {
     return {
-      left: screenWidth - width,
+      left: screen_width - width,
       top: 0,
       width,
-      height: screenHeight,
+      height: screen_height,
       snapped: true,
     };
   }
@@ -617,7 +603,7 @@ const checkEdgeSnap = (left: number, top: number, width: number, height: number)
 /**
  * 调整大小手柄
  */
-const handleConfigs: Record<string, ResizeHandle> = {
+const handle_configs: Record<string, ResizeHandle> = {
   tl: {
     name: 'top-left',
     cursor: 'cursor-nw-resize',
@@ -668,178 +654,184 @@ const handleConfigs: Record<string, ResizeHandle> = {
   },
 };
 
-const enabledHandles = computed(() => {
-  if (!props.resizable || isCollapsed.value) return [] as ResizeHandle[];
+const enabled_handles = computed(() => {
+  if (!props.resizable || is_collapsed.value) {
+    return [] as ResizeHandle[];
+  }
+
   const inset = 8;
   const cloned = props.handles
-    .map(handle => ({ ...handleConfigs[handle], style: { ...handleConfigs[handle].style } }))
+    .map(handle => ({ ...handle_configs[handle], style: { ...handle_configs[handle].style } }))
     .filter(Boolean) as ResizeHandle[];
 
-  const topHandle = cloned.find(h => h.name === 'top');
-  if (topHandle) {
-    topHandle.style.top = `0px`;
-    topHandle.style.left = `${inset}px`;
-    topHandle.style.right = `${inset}px`;
-    delete (topHandle.style as any).width;
+  const top_handle = cloned.find(h => h.name === 'top');
+  if (top_handle) {
+    top_handle.style.top = `0px`;
+    top_handle.style.left = `${inset}px`;
+    top_handle.style.right = `${inset}px`;
+    delete (top_handle.style as any).width;
   }
-  const rightHandle = cloned.find(h => h.name === 'right');
-  if (rightHandle) {
-    rightHandle.style.top = `${inset}px`;
-    rightHandle.style.bottom = `${inset}px`;
-    delete (rightHandle.style as any).height;
+
+  const right_handle = cloned.find(h => h.name === 'right');
+  if (right_handle) {
+    right_handle.style.top = `${inset}px`;
+    right_handle.style.bottom = `${inset}px`;
+    delete (right_handle.style as any).height;
   }
-  const leftHandle = cloned.find(h => h.name === 'left');
-  if (leftHandle) {
-    leftHandle.style.top = `${inset}px`;
-    leftHandle.style.bottom = `${inset}px`;
-    delete (leftHandle.style as any).height;
+
+  const left_handle = cloned.find(h => h.name === 'left');
+  if (left_handle) {
+    left_handle.style.top = `${inset}px`;
+    left_handle.style.bottom = `${inset}px`;
+    delete (left_handle.style as any).height;
   }
-  const bottomHandle = cloned.find(h => h.name === 'bottom');
-  if (bottomHandle) {
-    bottomHandle.style.left = `${inset}px`;
-    bottomHandle.style.right = `${inset}px`;
-    delete (bottomHandle.style as any).width;
+
+  const bottom_handle = cloned.find(h => h.name === 'bottom');
+  if (bottom_handle) {
+    bottom_handle.style.left = `${inset}px`;
+    bottom_handle.style.right = `${inset}px`;
+    delete (bottom_handle.style as any).width;
   }
-  const topRightCorner = cloned.find(h => h.name === 'top-right');
-  if (topRightCorner) {
-    topRightCorner.style.top = `0px`;
-    (topRightCorner.style as any).right = `${inset}px`;
+
+  const top_right_corner = cloned.find(h => h.name === 'top-right');
+  if (top_right_corner) {
+    top_right_corner.style.top = `0px`;
+    (top_right_corner.style as any).right = `${inset}px`;
   }
-  const topLeftCorner = cloned.find(h => h.name === 'top-left');
-  if (topLeftCorner) {
-    topLeftCorner.style.top = `0px`;
-    (topLeftCorner.style as any).left = `${inset}px`;
+
+  const top_left_corner = cloned.find(h => h.name === 'top-left');
+  if (top_left_corner) {
+    top_left_corner.style.top = `0px`;
+    (top_left_corner.style as any).left = `${inset}px`;
   }
 
   return cloned;
 });
 
-/**
- * 开始调整大小
- */
 const startResize = (direction: string, event: PointerEvent) => {
-  if (!props.resizable || isCollapsed.value) return;
+  if (!props.resizable || is_collapsed.value) return;
 
   event.preventDefault();
   event.stopPropagation();
 
-  isResizing.value = true;
-  resizeDirection.value = direction;
+  is_resizing.value = true;
+  resize_direction.value = direction;
 
   const startX = event.clientX;
   const startY = event.clientY;
-  const startWidth = dialogSize.value.width;
-  const startHeight = dialogSize.value.height;
-  const startLeft = x.value;
-  const startTop = y.value;
+  const start_width = dialog_size.value.width;
+  const start_height = dialog_size.value.height;
+  const start_left = x.value;
+  const start_top = y.value;
 
-  tempPosition.x = startLeft;
-  tempPosition.y = startTop;
-  tempSize.width = startWidth;
-  tempSize.height = startHeight;
+  temp_position.x = start_left;
+  temp_position.y = start_top;
+  temp_size.width = start_width;
+  temp_size.height = start_height;
 
   emit('activated');
 
   const handlePointerMove = (e: PointerEvent) => {
-    const deltaX = e.clientX - startX;
-    const deltaY = e.clientY - startY;
+    const delta_x = e.clientX - startX;
+    const delta_y = e.clientY - startY;
 
-    const minWidthPx = convertToPixels(props.minWidth);
-    const maxWidthPx = props.maxWidth ? convertToPixels(props.maxWidth) : Infinity;
-    const minHeightPx = convertToPixels(props.minHeight);
-    const maxHeightPx = props.maxHeight ? convertToPixels(props.maxHeight) : Infinity;
+    const min_width_px = convertToPixels(props.minWidth);
+    const max_width_px = props.maxWidth ? convertToPixels(props.maxWidth) : Infinity;
+    const min_height_px = convertToPixels(props.minHeight);
+    const max_height_px = props.maxHeight ? convertToPixels(props.maxHeight) : Infinity;
 
-    let newWidth = startWidth;
-    let newHeight = startHeight;
-    let newLeft = startLeft;
-    let newTop = startTop;
+    let new_width = start_width;
+    let new_height = start_height;
+    let new_left = start_left;
+    let new_top = start_top;
 
     if (direction.includes('right')) {
-      newWidth = Math.max(minWidthPx, startWidth + deltaX);
-      if (props.maxWidth) newWidth = Math.min(maxWidthPx, newWidth);
+      new_width = Math.max(min_width_px, start_width + delta_x);
+      if (props.maxWidth) {
+        new_width = Math.min(max_width_px, new_width);
+      }
     }
     if (direction.includes('left')) {
-      newWidth = Math.max(minWidthPx, startWidth - deltaX);
-      if (props.maxWidth) newWidth = Math.min(maxWidthPx, newWidth);
-      newLeft = startLeft + (startWidth - newWidth);
+      new_width = Math.max(min_width_px, start_width - delta_x);
+      if (props.maxWidth) {
+        new_width = Math.min(max_width_px, new_width);
+      }
+      new_left = start_left + (start_width - new_width);
     }
     if (direction.includes('bottom')) {
-      newHeight = Math.max(minHeightPx, startHeight + deltaY);
-      if (props.maxHeight) newHeight = Math.min(maxHeightPx, newHeight);
+      new_height = Math.max(min_height_px, start_height + delta_y);
+      if (props.maxHeight) {
+        new_height = Math.min(max_height_px, new_height);
+      }
     }
     if (direction.includes('top')) {
-      newHeight = Math.max(minHeightPx, startHeight - deltaY);
-      if (props.maxHeight) newHeight = Math.min(maxHeightPx, newHeight);
-      newTop = startTop + (startHeight - newHeight);
+      new_height = Math.max(min_height_px, start_height - delta_y);
+      if (props.maxHeight) {
+        new_height = Math.min(max_height_px, new_height);
+      }
+      new_top = start_top + (start_height - new_height);
     }
 
-    tempPosition.x = newLeft;
-    tempPosition.y = newTop;
-    tempSize.width = newWidth;
-    tempSize.height = newHeight;
+    temp_position.x = new_left;
+    temp_position.y = new_top;
+    temp_size.width = new_width;
+    temp_size.height = new_height;
 
     throttledUpdateUI();
 
     throttledEmitResizing({
-      left: newLeft,
-      top: newTop,
-      width: newWidth,
-      height: newHeight,
+      left: new_left,
+      top: new_top,
+      width: new_width,
+      height: new_height,
     });
   };
 
-  const cleanupStops: Array<() => void> = [];
+  const cleanup_stops: Array<() => void> = [];
 
   const handlePointerUp = () => {
-    isResizing.value = false;
-    resizeDirection.value = '';
+    is_resizing.value = false;
+    resize_direction.value = '';
 
-    x.value = tempPosition.x;
-    y.value = tempPosition.y;
-    dialogSize.value.width = tempSize.width;
-    dialogSize.value.height = tempSize.height;
+    x.value = temp_position.x;
+    y.value = temp_position.y;
+    dialog_size.value.width = temp_size.width;
+    dialog_size.value.height = temp_size.height;
 
-    cleanupStops.forEach(stop => stop());
+    cleanup_stops.forEach(stop => stop());
 
     emit('resizestop', {
       left: x.value,
       top: y.value,
-      width: dialogSize.value.width,
-      height: dialogSize.value.height,
+      width: dialog_size.value.width,
+      height: dialog_size.value.height,
     });
 
     emit('deactivated');
 
-    saveSize(dialogSize.value.width, dialogSize.value.height);
+    saveSize(dialog_size.value.width, dialog_size.value.height);
   };
 
-  cleanupStops.push(
+  cleanup_stops.push(
     useEventListener(document, 'pointermove', handlePointerMove as any, { passive: false }),
     useEventListener(document, 'pointerup', handlePointerUp as any),
     useEventListener(document, 'pointercancel', handlePointerUp as any),
   );
 };
 
-const dialogStyle = computed(() => ({
+const dialog_style = computed(() => ({
   position: 'fixed' as const,
   left: `${x.value}px`,
   top: `${y.value}px`,
-  width: `${dialogSize.value.width}px`,
-  height: isCollapsed.value ? `${headerHeight.value}px` : `${dialogSize.value.height}px`,
+  width: `${dialog_size.value.width}px`,
+  height: is_collapsed.value ? `${header_height.value}px` : `${dialog_size.value.height}px`,
   zIndex: 10000,
-  userSelect: isDragging.value || isResizing.value ? ('none' as const) : ('auto' as const),
+  userSelect: is_dragging.value || is_resizing.value ? ('none' as const) : ('auto' as const),
 }));
 
-const dialogClasses = computed(() => ({
-  'dialog-dragging': isDragging.value,
-  'dialog-resizing': isResizing.value,
+const dialog_classes = computed(() => ({
+  'dialog-dragging': is_dragging.value,
+  'dialog-resizing': is_resizing.value,
   'dialog-resizable': props.resizable,
 }));
-
-/**
- * 关闭处理函数
- */
-function onClose() {
-  emit('close');
-}
 </script>
