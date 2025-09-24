@@ -1,14 +1,12 @@
 <template>
-  <div>
-    <Toolbar class="flex w-full flex-wrap gap-0.5" />
-    <SearchBar
-      v-model="search_input"
-      class="flex w-full flex-wrap items-center gap-0.5"
-      :placeholder="t`搜索（支持普通和正则）`"
-      clearable
-    />
-    <ScriptContainer />
-  </div>
+  <Toolbar class="flex w-full flex-wrap gap-0.5" />
+  <SearchBar
+    v-model="search_input"
+    class="flex w-full flex-wrap items-center gap-0.5"
+    :placeholder="t`搜索（支持普通和正则）`"
+    clearable
+  />
+  <ScriptContainer />
 </template>
 
 <script setup lang="ts">
