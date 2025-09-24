@@ -9,7 +9,7 @@
       <!-- prettier-ignore-attribute -->
       <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true"> ☰ </span>
       <i class="fa-solid fa-folder-open ml-0.5"></i>
-      <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden"> 占位文件夹 </span>
+      <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden">{{ script_folder.name }}</span>
       <div class="flex shrink-0 flex-nowrap items-center gap-0.25">
         <!-- 批量开关文件夹内脚本 -->
         <!-- prettier-ignore-attribute -->
@@ -46,17 +46,17 @@
 </template>
 
 <script setup lang="ts">
+import { ScriptFolder } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 import { useSortable } from '@vueuse/integrations/useSortable';
 import { ref } from 'vue';
 
+const script_folder = defineModel<ScriptFolder>({ required: true });
 
 const [DefineScriptFolderIconTemplate, ReuseScriptFolderIconTemplate] = createReusableTemplate<{
   name: string;
   icon: string;
 }>();
-
-type SortableMoveEvent = { to: Element; dragged: Element };
 
 const folder_header_ref = ref<HTMLElement | null>(null);
 const folder_container_ref = ref<HTMLElement | null>(null);
@@ -66,9 +66,9 @@ useSortable(folder_container_ref, folderContentItems, {
   group: { name: 'scripts', pull: true, put: true },
   handle: '.TH-handle',
   draggable: '[data-sortable-item]',
-  onMove: (evt: SortableMoveEvent) => {
-    const to = evt.to as HTMLElement | null;
-    const dragged = evt.dragged as HTMLElement | null;
+  onMove: event => {
+    const to = event.to as HTMLElement | null;
+    const dragged = event.dragged as HTMLElement | null;
     if (to?.hasAttribute('data-folder-content') && dragged?.dataset.type === 'folder') return false;
     return true;
   },

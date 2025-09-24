@@ -15,16 +15,23 @@
 
   <div class="flex h-full flex-col overflow-hidden">
     <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-0.5 overflow-y-auto py-0.5">
-      <template v-for="(_script, index) in model.scripts" :key="model.scripts[index].id">
-        <ScriptItem v-model="model.scripts[index]" />
+      <template v-for="(_script, index) in model.script_trees" :key="index">
+        <template v-if="isScript(model.script_trees[index])">
+          <ScriptItem v-model="model.script_trees[index]" />
+        </template>
+        <template v-else>
+          <FolderItem v-model="model.script_trees[index]" />
+        </template>
       </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
+import { isScript } from '@/type/scripts';
 import { useSortable } from '@vueuse/integrations/useSortable';
 
 const props = defineProps<{
@@ -33,30 +40,36 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
-model.value.scripts = [
+model.value.script_trees = [
   {
+    type: 'script',
     enabled: true,
     name: '测试脚本',
     id: 'test-script',
     content: '测试脚本内容',
     info: '测试脚本信息',
+    buttons_enabled: true,
     buttons: [],
     data: {},
   },
   {
+    type: 'script',
     enabled: true,
     name: '测试脚本2',
     id: 'test-script-2',
     content: '测试脚本内容2',
+    buttons_enabled: true,
     info: '测试脚本信息2',
     buttons: [],
     data: {},
   },
   {
+    type: 'script',
     enabled: false,
     name: '测试脚本3',
     id: 'test-script-3',
     content: '测试脚本内容3',
+    buttons_enabled: true,
     info: '测试脚本信息3',
     buttons: [],
     data: {},
@@ -64,7 +77,7 @@ model.value.scripts = [
 ];
 
 const list_ref = useTemplateRef<HTMLDivElement>('list_ref');
-useSortable(list_ref, model.value.scripts, {
+useSortable(list_ref, model.value.script_trees, {
   group: { name: 'scripts', pull: true, put: true },
   handle: '.TH-handle',
   draggable: '[data-sortable-item]',

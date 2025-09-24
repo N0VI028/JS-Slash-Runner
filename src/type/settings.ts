@@ -1,4 +1,4 @@
-import { Script } from '@/type/scripts';
+import { ScriptTree } from '@/type/scripts';
 
 export const setting_field = 'tavern_helper';
 
@@ -22,7 +22,7 @@ export const GlobalSettings = z
             presets: z.array(z.string()).default([]),
           })
           .prefault({}),
-        scripts: z.array(Script).default([]),
+        scripts: z.array(ScriptTree).default([]),
       })
       .prefault({}),
   })
@@ -68,14 +68,14 @@ export type GlobalSettings = z.infer<typeof GlobalSettings>;
 
 export const CharacterSettings = z
   .object({
-    scripts: z.array(Script).default([]),
+    scripts: z.array(ScriptTree).default([]),
   })
   .prefault({});
 export type CharacterSettings = z.infer<typeof CharacterSettings>;
 
 export const PresetSettings = z
   .object({
-    scripts: z.array(Script).default([]),
+    scripts: z.array(ScriptTree).default([]),
   })
   .prefault({});
 export type PresetSettings = z.infer<typeof CharacterSettings>;
