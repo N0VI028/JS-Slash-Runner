@@ -20,6 +20,40 @@ declare namespace SillyTavern {
     extra?: Record<string, any>;
   };
 
+  type FlattenedWorldInfoEntry = {
+    uid: number;
+    displayIndex: number;
+    comment: string;
+    disable: boolean;
+
+    constant: boolean;
+    selective: boolean;
+    key: string[];
+    /** 0: and_any, 1: not_all, 2: not_any, 3: and_all */
+    selectiveLogic: 0 | 1 | 2 | 3;
+    keysecondary: string[];
+    scanDepth: number | null;
+    vectorized: boolean;
+    position: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    /** 0: system, 1: user, 2: assistant */
+    role: 0 | 1 | 2 | null;
+    depth: number;
+    order: number;
+
+    content: string;
+
+    useProbability: boolean;
+    probability: number;
+    excludeRecursion: boolean;
+    preventRecursion: boolean;
+    delayUntilRecursion: boolean | number;
+    sticky: number | null;
+    cooldown: number | null;
+    delay: number | null;
+
+    extra?: Record<string, any>;
+  };
+
   /**
    * V1 character data structure.
    */
