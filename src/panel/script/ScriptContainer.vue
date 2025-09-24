@@ -24,15 +24,12 @@
 <script setup lang="ts">
 import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
-import { useGlobalSettingsStore } from '@/store/settings';
+import { useGlobalScriptsStore } from '@/store/scripts';
 import { useSortable } from '@vueuse/integrations/useSortable';
 type SortableMoveEvent = { to: Element; dragged: Element };
 
-const store = useGlobalSettingsStore();
-const enabled = computed<boolean>({
-  get: () => store.settings.script.enabled.global,
-  set: v => (store.settings.script.enabled.global = v),
-});
+const store = useGlobalScriptsStore();
+const enabled = toRef(store, 'enabled');
 
 const rootListRef = ref<HTMLElement | null>(null);
 const rootListItems = ref<unknown[]>([]);
