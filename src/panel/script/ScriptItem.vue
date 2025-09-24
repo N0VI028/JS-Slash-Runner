@@ -31,16 +31,13 @@
 </template>
 
 <script setup lang="ts">
+import { Script } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 
 const [DefineScriptIconTemplate, ReuseScriptIconTemplate] = createReusableTemplate<{
   name: string;
   icon: string;
 }>();
-</script>
-
-<script setup lang="ts">
-import { Script } from '@/type/scripts';
 
 const script = defineModel<Script>({ required: true });
 </script>
