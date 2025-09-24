@@ -14,7 +14,7 @@
   </div>
 
   <div class="flex h-full flex-col overflow-hidden">
-    <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-0.5 overflow-y-auto py-1">
+    <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-0.5 overflow-y-auto py-0.5">
       <template v-for="(_script, index) in model.scripts" :key="model.scripts[index].id">
         <ScriptItem v-model="model.scripts[index]" />
       </template>

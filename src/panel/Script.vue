@@ -7,7 +7,9 @@
     clearable
   />
   <ScriptContainer v-model="global_store" title="全局脚本" description="酒馆全局可用" />
+  <Divider />
   <ScriptContainer v-model="character_store" title="角色脚本" description="绑定到当前角色卡" />
+  <Divider />
   <ScriptContainer v-model="preset_store" title="预设脚本" description="绑定到当前预设" />
 </template>
 

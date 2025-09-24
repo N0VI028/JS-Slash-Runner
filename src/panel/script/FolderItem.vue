@@ -26,19 +26,19 @@
           </div>
         </DefineScriptFolderIconTemplate>
         <!-- 编辑文件夹 -->
-        <ReuseScriptFolderIconTemplate :name="t`编辑文件夹`" icon="fa-pencil" />
+        <ReuseScriptFolderIconTemplate name="编辑文件夹" icon="fa-pencil" />
 
         <!-- 导出文件夹 -->
-        <ReuseScriptFolderIconTemplate :name="t`导出文件夹`" icon="fa-file-export" />
+        <ReuseScriptFolderIconTemplate name="导出文件夹" icon="fa-file-export" />
 
         <!-- 移动文件夹 -->
-        <ReuseScriptFolderIconTemplate :name="t`移动到其他脚本库`" icon="fa-exchange-alt" />
+        <ReuseScriptFolderIconTemplate name="移动到其他脚本库" icon="fa-exchange-alt" />
 
         <!-- 删除文件夹 -->
-        <ReuseScriptFolderIconTemplate :name="t`删除文件夹`" icon="fa-trash" />
+        <ReuseScriptFolderIconTemplate name="删除文件夹" icon="fa-trash" />
 
         <!-- 展开/折叠 -->
-        <ReuseScriptFolderIconTemplate :name="t`展开或折叠文件夹`" icon="fa-chevron-down" />
+        <ReuseScriptFolderIconTemplate name="展开或折叠文件夹" icon="fa-chevron-down" />
       </div>
     </div>
     <div ref="folder_content_ref" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
@@ -50,6 +50,7 @@ import { createReusableTemplate } from '@vueuse/core';
 import { useSortable } from '@vueuse/integrations/useSortable';
 import { ref } from 'vue';
 
+
 const [DefineScriptFolderIconTemplate, ReuseScriptFolderIconTemplate] = createReusableTemplate<{
   name: string;
   icon: string;
@@ -57,8 +58,8 @@ const [DefineScriptFolderIconTemplate, ReuseScriptFolderIconTemplate] = createRe
 
 type SortableMoveEvent = { to: Element; dragged: Element };
 
-const folder_header_ref = useTemplateRef<HTMLElement>('folder_header_ref');
-const folder_container_ref = useTemplateRef<HTMLElement>('folder_content_ref');
+const folder_header_ref = ref<HTMLElement | null>(null);
+const folder_container_ref = ref<HTMLElement | null>(null);
 const folderContentItems = ref<unknown[]>([]);
 
 useSortable(folder_container_ref, folderContentItems, {
@@ -82,7 +83,7 @@ useSortable(folder_container_ref, folderContentItems, {
   border-color: var(--SmartThemeQuoteColor);
 }
 
-:has(.TH-script-toggle:not(.enabled)) .TH-folder-name {
+::has(.TH-script-toggle:not(.enabled)) .TH-folder-name {
   text-decoration: line-through;
   filter: grayscale(0.5);
 }

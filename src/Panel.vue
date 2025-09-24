@@ -35,7 +35,7 @@
           </div>
         </div>
         <template v-for="({ component }, index) in tabs" :key="index">
-          <div v-show="active_tab === index" class="mt-0.75 flex flex-col gap-0.75 p-0.75">
+          <div v-show="active_tab === index" class="mt-0.75 flex flex-col gap-0.25 p-0.75">
             <component :is="component" />
           </div>
         </template>

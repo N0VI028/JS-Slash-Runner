@@ -1,5 +1,5 @@
 <template>
-  <div class="my-(--TH-FontSize-base) flex w-full items-center" :style="{ marginTop: marginY, marginBottom: marginY }">
+  <div class="flex w-full items-center" :class="marginY">
     <!-- prettier-ignore-attribute -->
     <div
       v-if="$slots.default"
@@ -18,6 +18,6 @@ withDefaults(
     type?: 'plain' | 'major';
     marginY?: string;
   }>(),
-  { type: 'plain', marginY: 'var(--TH-FontSize-base)' },
+  { type: 'plain', marginY: 'my-0.5' },
 );
 </script>
