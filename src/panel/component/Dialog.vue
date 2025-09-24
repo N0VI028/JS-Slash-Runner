@@ -46,7 +46,7 @@
         </div>
       </div>
       <div v-if="!is_collapsed" class="flex flex-1 flex-col overflow-hidden">
-        <slot name="content"> </slot>
+        <slot> </slot>
       </div>
     </div>
 
