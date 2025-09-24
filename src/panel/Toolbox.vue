@@ -37,7 +37,7 @@
       :title="t`提示词查看器`"
       @close="enable_prompt_viewer = false"
     >
-      <PromptViewerContent />
+      <PromptViewer />
     </Dialog>
     <Dialog
       v-if="enable_variable_manager"
@@ -45,14 +45,14 @@
       :title="t`变量管理器`"
       @close="enable_variable_manager = false"
     >
-      <VariableManagerContent />
+      <VariableManager />
     </Dialog>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import PromptViewerContent from '@/panel/toolbox/prompt_viewer/Content.vue';
-import VariableManagerContent from '@/panel/toolbox/variable_manager/Content.vue';
+import PromptViewer from '@/panel/toolbox/prompt_viewer/Main.vue';
+import VariableManager from '@/panel/toolbox/variable_manager/Main.vue';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
