@@ -9,7 +9,7 @@
     data-sortable-item
   >
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
-    <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">占位</div>
+    <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">{{ script.name }}</div>
     <div class="flex flex-nowrap items-center gap-0.5">
       <!-- 脚本开关 -->
       <div class="cursor-pointer" :class="{ enabled: true }">
@@ -37,6 +37,12 @@ const [DefineScriptIconTemplate, ReuseScriptIconTemplate] = createReusableTempla
   name: string;
   icon: string;
 }>();
+</script>
+
+<script setup lang="ts">
+import { Script } from '@/type/scripts';
+
+const script = defineModel<Script>({ required: true });
 </script>
 
 <style lang="scss" scoped>

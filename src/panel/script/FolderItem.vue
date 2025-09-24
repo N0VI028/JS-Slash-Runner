@@ -2,9 +2,10 @@
   <div
     class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)"
     data-type="folder"
+    data-sortable-item
     data-folder
   >
-    <div ref="folderHeaderRef" class="TH-folder-header flex flex-wrap items-center justify-between px-0.5">
+    <div ref="folder_header_ref" class="TH-folder-header flex flex-nowrap items-center justify-between px-0.5">
       <!-- prettier-ignore-attribute -->
       <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true"> ☰ </span>
       <i class="fa-solid fa-folder-open ml-0.5"></i>
@@ -40,7 +41,7 @@
         <ReuseScriptFolderIconTemplate :name="t`展开或折叠文件夹`" icon="fa-chevron-down" />
       </div>
     </div>
-    <div ref="folderContentRef" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
+    <div ref="folder_content_ref" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
   </div>
 </template>
 
@@ -56,11 +57,11 @@ const [DefineScriptFolderIconTemplate, ReuseScriptFolderIconTemplate] = createRe
 
 type SortableMoveEvent = { to: Element; dragged: Element };
 
-const folderHeaderRef = ref<HTMLElement | null>(null);
-const folderContentRef = ref<HTMLElement | null>(null);
+const folder_header_ref = useTemplateRef<HTMLElement>('folder_header_ref');
+const folder_container_ref = useTemplateRef<HTMLElement>('folder_content_ref');
 const folderContentItems = ref<unknown[]>([]);
 
-useSortable(folderContentRef, folderContentItems, {
+useSortable(folder_container_ref, folderContentItems, {
   group: { name: 'scripts', pull: true, put: true },
   handle: '.TH-handle',
   draggable: '[data-sortable-item]',

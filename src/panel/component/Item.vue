@@ -68,8 +68,8 @@ const has_detail = computed(() => !!slots.detail);
 
 const is_expanded = ref<boolean>(props.initiallyExpanded);
 const is_animating = ref<boolean>(false);
-const container_ref = ref<HTMLDivElement | null>(null);
-const content_ref = ref<HTMLDivElement | null>(null);
+const container_ref = useTemplateRef<HTMLDivElement>('container_ref');
+const content_ref = useTemplateRef<HTMLDivElement>('content_ref');
 
 function onHeaderClick(event: MouseEvent) {
   if (!has_detail.value) return;
