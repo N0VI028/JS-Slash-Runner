@@ -6,7 +6,7 @@
   >
     <!-- prettier-ignore-attribute -->
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
-    <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">占位</div>
+    <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">{{ script.name }}</div>
     <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
       <div class="TH-script-toggle" :class="{ enabled: true }">
@@ -41,6 +41,12 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { Script } from '@/type/scripts';
+
+const script = defineModel<Script>({ required: true });
+</script>
 
 <style lang="scss" scoped>
 .TH-batch-mode.selected {

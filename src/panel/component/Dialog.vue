@@ -193,7 +193,9 @@ const was_snapped = ref(false);
 const pre_snap_rect = ref<{ left: number; top: number; width: number; height: number } | null>(null);
 
 function applyTempToDOM() {
-  if (!dialog_ref.value) return;
+  if (!dialog_ref.value) {
+    return;
+  }
   dialog_ref.value.style.left = `${temp_position.x}px`;
   dialog_ref.value.style.top = `${temp_position.y}px`;
   dialog_ref.value.style.width = `${temp_size.width}px`;
