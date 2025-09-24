@@ -11,28 +11,9 @@
       <ReuseTabTemplate id="chat-tab" :active="active_tab === 'chat'" :name="t`聊天`" />
       <ReuseTabTemplate id="message-tab" :active="active_tab === 'message'" :name="t`消息楼层`" />
     </div>
-    <div class="flex-container justify-between px-1">
-      <div class="flex items-center gap-1">
-        <div
-          id="filter-icon"
-          class="flex h-2 w-2 cursor-pointer items-center justify-center rounded-sm transition-all duration-300"
-          title="筛选变量类型"
-        >
-          <i class="fa-solid fa-filter"></i>
-        </div>
-      </div>
-      <SearchBar v-model="search_input" :placeholder="t`搜索变量...`" :clearable="true" class="w-full flex-1" />
-      <div class="flex gap-0.5 whitespace-nowrap">
-        <div id="add-variable" class="menu_button_icon menu_button interactable">
-          <i class="fa-solid fa-plus"></i>
-          <span>{{ t`新建` }}</span>
-        </div>
-        <div id="clear-all" class="menu_button_icon menu_button interactable">
-          <i class="fa-solid fa-trash"></i>
-          <span>{{ t`清空` }}</span>
-        </div>
-      </div>
-    </div>
+
+    <Toolbar v-model="toolbar_settings" />
+
     <div
       id="TH-filter-options"
       class="mb-1 flex flex-wrap gap-1 rounded-sm bg-(--SmartThemeQuoteColor) p-1"
@@ -86,6 +67,7 @@
         </div>
       </div>
     </div>
+
     <DefineContentTemplate v-slot="{ id, hidden }">
       <div :id="id" :class="[hidden ? 'hidden' : '']">
         <div class="variable-list">
@@ -93,7 +75,6 @@
         </div>
       </div>
     </DefineContentTemplate>
-
     <div class="flex-1 overflow-y-auto p-1">
       <ReuseContentTemplate id="global-content" :hidden="active_tab !== 'global'" />
       <ReuseContentTemplate id="character-content" :hidden="active_tab !== 'character'" />
@@ -105,6 +86,7 @@
 
 <script setup lang="ts">
 import Card from '@/panel/toolbox/variable_manager/Card.vue';
+import Toolbar from '@/panel/toolbox/variable_manager/Toolbar.vue';
 import { createReusableTemplate } from '@vueuse/core';
 
 const [DefineContentTemplate, ReuseContentTemplate] = createReusableTemplate<{ id: string; hidden?: boolean }>();
@@ -116,11 +98,12 @@ const [DefineOptionTemplate, ReuseOptionTemplate] = createReusableTemplate<{
 const [DefineTabTemplate, ReuseTabTemplate] = createReusableTemplate<{ id: string; active?: boolean; name?: string }>();
 
 const active_tab = useLocalStorage<string>('tavern_helper_variable_manager_active_tab', 'global');
-const search_input = ref('');
+const toolbar_settings = ref({
+  search_input: '',
+});
 
-const handleTabClick = (tabId: string) => {
-  // 从 tab id 中提取 tab 名称 (例如: "character-tab" -> "character")
-  const tab_name = tabId.replace('-tab', '');
+const handleTabClick = (tab_id: string) => {
+  const tab_name = tab_id.replace('-tab', '');
   active_tab.value = tab_name;
 };
 </script>
