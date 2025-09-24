@@ -7,3 +7,4 @@
 - 把 `package.json` 中新的依赖添加过去
 - 去除 `.gitignore` 中的 `dist`
 - 删除 `.github/workflows`、`dist`
+- 去除 `TODO`
