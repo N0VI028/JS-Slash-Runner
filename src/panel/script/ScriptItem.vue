@@ -1,48 +1,47 @@
 <template>
+  <!-- prettier-ignore-attribute -->
   <div
-    class="flex w-full flex-wrap items-center justify-between rounded-md border border-(--SmartThemeBorderColor) px-0.5"
+    class="
+      flex w-full flex-wrap items-center justify-between rounded-md border border-(--SmartThemeBorderColor) px-0.5
+      py-0.5
+    "
     data-type="script"
     data-sortable-item
   >
-    <!-- prettier-ignore-attribute -->
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
     <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">占位</div>
-    <div class="flex flex-nowrap items-center gap-[5px]">
+    <div class="flex flex-nowrap items-center gap-0.5">
       <!-- 脚本开关 -->
-      <div class="TH-script-toggle" :class="{ enabled: true }">
+      <div class="cursor-pointer" :class="{ enabled: true }">
         <i v-if="true" class="fa-solid fa-toggle-on"></i>
         <i v-else class="fa-solid fa-toggle-off"></i>
       </div>
-
-      <!-- 脚本信息 -->
-      <div class="TH-script-info menu_button interactable" title="查看脚本信息">
-        <i class="fa-solid fa-info-circle"></i>
-      </div>
-
-      <!-- 编辑脚本 -->
-      <div class="TH-edit-script menu_button interactable" title="编辑脚本">
-        <i class="fa-solid fa-pencil"></i>
-      </div>
-
-      <!-- 在各个脚本库之间移动脚本 -->
-      <div class="TH-script-move-type menu_button interactable" title="移动到其他脚本库">
-        <i class="fa-solid fa-exchange-alt"></i>
-      </div>
-
-      <!-- 导出脚本 -->
-      <div class="TH-export-script menu_button interactable" title="导出脚本">
-        <i class="fa-solid fa-file-export"></i>
-      </div>
-
-      <!-- 删除脚本 -->
-      <div class="TH-delete-script menu_button interactable" title="删除脚本">
-        <i class="fa-solid fa-trash"></i>
-      </div>
+      <DefineScriptIconTemplate v-slot="{ name, icon }">
+        <div class="menu_button interactable mt-0! mr-0.5 mb-0!" :title="name">
+          <i class="fa-solid" :class="icon"></i>
+        </div>
+      </DefineScriptIconTemplate>
+      <ReuseScriptIconTemplate name="查看脚本信息" icon="fa-info-circle" />
+      <ReuseScriptIconTemplate name="编辑脚本" icon="fa-pencil" />
+      <ReuseScriptIconTemplate name="移动到其他脚本库" icon="fa-exchange-alt" />
+      <ReuseScriptIconTemplate name="导出脚本" icon="fa-file-export" />
+      <ReuseScriptIconTemplate name="删除脚本" icon="fa-trash" />
     </div>
   </div>
 </template>
 
+<script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core';
+
+const [DefineScriptIconTemplate, ReuseScriptIconTemplate] = createReusableTemplate<{
+  name: string;
+  icon: string;
+}>();
+</script>
+
 <style lang="scss" scoped>
+@reference "tailwindcss";
+
 .TH-batch-mode.selected {
   background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
   border-color: var(--SmartThemeQuoteColor);
@@ -60,16 +59,6 @@
 
 i {
   font-size: calc(var(--icon-size) * 0.95) !important;
-}
-
-.TH-script-toggle {
-  cursor: pointer;
-  padding: 5px;
-}
-
-.TH-script-toggle:hover {
-  background-color: var(--SmartThemeBlurTintColor);
-  border-radius: 5px;
 }
 
 .menu_button {

@@ -4,46 +4,40 @@
     data-type="folder"
     data-folder
   >
-    <div ref="folderHeaderRef" class="TH-folder-header flex flex-nowrap items-center justify-between px-0.5">
+    <div ref="folderHeaderRef" class="TH-folder-header flex flex-wrap items-center justify-between px-0.5">
       <!-- prettier-ignore-attribute -->
       <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true"> ☰ </span>
       <i class="fa-solid fa-folder-open ml-0.5"></i>
       <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden"> 占位文件夹 </span>
-      <div class="flex flex-nowrap items-center gap-[5px]">
+      <div class="flex shrink-0 flex-nowrap items-center gap-0.25">
         <!-- 批量开关文件夹内脚本 -->
         <!-- prettier-ignore-attribute -->
         <div
-          class="menu_button interactable cursor-pointer p-0.5 hover:bg-(--SmartThemeBlurTintColor)"
+          class="menu_button interactable mt-0! mr-0.5 mb-0!"
           :class="{ enabled: true }"
           title="批量开关文件夹内脚本"
         >
           <i class="fa-solid fa-toggle-on"></i>
         </div>
-
+        <DefineScriptFolderIconTemplate v-slot="{ name, icon }">
+          <div class="menu_button interactable mt-0! mr-0.5 mb-0!" :title="name">
+            <i class="fa-solid" :class="icon"></i>
+          </div>
+        </DefineScriptFolderIconTemplate>
         <!-- 编辑文件夹 -->
-        <div class="menu_button interactable mr-0.5" title="编辑文件夹">
-          <i class="fa-solid fa-pencil"></i>
-        </div>
+        <ReuseScriptFolderIconTemplate :name="t`编辑文件夹`" icon="fa-pencil" />
 
         <!-- 导出文件夹 -->
-        <div class="menu_button interactable mr-0.5" title="导出文件夹">
-          <i class="fa-solid fa-file-export"></i>
-        </div>
+        <ReuseScriptFolderIconTemplate :name="t`导出文件夹`" icon="fa-file-export" />
 
         <!-- 移动文件夹 -->
-        <div class="menu_button interactable" title="移动到其他脚本库">
-          <i class="fa-solid fa-exchange-alt"></i>
-        </div>
+        <ReuseScriptFolderIconTemplate :name="t`移动到其他脚本库`" icon="fa-exchange-alt" />
 
         <!-- 删除文件夹 -->
-        <div class="menu_button interactable" title="删除文件夹">
-          <i class="fa-solid fa-trash"></i>
-        </div>
+        <ReuseScriptFolderIconTemplate :name="t`删除文件夹`" icon="fa-trash" />
 
         <!-- 展开/折叠 -->
-        <div class="menu_button interactable" title="展开或折叠文件夹">
-          <i class="fa-solid fa-chevron-down"></i>
-        </div>
+        <ReuseScriptFolderIconTemplate :name="t`展开或折叠文件夹`" icon="fa-chevron-down" />
       </div>
     </div>
     <div ref="folderContentRef" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
@@ -51,8 +45,14 @@
 </template>
 
 <script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core';
 import { useSortable } from '@vueuse/integrations/useSortable';
 import { ref } from 'vue';
+
+const [DefineScriptFolderIconTemplate, ReuseScriptFolderIconTemplate] = createReusableTemplate<{
+  name: string;
+  icon: string;
+}>();
 
 type SortableMoveEvent = { to: Element; dragged: Element };
 
@@ -74,6 +74,8 @@ useSortable(folderContentRef, folderContentItems, {
 </script>
 
 <style lang="scss" scoped>
+@reference "tailwindcss";
+
 .batch-mode.selected {
   background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
   border-color: var(--SmartThemeQuoteColor);
@@ -121,8 +123,7 @@ useSortable(folderContentRef, folderContentItems, {
 
 /* 文件夹头部交互 */
 .TH-folder-header {
-  cursor: pointer;
-  transition: background-color 0.2s;
+  @apply cursor-pointer transition-colors duration-200 my-0.5;
 }
 
 .folder-slide-enter-from {

@@ -24,12 +24,13 @@
             @click="active_tab = index"
           >
             <div
-              class="flex items-center"
+              class="flex flex-wrap items-center justify-center gap-0.25"
               :style="{
                 'mix-blend-mode': active_tab === index ? 'color-dodge' : 'normal',
               }"
             >
-              <i class="mr-0.5 text-[80%]" :class="icon"></i>{{ name }}
+              <i class="flex-shrink-0 text-[80%]" :class="icon"></i>
+              <span class="flex-grow text-center">{{ name }}</span>
             </div>
           </div>
         </div>
