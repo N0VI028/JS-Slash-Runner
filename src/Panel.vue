@@ -56,5 +56,5 @@ const tabs = [
   { name: t`脚本库`, icon: 'fa-solid fa-dice-d6', component: Script },
   { name: t`工具箱`, icon: 'fa-solid fa-toolbox', component: Toolbox },
 ] as const;
-const active_tab = useLocalStorage<number>('tavern_helper_active_tab', 0);
+const active_tab = useLocalStorage<number>('TH-Panel:active_tab', 0);
 </script>

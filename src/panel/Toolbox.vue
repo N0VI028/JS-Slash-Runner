@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import PromptViewer from '@/panel/toolbox/prompt_viewer/Main.vue';
-import VariableManager from '@/panel/toolbox/variable_manager/Main.vue';
+import VariableManager from '@/panel/toolbox/VariableManager.vue';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
