@@ -8,9 +8,11 @@
       <div class="mb-0.75 flex items-center justify-between p-1">
         <div class="flex flex-col gap-0.25">
           <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">
-            总token数: {{ total_tokens }}
+            总token数: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
           </div>
-          <div class="text-(length:--TH-FontSize-sm) text-(--SmartThemeQuoteColor)">共 {{ prompts.length }} 条消息</div>
+          <div class="text-(length:--TH-FontSize-sm) text-(--SmartThemeQuoteColor)">
+            共 {{ filtered_prompts.length }} 条消息
+          </div>
         </div>
         <div
           class="fa-solid fa-rotate-right cursor-pointer text-(length:--TH-FontSize-base) duration-200"
@@ -72,9 +74,15 @@
         </div>
       </div>
     </div>
-    <div class="relative hidden flex-1">
-      <div class="h-full overflow-x-hidden overflow-y-auto">
-        <div class="absolute inset-0 z-10 hidden text-center"></div>
+    <div v-bind="containerProps" class="relative h-full flex-1 overflow-x-hidden overflow-y-auto">
+      <div v-bind="wrapperProps">
+        <template v-for="{ data, index } in list" :key="index">
+          <div @click="data.is_expanded = !data.is_expanded">
+            <span> Role: {{ data.role }} | Token: {{ data.token }} </span>
+            <div class="fa-solid fa-circle-chevron-down"></div>
+          </div>
+          <div v-if="data.is_expanded">{{ data.content }}</div>
+        </template>
       </div>
     </div>
   </div>
@@ -91,10 +99,16 @@ interface PromptData {
   content: string;
   token: number;
 }
-const prompts = ref<PromptData[]>([]);
-const total_tokens = computed(() => prompts.value.reduce((result, prompt) => result + prompt.token, 0));
-
+const prompts = shallowRef<PromptData[]>([]);
 const is_refreshing = ref<boolean>(false);
+
+const filtered_prompts = computed(() => {
+  return prompts.value.map(prompt => ({ ...prompt, is_expanded: false }));
+});
+const { list, containerProps, wrapperProps } = useVirtualList(filtered_prompts, {
+  // TODO: 调整高度
+  itemHeight: 22,
+});
 
 function handleRefresh(): void {
   if (is_refreshing.value) {
