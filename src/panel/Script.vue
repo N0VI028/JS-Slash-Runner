@@ -11,13 +11,28 @@
   <ScriptContainer v-model="character_store" title="角色脚本" description="绑定到当前角色卡" />
   <Divider />
   <ScriptContainer v-model="preset_store" title="预设脚本" description="绑定到当前预设" />
+
+  <Teleport to="body">
+    <!-- TODO: 如何让 v-for 不考虑顺序 -->
+    <template v-for="script in global_scripts" :key="script.id">
+      <Iframe :script="script" />
+    </template>
+    <template v-for="script in character_scripts" :key="script.id">
+      <Iframe :script="script" />
+    </template>
+    <template v-for="script in preset_scripts" :key="script.id">
+      <Iframe :script="script" />
+    </template>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
+import Iframe from '@/panel/script/components/Iframe.vue';
 import ScriptContainer from '@/panel/script/components/ScriptContainer.vue';
 import Toolbar from '@/panel/script/components/Toolbar.vue';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
+import { isScript, Script } from '@/type/scripts';
 
 const search_input = ref('');
 watch(search_input, make_TODO('按照搜索结果筛选脚本'));
@@ -25,4 +40,19 @@ watch(search_input, make_TODO('按照搜索结果筛选脚本'));
 const global_store = useGlobalScriptsStore();
 const character_store = useCharacterScriptsStore();
 const preset_store = usePresetScriptsStore();
+
+function computeScripts(store: ReturnType<typeof useGlobalScriptsStore>): Script[] {
+  if (!store.enabled) {
+    return [];
+  }
+  return _.flatMapDeep(store.script_trees, script => {
+    if (isScript(script)) {
+      return script.enabled ? [script] : [];
+    }
+    return script.scripts.filter(script => script.enabled);
+  });
+}
+const global_scripts = computed(() => computeScripts(global_store));
+const character_scripts = computed(() => computeScripts(character_store));
+const preset_scripts = computed(() => computeScripts(preset_store));
 </script>

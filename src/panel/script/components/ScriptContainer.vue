@@ -10,17 +10,17 @@
       <!-- prettier-ignore-attribute -->
       <div class="mt-0.25 text-(length:--TH-FontSize-sm) opacity-70">{{ props.description }}</div>
     </div>
-    <Toggle id="global-script-enable-toggle" v-model="model.enabled" />
+    <Toggle id="global-script-enable-toggle" v-model="store.enabled" />
   </div>
 
   <div class="flex h-full flex-col overflow-hidden">
     <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
-      <template v-for="(_script, index) in model.script_trees" :key="index">
-        <template v-if="isScript(model.script_trees[index])">
-          <ScriptItem v-model="model.script_trees[index]" />
+      <template v-for="(script, index) in store.script_trees" :key="script.id">
+        <template v-if="isScript(store.script_trees[index])">
+          <ScriptItem v-model="store.script_trees[index]" />
         </template>
         <template v-else>
-          <FolderItem v-model="model.script_trees[index]" />
+          <FolderItem v-model="store.script_trees[index]" />
         </template>
       </template>
     </div>
@@ -32,6 +32,7 @@ import FolderItem from '@/panel/script/components/FolderItem.vue';
 import ScriptItem from '@/panel/script/components/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useSortable } from '@vueuse/integrations/useSortable';
 
 const props = defineProps<{
@@ -39,13 +40,13 @@ const props = defineProps<{
   description: string;
 }>();
 
-const model = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
-model.value.script_trees = [
+const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
+store.value.script_trees = [
   {
     type: 'script',
     enabled: true,
     name: '测试脚本',
-    id: 'test-script',
+    id: uuidv4(),
     content: '测试脚本内容',
     info: '测试脚本信息',
     buttons_enabled: true,
@@ -56,7 +57,7 @@ model.value.script_trees = [
     type: 'script',
     enabled: true,
     name: '测试脚本2',
-    id: 'test-script-2',
+    id: uuidv4(),
     content: '测试脚本内容2',
     buttons_enabled: true,
     info: '测试脚本信息2',
@@ -67,7 +68,7 @@ model.value.script_trees = [
     type: 'script',
     enabled: false,
     name: '测试脚本3',
-    id: 'test-script-3',
+    id: uuidv4(),
     content: '测试脚本内容3',
     buttons_enabled: true,
     info: '测试脚本信息3',
@@ -77,18 +78,19 @@ model.value.script_trees = [
 ];
 
 const list_ref = useTemplateRef<HTMLDivElement>('list_ref');
-useSortable(list_ref, model.value.script_trees, {
+useSortable(list_ref, toRef(store.value, 'script_trees'), {
   group: { name: 'scripts', pull: true, put: true },
   handle: '.TH-handle',
   draggable: '[data-sortable-item]',
-  onMove: event => {
-    const to = event.to;
-    const dragged = event.dragged;
-    if (to?.hasAttribute('data-folder-content') && dragged?.dataset.type === 'folder') {
-      return false;
-    }
-    return true;
-  },
+  // TODO: onMove 导致脚本拖动时显示增值 - 脚本在原来的位置依旧有一个显示, 而新位置也有一个.
+  // onMove: event => {
+  //   const to = event.to;
+  //   const dragged = event.dragged;
+  //   if (to?.hasAttribute('data-folder-content') && dragged?.dataset.type === 'folder') {
+  //     return false;
+  //   }
+  //   return true;
+  // },
 });
 </script>
 

@@ -1,7 +1,7 @@
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { ScriptTree } from '@/type/scripts';
 
-function computedEnabled(name: Ref<string | undefined>, enabled_arrays: Ref<string[]>) {
+function computeEnabled(name: Ref<string | undefined>, enabled_arrays: Ref<string[]>) {
   return computed({
     get: () => name.value !== undefined && enabled_arrays.value.includes(name.value),
     set: value => {
@@ -33,7 +33,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
       case 'character': {
         const global_store = useGlobalSettingsStore();
         const character_store = useCharacterSettingsStore();
-        enabled = computedEnabled(
+        enabled = computeEnabled(
           toRef(character_store, 'name'),
           toRef(global_store.settings.script.enabled, 'characters'),
         );
@@ -43,7 +43,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
       case 'preset': {
         const global_store = useGlobalSettingsStore();
         const preset_store = usePresetSettingsStore();
-        enabled = computedEnabled(toRef(preset_store, 'name'), toRef(global_store.settings.script.enabled, 'presets'));
+        enabled = computeEnabled(toRef(preset_store, 'name'), toRef(global_store.settings.script.enabled, 'presets'));
         script_trees = toRef(preset_store.settings, 'scripts');
         break;
       }

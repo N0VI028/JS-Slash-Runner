@@ -8,11 +8,19 @@
     data-sortable-item
   >
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
-    <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">{{ script.name }}</div>
+    <div
+      class="TH-script-item-name ml-0.5 flex-grow overflow-hidden"
+      :style="{
+        textDecoration: script.enabled ? 'none' : 'line-through',
+        filter: script.enabled ? 'none' : 'grayscale(0.5)',
+      }"
+    >
+      {{ script.name }}
+    </div>
     <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
-      <div class="cursor-pointer" :class="{ enabled: true }">
-        <i v-if="true" class="fa-solid fa-toggle-on"></i>
+      <div class="cursor-pointer" :class="{ enabled: script.enabled }" @click="script.enabled = !script.enabled">
+        <i v-if="script.enabled" class="fa-solid fa-toggle-on"></i>
         <i v-else class="fa-solid fa-toggle-off"></i>
       </div>
       <DefineScriptIconTemplate v-slot="{ name, icon }">
