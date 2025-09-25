@@ -3,9 +3,9 @@
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-between gap-0.75">
         <div class="flex flex-1 items-center">
-          <input id="floor-min" type="number" class="TH-floor-input" min="0" placeholder="最小" />
+          <input v-model="min_message_id" type="number" class="TH-floor-input" min="0" :max="chat.length - 1" />
           <span class="mx-0.5 text-(--SmartThemeBodyColor)">~</span>
-          <input id="floor-max" type="number" class="TH-floor-input" min="0" placeholder="最大" />
+          <input v-model="max_message_id" type="number" class="TH-floor-input" min="0" :max="chat.length - 1" />
         </div>
         <!-- prettier-ignore-attribute -->
         <button
@@ -25,7 +25,28 @@
       </div>
     </div>
   </div>
+
+  <Content v-model="variables" />
 </template>
+
+<script setup lang="ts">
+import Content from '@/panel/toolbox/variable_manager/ContentBase.vue';
+import { chat } from '@sillytavern/script';
+
+const min_message_id = ref(0);
+const max_message_id = ref(0);
+
+const variables = ref<Record<string, any>>({
+  字符串: '字符串',
+  数值: 123,
+  布尔: true,
+  对象: {
+    a: 1,
+    b: 2,
+  },
+  数组: [1, 2, 3],
+});
+</script>
 
 <style lang="scss" scoped>
 .TH-floor-input {

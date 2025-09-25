@@ -10,31 +10,31 @@
 
     <Toolbar v-model="toolbar_state" />
 
-    <Content v-model="variables" />
+    <template v-for="({ component }, index) in tabs" :key="index">
+      <component :is="component" v-if="active_tab === index" />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import Content from '@/panel/toolbox/variable_manager/Content.vue';
+import Character from '@/panel/toolbox/variable_manager/ContentCharacter.vue';
+import Chat from '@/panel/toolbox/variable_manager/ContentChat.vue';
+import Global from '@/panel/toolbox/variable_manager/ContentGlobal.vue';
+import Message from '@/panel/toolbox/variable_manager/ContentMessage.vue';
 import Toolbar from '@/panel/toolbox/variable_manager/Toolbar.vue';
 
 const active_tab = useLocalStorage<number>('TH-VariableManager:active_tab', 0);
-const tabs = [{ name: t`全局` }, { name: t`角色` }, { name: t`聊天` }, { name: t`消息楼层` }];
+const tabs = [
+  { name: t`全局`, component: Global },
+  { name: t`角色`, component: Character },
+  { name: t`聊天`, component: Chat },
+  { name: t`消息楼层`, component: Message },
+];
 
 const toolbar_state = ref({
   search_input: '',
 });
-
-const variables = ref<Record<string, any>>({
-  字符串: '字符串',
-  数值: 123,
-  布尔: true,
-  对象: {
-    a: 1,
-    b: 2,
-  },
-  数组: [1, 2, 3],
-});
+// TODO: 将 toolbar_state 传入 tabs.component
 </script>
 
 <style lang="scss" scoped>
