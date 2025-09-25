@@ -25,7 +25,16 @@ const toolbar_state = ref({
   search_input: '',
 });
 
-const variables = ref<Record<string, any>>();
+const variables = ref<Record<string, any>>({
+  字符串: '字符串',
+  数值: 123,
+  布尔: true,
+  对象: {
+    a: 1,
+    b: 2,
+  },
+  数组: [1, 2, 3],
+});
 watch(active_tab, () => {});
 </script>
 
