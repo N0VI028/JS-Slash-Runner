@@ -1,6 +1,6 @@
 import { eventSource } from '@sillytavern/script';
 
-export function useEventSource(
+export function useEventSourceOn(
   event: MaybeRefOrGetter<string>,
   callback: MaybeRefOrGetter<(...args: any[]) => void>,
 ): () => void {

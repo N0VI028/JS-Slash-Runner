@@ -86,11 +86,11 @@
 </template>
 
 <script setup lang="ts">
-import { event_types, eventSource, Generate, online_status, stopGeneration } from '@sillytavern/script';
+import { useEventSourceOn } from '@/panel/composable/use_event_source_on';
+import { event_types, Generate, online_status, stopGeneration } from '@sillytavern/script';
 import { getContext } from '@sillytavern/scripts/extensions';
 import { chat_completion_sources, oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
-import { onMounted, onUnmounted, ref } from 'vue';
 
 interface PromptData {
   role: string;
@@ -168,13 +168,6 @@ function insertMessageMergeWarning(scope: JQuery<HTMLElement>, message: string):
 }
 
 /**
- * 停止事件监听
- */
-function stopListening(): void {
-  eventSource.removeListener(event_types.CHAT_COMPLETION_PROMPT_READY, onChatCompletionPromptReady);
-}
-
-/**
  * 处理刷新按钮点击事件
  */
 function handleRefresh(): void {
@@ -204,13 +197,5 @@ function handleRefresh(): void {
   Generate('normal');
 }
 
-// 组件挂载时添加事件监听器
-onMounted(() => {
-  eventSource.on(event_types.CHAT_COMPLETION_PROMPT_READY, onChatCompletionPromptReady);
-});
-
-// 组件卸载时移除事件监听器（备用清理）
-onUnmounted(() => {
-  stopListening();
-});
+useEventSourceOn(event_types.CHAT_COMPLETION_PROMPT_READY, onChatCompletionPromptReady);
 </script>
