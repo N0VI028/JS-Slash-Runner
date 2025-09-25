@@ -5,6 +5,7 @@ const app = createApp(Panel);
 
 const pinia = createPinia();
 app.use(pinia);
+
 declare module 'vue' {
   interface ComponentCustomProperties {
     t: typeof t;
