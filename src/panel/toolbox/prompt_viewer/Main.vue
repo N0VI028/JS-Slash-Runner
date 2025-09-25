@@ -1,19 +1,20 @@
 <template>
-  <div id="prompt-view-content" class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
+  <div class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
     <div class="z-1 flex-shrink-0">
+      <div>💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况</div>
+      <div v-if="oai_settings.squash_system_messages === true">
+        ⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理
+      </div>
       <div class="mb-0.75 flex items-center justify-between p-1">
         <div class="flex flex-col gap-0.25">
-          <!-- prettier-ignore-attribute -->
-          <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">总token数: 0</div>
-          <!-- prettier-ignore-attribute -->
-          <div class="text-(length:--TH-FontSize-sm) text-(--SmartThemeQuoteColor)">共 0 条消息</div>
+          <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">
+            总token数: {{ total_tokens }}
+          </div>
+          <div class="text-(length:--TH-FontSize-sm) text-(--SmartThemeQuoteColor)">共 {{ prompts.length }} 条消息</div>
         </div>
         <div
-          id="prompt-view-status-fresh"
-          :class="[
-            `fa-solid fa-rotate-right cursor-pointer text-(length:--TH-FontSize-base) duration-200`,
-            { 'animate-spin': is_refreshing },
-          ]"
+          class="fa-solid fa-rotate-right cursor-pointer text-(length:--TH-FontSize-base) duration-200"
+          :class="{ 'animate-spin': is_refreshing }"
           title="刷新"
           @click="handleRefresh"
         ></div>
@@ -22,7 +23,6 @@
         <div class="flex items-center justify-between gap-0.5">
           <!-- prettier-ignore-attribute -->
           <div
-            id="prompt-filter-icon"
             class="
               flex h-(--TH-FontSize-xl) w-(--TH-FontSize-xl) cursor-pointer items-center justify-center
               text-(--SmartThemeQuoteColor)
@@ -34,7 +34,6 @@
           <div class="relative mr-1 flex-grow">
             <!-- prettier-ignore-attribute -->
             <input
-              id="prompt-search"
               type="text"
               class="
                 h-(--TH-FontSize-xl) w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5
@@ -52,16 +51,12 @@
                 whitespace-nowrap text-(--SmartThemeBodyColor)
               "
             >
-              <input
-                id="prompt-search-compact-mode"
-                type="checkbox"
-                class="mr-0.25 mb-0 h-(--TH-FontSize-sm) w-(--TH-FontSize-sm)"
-              />
+              <input type="checkbox" class="mr-0.25 mb-0 h-(--TH-FontSize-sm) w-(--TH-FontSize-sm)" />
               <label for="prompt-search-compact-mode">仅显示匹配</label>
             </div>
           </div>
         </div>
-        <div id="prompt-filter-options" class="flex flex-wrap gap-1 pt-1 pr-1 pb-0 pl-0.5" style="display: none">
+        <div class="flex flex-wrap gap-1 pt-1 pr-1 pb-0 pl-0.5" style="display: none">
           <div class="flex items-center gap-0.5">
             <input id="filter-system" type="checkbox" data-role="system" checked />
             <label for="filter-system">system</label>
@@ -87,9 +82,8 @@
 
 <script setup lang="ts">
 import { useEventSourceOn } from '@/panel/composable/use_event_source_on';
-import { event_types, Generate, online_status, stopGeneration } from '@sillytavern/script';
-import { getContext } from '@sillytavern/scripts/extensions';
-import { chat_completion_sources, oai_settings } from '@sillytavern/scripts/openai';
+import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
+import { oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 
 interface PromptData {
@@ -97,105 +91,53 @@ interface PromptData {
   content: string;
   token: number;
 }
+const prompts = ref<PromptData[]>([]);
+const total_tokens = computed(() => prompts.value.reduce((result, prompt) => result + prompt.token, 0));
 
 const is_refreshing = ref<boolean>(false);
-const promptViewUpdater: ((prompts: PromptData[], totalTokens: number) => void | Promise<void>) | null = null;
-let is_refresh_prompt_view_call = false;
 
-function isChatCompletion(): boolean {
-  const main_api = getContext().mainApi;
-  return typeof main_api === 'string' && Object.values(chat_completion_sources).includes(main_api);
-}
-
-function onChatCompletionPromptReady(data: { chat: { role: string; content: string }[]; dryRun: boolean }): void {
-  if (data.dryRun) {
-    return;
-  }
-
-  if (!isChatCompletion()) {
-    toastr.error('当前 API 不是聊天补全类型, 无法使用提示词查看器功能', '不支持的 API 类型');
-    return;
-  }
-
-  if (is_refresh_prompt_view_call) {
-    stopGeneration();
-    is_refresh_prompt_view_call = false;
-  }
-
-  setTimeout(async () => {
-    if (!promptViewUpdater) {
-      return;
-    }
-
-    const prompts = await Promise.all(
-      data.chat.map(async ({ role, content }) => {
-        return {
-          role,
-          content: content,
-          token: await getTokenCountAsync(content),
-        };
-      }),
-    );
-    const total_tokens = await getTokenCountAsync(prompts.map(prompt => prompt.content).join('\n'));
-    await promptViewUpdater(prompts, total_tokens);
-    notifyPostProcessing();
-  });
-}
-
-/*
- * 检查是否经过了系统消息压缩或者后处理
- * 检查两个条件，如果都符合则插入两个警告条幅
- */
-function notifyPostProcessing(): void {
-  const $header = $('.prompt-view-header');
-  if ($header.find('.prompt-view-process-warning').length > 0) {
-    $header.find('.prompt-view-process-warning').remove();
-  }
-
-  insertMessageMergeWarning($header, '💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况');
-  if (oai_settings.squash_system_messages === true) {
-    insertMessageMergeWarning($header, '⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理');
-  }
-}
-
-/**
- * 在顶部插入系统消息压缩/后处理的警告
- */
-function insertMessageMergeWarning(scope: JQuery<HTMLElement>, message: string): void {
-  const $warning = $('<div class="prompt-view-process-warning">');
-  $warning.text(message);
-  scope.prepend($warning);
-}
-
-/**
- * 处理刷新按钮点击事件
- */
 function handleRefresh(): void {
   if (is_refreshing.value) {
     return;
   }
-  is_refreshing.value = true;
-  setTimeout(() => {
-    is_refreshing.value = false;
-  }, 2000);
 
-  // 如果不是聊天补全，直接返回
-  if (!isChatCompletion()) {
+  if (main_api !== 'openai') {
     toastr.error('当前 API 不是聊天补全类型, 无法使用提示词查看器功能', '不支持的 API 类型');
     return;
   }
 
-  // 检查API连接状态，如果未连接则直接更新UI显示连接错误
   if (online_status === 'no_connection') {
-    if (promptViewUpdater) {
-      promptViewUpdater([], 0);
-    }
     return;
   }
 
-  is_refresh_prompt_view_call = true;
+  is_refreshing.value = true;
   Generate('normal');
 }
+handleRefresh();
 
-useEventSourceOn(event_types.CHAT_COMPLETION_PROMPT_READY, onChatCompletionPromptReady);
+useEventSourceOn(
+  event_types.CHAT_COMPLETION_PROMPT_READY,
+  (data: { chat: { role: string; content: string }[]; dryRun: boolean }) => {
+    if (data.dryRun) {
+      return;
+    }
+
+    if (is_refreshing.value) {
+      stopGeneration();
+      is_refreshing.value = false;
+    }
+
+    setTimeout(async () => {
+      prompts.value = await Promise.all(
+        data.chat.map(async ({ role, content }) => {
+          return {
+            role,
+            content: content,
+            token: await getTokenCountAsync(content),
+          };
+        }),
+      );
+    });
+  },
+);
 </script>

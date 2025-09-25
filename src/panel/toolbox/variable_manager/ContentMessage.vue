@@ -53,6 +53,7 @@ const variables = ref<Record<string, any>>({
 </script>
 
 <style lang="scss" scoped>
+@reference "tailwindcss";
 .TH-floor-input {
   @apply w-full h-2 rounded-sm bg-(--SmartThemeQuoteColor) px-1 py-0.5 text-(--SmartThemeTextColor);
 }
