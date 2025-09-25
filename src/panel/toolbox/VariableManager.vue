@@ -35,7 +35,6 @@ const variables = ref<Record<string, any>>({
   },
   数组: [1, 2, 3],
 });
-watch(active_tab, () => {});
 </script>
 
 <style lang="scss" scoped>

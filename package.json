@@ -55,6 +55,7 @@
     "@popperjs/core": "^2.11.8",
     "@vueuse/core": "^13.9.0",
     "@vueuse/integrations": "^13.9.0",
+    "@vueuse/shared": "^13.9.0",
     "compare-versions": "^6.1.1",
     "emittery": "^1.2.0",
     "loglevel": "^1.9.2",
