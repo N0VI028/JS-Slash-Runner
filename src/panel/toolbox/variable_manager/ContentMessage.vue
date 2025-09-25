@@ -26,7 +26,10 @@
     </div>
   </div>
 
-  <Content v-model="variables" />
+  <template v-for="message_id in message_range" :key="message_id">
+    <!-- TODO: 从 message_id 获取 variables -->
+    <Content v-model="variables" />
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -35,6 +38,7 @@ import { chat } from '@sillytavern/script';
 
 const min_message_id = ref(0);
 const max_message_id = ref(0);
+const message_range = computed(() => _.range(min_message_id.value, max_message_id.value + 1));
 
 const variables = ref<Record<string, any>>({
   字符串: '字符串',
