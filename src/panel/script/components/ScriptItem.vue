@@ -2,15 +2,14 @@
   <!-- prettier-ignore-attribute -->
   <div
     class="
-      flex w-full flex-wrap items-center justify-between rounded-md border border-(--SmartThemeBorderColor) px-0.5
-      py-0.5
+      flex w-full flex-wrap items-center justify-between rounded-[10px] border border-(--SmartThemeBorderColor) p-[5px]
     "
     data-type="script"
     data-sortable-item
   >
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
     <div class="TH-script-item-name ml-0.5 flex-grow overflow-hidden">{{ script.name }}</div>
-    <div class="flex flex-nowrap items-center gap-0.5">
+    <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
       <div class="cursor-pointer" :class="{ enabled: true }">
         <i v-if="true" class="fa-solid fa-toggle-on"></i>

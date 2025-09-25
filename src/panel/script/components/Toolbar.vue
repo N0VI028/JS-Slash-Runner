@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <Button type="tavern" :on-click="make_TODO('创建脚本库脚本')"
+  <div class="flex gap-0.25">
+    <Button type="tavern" :on-click="open"
       ><i class="fa-solid fa-scroll" /><small>{{ t`+ 脚本` }}</small></Button
     >
     <Button type="tavern" :on-click="make_TODO('创建脚本库脚本文件夹')"
@@ -13,8 +13,22 @@
       ><i class="fa-solid fa-archive" /><small>{{ t`内置库` }}</small></Button
     >
   </div>
+
+  <!-- ScriptEditor 弹窗 -->
+  <Popup v-model:visible="showPopup">
+    <ScriptEditor />
+  </Popup>
 </template>
 
 <script setup lang="ts">
+import Popup from '@/panel/component/Popup.vue';
 import { make_TODO } from '@/todo';
+import { ref } from 'vue';
+import ScriptEditor from './ScriptEditor.vue';
+
+const showPopup = ref(false);
+
+const open = () => {
+  showPopup.value = true;
+};
 </script>

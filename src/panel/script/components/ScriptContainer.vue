@@ -14,7 +14,7 @@
   </div>
 
   <div class="flex h-full flex-col overflow-hidden">
-    <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-0.5 overflow-y-auto py-0.5">
+    <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
       <template v-for="(_script, index) in model.script_trees" :key="index">
         <template v-if="isScript(model.script_trees[index])">
           <ScriptItem v-model="model.script_trees[index]" />
@@ -28,8 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import FolderItem from '@/panel/script/FolderItem.vue';
-import ScriptItem from '@/panel/script/ScriptItem.vue';
+import FolderItem from '@/panel/script/components/FolderItem.vue';
+import ScriptItem from '@/panel/script/components/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
 import { useSortable } from '@vueuse/integrations/useSortable';

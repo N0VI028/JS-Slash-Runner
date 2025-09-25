@@ -14,8 +14,8 @@
 </template>
 
 <script setup lang="ts">
-import ScriptContainer from '@/panel/script/ScriptContainer.vue';
-import Toolbar from '@/panel/script/Toolbar.vue';
+import ScriptContainer from '@/panel/script/components/ScriptContainer.vue';
+import Toolbar from '@/panel/script/components/Toolbar.vue';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
 
