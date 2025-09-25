@@ -14,7 +14,8 @@
       "cwd": "${workspaceFolder}",
       "timeout": 100000,
       "skipFiles": [
-        "**/jquery*.min.js"
+        "**/jquery*.min.js",
+        "**/node_modules/**"
       ],
     },
     {
@@ -30,7 +31,8 @@
       "cwd": "${workspaceFolder}",
       "timeout": 100000,
       "skipFiles": [
-        "**/jquery*.min.js"
+        "**/jquery*.min.js",
+        "**/node_modules/**"
       ],
     },
     {
@@ -44,7 +46,8 @@
       "cwd": "${workspaceFolder}",
       "timeout": 100000,
       "skipFiles": [
-        "**/jquery*.min.js"
+        "**/jquery*.min.js",
+        "**/node_modules/**"
       ],
     },
     {
@@ -58,7 +61,8 @@
       "cwd": "${workspaceFolder}",
       "timeout": 100000,
       "skipFiles": [
-        "**/jquery*.min.js"
+        "**/jquery*.min.js",
+        "**/node_modules/**"
       ],
     }
   ]
