@@ -1,5 +1,5 @@
 <template>
-  <iframe v-show="false" :id="script.id" @load="onLoad" />
+  <iframe v-show="false" :id="script.id" />
 </template>
 
 <script setup lang="ts">
@@ -8,7 +8,4 @@ import { Script } from '@/type/scripts';
 defineProps<{ script: Script }>();
 
 // TODO: 实际编写
-function onLoad() {
-  toastr.success('加载成功');
-}
 </script>
