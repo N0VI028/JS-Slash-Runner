@@ -12,8 +12,8 @@
   <Divider />
   <ScriptContainer v-model="preset_store" title="预设脚本" description="绑定到当前预设" />
 
+  <!-- TODO: iframe 加载时间过早, 页面还没渲染完 -->
   <Teleport to="body">
-    <!-- TODO: 如何让 v-for 不考虑顺序 -->
     <template v-for="script in scripts" :key="script.id">
       <Iframe :script="script" />
     </template>
