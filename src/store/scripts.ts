@@ -1,23 +1,6 @@
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { ScriptTree } from '@/type/scripts';
 
-function computeEnabled(name: Ref<string | undefined>, enabled_arrays: Ref<string[]>) {
-  return computed({
-    get: () => name.value !== undefined && enabled_arrays.value.includes(name.value),
-    set: value => {
-      if (name.value === undefined) {
-        return;
-      }
-
-      if (value) {
-        enabled_arrays.value.push(name.value);
-      } else {
-        _.pull(enabled_arrays.value, name.value);
-      }
-    },
-  });
-}
-
 function createScriptsStore(type: 'global' | 'character' | 'preset') {
   return defineStore(`${type}_scripts`, () => {
     let enabled: Ref<boolean>;
@@ -26,25 +9,69 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
     switch (type) {
       case 'global': {
         const store = useGlobalSettingsStore();
-        enabled = toRef(store.settings.script.enabled, 'global');
-        script_trees = toRef(useGlobalSettingsStore().settings.script, 'scripts');
+        enabled = computed({
+          get: () => store.settings.script.enabled.global,
+          set: value => {
+            store.settings.script.enabled.global = value;
+          },
+        });
+        script_trees = computed({
+          get: () => store.settings.script.scripts,
+          set: value => {
+            store.settings.script.scripts = value;
+          },
+        });
         break;
       }
       case 'character': {
         const global_store = useGlobalSettingsStore();
         const character_store = useCharacterSettingsStore();
-        enabled = computeEnabled(
-          toRef(character_store, 'name'),
-          toRef(global_store.settings.script.enabled, 'characters'),
-        );
-        script_trees = toRef(character_store.settings, 'scripts');
+        enabled = computed({
+          get: () =>
+            character_store.name !== undefined &&
+            global_store.settings.script.enabled.characters.includes(character_store.name),
+          set: value => {
+            if (character_store.name === undefined) {
+              return;
+            }
+            if (value) {
+              global_store.settings.script.enabled.characters.push(character_store.name);
+            } else {
+              _.pull(global_store.settings.script.enabled.characters, character_store.name);
+            }
+          },
+        });
+        script_trees = computed({
+          get: () => character_store.settings.scripts,
+          set: value => {
+            character_store.settings.scripts = value;
+          },
+        });
         break;
       }
       case 'preset': {
         const global_store = useGlobalSettingsStore();
         const preset_store = usePresetSettingsStore();
-        enabled = computeEnabled(toRef(preset_store, 'name'), toRef(global_store.settings.script.enabled, 'presets'));
-        script_trees = toRef(preset_store.settings, 'scripts');
+        enabled = computed({
+          get: () =>
+            preset_store.name !== undefined && global_store.settings.script.enabled.presets.includes(preset_store.name),
+          set: value => {
+            if (preset_store.name === undefined) {
+              return;
+            }
+            if (value) {
+              global_store.settings.script.enabled.presets.push(preset_store.name);
+            } else {
+              _.pull(global_store.settings.script.enabled.presets, preset_store.name);
+            }
+          },
+        });
+        script_trees = computed({
+          get: () => preset_store.settings.scripts,
+          set: value => {
+            preset_store.settings.scripts = value;
+          },
+        });
         break;
       }
     }
