@@ -14,13 +14,7 @@
 
   <Teleport to="body">
     <!-- TODO: 如何让 v-for 不考虑顺序 -->
-    <template v-for="script in global_scripts" :key="script.id">
-      <Iframe :script="script" />
-    </template>
-    <template v-for="script in character_scripts" :key="script.id">
-      <Iframe :script="script" />
-    </template>
-    <template v-for="script in preset_scripts" :key="script.id">
+    <template v-for="script in scripts" :key="script.id">
       <Iframe :script="script" />
     </template>
   </Teleport>
@@ -41,18 +35,22 @@ const global_store = useGlobalScriptsStore();
 const character_store = useCharacterScriptsStore();
 const preset_store = usePresetScriptsStore();
 
-function computeScripts(store: ReturnType<typeof useGlobalScriptsStore>): Script[] {
-  if (!store.enabled) {
-    return [];
-  }
-  return _.flatMapDeep(store.script_trees, script => {
-    if (isScript(script)) {
-      return script.enabled ? [script] : [];
+const scripts = computed(() => {
+  const computeScripts = (store: ReturnType<typeof useGlobalScriptsStore>): Script[] => {
+    if (!store.enabled) {
+      return [];
     }
-    return script.scripts.filter(script => script.enabled);
-  });
-}
-const global_scripts = computed(() => computeScripts(global_store));
-const character_scripts = computed(() => computeScripts(character_store));
-const preset_scripts = computed(() => computeScripts(preset_store));
+    return _(store.script_trees)
+      .flatMap(script => {
+        if (isScript(script)) {
+          return script.enabled ? [script] : [];
+        }
+        return script.scripts.filter(script => script.enabled);
+      })
+      .value();
+  };
+  return _([...computeScripts(global_store), ...computeScripts(character_store), ...computeScripts(preset_store)])
+    .sortBy(script => script.id)
+    .value();
+});
 </script>
