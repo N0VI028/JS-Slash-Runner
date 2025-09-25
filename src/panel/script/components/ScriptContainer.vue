@@ -10,7 +10,7 @@
       <!-- prettier-ignore-attribute -->
       <div class="mt-0.25 text-(length:--TH-FontSize-sm) opacity-70">{{ props.description }}</div>
     </div>
-    <Toggle id="global-script-enable-toggle" v-model="store.enabled" />
+    <Toggle :id="`${props.title}-script-enable-toggle`" v-model="store.enabled" />
   </div>
 
   <div class="flex h-full flex-col overflow-hidden">
@@ -32,7 +32,6 @@ import FolderItem from '@/panel/script/components/FolderItem.vue';
 import ScriptItem from '@/panel/script/components/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
-import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useSortable } from '@vueuse/integrations/useSortable';
 
 const props = defineProps<{
@@ -41,41 +40,6 @@ const props = defineProps<{
 }>();
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
-store.value.script_trees = [
-  {
-    type: 'script',
-    enabled: true,
-    name: '测试脚本',
-    id: uuidv4(),
-    content: '测试脚本内容',
-    info: '测试脚本信息',
-    buttons_enabled: true,
-    buttons: [],
-    data: {},
-  },
-  {
-    type: 'script',
-    enabled: true,
-    name: '测试脚本2',
-    id: uuidv4(),
-    content: '测试脚本内容2',
-    buttons_enabled: true,
-    info: '测试脚本信息2',
-    buttons: [],
-    data: {},
-  },
-  {
-    type: 'script',
-    enabled: false,
-    name: '测试脚本3',
-    id: uuidv4(),
-    content: '测试脚本内容3',
-    buttons_enabled: true,
-    info: '测试脚本信息3',
-    buttons: [],
-    data: {},
-  },
-];
 
 const list_ref = useTemplateRef<HTMLDivElement>('list_ref');
 useSortable(list_ref, toRef(store.value, 'script_trees'), {
