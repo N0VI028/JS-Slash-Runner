@@ -11,7 +11,6 @@
       <i class="fa-solid fa-folder-open ml-0.5"></i>
       <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden">{{ script_folder.name }}</span>
       <div class="flex shrink-0 flex-nowrap items-center gap-0.25">
-        <!-- 批量开关文件夹内脚本 -->
         <!-- prettier-ignore-attribute -->
         <div
           class="menu_button interactable mt-0! mr-0.5 mb-0!"
@@ -25,19 +24,10 @@
             <i class="fa-solid" :class="icon"></i>
           </div>
         </DefineScriptFolderIconTemplate>
-        <!-- 编辑文件夹 -->
         <ReuseScriptFolderIconTemplate name="编辑文件夹" icon="fa-pencil" />
-
-        <!-- 导出文件夹 -->
         <ReuseScriptFolderIconTemplate name="导出文件夹" icon="fa-file-export" />
-
-        <!-- 移动文件夹 -->
         <ReuseScriptFolderIconTemplate name="移动到其他脚本库" icon="fa-exchange-alt" />
-
-        <!-- 删除文件夹 -->
         <ReuseScriptFolderIconTemplate name="删除文件夹" icon="fa-trash" />
-
-        <!-- 展开/折叠 -->
         <ReuseScriptFolderIconTemplate name="展开或折叠文件夹" icon="fa-chevron-down" />
       </div>
     </div>
@@ -49,7 +39,6 @@
 import { ScriptFolder } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 import { useSortable } from '@vueuse/integrations/useSortable';
-import { ref } from 'vue';
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
 
@@ -58,11 +47,10 @@ const [DefineScriptFolderIconTemplate, ReuseScriptFolderIconTemplate] = createRe
   icon: string;
 }>();
 
-const folder_header_ref = ref<HTMLElement | null>(null);
-const folder_container_ref = ref<HTMLElement | null>(null);
-const folderContentItems = ref<unknown[]>([]);
+const folder_header_ref = useTemplateRef<HTMLElement>('folder_header_ref');
+const folder_content_ref = useTemplateRef<HTMLElement>('folder_content_ref');
 
-useSortable(folder_container_ref, folderContentItems, {
+useSortable(folder_content_ref, script_folder.value.scripts, {
   group: { name: 'scripts', pull: true, put: true },
   handle: '.TH-handle',
   draggable: '[data-sortable-item]',

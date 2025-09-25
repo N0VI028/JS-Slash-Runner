@@ -28,8 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import FolderItem from '@/panel/script/components/FolderItem.vue';
-import ScriptItem from '@/panel/script/components/ScriptItem.vue';
+import FolderItem from '@/panel/script/FolderItem.vue';
+import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
 import { useSortable } from '@vueuse/integrations/useSortable';

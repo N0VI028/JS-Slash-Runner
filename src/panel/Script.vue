@@ -6,11 +6,12 @@
     :placeholder="t`搜索（支持普通和正则）`"
     clearable
   />
-  <ScriptContainer v-model="global_store" title="全局脚本" description="酒馆全局可用" />
+
+  <Container v-model="global_store" title="全局脚本" description="酒馆全局可用" />
   <Divider />
-  <ScriptContainer v-model="character_store" title="角色脚本" description="绑定到当前角色卡" />
+  <Container v-model="character_store" title="角色脚本" description="绑定到当前角色卡" />
   <Divider />
-  <ScriptContainer v-model="preset_store" title="预设脚本" description="绑定到当前预设" />
+  <Container v-model="preset_store" title="预设脚本" description="绑定到当前预设" />
 
   <!-- TODO: iframe 加载时间过早, 页面还没渲染完 -->
   <Teleport to="body">
@@ -21,9 +22,9 @@
 </template>
 
 <script setup lang="ts">
-import Iframe from '@/panel/script/components/Iframe.vue';
-import ScriptContainer from '@/panel/script/components/ScriptContainer.vue';
-import Toolbar from '@/panel/script/components/Toolbar.vue';
+import Container from '@/panel/script/Container.vue';
+import Iframe from '@/panel/script/Iframe.vue';
+import Toolbar from '@/panel/script/Toolbar.vue';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
 import { isScript, Script } from '@/type/scripts';

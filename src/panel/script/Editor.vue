@@ -1,26 +1,27 @@
 <template>
-  <div id="script-editor" class="flex-container flexFlowColumn alignItemsCenter height100p overflowYAuto">
+  <div class="flex-container flexFlowColumn alignItemsCenter height100p overflowYAuto">
     <h3 class="flex-container alignItemsCenter">脚本编辑</h3>
     <div id="script-name" class="script-editor-container">
       <h4>脚本名称</h4>
-      <input type="text" id="script-name-input" />
+      <input v-model="script.id" type="text" />
     </div>
     <div id="script-content" class="script-editor-container">
       <h4>脚本内容</h4>
-      <textarea id="script-content-textarea" placeholder="脚本的JavaScript代码" rows="6"></textarea>
+      <textarea v-model="script.content" placeholder="脚本的JavaScript代码" rows="6" />
     </div>
     <div id="script-info" class="script-editor-container">
       <h4>作者备注</h4>
       <textarea
         id="script-info-textarea"
+        v-model="script.info"
         placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等，支持简单的markdown和html"
         rows="3"
-      ></textarea>
+      />
     </div>
     <div id="variable-editor" class="script-editor-container">
       <div class="flex-container alignItemsCenter justifyContentCenter">
         <h4>变量列表</h4>
-        <div class="menu_button interactable" id="add-variable-trigger">
+        <div id="add-variable-trigger" class="menu_button interactable">
           <i class="fa-solid fa-plus"></i>
         </div>
       </div>
@@ -30,7 +31,7 @@
     <div id="script-button-content" class="script-editor-container">
       <div class="flex-container gap10 alignItemsCenter justifyContentCenter">
         <h4>按钮触发</h4>
-        <div class="menu_button interactable" id="add-button-trigger">
+        <div id="add-button-trigger" class="menu_button interactable">
           <i class="fa-solid fa-plus"></i>
         </div>
       </div>
@@ -41,41 +42,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { Script } from '@/type/scripts';
 
-interface Props {
-  script?: {
-    name?: string;
-    content?: string;
-    info?: string;
-    data?: Record<string, any>;
-    buttons?: Array<{
-      name: string;
-      buttonText: string;
-    }>;
-  };
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  script: undefined,
-});
-
-const emit = defineEmits<{
-  ready: [element: HTMLElement];
-}>();
-
-onMounted(() => {
-  const $element = $('#script-editor');
-  if ($element.length > 0) {
-    if (props.script) {
-      $element.find('#script-name-input').val(props.script.name || '');
-      $element.find('#script-content-textarea').val(props.script.content || '');
-      $element.find('#script-info-textarea').val(props.script.info || '');
-    }
-
-    emit('ready', $element[0]);
-  }
-});
+const script = defineModel<Script>({ default: Script.parse({}) });
 </script>
 
 <style scoped>

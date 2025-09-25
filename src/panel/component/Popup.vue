@@ -8,40 +8,33 @@
         overflow-visible rounded-[10px] border border-(--SmartThemeBorderColor) bg-(--SmartThemeBlurTintColor) px-[14px]
         py-[4px] text-center subpixel-antialiased shadow-[0_0_14px_var(--black70a)] backface-hidden
       "
-      @close="handleClose"
+      @close="visible = false"
     >
-      <div>
-        <slot></slot>
-      </div>
-      <button @click="handleClose">关闭</button>
+      <slot></slot>
+      <button @click="visible = false">关闭</button>
     </dialog>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
-
-const props = defineProps<{ visible: boolean }>();
-const popup_ref = ref<HTMLDialogElement>();
+const visible = defineModel<boolean>({ required: true });
+const popup_ref = useTemplateRef<HTMLDialogElement>('popup_ref');
 
 watch(
-  () => props.visible,
+  visible,
   async visible => {
     if (visible) {
       await nextTick();
-      if (!popup_ref.value) return;
-      console.log('showModal1');
+      if (!popup_ref.value) {
+        return;
+      }
       popup_ref.value.showModal();
-      console.log('showModal2');
     } else if (popup_ref.value?.open) {
       popup_ref.value.close();
     }
   },
   { immediate: true },
 );
-
-const emit = defineEmits<{ (e: 'update:visible', value: boolean): void }>();
-const handleClose = () => emit('update:visible', false);
 </script>
 
 <style lang="scss" scoped>

@@ -1,34 +1,28 @@
 <template>
   <div class="flex gap-0.25">
-    <Button type="tavern" :on-click="open"
+    <Button type="tavern" @click="show_editor = true"
       ><i class="fa-solid fa-scroll" /><small>{{ t`+ 脚本` }}</small></Button
     >
-    <Button type="tavern" :on-click="make_TODO('创建脚本库脚本文件夹')"
+    <Button type="tavern" @click="make_TODO('创建脚本库脚本文件夹')"
       ><i class="fa-solid fa-folder-plus" /><small>{{ t`+ 文件夹` }}</small></Button
     >
-    <Button type="tavern" :on-click="make_TODO('导入脚本库脚本')"
+    <Button type="tavern" @click="make_TODO('导入脚本库脚本')"
       ><i class="fa-solid fa-file-import" /><small>{{ t`导入` }}</small></Button
     >
-    <Button type="tavern" :on-click="make_TODO('查看脚本库内置库')"
+    <Button type="tavern" @click="make_TODO('查看脚本库内置库')"
       ><i class="fa-solid fa-archive" /><small>{{ t`内置库` }}</small></Button
     >
   </div>
 
-  <!-- ScriptEditor 弹窗 -->
-  <Popup v-model:visible="showPopup">
-    <ScriptEditor />
+  <Popup v-model="show_editor">
+    <Editor />
   </Popup>
 </template>
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
+import Editor from '@/panel/script/Editor.vue';
 import { make_TODO } from '@/todo';
-import { ref } from 'vue';
-import ScriptEditor from './ScriptEditor.vue';
 
-const showPopup = ref(false);
-
-const open = () => {
-  showPopup.value = true;
-};
+const show_editor = ref(false);
 </script>
