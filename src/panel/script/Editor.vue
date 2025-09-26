@@ -86,7 +86,7 @@ const submit = () => {
       });
     return false;
   }
-  emit('submit', _.cloneDeep(script.value));
+  emit('submit', result.data);
   return true;
 };
 </script>
