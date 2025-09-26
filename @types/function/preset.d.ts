@@ -234,6 +234,19 @@ type ReplacePresetOptions = {
  * await replacePreset('in_use', preset);
  *
  * @example
+ * // 为酒馆正在使用的预设添加一个提示词条目
+ * const preset = getPreset('in_use');
+ * preset.prompts.push({
+ *   id: 'new_prompt',
+ *   name: '新提示词',
+ *   enabled: true,
+ *   position: { type: 'relative' },
+ *   role: 'user',
+ *   content: '新提示词内容',
+ * });
+ * await replacePreset('in_use', preset);
+ *
+ * @example
  * // 将 '预设A' 的条目按顺序复制到 '预设B' 开头
  * const preset_a = getPreset('预设A');
  * const preset_b = getPreset('预设B');
@@ -261,6 +274,20 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  * // 为酒馆正在使用的预设开启流式传输
  * await updatePresetWith('in_use', preset => {
  *   preset.settings.should_stream = true;
+ *   return preset;
+ * });
+ *
+ * @example
+ * // 为酒馆正在使用的预设添加一个提示词条目
+ * await updatePresetWith('in_use', preset => {
+ *   preset.prompts.push({
+ *     id: 'new_prompt',
+ *     name: '新提示词',
+ *     enabled: true,
+ *     position: { type: 'relative' },
+ *     role: 'user',
+ *     content: '新提示词内容',
+ *   });
  *   return preset;
  * });
  *
