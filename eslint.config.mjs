@@ -41,6 +41,7 @@ export default [
             'list-*',
             'menu_button*',
             'text_pole',
+            'popup',
           ],
         },
       ],

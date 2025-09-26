@@ -24,7 +24,7 @@
         <i v-else class="fa-solid fa-toggle-off"></i>
       </div>
       <DefineScriptIconTemplate v-slot="{ name, icon }">
-        <div class="menu_button interactable mt-0! mr-0.5 mb-0!" :title="name">
+        <div class="menu_button interactable mt-0! mr-0.5 mb-0! p-[5px]!" :title="name">
           <i class="fa-solid" :class="icon"></i>
         </div>
       </DefineScriptIconTemplate>
@@ -60,25 +60,6 @@ const script = defineModel<Script>({ required: true });
 :has(.TH-script-toggle:not(.enabled)) .TH-script-item-name {
   text-decoration: line-through;
   filter: grayscale(0.5);
-}
-
-.menu_button {
-  width: calc(var(--icon-size) * 1.6);
-  height: calc(var(--icon-size) * 1.6);
-}
-
-i {
-  font-size: calc(var(--icon-size) * 0.95) !important;
-}
-
-.menu_button {
-  cursor: pointer;
-  padding: 3px;
-  border-radius: 5px;
-}
-
-.menu_button:hover {
-  background-color: var(--SmartThemeBlurTintColor);
 }
 
 /* 拖拽状态样式 */

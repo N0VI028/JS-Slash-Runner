@@ -88,18 +88,6 @@ useSortable(folder_content_ref, script_folder.value.scripts, {
   margin-bottom: 0;
 }
 
-.menu_button {
-  cursor: pointer;
-  padding: 3px;
-  border-radius: 5px;
-  background-color: transparent;
-  border: none;
-}
-
-.menu_button:hover {
-  background-color: var(--SmartThemeBlurTintColor);
-}
-
 /* 拖拽状态样式 */
 .dragging-source {
   opacity: 0.6;

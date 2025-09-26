@@ -1,24 +1,83 @@
-<template>
+﻿<template>
   <Teleport v-if="visible" to="body">
     <!-- prettier-ignore-attribute -->
-    <dialog
-      ref="popup_ref"
-      class="
-        TH-popup z-auto flex max-h-[calc(100dvh-2em)] min-h-fit w-[500px] max-w-[calc(100dvw-2em)] flex-col
-        overflow-visible rounded-[10px] border border-(--SmartThemeBorderColor) bg-(--SmartThemeBlurTintColor) px-[14px]
-        py-[4px] text-center subpixel-antialiased shadow-[0_0_14px_var(--black70a)] backface-hidden
-      "
-      @close="visible = false"
-    >
+    <dialog ref="popup_ref" class="popup" @close="visible = false">
       <slot></slot>
-      <button @click="visible = false">关闭</button>
+      <div v-if="actionsToRender.length" class="flex items-center justify-center gap-[5px]">
+        <button
+          v-for="action in actionsToRender"
+          :key="action.key ?? action.label"
+          class="menu_button interactable w-[unset]!"
+          :class="action.class"
+          :disabled="action.disabled"
+          @click="handleActionClick(action)"
+        >
+          {{ action.label }}
+        </button>
+      </div>
     </dialog>
   </Teleport>
 </template>
 
 <script setup lang="ts">
+type PopupAction = {
+  key?: string | number;
+  label: string;
+  handler?: () => unknown | Promise<unknown>;
+  closeOnClick?: boolean; //点击按钮后是否关闭弹窗
+  class?: string;
+  disabled?: boolean; //控制交互，比如表单填写不正确时按钮不可点击
+};
+
 const visible = defineModel<boolean>({ required: true });
 const popup_ref = useTemplateRef<HTMLDialogElement>('popup_ref');
+
+const emit = defineEmits<{
+  (e: 'confirm'): void;
+  (e: 'cancel'): void;
+  (e: 'action', action: PopupAction): void;
+}>();
+
+const props = defineProps<{
+  actions?: PopupAction[];
+}>();
+
+const defaultActions: PopupAction[] = [
+  {
+    key: 'confirm',
+    label: '确认',
+    class: 'popup-button-ok',
+    handler: () => emit('confirm'),
+    closeOnClick: true,
+  },
+  {
+    key: 'cancel',
+    label: '取消',
+    handler: () => emit('cancel'),
+    closeOnClick: true,
+  },
+];
+
+const actionsToRender = computed(() => (props.actions !== undefined ? props.actions : defaultActions));
+
+const close = () => {
+  visible.value = false;
+};
+
+const handleActionClick = async (action: PopupAction) => {
+  emit('action', action);
+
+  try {
+    await action.handler?.();
+  } catch (error) {
+    console.error('[TH-Popup] Popup 弹窗操作处理错误:', error);
+    return;
+  }
+
+  if (action.closeOnClick ?? true) {
+    close();
+  }
+};
 
 watch(
   visible,
@@ -35,11 +94,9 @@ watch(
   },
   { immediate: true },
 );
+
+defineExpose({ close });
 </script>
 
 <style lang="scss" scoped>
-.TH-popup[open]::backdrop {
-  backdrop-filter: blur(calc(var(--SmartThemeBlurStrength) * 2));
-  background-color: var(--black30a);
-}
 </style>
