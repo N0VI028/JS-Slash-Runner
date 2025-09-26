@@ -17,5 +17,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SearchBar: typeof import('./src/panel/component/SearchBar.vue')['default']
     Toggle: typeof import('./src/panel/component/Toggle.vue')['default']
+    UseVirtualList: typeof import('@vueuse/components')['UseVirtualList']
   }
 }
