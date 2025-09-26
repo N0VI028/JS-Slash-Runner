@@ -20,7 +20,7 @@ export const GlobalSettings = z
     render: z
       .object({
         enabled: z.boolean().default(true),
-        hide_style: z.boolean().default(false),
+        collapse_code_block: z.boolean().default(false),
         loading: z.boolean().default(true),
         blob_url: z.boolean().default(false),
         depth: z.number().default(0),

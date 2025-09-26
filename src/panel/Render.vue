@@ -11,7 +11,7 @@
     <template #title>{{ t`启用代码折叠` }}</template>
     <template #description>{{ t`折叠所有代码块，避免正则替换成前端代码时影响阅读` }}</template>
     <template #content>
-      <Toggle id="TH-render-hide-style" v-model="hide_style" />
+      <Toggle id="TH-render-collapse-code-block" v-model="collapse_code_block" />
     </template>
   </Item>
   <Divider />
@@ -43,12 +43,13 @@
 </template>
 
 <script setup lang="ts">
+import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { optimizeHljs } from '@/panel/render/optimize_hljs';
 import { useGlobalSettingsStore } from '@/store/settings';
 
-const { enabled, hide_style, loading, blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
-// TODO: watch(enabled, () => {启用渲染器}, { immediate: true });
-// TODO: watch(hide_style, () => {启用代码折叠}, { immediate: true });
-
 optimizeHljs();
+
+const { enabled, collapse_code_block, loading, blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
+
+useCollapseCodeBlock(collapse_code_block);
 </script>
