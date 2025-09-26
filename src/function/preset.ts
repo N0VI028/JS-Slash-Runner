@@ -347,9 +347,9 @@ function fromPresetPrompt(prompt: PresetPrompt): _OriginalPrompt {
 
   if ((is_normal_prompt || is_placeholder_prompt) && !['dialogueExamples', 'chatHistory'].includes(prompt.id)) {
     result = result
-      .set('injection_position', prompt.position.type === 'relative' ? 0 : 1)
-      .set('injection_depth', prompt.position.depth ?? 4)
-      .set('injection_order', prompt.position.order ?? 100);
+      .set('injection_position', (prompt.position?.type ?? 'relative') === 'relative' ? 0 : 1)
+      .set('injection_depth', prompt.position?.depth ?? 4)
+      .set('injection_order', prompt.position?.order ?? 100);
   }
 
   result = result.set('role', prompt.role);
