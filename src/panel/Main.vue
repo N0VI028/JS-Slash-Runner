@@ -10,7 +10,9 @@
     <i class="fa-solid fa-tools mr-0.5" />
     <div style="word-spacing: 1.5">{{ t`开发工具` }}</div>
   </Divider>
+  <Listener />
   <Reference />
+  <Macrolike />
   <Divider type="major">
     <i class="fa-solid fa-shapes mr-0.5" />
     <div style="word-spacing: 1.5">{{ t`扩展信息` }}</div>
@@ -20,6 +22,8 @@
 
 <script setup lang="ts">
 import Info from '@/panel/main/Info.vue';
+import Listener from '@/panel/main/Listener.vue';
+import Macrolike from '@/panel/main/Macrolike.vue';
 import Reference from '@/panel/main/Reference.vue';
 import { make_TODO } from '@/todo';
 </script>
