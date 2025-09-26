@@ -34,6 +34,15 @@
   color: #f1f1f1;
 }
 
+.variable-manager-warning {
+  background-color: rgba(248, 211, 0, 0.5);
+  color: var(--black90a);
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  font-size: calc(var(--mainFontSize) * 0.8);
+}
+
 /* 通用按钮样式 */
 .vm-btn {
   background: transparent;
