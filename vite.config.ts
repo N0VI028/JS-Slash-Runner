@@ -1,6 +1,7 @@
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 import unpluginAutoImport from 'unplugin-auto-import/vite';
+import { VueUseComponentsResolver, VueUseDirectiveResolver } from 'unplugin-vue-components/resolvers';
 import unpluginVueComponents from 'unplugin-vue-components/vite';
 import { defineConfig } from 'vite';
 import pluginExternal from 'vite-plugin-external';
@@ -35,15 +36,14 @@ export default defineConfig(({ mode }) => ({
         'pinia',
         '@vueuse/core',
         { from: '@sillytavern/scripts/i18n', imports: ['t'] },
-        { from: 'zod', imports: ['z'] }
+        { from: 'zod', imports: ['z'] },
       ],
-      dirs: [
-        { glob: './src/panel/composable', types: true }
-      ]
+      dirs: [{ glob: './src/panel/composable', types: true }],
     }),
     unpluginVueComponents({
       dts: true,
       globs: ['src/panel/component/*.vue'],
+      resolvers: [VueUseComponentsResolver(), VueUseDirectiveResolver()],
     }),
     {
       name: 'sillytavern_resolver',

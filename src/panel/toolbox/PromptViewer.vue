@@ -74,33 +74,58 @@
         </div>
       </div>
     </div>
-    <div v-bind="containerProps" class="relative h-full flex-1 overflow-x-hidden overflow-y-auto">
-      <div v-bind="wrapperProps">
-        <template v-for="{ data, index } in list" :key="index">
-          <Item :prompt="data" />
-        </template>
-      </div>
-    </div>
+    <UseVirtualList
+      :list="filtered_prompts"
+      :options="{ itemHeight: 60 }"
+      height="100%"
+      class="relative flex-1 overflow-x-hidden overflow-y-auto"
+    >
+      <template #default="{ data }">
+        <div class="mb-1 rounded-md border border-(--SmartThemeBorderColor) p-1 text-(--SmartThemeBodyColor)">
+          <div
+            class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
+            @click="data.is_expanded = !data.is_expanded"
+          >
+            <span>
+              Role: <span>{{ data.role }}</span> | Token: <span>{{ data.token }}</span>
+            </span>
+            <div class="fa-solid fa-circle-chevron-down"></div>
+          </div>
+          <template v-if="data.is_expanded">
+            <Divider />
+            <!-- prettier-ignore-attribute -->
+            <div
+              class="
+                mt-0.5 max-h-[40%] overflow-x-hidden overflow-y-auto rounded-b-md leading-[1.4] break-words
+                whitespace-pre-wrap text-(--mainFontSize)
+              "
+            >
+              <span>{{ data.content }}</span>
+            </div>
+          </template>
+        </div>
+      </template>
+    </UseVirtualList>
   </div>
 </template>
 
 <script setup lang="ts">
-import Item from '@/panel/toolbox/prompt_viewer/Item.vue';
-import { PromptData } from '@/panel/toolbox/prompt_viewer/type';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
 import { oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
+
+export interface PromptData {
+  role: string;
+  content: string;
+  token: number;
+}
 
 const prompts = shallowRef<PromptData[]>([]);
 const is_refreshing = ref<boolean>(false);
 
 const filtered_prompts = computed(() => {
   // TODO: 处理身份筛选和搜索
-  return prompts.value;
-});
-const { list, containerProps, wrapperProps } = useVirtualList(filtered_prompts, {
-  // TODO: 调整高度, 必须与一行的高度匹配
-  itemHeight: 60,
+  return prompts.value.map(prompt => ({ ...prompt, is_expanded: false }));
 });
 
 function handleRefresh(): void {
