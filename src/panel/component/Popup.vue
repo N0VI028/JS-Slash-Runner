@@ -3,7 +3,7 @@
     <!-- prettier-ignore-attribute -->
     <dialog ref="popup_ref" class="popup" @close="visible = false">
       <slot></slot>
-      <div v-if="actionsToRender.length" class="flex items-center justify-center gap-[5px]">
+      <div v-if="actionsToRender.length" class="flex items-center justify-center gap-[20px]">
         <button
           v-for="action in actionsToRender"
           :key="action.key ?? action.label"

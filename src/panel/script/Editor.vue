@@ -1,36 +1,42 @@
 <template>
-  <div class="flex-container flexFlowColumn alignItemsCenter height100p overflowYAuto">
-    <h3 class="flex-container alignItemsCenter">脚本编辑</h3>
-    <div id="script-name" class="script-editor-container">
-      <h4>脚本名称</h4>
-      <input v-model="script.id" type="text" />
+  <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
+    <div class="my-0.5 text-(length:--TH-FontSize-md) font-bold">脚本编辑</div>
+    <div id="script-name" class="TH-script-editor-container">
+      <div>脚本名称</div>
+      <input v-model="script.id" type="text" class="text_pole" />
     </div>
-    <div id="script-content" class="script-editor-container">
-      <h4>脚本内容</h4>
-      <textarea v-model="script.content" placeholder="脚本的JavaScript代码" rows="6" />
+    <div id="script-content" class="TH-script-editor-container">
+      <div>脚本内容</div>
+      <textarea
+        v-model="script.content"
+        placeholder="脚本的JavaScript代码"
+        rows="6"
+        class="text_pole font-[family-name:var(--monoFontFamily)]!"
+      />
     </div>
-    <div id="script-info" class="script-editor-container">
-      <h4>作者备注</h4>
+    <div id="script-info" class="TH-script-editor-container">
+      <div>作者备注</div>
       <textarea
         id="script-info-textarea"
         v-model="script.info"
         placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等，支持简单的markdown和html"
         rows="3"
+        class="text_pole font-[family-name:var(--monoFontFamily)]!"
       />
     </div>
-    <div id="variable-editor" class="script-editor-container">
-      <div class="flex-container alignItemsCenter justifyContentCenter">
-        <h4>变量列表</h4>
+    <div id="variable-editor" class="TH-script-editor-container">
+      <div class="flex flex-wrap items-center justify-center gap-[5px]">
+        <div>变量列表</div>
         <div id="add-variable-trigger" class="menu_button interactable">
           <i class="fa-solid fa-plus"></i>
         </div>
       </div>
       <small>绑定到脚本的变量，会随脚本一同导出</small>
-      <div id="variable-list" class="flex-container flexFlowColumn width100p gap10p"></div>
+      <div id="variable-list" class="flex w-full flex-col flex-wrap gap-1"></div>
     </div>
-    <div id="script-button-content" class="script-editor-container">
-      <div class="flex-container gap10 alignItemsCenter justifyContentCenter">
-        <h4>按钮触发</h4>
+    <div id="script-button-content" class="TH-script-editor-container">
+      <div class="flex flex-wrap items-center justify-center gap-[5px]">
+        <div>按钮触发</div>
         <div id="add-button-trigger" class="menu_button interactable">
           <i class="fa-solid fa-plus"></i>
         </div>
@@ -48,17 +54,10 @@ const script = defineModel<Script>({ default: Script.parse({}) });
 </script>
 
 <style scoped>
-.script-editor-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 10px;
-  width: 100%;
-}
+@reference 'tailwindcss';
 
-/* 变量编辑器样式 */
-#variable-editor {
-  margin-bottom: 15px;
+.TH-script-editor-container {
+  @apply flex flex-col items-start mb-1 w-full;
 }
 
 #variable-list {
@@ -76,21 +75,6 @@ const script = defineModel<Script>({ default: Script.parse({}) });
 #script-info-textarea {
   font-family: var(--monoFontFamily);
   padding: 8px;
-}
-
-#script-content-textarea,
-#script-info-textarea {
-  white-space: pre-wrap;
-  tab-size: 4;
-  color: var(--text-color-main);
-  grid-column: 1;
-  grid-row: 1;
-  caret-color: var(--ac-style-color-text);
-  overflow: auto;
-}
-
-#script-name-input {
-  padding: 0.75em;
 }
 
 :deep(.button-item) {
