@@ -3,7 +3,7 @@
     <div class="my-0.5 text-(length:--TH-FontSize-md) font-bold">脚本编辑</div>
     <div id="script-name" class="TH-script-editor-container">
       <div>脚本名称</div>
-      <input v-model="script.id" type="text" class="text_pole" />
+      <input v-model="script.name" type="text" class="text_pole" />
     </div>
     <div id="script-content" class="TH-script-editor-container">
       <div>脚本内容</div>
@@ -27,7 +27,7 @@
     <div id="variable-editor" class="TH-script-editor-container">
       <div class="flex flex-wrap items-center justify-center gap-[5px]">
         <div>变量列表</div>
-        <div id="add-variable-trigger" class="menu_button interactable">
+        <div class="menu_button interactable" @click="addVariable">
           <i class="fa-solid fa-plus"></i>
         </div>
       </div>
@@ -48,9 +48,42 @@
 </template>
 
 <script setup lang="ts">
+import type { TargetSelection } from '@/panel/script/TargetSelector.vue';
 import { Script } from '@/type/scripts';
+import { computed, watch } from 'vue';
 
 const script = defineModel<Script>({ default: Script.parse({}) });
+
+const props = withDefaults(defineProps<{ targetSelection?: TargetSelection }>(), {
+  targetSelection: 'global',
+});
+
+const isNameEmpty = computed(() => !script.value.name.trim());
+
+const validateScript = () => {
+  if (isNameEmpty.value) {
+    toastr.error('请输入脚本名称', '保存失败');
+    return false;
+  }
+  return true;
+};
+
+const addVariable = () => {
+  // TODO: 添加变量
+};
+
+watch(
+  () => props.targetSelection,
+  selection => {
+    script.value.data.target = selection;
+  },
+  { immediate: true },
+);
+
+defineExpose({
+  validateScript,
+});
+
 </script>
 
 <style scoped>

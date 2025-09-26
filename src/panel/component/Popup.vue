@@ -9,7 +9,6 @@
           :key="action.key ?? action.label"
           class="menu_button interactable w-[unset]!"
           :class="action.class"
-          :disabled="action.disabled"
           @click="handleActionClick(action)"
         >
           {{ action.label }}
@@ -26,7 +25,6 @@ type PopupAction = {
   handler?: () => unknown | Promise<unknown>;
   closeOnClick?: boolean; //点击按钮后是否关闭弹窗
   class?: string;
-  disabled?: boolean; //控制交互，比如表单填写不正确时按钮不可点击
 };
 
 const visible = defineModel<boolean>({ required: true });
@@ -38,27 +36,70 @@ const emit = defineEmits<{
   (e: 'action', action: PopupAction): void;
 }>();
 
-const props = defineProps<{
-  actions?: PopupAction[];
-}>();
-
-const defaultActions: PopupAction[] = [
+const props = withDefaults(
+  defineProps<{
+    actions?: PopupAction[];
+    onConfirm?: () => unknown | Promise<unknown>;
+    onCancel?: () => unknown | Promise<unknown>;
+    // 控制是否显示默认的确认按钮
+    showConfirm?: boolean;
+  }>(),
   {
-    key: 'confirm',
-    label: '确认',
-    class: 'popup-button-ok',
-    handler: () => emit('confirm'),
-    closeOnClick: true,
+    actions: undefined,
+    onConfirm: undefined,
+    onCancel: undefined,
+    showConfirm: true,
   },
-  {
-    key: 'cancel',
-    label: '取消',
-    handler: () => emit('cancel'),
-    closeOnClick: true,
+);
+/**
+ * 创建确认按钮
+ */
+const createConfirmAction = (): PopupAction => ({
+  key: 'confirm',
+  label: '确认',
+  class: 'popup-button-ok',
+  handler: async () => {
+    emit('confirm');
+    if (props.onConfirm) {
+      return await props.onConfirm();
+    }
+    return true;
   },
-];
+  closeOnClick: true, 
+});
 
-const actionsToRender = computed(() => (props.actions !== undefined ? props.actions : defaultActions));
+/**
+ * 创建取消按钮
+ */
+const createCancelAction = (): PopupAction => ({
+  key: 'cancel',
+  label: '取消',
+  handler: async () => {
+    emit('cancel');
+    if (props.onCancel) {
+      return await props.onCancel();
+    }
+    return true;
+  },
+  closeOnClick: true, 
+});
+
+const actionsToRender = computed(() => {
+  const actions: PopupAction[] = [];
+
+  if (props.actions && props.actions.length > 0) {
+    actions.push(...props.actions);
+  } else if (props.showConfirm !== false) {
+    actions.push(createConfirmAction());
+  }
+
+  const hasCancelAction = actions.some(action => action.key === 'cancel');
+  if (!hasCancelAction) {
+    actions.push(createCancelAction());
+  }
+
+  return actions;
+});
 
 const close = () => {
   visible.value = false;
@@ -67,10 +108,9 @@ const close = () => {
 const handleActionClick = async (action: PopupAction) => {
   emit('action', action);
 
-  try {
-    await action.handler?.();
-  } catch (error) {
-    console.error('[TH-Popup] Popup 弹窗操作处理错误:', error);
+  const result = action.handler ? await action.handler() : undefined;
+  // 如果返回 false，则暂时不关闭弹窗
+  if (result === false) {
     return;
   }
 
@@ -79,6 +119,9 @@ const handleActionClick = async (action: PopupAction) => {
   }
 };
 
+/**
+ * 监听 visible 的变化，如果 visible 为 true，则显示弹窗，如果 visible 为 false，则关闭弹窗
+ */
 watch(
   visible,
   async visible => {
@@ -98,5 +141,4 @@ watch(
 defineExpose({ close });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

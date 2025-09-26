@@ -29,15 +29,20 @@
         </div>
       </DefineScriptIconTemplate>
       <ReuseScriptIconTemplate name="查看脚本信息" icon="fa-info-circle" />
-      <ReuseScriptIconTemplate name="编辑脚本" icon="fa-pencil" />
+      <ReuseScriptIconTemplate name="编辑脚本" icon="fa-pencil" @click="openEditor" />
       <ReuseScriptIconTemplate name="移动到其他脚本库" icon="fa-exchange-alt" />
       <ReuseScriptIconTemplate name="导出脚本" icon="fa-file-export" />
       <ReuseScriptIconTemplate name="删除脚本" icon="fa-trash" />
     </div>
   </div>
+
+  <Popup v-model="showEditor" :on-confirm="handleEditorConfirm">
+    <Editor ref="editorRef" v-model="script" />
+  </Popup>
 </template>
 
 <script setup lang="ts">
+import Editor from '@/panel/script/Editor.vue';
 import { Script } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 
@@ -47,6 +52,17 @@ const [DefineScriptIconTemplate, ReuseScriptIconTemplate] = createReusableTempla
 }>();
 
 const script = defineModel<Script>({ required: true });
+
+const showEditor = ref(false);
+const editorRef = ref<InstanceType<typeof Editor>>();
+
+const openEditor = () => {
+  showEditor.value = true;
+};
+
+const handleEditorConfirm = () => {
+  // TODO: 保存脚本
+};
 </script>
 
 <style lang="scss" scoped>
