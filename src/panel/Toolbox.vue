@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import PromptViewer from '@/panel/toolbox/prompt_viewer/Main.vue';
+import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
 import VariableManager from '@/panel/toolbox/VariableManager.vue';
 
 const enable_prompt_viewer = ref<boolean>(false);
