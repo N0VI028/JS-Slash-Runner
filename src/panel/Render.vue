@@ -43,9 +43,12 @@
 </template>
 
 <script setup lang="ts">
+import { optimizeHljs } from '@/panel/render/optimize_hljs';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 const { enabled, hide_style, loading, blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
 // TODO: watch(enabled, () => {启用渲染器}, { immediate: true });
 // TODO: watch(hide_style, () => {启用代码折叠}, { immediate: true });
+
+optimizeHljs();
 </script>

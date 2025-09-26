@@ -73,7 +73,6 @@
 </template>
 
 <script setup lang="ts">
-import * as Popper from '@popperjs/core';
 import {
   SlashCommandArgument,
   SlashCommandNamedArgument,
