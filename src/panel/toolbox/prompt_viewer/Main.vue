@@ -89,7 +89,6 @@
 </template>
 
 <script setup lang="ts">
-import { useEventSourceOn } from '@/panel/composable/use_event_source_on';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
 import { oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
