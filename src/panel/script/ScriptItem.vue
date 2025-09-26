@@ -23,22 +23,20 @@
         <i v-if="script.enabled" class="fa-solid fa-toggle-on"></i>
         <i v-else class="fa-solid fa-toggle-off"></i>
       </div>
-      <DefineScriptIconTemplate v-slot="{ name, icon }">
+      <DefineToolButton v-slot="{ name, icon }">
         <div class="menu_button interactable mt-0! mr-0.5 mb-0! p-[5px]!" :title="name">
           <i class="fa-solid" :class="icon"></i>
         </div>
-      </DefineScriptIconTemplate>
-      <ReuseScriptIconTemplate name="查看脚本信息" icon="fa-info-circle" />
-      <ReuseScriptIconTemplate name="编辑脚本" icon="fa-pencil" @click="openEditor" />
-      <ReuseScriptIconTemplate name="移动到其他脚本库" icon="fa-exchange-alt" />
-      <ReuseScriptIconTemplate name="导出脚本" icon="fa-file-export" />
-      <ReuseScriptIconTemplate name="删除脚本" icon="fa-trash" />
+      </DefineToolButton>
+      <ToolButton name="查看脚本信息" icon="fa-info-circle" />
+      <ToolButton name="编辑脚本" icon="fa-pencil" @click="show_editor = true" />
+      <ToolButton name="移动到其他脚本库" icon="fa-exchange-alt" />
+      <ToolButton name="导出脚本" icon="fa-file-export" />
+      <ToolButton name="删除脚本" icon="fa-trash" />
     </div>
   </div>
 
-  <Popup v-model="showEditor" :on-confirm="handleEditorConfirm">
-    <Editor ref="editorRef" v-model="script" />
-  </Popup>
+  <Editor v-model="show_editor" :script="script" @submit="script = $event" />
 </template>
 
 <script setup lang="ts">
@@ -46,23 +44,14 @@ import Editor from '@/panel/script/Editor.vue';
 import { Script } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 
-const [DefineScriptIconTemplate, ReuseScriptIconTemplate] = createReusableTemplate<{
+const [DefineToolButton, ToolButton] = createReusableTemplate<{
   name: string;
   icon: string;
 }>();
 
 const script = defineModel<Script>({ required: true });
 
-const showEditor = ref(false);
-const editorRef = ref<InstanceType<typeof Editor>>();
-
-const openEditor = () => {
-  showEditor.value = true;
-};
-
-const handleEditorConfirm = () => {
-  // TODO: 保存脚本
-};
+const show_editor = ref(false);
 </script>
 
 <style lang="scss" scoped>

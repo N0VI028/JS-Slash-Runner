@@ -1,5 +1,3 @@
-import { uuidv4 } from '@sillytavern/scripts/utils';
-
 export const ScriptButton = z.object({
   name: z.string(),
   visible: z.boolean(),
@@ -7,29 +5,26 @@ export const ScriptButton = z.object({
 export type ScriptButton = z.infer<typeof ScriptButton>;
 
 export const Script = z.object({
-  type: z.literal('script').default('script'),
-  enabled: z.boolean().default(false),
-  name: z.string().default(''),
-  id: z.string().default(uuidv4()),
-  content: z.string().default(''),
-  info: z.string().default(''),
-  buttons_enabled: z.boolean().default(true),
-  buttons: z.array(ScriptButton).default([]),
-  data: z.record(z.string(), z.any()).default({}),
+  type: z.literal('script'),
+  enabled: z.boolean(),
+  name: z.string().min(1, '脚本名称不能为空'),
+  id: z.string(),
+  content: z.string(),
+  info: z.string(),
+  buttons_enabled: z.boolean(),
+  buttons: z.array(ScriptButton),
+  data: z.record(z.string(), z.any()),
 });
 export type Script = z.infer<typeof Script>;
 
 export const ScriptFolder = z.object({
-  type: z.literal('folder').default('folder'),
-  enabled: z.boolean().default(false),
-  name: z.string().default(''),
-  // TODO: 开发时脚本数据发生改变，因而 catch，但正式上线时应该去除
-  id: z.string().default(uuidv4()).catch(uuidv4()),
-  icon: z.string().default('fa-folder'),
-  color: z
-    .string()
-    .default(getComputedStyle(document.documentElement).getPropertyValue('--SmartThemeBodyColor').trim()),
-  scripts: z.array(Script).default([]),
+  type: z.literal('folder'),
+  enabled: z.boolean(),
+  name: z.string(),
+  id: z.string(),
+  icon: z.string(),
+  color: z.string(),
+  scripts: z.array(Script),
 });
 export type ScriptFolder = z.infer<typeof ScriptFolder>;
 

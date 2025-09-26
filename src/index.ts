@@ -3,6 +3,7 @@ import '@/global.css';
 import { initPanel } from '@/panel';
 
 $(() => {
+  z.config(z.locales.zhCN());
   disableIncompatibleOption();
   initPanel();
 });
