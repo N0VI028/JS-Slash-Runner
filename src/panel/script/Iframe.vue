@@ -3,9 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { Script } from '@/type/scripts';
+import { ScriptRuntime } from '@/panel/script/type';
 
-defineProps<{ script: Script }>();
+defineProps<{ script: ScriptRuntime }>();
 
 // TODO: 实际编写
 </script>

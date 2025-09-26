@@ -23,9 +23,11 @@
 
 <script setup lang="ts">
 import Editor from '@/panel/script/Editor.vue';
+import { ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore } from '@/store/settings';
 import { Script } from '@/type/scripts';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
 const show_selector = defineModel<boolean>({ required: true });
 
@@ -41,16 +43,22 @@ function onSelectorConfirm() {
 }
 
 const show_editor = ref<boolean>(false);
-function onEditorSubmit(result: Script) {
+function onEditorSubmit(result: ScriptForm) {
+  const script: Script = {
+    type: 'script',
+    enabled: false,
+    id: uuidv4(),
+    ...result,
+  };
   switch (target.value) {
     case 'global':
-      useGlobalScriptsStore().script_trees.push(result);
+      useGlobalScriptsStore().script_trees.push(script);
       break;
     case 'character':
-      useCharacterScriptsStore().script_trees.push(result);
+      useCharacterScriptsStore().script_trees.push(script);
       break;
     case 'preset':
-      usePresetScriptsStore().script_trees.push(result);
+      usePresetScriptsStore().script_trees.push(script);
       break;
   }
   emit('submit');

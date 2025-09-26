@@ -7,7 +7,7 @@ export type ScriptButton = z.infer<typeof ScriptButton>;
 export const Script = z.object({
   type: z.literal('script'),
   enabled: z.boolean(),
-  name: z.string().min(1, '脚本名称不能为空'),
+  name: z.string(),
   id: z.string(),
   content: z.string(),
   info: z.string(),

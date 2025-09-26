@@ -25,6 +25,7 @@
 import Container from '@/panel/script/Container.vue';
 import Iframe from '@/panel/script/Iframe.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
+import { ScriptRuntime } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
 import { isScript, Script } from '@/type/scripts';
@@ -36,21 +37,28 @@ const global_store = useGlobalScriptsStore();
 const character_store = useCharacterScriptsStore();
 const preset_store = usePresetScriptsStore();
 
-const scripts = computed(() => {
-  const computeScripts = (store: ReturnType<typeof useGlobalScriptsStore>): Script[] => {
-    if (!store.enabled) {
-      return [];
-    }
-    return _(store.script_trees)
-      .flatMap(script => {
-        if (isScript(script)) {
-          return script.enabled ? [script] : [];
-        }
-        return script.scripts.filter(script => script.enabled);
-      })
-      .value();
+// TODO: 测试当 content 发生变化时 iframe 会重新渲染, 而其他字段发生变化时不会
+function toScriptRuntime(script: Script): ScriptRuntime {
+  return {
+    id: script.id,
+    content: script.content,
   };
-  return _([...computeScripts(global_store), ...computeScripts(character_store), ...computeScripts(preset_store)])
+}
+function flatScripts(store: ReturnType<typeof useGlobalScriptsStore>): ScriptRuntime[] {
+  if (!store.enabled) {
+    return [];
+  }
+  return _(store.script_trees)
+    .flatMap(script => {
+      if (isScript(script)) {
+        return script.enabled ? [toScriptRuntime(script)] : [];
+      }
+      return script.scripts.filter(script => script.enabled).map(toScriptRuntime);
+    })
+    .value();
+}
+const scripts = computed(() => {
+  return _([...flatScripts(global_store), ...flatScripts(character_store), ...flatScripts(preset_store)])
     .sortBy(script => script.id)
     .value();
 });

@@ -50,17 +50,13 @@
 </template>
 
 <script setup lang="ts">
-import { Script } from '@/type/scripts';
-import { uuidv4 } from '@sillytavern/scripts/utils';
+import { ScriptForm } from '@/panel/script/type';
 
 const visible = defineModel<boolean>({ required: true });
 
-const props = withDefaults(defineProps<{ script?: Script }>(), {
-  script: () => ({
-    type: 'script',
-    enabled: false,
+const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
+  script: (): ScriptForm => ({
     name: '',
-    id: uuidv4(),
     content: '',
     info: '',
     buttons_enabled: true,
@@ -70,13 +66,13 @@ const props = withDefaults(defineProps<{ script?: Script }>(), {
 });
 
 const emit = defineEmits<{
-  submit: [script: Script];
+  submit: [script: ScriptForm];
 }>();
 
-const script = ref<Script>(_.cloneDeep(props.script));
+const script = ref<ScriptForm>(_.cloneDeep(props.script));
 
 const submit = () => {
-  const result = Script.safeParse(script.value);
+  const result = ScriptForm.safeParse(script.value);
   if (!result.success) {
     _(result.error.issues)
       .groupBy('path')

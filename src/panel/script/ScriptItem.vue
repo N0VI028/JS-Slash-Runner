@@ -36,11 +36,12 @@
     </div>
   </div>
 
-  <Editor v-model="show_editor" :script="script" @submit="script = $event" />
+  <Editor v-model="show_editor" :script="script" @submit="onEditorSubmit" />
 </template>
 
 <script setup lang="ts">
 import Editor from '@/panel/script/Editor.vue';
+import { ScriptForm } from '@/panel/script/type';
 import { Script } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 
@@ -52,6 +53,10 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
 const script = defineModel<Script>({ required: true });
 
 const show_editor = ref(false);
+
+function onEditorSubmit(result: ScriptForm) {
+  _.assign(script.value, result);
+}
 </script>
 
 <style lang="scss" scoped>
