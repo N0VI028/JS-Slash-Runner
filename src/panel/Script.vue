@@ -8,8 +8,10 @@
   />
 
   <Container v-model="global_scripts" title="全局脚本" description="酒馆全局可用" />
-  <Divider />
-  <Container v-model="character_scripts" title="角色脚本" description="绑定到当前角色卡" />
+  <template v-if="character_id !== undefined">
+    <Divider />
+    <Container v-model="character_scripts" title="角色脚本" description="绑定到当前角色卡" />
+  </template>
   <Divider />
   <Container v-model="preset_scripts" title="预设脚本" description="绑定到当前预设" />
 
@@ -27,7 +29,7 @@ import Iframe from '@/panel/script/Iframe.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
 import { ScriptRuntime } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
-import { useGlobalSettingsStore } from '@/store/settings';
+import { useCharacterSettingsStore, useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
 import { isScript, Script } from '@/type/scripts';
 
@@ -37,6 +39,7 @@ watch(search_input, make_TODO('按照搜索结果筛选脚本'));
 const use_blob_url = useGlobalSettingsStore().settings.render.use_blob_url;
 
 const global_scripts = useGlobalScriptsStore();
+const character_id = toRef(useCharacterSettingsStore(), 'id');
 const character_scripts = useCharacterScriptsStore();
 const preset_scripts = usePresetScriptsStore();
 

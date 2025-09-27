@@ -21,5 +21,7 @@ app.use(i18n);
 
 $(() => {
   const $app = $('<div id="tavern_helper_new">').appendTo('#extensions_settings');
+  // TODO: 性能分析，正式版时移除
+  app.config.performance = true;
   app.mount($app[0]);
 });
