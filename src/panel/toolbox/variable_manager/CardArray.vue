@@ -2,7 +2,7 @@
   <div>{{ name }}</div>
   <template v-if="!collapsed">
     <template v-for="(_item, index) in content" :key="index">
-      <!-- QUESTION: 要传入索引吗? -->
+      <!-- TODO: 注意数组的索引不可被修改, 是否要给 Card 加一个 immutable 属性来区分? -->
       <Card v-model:content="content[index]" :name="index" />
     </template>
   </template>

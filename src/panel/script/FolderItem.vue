@@ -19,16 +19,16 @@
         >
           <i class="fa-solid fa-toggle-on"></i>
         </div>
-        <DefineScriptFolderIconTemplate v-slot="{ name, icon }">
+        <DefineScriptFolderIcon v-slot="{ name, icon }">
           <div class="menu_button interactable mt-0! mr-0.5 mb-0!" :title="name">
             <i class="fa-solid" :class="icon"></i>
           </div>
-        </DefineScriptFolderIconTemplate>
-        <ReuseScriptFolderIconTemplate name="编辑文件夹" icon="fa-pencil" />
-        <ReuseScriptFolderIconTemplate name="导出文件夹" icon="fa-file-export" />
-        <ReuseScriptFolderIconTemplate name="移动到其他脚本库" icon="fa-exchange-alt" />
-        <ReuseScriptFolderIconTemplate name="删除文件夹" icon="fa-trash" />
-        <ReuseScriptFolderIconTemplate name="展开或折叠文件夹" icon="fa-chevron-down" />
+        </DefineScriptFolderIcon>
+        <ScriptFolderIcon name="编辑文件夹" icon="fa-pencil" />
+        <ScriptFolderIcon name="导出文件夹" icon="fa-file-export" />
+        <ScriptFolderIcon name="移动到其他脚本库" icon="fa-exchange-alt" />
+        <ScriptFolderIcon name="删除文件夹" icon="fa-trash" />
+        <ScriptFolderIcon name="展开或折叠文件夹" icon="fa-chevron-down" />
       </div>
     </div>
     <div ref="folder_content_ref" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
@@ -42,7 +42,7 @@ import { useSortable } from '@vueuse/integrations/useSortable';
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
 
-const [DefineScriptFolderIconTemplate, ReuseScriptFolderIconTemplate] = createReusableTemplate<{
+const [DefineScriptFolderIcon, ScriptFolderIcon] = createReusableTemplate<{
   name: string;
   icon: string;
 }>();

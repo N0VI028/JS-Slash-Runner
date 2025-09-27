@@ -1,9 +1,9 @@
 <template>
-  <Content v-model="variables" />
+  <Editor v-model="variables" />
 </template>
 
 <script setup lang="ts">
-import Content from '@/panel/toolbox/variable_manager/ContentBase.vue';
+import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
 
 const variables = ref<Record<string, any>>({
   字符串: '字符串',

@@ -28,12 +28,12 @@
 
   <template v-for="message_id in message_range" :key="message_id">
     <!-- TODO: 从 message_id 获取 variables -->
-    <Content v-model="variables" />
+    <Editor v-model="variables" />
   </template>
 </template>
 
 <script setup lang="ts">
-import Content from '@/panel/toolbox/variable_manager/ContentBase.vue';
+import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
 import { chat } from '@sillytavern/script';
 
 const min_message_id = ref(0);

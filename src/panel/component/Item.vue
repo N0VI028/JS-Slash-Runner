@@ -7,7 +7,7 @@
       { 'TH-collapsible flex-col items-center': has_detail, expanded: has_detail && is_expanded },
     ]"
   >
-    <DefineTemplate>
+    <DefineNonDetailPart>
       <div class="flex min-w-0 flex-1 flex-col">
         <!-- prettier-ignore-attribute -->
         <div class="TH-Item-title text-(length:--TH-FontSize-base) font-bold">
@@ -21,10 +21,10 @@
       <div class="flex-none shrink-0" style="max-width: 30%">
         <slot name="content" />
       </div>
-    </DefineTemplate>
+    </DefineNonDetailPart>
 
     <template v-if="!has_detail">
-      <ReuseTemplate />
+      <NonDetailPart />
     </template>
 
     <template v-else>
@@ -35,7 +35,7 @@
         }"
         @click="onHeaderClick"
       >
-        <ReuseTemplate />
+        <NonDetailPart />
       </div>
       <div ref="content_ref" class="TH-collapsible-content flex w-full flex-wrap gap-0.75">
         <slot name="detail" />
@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { createReusableTemplate } from '@vueuse/core';
 
-const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
+const [DefineNonDetailPart, NonDetailPart] = createReusableTemplate();
 
 const props = withDefaults(
   defineProps<{
