@@ -40,12 +40,26 @@
       <input v-model="depth" class="w-3" type="number" :min="0" />
     </template>
   </Item>
+
+  <template v-for="(message_iframe_runtime, message_id) in message_iframe_runtimes" :key="message_id">
+    <template v-for="(element, index) in message_iframe_runtime" :key="element">
+      <Teleport :to="element">
+        <Iframe
+          :id="`message-iframe-${message_id}-${index}`"
+          :element="element"
+          :with-loading="with_loading"
+          :use-blob-url="use_blob_url"
+        />
+      </Teleport>
+    </template>
+  </template>
 </template>
 
 <script setup lang="ts">
+import Iframe from '@/panel/render/Iframe.vue';
 import { optimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
-import { useRenderIframe } from '@/panel/render/use_render_iframe';
+import { useMessageIframeRuntimes } from '@/panel/render/use_message_iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 optimizeHljs();
@@ -55,5 +69,5 @@ const { enabled, collapse_code_block, with_loading, use_blob_url, depth } = toRe
 );
 
 useCollapseCodeBlock(collapse_code_block);
-useRenderIframe(enabled, with_loading, use_blob_url, depth);
+const message_iframe_runtimes = useMessageIframeRuntimes(enabled, depth);
 </script>
