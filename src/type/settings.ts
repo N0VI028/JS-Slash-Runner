@@ -21,8 +21,8 @@ export const GlobalSettings = z
       .object({
         enabled: z.boolean().default(true),
         collapse_code_block: z.boolean().default(false),
-        loading: z.boolean().default(true),
-        blob_url: z.boolean().default(false),
+        with_loading: z.boolean().default(true),
+        use_blob_url: z.boolean().default(false),
         depth: z.number().default(0),
       })
       .prefault({}),

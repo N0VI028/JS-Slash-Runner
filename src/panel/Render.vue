@@ -19,7 +19,7 @@
     <template #title>{{ t`启用加载动画` }}</template>
     <template #description>{{ t`在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面` }}</template>
     <template #content>
-      <Toggle id="TH-render-loading" v-model="loading" />
+      <Toggle id="TH-render-with-loading" v-model="with_loading" />
     </template>
   </Item>
   <Divider />
@@ -29,7 +29,7 @@
       {{ t`使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试` }}
     </template>
     <template #content>
-      <Toggle id="TH-render-blob-url" v-model="blob_url" />
+      <Toggle id="TH-render-use-blob-url" v-model="use_blob_url" />
     </template>
   </Item>
   <Divider />
@@ -43,13 +43,15 @@
 </template>
 
 <script setup lang="ts">
-import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { optimizeHljs } from '@/panel/render/optimize_hljs';
+import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 optimizeHljs();
 
-const { enabled, collapse_code_block, loading, blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
+const { enabled, collapse_code_block, with_loading, use_blob_url, depth } = toRefs(
+  useGlobalSettingsStore().settings.render,
+);
 
 useCollapseCodeBlock(collapse_code_block);
 </script>
