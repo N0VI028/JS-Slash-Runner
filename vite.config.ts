@@ -42,6 +42,7 @@ export default defineConfig(({ mode }) => ({
     }),
     unpluginVueComponents({
       dts: true,
+      syncMode: 'overwrite',
       globs: ['src/panel/component/*.vue'],
       resolvers: [VueUseComponentsResolver(), VueUseDirectiveResolver()],
     }),

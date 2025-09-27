@@ -45,6 +45,7 @@
 <script setup lang="ts">
 import { optimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
+import { useRenderIframe } from '@/panel/render/use_render_iframe';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 optimizeHljs();
@@ -54,4 +55,5 @@ const { enabled, collapse_code_block, with_loading, use_blob_url, depth } = toRe
 );
 
 useCollapseCodeBlock(collapse_code_block);
+useRenderIframe(enabled, with_loading, use_blob_url, depth);
 </script>

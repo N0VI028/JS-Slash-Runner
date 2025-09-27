@@ -1,5 +1,5 @@
 import '@/panel/render/use_collapse_code_block.scss';
-import { event_types } from '@sillytavern/script';
+import { event_types, eventSource } from '@sillytavern/script';
 
 function collapseCodeBlock($pre: JQuery<HTMLPreElement>) {
   const $code = $pre.find('code');
@@ -22,7 +22,7 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>) {
     .prependTo($pre);
 }
 
-function collapseCodeBlockForMessage(message_id: number) {
+function collapseCodeBlockForMessageId(message_id: number) {
   $(`.mes[mesid=${message_id}]`)
     .find('pre')
     .each(function () {
@@ -43,27 +43,29 @@ function uncollapseCodeBlockForAll() {
   $('#chat').find('pre > code').show();
 }
 
-export function useCollapseCodeBlock(should_hide_style: Readonly<Ref<boolean>>) {
+export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<boolean>>) {
   watch(
-    should_hide_style,
-    new_should_hide_style => {
-      if (new_should_hide_style) {
+    collapse_code_block,
+    (value, old_value) => {
+      if (value) {
         collapseCodeBlockForAll();
-      } else {
+        return;
+      }
+      if (!value && old_value) {
         uncollapseCodeBlockForAll();
       }
     },
     { immediate: true },
   );
 
-  useEventSourceOn(event_types.MESSAGE_UPDATED, message_id => {
-    if (toValue(should_hide_style)) {
-      collapseCodeBlockForMessage(Number(message_id));
+  eventSource.on(event_types.MESSAGE_UPDATED, (message_id: string | number) => {
+    if (collapse_code_block.value) {
+      collapseCodeBlockForMessageId(Number(message_id));
     }
   });
-  useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, message_id => {
-    if (toValue(should_hide_style)) {
-      collapseCodeBlockForMessage(Number(message_id));
+  eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: string | number) => {
+    if (collapse_code_block.value) {
+      collapseCodeBlockForMessageId(Number(message_id));
     }
   });
 }

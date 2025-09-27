@@ -7,16 +7,16 @@
     clearable
   />
 
-  <Container v-model="global_store" title="全局脚本" description="酒馆全局可用" />
+  <Container v-model="global_scripts" title="全局脚本" description="酒馆全局可用" />
   <Divider />
-  <Container v-model="character_store" title="角色脚本" description="绑定到当前角色卡" />
+  <Container v-model="character_scripts" title="角色脚本" description="绑定到当前角色卡" />
   <Divider />
-  <Container v-model="preset_store" title="预设脚本" description="绑定到当前预设" />
+  <Container v-model="preset_scripts" title="预设脚本" description="绑定到当前预设" />
 
   <!-- TODO: iframe 加载时间过早, 页面还没渲染完 -->
   <Teleport to="body">
     <template v-for="script in scripts" :key="script.id">
-      <Iframe :script="script" />
+      <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
     </template>
   </Teleport>
 </template>
@@ -27,15 +27,18 @@ import Iframe from '@/panel/script/Iframe.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
 import { ScriptRuntime } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
+import { useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
 import { isScript, Script } from '@/type/scripts';
 
 const search_input = ref('');
 watch(search_input, make_TODO('按照搜索结果筛选脚本'));
 
-const global_store = useGlobalScriptsStore();
-const character_store = useCharacterScriptsStore();
-const preset_store = usePresetScriptsStore();
+const use_blob_url = useGlobalSettingsStore().settings.render.use_blob_url;
+
+const global_scripts = useGlobalScriptsStore();
+const character_scripts = useCharacterScriptsStore();
+const preset_scripts = usePresetScriptsStore();
 
 // TODO: 测试当 content 发生变化时 iframe 会重新渲染, 而其他字段发生变化时不会
 function toScriptRuntime(script: Script): ScriptRuntime {
@@ -58,7 +61,7 @@ function flatScripts(store: ReturnType<typeof useGlobalScriptsStore>): ScriptRun
     .value();
 }
 const scripts = computed(() => {
-  return _([...flatScripts(global_store), ...flatScripts(character_store), ...flatScripts(preset_store)])
+  return _([...flatScripts(global_scripts), ...flatScripts(character_scripts), ...flatScripts(preset_scripts)])
     .sortBy(script => script.id)
     .value();
 });
