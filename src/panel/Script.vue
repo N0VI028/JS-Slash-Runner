@@ -17,7 +17,7 @@
 
   <!-- TODO: iframe 加载时间过早, 页面还没渲染完 -->
   <Teleport to="body">
-    <template v-for="script in scripts" :key="script.id + script.content">
+    <template v-for="script in scripts" :key="script.hash">
       <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
     </template>
   </Teleport>
@@ -32,6 +32,7 @@ import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore 
 import { useCharacterSettingsStore, useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
 import { isScript, Script } from '@/type/scripts';
+import { sha224 } from 'js-sha256';
 
 const search_input = ref('');
 watch(search_input, make_TODO('按照搜索结果筛选脚本'));
@@ -47,6 +48,7 @@ const preset_scripts = usePresetScriptsStore();
 function toScriptRuntime(script: Script): ScriptRuntime {
   return {
     id: script.id,
+    hash: sha224(script.id + script.content),
     content: script.content,
   };
 }

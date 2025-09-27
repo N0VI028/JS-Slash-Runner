@@ -2,6 +2,7 @@ import { ScriptButton } from '@/type/scripts';
 
 export interface ScriptRuntime {
   id: string;
+  hash: string;
   content: string;
 }
 
