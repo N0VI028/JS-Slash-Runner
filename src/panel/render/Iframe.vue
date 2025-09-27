@@ -1,5 +1,5 @@
 <template>
-  <div v-if="loading">Loading...</div>
+  <div v-if="loading" class="TH-message-iframe-loading">Loading...</div>
   <iframe
     v-show="!loading"
     :id="id"
@@ -22,6 +22,8 @@ const props = defineProps<{
   useBlobUrl: boolean;
 }>();
 
+const $element = $(props.element);
+
 const full_content = computed(
   () => `
 <html>
@@ -31,7 +33,7 @@ ${props.useBlobUrl ? `<base href="${window.location.origin}"/>` : ''}
 <!-- TODO: <script src="${predefine_url}"/> -->
 </head>
 <body>
-${$(props.element).text()}
+${$element.find('code').text()}
 </body>
 </html>
 `,
@@ -48,10 +50,19 @@ if (props.useBlobUrl) {
   url = useObjectUrl(blob);
 }
 
+// TODO: 应该有更好的办法处理和折叠代码块的兼容性
 onMounted(() => {
-  $(props.element).find('code').hide();
+  $element
+    .children()
+    .filter((_index, child) => !$(child).is('iframe') && !$(child).hasClass('TH-message-iframe-loading'))
+    .hide();
 });
 onBeforeUnmount(() => {
-  $(props.element).find('code').show();
+  const $button = $element.children('.TH-collapse-code-block-button');
+  if ($button.length === 0) {
+    $element.children('code').show();
+  } else {
+    $button.text('显示代码块').show();
+  }
 });
 </script>

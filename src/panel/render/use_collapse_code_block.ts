@@ -7,8 +7,7 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>) {
     return;
   }
 
-  $code.hide();
-  $('<div class="TH-collapse-code-block-button">显示代码块</div>')
+  const $button = $('<div class="TH-collapse-code-block-button">显示代码块</div>')
     .on('click', function () {
       const is_visible = $code.is(':visible');
       if (is_visible) {
@@ -20,6 +19,10 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>) {
       }
     })
     .prependTo($pre);
+  if ($button.siblings('iframe').length > 0) {
+    $button.hide();
+  }
+  $code.hide();
 }
 
 function collapseCodeBlockForMessageId(message_id: number) {
@@ -40,7 +43,10 @@ function collapseCodeBlockForAll() {
 
 function uncollapseCodeBlockForAll() {
   $('.TH-collapse-code-block-button').remove();
-  $('#chat').find('pre > code').show();
+  $('#chat')
+    .find('pre > code')
+    .filter((_index, code) => $(code).siblings('iframe').length === 0)
+    .show();
 }
 
 export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<boolean>>) {
@@ -58,6 +64,11 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<boolean>>
     { immediate: true },
   );
 
+  eventSource.on('chatLoaded', () => {
+    if (collapse_code_block.value) {
+      collapseCodeBlockForAll();
+    }
+  });
   eventSource.on(event_types.MESSAGE_UPDATED, (message_id: string | number) => {
     if (collapse_code_block.value) {
       collapseCodeBlockForMessageId(Number(message_id));

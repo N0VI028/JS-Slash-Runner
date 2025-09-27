@@ -1,5 +1,5 @@
-import { chat, event_types, eventSource } from '@sillytavern/script';
-import _ from 'lodash';
+import { toMessageDepth } from '@/util/message';
+import { event_types, eventSource } from '@sillytavern/script';
 
 function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRuntime {
   return _($mes.toArray())
@@ -18,14 +18,10 @@ function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRunt
     .value();
 }
 
-function parseMessageId(message_id: number): MessageIframeRuntime {
-  return renderCodeBlockForMessage($(`.mes[mesid=${message_id}]`));
-}
-
 function parseAll(depth: number): MessageIframeRuntime {
   let $mes = $('.mes');
   if (depth !== 0) {
-    $mes = $mes.filter((_index, div) => chat.length - Number($(div).attr('mesid')) <= depth);
+    $mes = $mes.filter((_index, div) => toMessageDepth(Number($(div).attr('mesid'))) <= depth);
   }
   return renderCodeBlockForMessage($mes);
 }
@@ -40,7 +36,7 @@ export function useMessageIframeRuntimes(
 ): Ref<MessageIframeRuntime> {
   const iframe_runtimes = ref<MessageIframeRuntime>({});
   watch(
-    enabled,
+    enabled, // depth 很少调整, 无须绑定
     (value, old_value) => {
       if (value) {
         iframe_runtimes.value = parseAll(depth.value);
@@ -51,27 +47,19 @@ export function useMessageIframeRuntimes(
     { immediate: true },
   );
 
-  eventSource.on('chatLoaded', () => {
-    iframe_runtimes.value = parseAll(depth.value);
-  });
   [
+    'chatLoaded',
     event_types.CHARACTER_MESSAGE_RENDERED,
     event_types.USER_MESSAGE_RENDERED,
     event_types.MESSAGE_UPDATED,
     event_types.MESSAGE_SWIPED,
+    event_types.MESSAGE_DELETED,
   ].forEach(event => {
-    eventSource.on(event, (message_id: string | number) => {
+    eventSource.on(event, () => {
       if (enabled.value) {
-        _.unset(iframe_runtimes.value, Number(message_id));
-        _.assign(iframe_runtimes.value, parseMessageId(Number(message_id)));
+        iframe_runtimes.value = parseAll(depth.value);
       }
     });
   });
-  eventSource.on(event_types.MESSAGE_DELETED, (message_id: string | number) => {
-    if (enabled.value) {
-      _.unset(iframe_runtimes.value, Number(message_id));
-    }
-  });
-
   return iframe_runtimes;
 }
