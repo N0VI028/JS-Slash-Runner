@@ -35,11 +35,7 @@ export const GlobalSettings = z
             presets: z.array(z.string()).default([]),
           })
           .prefault({}),
-        scripts: z
-          .array(ScriptTree)
-          .default([])
-          // TODO: 开发时脚本数据发生改变，因而 catch，但正式上线时应该去除
-          .catch([]),
+        scripts: z.array(ScriptTree).default([]),
       })
       .prefault({}),
   })
@@ -85,22 +81,14 @@ export type GlobalSettings = z.infer<typeof GlobalSettings>;
 
 export const CharacterSettings = z
   .object({
-    scripts: z
-      .array(ScriptTree)
-      .default([])
-      // TODO: 开发时脚本数据发生改变，因而 catch，但正式上线时应该去除
-      .catch([]),
+    scripts: z.array(ScriptTree).default([]),
   })
   .prefault({});
 export type CharacterSettings = z.infer<typeof CharacterSettings>;
 
 export const PresetSettings = z
   .object({
-    scripts: z
-      .array(ScriptTree)
-      .default([])
-      // TODO: 开发时脚本数据发生改变，因而 catch，但正式上线时应该去除
-      .catch([]),
+    scripts: z.array(ScriptTree).default([]),
   })
   .prefault({});
 export type PresetSettings = z.infer<typeof CharacterSettings>;
