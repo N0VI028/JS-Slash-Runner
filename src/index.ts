@@ -1,9 +1,25 @@
-import { disableIncompatibleOption } from '@/disable_incompatible_option';
 import '@/global.css';
-import { initPanel } from '@/panel';
+import Panel from '@/Panel.vue';
+import { App } from 'vue';
+
+const app = createApp(Panel);
+
+const pinia = createPinia();
+app.use(pinia);
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    t: typeof t;
+  }
+}
+const i18n = {
+  install: (app: App) => {
+    app.config.globalProperties.t = t;
+  },
+};
+app.use(i18n);
 
 $(() => {
-  z.config(z.locales.zhCN());
-  disableIncompatibleOption();
-  initPanel();
+  const $app = $('<div id="tavern_helper_new">').appendTo('#extensions_settings');
+  app.mount($app[0]);
 });

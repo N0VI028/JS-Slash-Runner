@@ -49,6 +49,10 @@ import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
+import { disableIncompatibleOption } from './panel/disable_incompatible_option';
+
+z.config(z.locales.zhCN());
+disableIncompatibleOption();
 
 const tabs = [
   { name: t`主设置`, icon: 'fa-solid fa-gear', component: Main },
