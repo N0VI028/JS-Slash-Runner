@@ -2,18 +2,17 @@
   <div v-if="loading" class="TH-message-iframe-loading">Loading...</div>
   <iframe
     v-show="!loading"
-    :id="id"
+    :id="`TH-message-${id}`"
     ref="iframe"
     loading="lazy"
     :src="useBlobUrl ? url : undefined"
-    :srcdoc="useBlobUrl ? undefined : full_content"
+    :srcdoc="useBlobUrl ? undefined : srcdoc"
     @load="onIframeLoad"
   />
 </template>
 
 <script setup lang="ts">
-import predefine_url from '@/iframe/predefine.js?url';
-import third_party from '@/iframe/third_party_frontend.html?raw';
+import { createSrcdoc } from '@/panel/render/iframe';
 
 const props = defineProps<{
   id: string;
@@ -24,30 +23,16 @@ const props = defineProps<{
 
 const $element = $(props.element);
 
-const full_content = computed(
-  () => `
-<html>
-<head>
-${third_party}
-${props.useBlobUrl ? `<base href="${window.location.origin}"/>` : ''}
-<!-- TODO: <script src="${predefine_url}"/> -->
-</head>
-<body>
-${$element.find('code').text()}
-</body>
-</html>
-`,
-);
-
 const loading = ref(props.withLoading);
 function onIframeLoad() {
   loading.value = false;
 }
 
+const srcdoc = createSrcdoc($(props.element).find('code').text(), props.useBlobUrl);
+
 let url: Ref<string | undefined>;
 if (props.useBlobUrl) {
-  const blob = computed(() => new Blob([full_content.value], { type: 'text/html' }));
-  url = useObjectUrl(blob);
+  url = useObjectUrl(new Blob([srcdoc], { type: 'text/html' }));
 }
 
 // TODO: 应该有更好的办法处理和折叠代码块的兼容性

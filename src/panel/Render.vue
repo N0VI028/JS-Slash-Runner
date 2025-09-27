@@ -45,7 +45,7 @@
     <template v-for="(element, index) in message_iframe_runtime" :key="element">
       <Teleport :to="element">
         <Iframe
-          :id="`message-iframe-${message_id}-${index}`"
+          :id="`${message_id}-${index}`"
           :element="element"
           :with-loading="with_loading"
           :use-blob-url="use_blob_url"

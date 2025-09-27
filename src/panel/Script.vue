@@ -15,7 +15,7 @@
 
   <!-- TODO: iframe 加载时间过早, 页面还没渲染完 -->
   <Teleport to="body">
-    <template v-for="script in scripts" :key="script.id">
+    <template v-for="script in scripts" :key="script.id + script.content">
       <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
     </template>
   </Teleport>

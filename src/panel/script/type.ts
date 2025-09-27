@@ -6,8 +6,8 @@ export interface ScriptRuntime {
 }
 
 export const ScriptForm = z.object({
-  name: z.string(),
-  content: z.string().nonempty('脚本内容不能为空'),
+  name: z.string().nonempty('脚本名称不能为空'),
+  content: z.string(),
   info: z.string(),
   buttons: z.array(ScriptButton),
   data: z.record(z.string(), z.any()),
