@@ -1,47 +1,34 @@
 <template>
-  <!-- prettier-ignore-attribute -->
-  <div
-    class="
-      relative mb-1 flex flex-col gap-0.25 overflow-hidden rounded-sm bg-(--SmartThemeChatTintColor) p-0.5
-      text-(length:--TH-FontSize-sm)
-    "
-  >
-    <div class="flex items-center justify-between gap-0.5">
-      <div class="flex min-w-0 flex-1 items-center gap-0.5 overflow-hidden">
-        <i class="fa-regular fa-code flex-shrink-0"></i>
-        <!-- prettier-ignore-attribute -->
-        <input
-          type="text"
-          class="
-            min-w-0 flex-1 border-none! bg-transparent!
-            text-(length:--TH-FontSize-sm)!
-            font-bold text-(--SmartThemeBodyColor)!
-          "
-          :value="name"
-        />
-      </div>
-      <div class="flex flex-shrink-0 gap-0.75">
-        <div class="cursor-pointer border-none bg-none" title="{{t`保存`}}">
-          <i class="fa-regular fa-save"></i>
-        </div>
-        <div class="cursor-pointer border-none bg-none" title="{{t`删除`}}">
-          <i class="fa-regular fa-trash-can"></i>
-        </div>
-      </div>
-    </div>
-    <input :value="content" class="text-(length:--TH-FontSize-sm)!" />
-  </div>
+  <component :is="component" v-model:name="name" v-model:content="content" />
 </template>
 
 <script setup lang="ts">
-withDefaults(
-  defineProps<{
-    name?: string;
-    content?: string;
-  }>(),
-  {
-    name: t`{{未命名变量}}`,
-    content: t`{{暂无变量值}}`,
-  },
-);
+import CardArray from '@/panel/toolbox/variable_manager/CardArray.vue';
+import CardBoolean from '@/panel/toolbox/variable_manager/CardBoolean.vue';
+import CardNil from '@/panel/toolbox/variable_manager/CardNil.vue';
+import CardNumber from '@/panel/toolbox/variable_manager/CardNumber.vue';
+import CardObject from '@/panel/toolbox/variable_manager/CardObject.vue';
+import CardString from '@/panel/toolbox/variable_manager/CardString.vue';
+
+const name = defineModel<number | string>('name', { required: true });
+const content = defineModel<any>('content', { required: true });
+
+const component = computed(() => {
+  if (_.isArray(content.value)) {
+    return CardArray;
+  }
+  if (_.isBoolean(content.value)) {
+    return CardBoolean;
+  }
+  if (_.isNil(content.value)) {
+    return CardNil;
+  }
+  if (_.isNumber(content.value)) {
+    return CardNumber;
+  }
+  if (_.isPlainObject(content.value)) {
+    return CardObject;
+  }
+  return CardString;
+});
 </script>
