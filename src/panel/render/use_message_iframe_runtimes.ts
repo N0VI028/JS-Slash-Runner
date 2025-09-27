@@ -33,8 +33,8 @@ interface MessageIframeRuntime {
 export function useMessageIframeRuntimes(
   enabled: Readonly<Ref<boolean>>,
   depth: Readonly<Ref<number>>,
-): Ref<MessageIframeRuntime> {
-  const iframe_runtimes = ref<MessageIframeRuntime>({});
+): ShallowRef<MessageIframeRuntime> {
+  const iframe_runtimes = shallowRef<MessageIframeRuntime>({});
   watch(
     enabled, // depth 很少调整, 无须绑定
     (value, old_value) => {
