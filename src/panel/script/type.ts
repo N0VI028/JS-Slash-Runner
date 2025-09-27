@@ -9,7 +9,6 @@ export const ScriptForm = z.object({
   name: z.string(),
   content: z.string().nonempty('脚本内容不能为空'),
   info: z.string(),
-  buttons_enabled: z.boolean(),
   buttons: z.array(ScriptButton),
   data: z.record(z.string(), z.any()),
 });

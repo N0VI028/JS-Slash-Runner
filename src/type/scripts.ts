@@ -11,7 +11,6 @@ export const Script = z.object({
   id: z.string(),
   content: z.string(),
   info: z.string(),
-  buttons_enabled: z.boolean(),
   buttons: z.array(ScriptButton),
   data: z.record(z.string(), z.any()),
 });

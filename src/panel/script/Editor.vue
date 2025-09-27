@@ -59,7 +59,6 @@ const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
     name: '',
     content: '',
     info: '',
-    buttons_enabled: true,
     buttons: [],
     data: {},
   }),
