@@ -8,7 +8,7 @@
       </template>
     </div>
 
-    <Toolbar v-model="toolbar_state" />
+    <Toolbar v-model:search_input="search_input" />
 
     <template v-for="({ component }, index) in tabs" :key="index">
       <component :is="component" v-if="active_tab === index" />
@@ -31,10 +31,8 @@ const tabs = [
   { name: t`消息楼层`, component: Message },
 ];
 
-const toolbar_state = ref({
-  search_input: '',
-});
-// TODO: 将 toolbar_state 传入 tabs.component
+const search_input = ref('');
+// TODO: 将 search_input 等 Toolbar 数据传入 tabs.component
 </script>
 
 <style lang="scss" scoped>

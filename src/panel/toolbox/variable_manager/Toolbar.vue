@@ -9,7 +9,7 @@
         <i class="fa-solid fa-filter"></i>
       </div>
     </div>
-    <SearchBar v-model="model.search_input" :placeholder="t`搜索变量...`" :clearable="true" class="w-full flex-1" />
+    <SearchBar v-model="search_input" :placeholder="t`搜索变量...`" :clearable="true" class="w-full flex-1" />
     <div class="flex gap-0.5 whitespace-nowrap">
       <div id="add-variable" class="menu_button_icon menu_button interactable">
         <i class="fa-solid fa-plus"></i>
@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-const model = defineModel<{ search_input: string }>({ required: true });
+const search_input = defineModel<string>('search_input', { required: true });
 
 const [DefineFilter, Filter] = createReusableTemplate<{
   type: string;
