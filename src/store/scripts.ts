@@ -79,8 +79,9 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
     const enabled_scripts = computed(() => {
       return enabled
         ? _(script_trees.value)
+            .filter(item => item.enabled)
             .flatMap(item => {
-              return item.enabled ? (isScript(item) ? item : item.scripts) : [];
+              return isScript(item) ? item : item.scripts;
             })
             .value()
         : [];
