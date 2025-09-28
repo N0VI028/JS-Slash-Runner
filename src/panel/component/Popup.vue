@@ -19,9 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, nextTick } from 'vue';
-
-const dialog_ref = ref<HTMLDialogElement | null>(null);
+const dialog_ref = useTemplateRef<HTMLDialogElement>('dialog_ref');
 
 type PopupButton = {
   key?: string | number;
@@ -78,22 +76,22 @@ const all_actions = computed(() => {
 });
 
 const ensureDialogClosed = () => {
-  const dialogEl = dialog_ref.value;
-  if (dialogEl?.open) {
-    dialogEl.close();
+  const dialog_element = dialog_ref.value;
+  if (dialog_element?.open) {
+    dialog_element.close();
   }
 };
 
 const ensureDialogVisible = async () => {
   await nextTick();
-  const dialogEl = dialog_ref.value;
-  if (dialogEl && !dialogEl.open) {
-    dialogEl.showModal();
+  const dialog_element = dialog_ref.value;
+  if (dialog_element && !dialog_element.open) {
+    dialog_element.showModal();
   }
 };
 
-const syncDialogVisibility = (shouldOpen: boolean) => {
-  if (shouldOpen) {
+const syncDialogVisibility = (should_open: boolean) => {
+  if (should_open) {
     ensureDialogVisible();
   } else {
     ensureDialogClosed();
@@ -114,8 +112,8 @@ const close = () => {
 
 watch(
   () => visible.value,
-  newValue => {
-    syncDialogVisibility(newValue);
+  new_value => {
+    syncDialogVisibility(new_value);
   },
   { immediate: true },
 );
