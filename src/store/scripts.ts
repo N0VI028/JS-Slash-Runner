@@ -76,15 +76,14 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
       }
     }
 
-    const flattened_scripts = computed(() => {
-      return _(script_trees.value)
-        .flatMap(item => {
-          if (isScript(item)) {
-            return item;
-          }
-          return item.scripts;
-        })
-        .value();
+    const enabled_scripts = computed(() => {
+      return enabled
+        ? _(script_trees.value)
+            .flatMap(item => {
+              return item.enabled ? (isScript(item) ? item : item.scripts) : [];
+            })
+            .value()
+        : [];
     });
 
     // TODO: 是否需要用这个来做 getVariables 和 replaceVariables
@@ -95,7 +94,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
     //   _.assign(getScript(id), script);
     // };
 
-    return { enabled, script_trees, flattened_scripts };
+    return { enabled, script_trees, enabled_scripts };
   });
 }
 

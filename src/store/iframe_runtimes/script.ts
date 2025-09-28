@@ -25,9 +25,7 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
   const runtimes = computed(() => {
     return global_settings.app_ready
       ? _([global_scripts, character_scripts, preset_scripts])
-          .filter(store => store.enabled)
-          .flatMap(store => store.flattened_scripts)
-          .filter(script => script.enabled)
+          .flatMap(store => store.enabled_scripts)
           .map(toScriptRuntime)
           .sortBy(script => script.id)
           .value()
