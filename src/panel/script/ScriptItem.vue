@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import Editor from '@/panel/script/Editor.vue';
 import { ScriptForm } from '@/panel/script/type';
+import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 
@@ -62,7 +63,12 @@ const show_editor = ref(false);
 const show_delete = ref(false);
 
 function onEditorSubmit(result: ScriptForm) {
+  const should_reload =
+    script.value.enabled && !_.isEqual(_.pick(script.value, 'content', 'data'), _.pick(result, 'content', 'data'));
   _.assign(script.value, result);
+  if (should_reload) {
+    useScriptIframeRuntimesStore().reload(script.value.id);
+  }
 }
 
 function onDeleteConfirm() {

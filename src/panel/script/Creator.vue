@@ -40,10 +40,6 @@ const props = withDefaults(defineProps<{ type?: CreationType }>(), {
   type: 'script',
 });
 
-const emit = defineEmits<{
-  submit: [];
-}>();
-
 const target = ref<string>('global');
 function onSelectorConfirm() {
   show_selector.value = false;
@@ -88,6 +84,5 @@ function onEditorSubmit(result: ScriptForm) {
       usePresetScriptsStore().script_trees.push(script);
       break;
   }
-  emit('submit');
 }
 </script>

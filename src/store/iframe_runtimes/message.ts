@@ -1,5 +1,7 @@
+import { useGlobalSettingsStore } from '@/store/settings';
 import { toMessageDepth } from '@/util/message';
 import { event_types, eventSource } from '@sillytavern/script';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
 function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRuntime {
   return _($mes.toArray())
@@ -30,18 +32,17 @@ interface MessageIframeRuntime {
   [message_id: number]: HTMLElement[];
 }
 
-export function useMessageIframeRuntimes(
-  enabled: Readonly<Ref<boolean>>,
-  depth: Readonly<Ref<number>>,
-): ShallowRef<MessageIframeRuntime> {
-  const iframe_runtimes = shallowRef<MessageIframeRuntime>({});
+export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtimes', () => {
+  const global_settings = useGlobalSettingsStore();
+
+  const runtimes = shallowRef<MessageIframeRuntime>({});
   watch(
-    enabled, // depth 很少调整, 无须绑定
+    () => global_settings.settings.render.enabled,
     (value, old_value) => {
       if (value) {
-        iframe_runtimes.value = parseAll(depth.value);
+        runtimes.value = parseAll(global_settings.settings.render.depth);
       } else if (!value && old_value) {
-        iframe_runtimes.value = {};
+        runtimes.value = {};
       }
     },
     { immediate: true },
@@ -56,10 +57,26 @@ export function useMessageIframeRuntimes(
     event_types.MESSAGE_DELETED,
   ].forEach(event => {
     eventSource.on(event, () => {
-      if (enabled.value) {
-        iframe_runtimes.value = parseAll(depth.value);
+      if (global_settings.settings.render.enabled) {
+        runtimes.value = parseAll(global_settings.settings.render.depth);
       }
     });
   });
-  return iframe_runtimes;
-}
+
+  const reload_memos = ref<{ [message_id: number]: string }>([]);
+  watchEffect(() => {
+    const reload_memo = uuidv4();
+    reload_memos.value = _.mapValues(runtimes.value, () => reload_memo);
+  });
+
+  const reload = (message_id: number) => {
+    reload_memos.value[message_id] = uuidv4();
+  };
+
+  const reloadAll = () => {
+    const reload_memo = uuidv4();
+    reload_memos.value = _.mapValues(runtimes.value, () => reload_memo);
+  };
+
+  return { runtimes: runtimes, reload_memos: readonly(reload_memos), reload, reloadAll };
+});

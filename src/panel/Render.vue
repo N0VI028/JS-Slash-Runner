@@ -41,8 +41,8 @@
     </template>
   </Item>
 
-  <template v-for="(message_iframe_runtime, message_id) in message_iframe_runtimes" :key="message_id">
-    <template v-for="(element, index) in message_iframe_runtime" :key="element">
+  <template v-for="(runtime, message_id) in runtimes" :key="message_id + reload_memos[message_id]">
+    <template v-for="(element, index) in runtime" :key="element">
       <Teleport :to="element">
         <Iframe
           :id="`${message_id}-${index}`"
@@ -59,7 +59,7 @@
 import Iframe from '@/panel/render/Iframe.vue';
 import { optimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
-import { useMessageIframeRuntimes } from '@/panel/render/use_message_iframe_runtimes';
+import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 optimizeHljs();
@@ -69,5 +69,5 @@ const { enabled, collapse_code_block, with_loading, use_blob_url, depth } = toRe
 );
 
 useCollapseCodeBlock(collapse_code_block);
-const message_iframe_runtimes = useMessageIframeRuntimes(enabled, depth);
+const { runtimes, reload_memos } = storeToRefs(useMessageIframeRuntimesStore());
 </script>
