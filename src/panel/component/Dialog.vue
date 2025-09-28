@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
-import { useEventListener, useLocalStorage, useThrottleFn, useWindowSize } from '@vueuse/core';
+import { useEventListener, useLocalStorage, useResizeObserver, useThrottleFn, useWindowSize } from '@vueuse/core';
 import { computed, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
 
 interface ResizeHandle {
@@ -139,7 +139,7 @@ const props = withDefaults(
     maxWidth: '90vw',
     maxHeight: '90vh',
     edgeSnap: true,
-    snapDistance: 50,
+    snapDistance: 100,
     aspectRatio: false,
     handles: () => ['tl', 'tm', 'mr', 'br', 'bm', 'bl'],
     showHandles: false,
@@ -209,6 +209,11 @@ function toggleCollapse() {
   is_resizing.value = false;
   resize_direction.value = '';
   is_collapsed.value = !is_collapsed.value;
+
+  // 折叠状态变化后检查边界
+  setTimeout(() => {
+    checkAndAdjustBounds();
+  }, 10);
 }
 
 /**
@@ -307,7 +312,6 @@ if (!props.storageId) {
   console.warn('[TH-Dialog] storageId 未提供，状态将不会持久化到本地存储。');
 }
 
-// 定义存储数据的类型
 interface PositionStorage {
   left?: number;
   top?: number;
@@ -322,7 +326,7 @@ interface SizeStorage {
   mobileHeight?: number;
 }
 
-// 使用 useLocalStorage 创建响应式存储
+
 const position_storage = props.storageId
   ? useLocalStorage<PositionStorage>(`TH-Dialog-${props.storageId}:pos`, {}, { mergeDefaults: true })
   : ref<PositionStorage>({});
@@ -419,6 +423,62 @@ function loadSize(): { width: number; height: number } | null {
   return null;
 }
 
+/**
+ * 检查并调整浮窗边界，确保不超出视口
+ */
+function checkAndAdjustBounds() {
+  const viewport_width = window.innerWidth;
+  const viewport_height = window.innerHeight;
+
+  let adjusted = false;
+
+  const max_width = viewport_width * 0.95; // 留出5%的边距
+  const max_height = viewport_height * 0.95;
+
+  if (dialog_size.value.width > max_width) {
+    dialog_size.value.width = max_width;
+    temp_size.width = max_width;
+    adjusted = true;
+  }
+
+  if (dialog_size.value.height > max_height) {
+    dialog_size.value.height = max_height;
+    temp_size.height = max_height;
+    adjusted = true;
+  }
+
+  const min_x = 0;
+  const max_x = viewport_width - dialog_size.value.width;
+  const min_y = 0;
+  const max_y = viewport_height - (is_collapsed.value ? header_height.value : dialog_size.value.height);
+
+  if (x.value < min_x) {
+    x.value = min_x;
+    temp_position.x = min_x;
+    adjusted = true;
+  } else if (x.value > max_x) {
+    x.value = Math.max(min_x, max_x);
+    temp_position.x = x.value;
+    adjusted = true;
+  }
+
+  if (y.value < min_y) {
+    y.value = min_y;
+    temp_position.y = min_y;
+    adjusted = true;
+  } else if (y.value > max_y) {
+    y.value = Math.max(min_y, max_y);
+    temp_position.y = y.value;
+    adjusted = true;
+  }
+
+  if (adjusted) {
+    applyTempToDOM();
+    savePosition(x.value, y.value);
+    saveSize(dialog_size.value.width, dialog_size.value.height);
+  }
+}
+
 onMounted(() => {
   const pos = loadPosition();
   if (pos) {
@@ -436,6 +496,18 @@ onMounted(() => {
     temp_size.height = size.height;
   }
   applyTempToDOM();
+  checkAndAdjustBounds();
+});
+
+/*
+ * 监听视口大小变化
+ */
+useResizeObserver(document.body, () => {
+  const throttledAdjust = useThrottleFn(() => {
+    checkAndAdjustBounds();
+  }, 100);
+
+  throttledAdjust();
 });
 
 /**
@@ -455,45 +527,44 @@ const startDrag = (event: PointerEvent) => {
   const startTop = y.value;
 
   let hasRestoredFromSnap = false;
+  let lastMouseX = event.clientX;
+  let lastMouseY = event.clientY;
 
   temp_position.x = startLeft;
   temp_position.y = startTop;
 
   const handleDragMove = (e: PointerEvent) => {
-    const newXRaw = startLeft + (e.clientX - startX);
-    const newYRaw = startTop + (e.clientY - startY);
+    const newX = startLeft + (e.clientX - startX);
+    let newY = startTop + (e.clientY - startY);
 
+    // 当组件已贴边，检查鼠标是否向反方向移动
     if (was_snapped.value && !hasRestoredFromSnap && pre_snap_rect.value) {
-      const screenWidth = window.innerWidth;
       const snapDist = props.snapDistance;
-      const nearLeft = newXRaw <= snapDist;
-      const nearRight = newXRaw + dialog_size.value.width >= screenWidth - snapDist;
-      const stillNearEdge = nearLeft || nearRight;
-      if (!stillNearEdge) {
-        dialog_size.value.width = pre_snap_rect.value.width;
-        dialog_size.value.height = pre_snap_rect.value.height;
-        temp_size.width = pre_snap_rect.value.width;
-        temp_size.height = pre_snap_rect.value.height;
+      const mouseNearLeft = e.clientX <= snapDist;
+      const mouseNearRight = e.clientX >= window.innerWidth - snapDist;
+
+      // 如果鼠标不再靠近边缘，则脱离吸附状态
+      if (!mouseNearLeft && !mouseNearRight) {
+        const { width: prevWidth, height: prevHeight } = pre_snap_rect.value;
+        dialog_size.value.width = prevWidth;
+        dialog_size.value.height = prevHeight;
+        temp_size.width = prevWidth;
+        temp_size.height = prevHeight;
         hasRestoredFromSnap = true;
         was_snapped.value = false;
       }
     }
 
-    let newX = newXRaw;
-    let newY = newYRaw;
+    // 只保留上下边界限制，允许组件在左右方向超出视口
+    const screenHeight = window.innerHeight;
+    const dialogHeight = is_collapsed.value ? header_height.value : temp_size.height;
 
-    const parent = dialog_ref.value?.parentElement;
-    if (parent) {
-      const parentRect = parent.getBoundingClientRect();
-      const dialogWidth = temp_size.width;
-      const dialogHeight = is_collapsed.value ? header_height.value : temp_size.height;
-
-      newX = Math.max(parentRect.left, Math.min(newX, parentRect.right - dialogWidth));
-      newY = Math.max(parentRect.top, Math.min(newY, parentRect.bottom - dialogHeight));
-    }
+    newY = Math.max(0, Math.min(newY, screenHeight - dialogHeight));
 
     temp_position.x = newX;
     temp_position.y = newY;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
 
     throttledUpdateUI();
 
@@ -511,6 +582,8 @@ const startDrag = (event: PointerEvent) => {
     is_dragging.value = false;
 
     const snapResult = checkEdgeSnap(
+      lastMouseX,
+      lastMouseY,
       temp_position.x,
       temp_position.y,
       dialog_size.value.width,
@@ -568,9 +641,9 @@ const startDrag = (event: PointerEvent) => {
 };
 
 /**
- * 边缘吸附
+ * 边缘吸附 - 基于鼠标位置判断
  */
-const checkEdgeSnap = (left: number, top: number, width: number, height: number) => {
+const checkEdgeSnap = (mouseX: number, mouseY: number, left: number, top: number, width: number, height: number) => {
   if (!props.edgeSnap || is_mobile) {
     return { left, top, width, height, snapped: false };
   }
@@ -579,7 +652,8 @@ const checkEdgeSnap = (left: number, top: number, width: number, height: number)
   const screen_height = window.innerHeight;
   const snap_dist = props.snapDistance;
 
-  if (left <= snap_dist) {
+  // 基于鼠标位置判断是否靠近左边缘
+  if (mouseX <= snap_dist) {
     return {
       left: 0,
       top: 0,
@@ -589,7 +663,8 @@ const checkEdgeSnap = (left: number, top: number, width: number, height: number)
     };
   }
 
-  if (left + width >= screen_width - snap_dist) {
+  // 基于鼠标位置判断是否靠近右边缘
+  if (mouseX >= screen_width - snap_dist) {
     return {
       left: screen_width - width,
       top: 0,
