@@ -15,8 +15,8 @@
   <Divider />
   <Container v-model="preset_scripts" title="预设脚本" description="绑定到当前预设" />
 
-  <template v-for="(_script, index) in runtimes" :key="runtimes[index].id + reload_memos[index]">
-    <Iframe :id="runtimes[index].id" :content="runtimes[index].content" :use-blob-url="use_blob_url" />
+  <template v-for="script in runtimes" :key="script.id + script.reload_memo">
+    <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
   </template>
 </template>
 
@@ -38,7 +38,6 @@ const global_scripts = useGlobalScriptsStore();
 const character_scripts = useCharacterScriptsStore();
 const preset_scripts = usePresetScriptsStore();
 
-// @ts-expect-error reload_memos 实际被使用了, 但 IDE 认为没使用
-const { runtimes, reload_memos } = storeToRefs(useScriptIframeRuntimesStore());
+const runtimes = toRef(useScriptIframeRuntimesStore(), 'runtimes');
 const use_blob_url = toRef(useGlobalSettingsStore().settings.render, 'use_blob_url');
 </script>

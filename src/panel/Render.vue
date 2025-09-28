@@ -41,7 +41,7 @@
     </template>
   </Item>
 
-  <template v-for="(runtime, message_id) in runtimes" :key="message_id + reload_memos[message_id]">
+  <template v-for="(runtime, message_id) in runtimes" :key="message_id">
     <template v-for="(element, index) in runtime" :key="element">
       <Teleport :to="element">
         <Iframe
@@ -69,5 +69,5 @@ const { enabled, collapse_code_block, with_loading, use_blob_url, depth } = toRe
 );
 
 useCollapseCodeBlock(collapse_code_block);
-const { runtimes, reload_memos } = storeToRefs(useMessageIframeRuntimesStore());
+const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
 </script>

@@ -1,7 +1,7 @@
 import { useGlobalSettingsStore } from '@/store/settings';
 import { toMessageDepth } from '@/util/message';
+import { reloadAndRenderChatWithoutEvents } from '@/util/reload_chat';
 import { event_types, eventSource } from '@sillytavern/script';
-import { uuidv4 } from '@sillytavern/scripts/utils';
 
 function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRuntime {
   return _($mes.toArray())
@@ -63,20 +63,10 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
     });
   });
 
-  const reload_memos = ref<{ [message_id: number]: string }>([]);
-  watchEffect(() => {
-    const reload_memo = uuidv4();
-    reload_memos.value = _.mapValues(runtimes.value, () => reload_memo);
-  });
-
-  const reload = (message_id: number) => {
-    reload_memos.value[message_id] = uuidv4();
-  };
-
+  // TODO: 考虑到 @/panel/render/use_message_iframe_runtimes 中每次 MESSAGE_RENDERED 事件都会刷新整个 runtimes, 这样可能会在后台有额外开销?
   const reloadAll = () => {
-    const reload_memo = uuidv4();
-    reload_memos.value = _.mapValues(runtimes.value, () => reload_memo);
+    reloadAndRenderChatWithoutEvents();
   };
 
-  return { runtimes: runtimes, reload_memos: readonly(reload_memos), reload, reloadAll };
+  return { runtimes, reloadAll };
 });

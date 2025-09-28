@@ -15,12 +15,12 @@
 
   <div class="flex h-full flex-col overflow-hidden">
     <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
-      <template v-for="(script, index) in store.script_trees" :key="script.id">
-        <template v-if="isScript(store.script_trees[index])">
-          <ScriptItem v-model="store.script_trees[index]" @delete="handleDelete" />
+      <template v-for="(script, index) in script_trees" :key="script.id">
+        <template v-if="isScript(script_trees[index])">
+          <ScriptItem v-model="script_trees[index]" @delete="handleDelete" />
         </template>
         <template v-else>
-          <FolderItem v-model="store.script_trees[index]" />
+          <FolderItem v-model="script_trees[index]" />
         </template>
       </template>
     </div>
@@ -40,6 +40,7 @@ const props = defineProps<{
 }>();
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
+const script_trees = toRef(store.value, 'script_trees');
 
 const handleDelete = (id: string) => {
   try {
@@ -51,7 +52,7 @@ const handleDelete = (id: string) => {
 };
 
 const list_ref = useTemplateRef<HTMLDivElement>('list_ref');
-useSortable(list_ref, toRef(store.value, 'script_trees'), {
+useSortable(list_ref, script_trees, {
   group: { name: 'scripts', pull: true, put: true },
   handle: '.TH-handle',
   draggable: '[data-sortable-item]',
