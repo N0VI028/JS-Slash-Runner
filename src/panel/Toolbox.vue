@@ -19,13 +19,23 @@
 
   <Teleport defer to="#extensionsMenu">
     <div class="extension_container">
-      <div class="list-group-item flex-container flexGap5 interactable" tabindex="0" role="listitem">
+      <div
+        class="list-group-item flex-container flexGap5 interactable"
+        tabindex="0"
+        role="listitem"
+        @click="enable_prompt_viewer = true"
+      >
         <div class="fa-solid fa-magnifying-glass extensionsMenuExtensionButton" />
-        <span @click="enable_prompt_viewer = true">{{ t`提示词查看器` }}</span>
+        <span>{{ t`提示词查看器` }}</span>
       </div>
-      <div class="list-group-item flex-container flexGap5 interactable" tabindex="0" role="listitem">
+      <div
+        class="list-group-item flex-container flexGap5 interactable"
+        tabindex="0"
+        role="listitem"
+        @click="enable_variable_manager = true"
+      >
         <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
-        <span @click="enable_variable_manager = true">{{ t`变量管理器` }}</span>
+        <span>{{ t`变量管理器` }}</span>
       </div>
     </div>
   </Teleport>
