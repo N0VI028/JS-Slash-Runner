@@ -46,11 +46,11 @@
             </div>
             <small>需配合getButtonEvent使用</small>
           </div>
-          <Toggle id="button-trigger-toggle" v-model="script.buttons_enabled" />
+          <Toggle id="button-trigger-toggle" v-model="script.button.enabled" />
         </div>
         <div class="button-list">
           <div
-            v-for="(button, index) in script.buttons"
+            v-for="(button, index) in script.button.buttons"
             :key="`button-${index}`"
             class="flex items-center justify-between gap-1"
           >
@@ -77,8 +77,10 @@ const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
     name: '',
     content: '',
     info: '',
-    buttons_enabled: true,
-    buttons: [],
+    button: {
+      enabled: true,
+      buttons: [],
+    },
     data: {},
   }),
 });
@@ -109,14 +111,14 @@ const addVariable = () => {
 };
 
 const addButton = () => {
-  script.value.buttons.push({
+  script.value.button.buttons.push({
     name: '',
     visible: true,
   });
 };
 
 const deleteButton = (index: number) => {
-  script.value.buttons.splice(index, 1);
+  script.value.button.buttons.splice(index, 1);
 };
 </script>
 

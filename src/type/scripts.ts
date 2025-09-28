@@ -11,10 +11,16 @@ export const Script = z.object({
   id: z.string(),
   content: z.string(),
   info: z.string(),
-  // TODO: 开发时调整了数据结构, 发布时去掉 .catch
-  buttons_enabled: z.boolean().catch(true),
-  // TODO: 开发时调整了数据结构, 发布时去掉 .catch
-  buttons: z.array(ScriptButton).catch([]),
+  button: z
+    .object({
+      enabled: z.boolean(),
+      buttons: z.array(ScriptButton),
+    })
+    // TODO: 开发时调整了数据结构, 发布时去掉 .catch
+    .catch({
+      enabled: true,
+      buttons: [],
+    }),
   data: z.record(z.string(), z.any()),
 });
 export type Script = z.infer<typeof Script>;
