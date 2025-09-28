@@ -15,59 +15,36 @@
   <Divider />
   <Container v-model="preset_scripts" title="预设脚本" description="绑定到当前预设" />
 
-  <!-- TODO: iframe 加载时间过早, 页面还没渲染完 -->
-  <Teleport to="body">
-    <template v-for="script in scripts" :key="script.hash">
-      <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
-    </template>
-  </Teleport>
+  <template v-for="script in scripts" :key="script.hash">
+    <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
+  </template>
 </template>
 
 <script setup lang="ts">
 import Container from '@/panel/script/Container.vue';
 import Iframe from '@/panel/script/Iframe.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
-import { ScriptRuntime } from '@/panel/script/type';
+import { useScriptIframeRuntimes } from '@/panel/script/use_script_iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore, useGlobalSettingsStore } from '@/store/settings';
 import { make_TODO } from '@/todo';
-import { isScript, Script } from '@/type/scripts';
-import { sha224 } from 'js-sha256';
 
 const search_input = ref('');
 watch(search_input, make_TODO('按照搜索结果筛选脚本'));
 
-const use_blob_url = useGlobalSettingsStore().settings.render.use_blob_url;
+const global_settings = useGlobalSettingsStore();
+const use_blob_url = global_settings.settings.render.use_blob_url;
+
+const character_id = toRef(useCharacterSettingsStore(), 'id');
 
 const global_scripts = useGlobalScriptsStore();
-const character_id = toRef(useCharacterSettingsStore(), 'id');
 const character_scripts = useCharacterScriptsStore();
 const preset_scripts = usePresetScriptsStore();
 
-// TODO: 测试当 content 发生变化时 iframe 会重新渲染, 而其他字段发生变化时不会
-function toScriptRuntime(script: Script): ScriptRuntime {
-  return {
-    id: script.id,
-    hash: sha224(script.id + script.content),
-    content: script.content,
-  };
-}
-function flatScripts(store: ReturnType<typeof useGlobalScriptsStore>): ScriptRuntime[] {
-  if (!store.enabled) {
-    return [];
-  }
-  return _(store.script_trees)
-    .flatMap(script => {
-      if (isScript(script)) {
-        return script.enabled ? [toScriptRuntime(script)] : [];
-      }
-      return script.scripts.filter(script => script.enabled).map(toScriptRuntime);
-    })
-    .value();
-}
-const scripts = computed(() => {
-  return _([...flatScripts(global_scripts), ...flatScripts(character_scripts), ...flatScripts(preset_scripts)])
-    .sortBy(script => script.id)
-    .value();
-});
+const scripts = useScriptIframeRuntimes(
+  toRef(global_settings, 'app_ready'),
+  global_scripts,
+  character_scripts,
+  preset_scripts,
+);
 </script>
