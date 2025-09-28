@@ -63,7 +63,6 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
     });
   });
 
-  // TODO: 考虑到 @/panel/render/use_message_iframe_runtimes 中每次 MESSAGE_RENDERED 事件都会刷新整个 runtimes, 这样可能会在后台有额外开销?
   const reloadAll = () => {
     reloadAndRenderChatWithoutEvents();
   };
