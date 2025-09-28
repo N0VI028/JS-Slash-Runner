@@ -8,7 +8,7 @@ export function createSrcdoc(content: string, use_blob_url: boolean) {
 ${third_party}
 ${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
 <script src="${parent_jquery_url}"></script>
-<!-- TODO: <script src="${predefine_url}"></script> -->
+<script src="${predefine_url}"></script>
 </head>
 <body>
 <script type="module">
