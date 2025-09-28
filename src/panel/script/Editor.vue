@@ -28,27 +28,49 @@
       <div id="variable-editor" class="TH-script-editor-container">
         <div class="flex flex-wrap items-center justify-center gap-[5px]">
           <div>变量列表</div>
-          <div class="menu_button interactable">
+          <div class="menu_button interactable" @click="addVariable">
             <i class="fa-solid fa-plus"></i>
           </div>
         </div>
         <small>绑定到脚本的变量，会随脚本一同导出</small>
         <div id="variable-list" class="flex w-full flex-col flex-wrap gap-1"></div>
       </div>
-      <div id="script-button-content" class="TH-script-editor-container">
-        <div class="flex flex-wrap items-center justify-center gap-[5px]">
-          <div>按钮触发</div>
-          <div id="add-button-trigger" class="menu_button interactable">
-            <i class="fa-solid fa-plus"></i>
+      <div id="script-button-content" class="TH-script-editor-container" :class="buttonSectionClass">
+        <div class="flex w-full items-center justify-between">
+          <div class="flex flex-col">
+            <div class="flex flex-wrap items-center gap-[5px]">
+              <div>按钮触发</div>
+              <div id="add-button-trigger" class="menu_button interactable" @click="addButton">
+                <i class="fa-solid fa-plus"></i>
+              </div>
+            </div>
+            <small>需配合getButtonEvent使用</small>
+          </div>
+          <Toggle
+            id="button-trigger-toggle"
+            v-model="script.buttons.enable"
+            :class="['TH-button-toggle', buttonToggleClass]"
+          />
+        </div>
+        <div class="button-list">
+          <div
+            v-for="(button, buttonIndex) in script.buttons.list"
+            :key="`button-${buttonIndex}`"
+            class="flex items-center justify-between gap-1"
+          >
+            <!-- TODO: 拖拽功能 -->
+            <span class="">☰</span>
+            <input v-model="button.visible" type="checkbox" />
+            <input v-model="button.name" class="text_pole" type="text" placeholder="按钮名称" />
+            <div class="menu_button interactable" :data-index="buttonIndex" @click="deleteButton(buttonIndex)">
+              <i class="fa-solid fa-trash"></i>
+            </div>
           </div>
         </div>
-        <small>需配合eventOnButton使用</small>
-        <div class="button-list"></div>
       </div>
     </div>
   </Popup>
 </template>
-
 <script setup lang="ts">
 import { ScriptForm } from '@/panel/script/type';
 
@@ -59,7 +81,7 @@ const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
     name: '',
     content: '',
     info: '',
-    buttons: [],
+    buttons: { enable: false, list: [] },
     data: {},
   }),
 });
@@ -70,7 +92,33 @@ const emit = defineEmits<{
 
 const script = ref<ScriptForm>(_.cloneDeep(props.script));
 
+const buttonSectionClass = computed(() =>
+  script.value.buttons.enable ? 'TH-script-button--active' : 'TH-script-button--inactive',
+);
+
+const buttonToggleClass = computed(() =>
+  script.value.buttons.enable ? 'TH-button-toggle--enabled' : 'TH-button-toggle--disabled',
+);
+
+onMounted(() => {
+  const stored = _.get(script.value.data, 'button_trigger_enabled');
+  if (_.isBoolean(stored)) {
+    script.value.buttons.enable = stored;
+  } else {
+    script.value.data.button_trigger_enabled = script.value.buttons.enable;
+  }
+});
+
+watch(
+  () => script.value.buttons.enable,
+  value => {
+    script.value.data.button_trigger_enabled = value;
+  },
+  { immediate: true },
+);
+
 const submit = () => {
+  script.value.data.button_trigger_enabled = script.value.buttons.enable;
   const result = ScriptForm.safeParse(script.value);
   if (!result.success) {
     _(result.error.issues)
@@ -84,6 +132,21 @@ const submit = () => {
   emit('submit', result.data);
   return true;
 };
+
+const addVariable = () => {
+  //TODO:直接使用变量编辑器？
+};
+
+const addButton = () => {
+  script.value.buttons.list.push({
+    name: '',
+    visible: true,
+  });
+};
+
+const deleteButton = (buttonIndex: number) => {
+  script.value.buttons.list.splice(buttonIndex, 1);
+};
 </script>
 
 <style scoped>
@@ -91,29 +154,5 @@ const submit = () => {
 
 .TH-script-editor-container {
   @apply flex flex-col items-start mb-1 w-full;
-}
-
-#variable-list {
-  max-height: 300px;
-  margin-top: 10px;
-  overflow-y: auto;
-  border: 1px solid var(--SmartThemeBorderColor);
-  border-radius: 8px;
-  padding: 10px;
-}
-
-:deep(#script-editor .variable-item .variable-value),
-:deep(#script-editor .variable-item .variable-key),
-#script-content-textarea,
-#script-info-textarea {
-  font-family: var(--monoFontFamily);
-  padding: 8px;
-}
-
-:deep(.button-item) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
 }
 </style>

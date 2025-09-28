@@ -4,6 +4,25 @@ export const ScriptButton = z.object({
 });
 export type ScriptButton = z.infer<typeof ScriptButton>;
 
+export const ScriptButtons = z
+  .union([
+    z.object({
+      enable: z.boolean().default(true),
+      list: z.array(ScriptButton),
+    }),
+    z.array(ScriptButton),
+  ])
+  .transform(data => {
+    if (Array.isArray(data)) {
+      return {
+        enable: true,
+        list: data,
+      };
+    }
+    return data;
+  });
+export type ScriptButtons = z.infer<typeof ScriptButtons>;
+
 export const Script = z.object({
   type: z.literal('script'),
   enabled: z.boolean(),
@@ -11,7 +30,7 @@ export const Script = z.object({
   id: z.string(),
   content: z.string(),
   info: z.string(),
-  buttons: z.array(ScriptButton),
+  buttons: ScriptButtons,
   data: z.record(z.string(), z.any()),
 });
 export type Script = z.infer<typeof Script>;

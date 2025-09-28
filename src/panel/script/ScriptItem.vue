@@ -30,7 +30,6 @@
       </DefineToolButton>
       <ToolButton name="查看脚本信息" icon="fa-info-circle" />
       <ToolButton name="编辑脚本" icon="fa-pencil" @click="show_editor = true" />
-      <ToolButton name="移动到其他脚本库" icon="fa-exchange-alt" />
       <ToolButton name="导出脚本" icon="fa-file-export" />
       <ToolButton name="删除脚本" icon="fa-trash" @click="show_delete = true" />
     </div>

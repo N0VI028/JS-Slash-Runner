@@ -1,10 +1,10 @@
 <template>
   <div class="flex gap-0.25">
-    <Button type="tavern" @click="show_editor = true">
+    <Button type="tavern" @click="openCreator('script')">
       <i class="fa-solid fa-scroll" />
       <small>{{ t`+ 脚本` }}</small>
     </Button>
-    <Button type="tavern" @click="make_TODO('创建脚本库脚本文件夹')">
+    <Button type="tavern" @click="openCreator('folder')">
       <i class="fa-solid fa-folder-plus" />
       <small>{{ t`+ 文件夹` }}</small>
     </Button>
@@ -18,7 +18,7 @@
     </Button>
   </div>
 
-  <Creator v-model="show_editor" />
+  <Creator v-model="show_creator" :type="creation_type" />
 </template>
 
 <script setup lang="ts">
@@ -26,5 +26,13 @@ import Creator from '@/panel/script/Creator.vue';
 import { make_TODO } from '@/todo';
 import { ref } from 'vue';
 
-const show_editor = ref(false);
+type CreationType = 'script' | 'folder';
+
+const show_creator = ref(false);
+const creation_type = ref<CreationType>('script');
+
+function openCreator(type: CreationType) {
+  creation_type.value = type;
+  show_creator.value = true;
+}
 </script>

@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+
 const dialog_ref = useTemplateRef<HTMLDialogElement>('dialog_ref');
 
 type PopupButton = {
