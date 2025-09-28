@@ -1,7 +1,7 @@
 ﻿<template>
   <Teleport v-if="visible" to="body">
     <!-- prettier-ignore-attribute -->
-    <dialog class="popup z-[9999]" @close="close">
+    <dialog ref="dialog_ref" class="popup" @close="close">
       <slot></slot>
       <div v-if="all_actions.length" class="flex items-center justify-center gap-[20px]">
         <button
@@ -19,10 +19,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, onMounted, computed, nextTick } from 'vue';
+
+const dialog_ref = ref<HTMLDialogElement | null>(null);
+
 type PopupButton = {
   key?: string | number;
   label: string;
-  /** 点击按钮后的回调, 返回值表示是否关闭该弹窗 */
+  /** 返回 true 代表关闭弹窗。 */
   onClick: (() => boolean) | (() => Promise<boolean>);
   class?: string;
 };
@@ -31,9 +35,9 @@ const visible = defineModel<boolean>({ required: true });
 
 const props = defineProps<{
   buttons?: PopupButton[];
-  /** 确认按钮, 不填则默认没有确认按钮 */
+  /** 可选确认处理。 */
   onConfirm?: (() => boolean) | (() => Promise<boolean>);
-  /** 取消按钮, 不填则默认添加一个 */
+  /** 可选取消处理，默认直接关闭。 */
   onCancel?: (() => boolean) | (() => Promise<boolean>);
 }>();
 
@@ -73,6 +77,29 @@ const all_actions = computed(() => {
   return actions;
 });
 
+const ensureDialogClosed = () => {
+  const dialogEl = dialog_ref.value;
+  if (dialogEl?.open) {
+    dialogEl.close();
+  }
+};
+
+const ensureDialogVisible = async () => {
+  await nextTick();
+  const dialogEl = dialog_ref.value;
+  if (dialogEl && !dialogEl.open) {
+    dialogEl.showModal();
+  }
+};
+
+const syncDialogVisibility = (shouldOpen: boolean) => {
+  if (shouldOpen) {
+    ensureDialogVisible();
+  } else {
+    ensureDialogClosed();
+  }
+};
+
 const handleActionClick = async (action: PopupButton) => {
   const result = await action.onClick();
   if (result) {
@@ -81,8 +108,21 @@ const handleActionClick = async (action: PopupButton) => {
 };
 
 const close = () => {
+  ensureDialogClosed();
   visible.value = false;
 };
+
+watch(
+  () => visible.value,
+  newValue => {
+    syncDialogVisibility(newValue);
+  },
+  { immediate: true },
+);
+
+onMounted(() => {
+  syncDialogVisibility(visible.value);
+});
 
 defineExpose({ close });
 </script>
