@@ -21,11 +21,13 @@ import Character from '@/panel/toolbox/variable_manager/ContentCharacter.vue';
 import Chat from '@/panel/toolbox/variable_manager/ContentChat.vue';
 import Global from '@/panel/toolbox/variable_manager/ContentGlobal.vue';
 import Message from '@/panel/toolbox/variable_manager/ContentMessage.vue';
+import Preset from '@/panel/toolbox/variable_manager/ContentPreset.vue';
 import Toolbar from '@/panel/toolbox/variable_manager/Toolbar.vue';
 
 const active_tab = useLocalStorage<number>('TH-VariableManager:active_tab', 0);
 const tabs = [
   { name: t`全局`, component: Global },
+  { name: t`预设`, component: Preset },
   { name: t`角色`, component: Character },
   { name: t`聊天`, component: Chat },
   { name: t`消息楼层`, component: Message },
