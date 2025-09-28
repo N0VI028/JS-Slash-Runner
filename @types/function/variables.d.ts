@@ -1,19 +1,20 @@
-type VariableOption = {
-  /**
-   * 对某一楼层的聊天变量 (`message`)、聊天变量 (`'chat'`)、角色卡变量 (`'character'`)、聊天变量 (`'script'`) 或全局变量 (`'global'`) 进行操作, 默认为 `'chat'`
-   */
-  type?: 'message' | 'chat' | 'character' | 'script' | 'global';
-
-  /**
-   * 当 `type` 为 `'message'` 时, 该参数指定要获取变量的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
-   */
+type VariableOptionNormal = {
+  /** 对聊天变量 (`'chat'`)、当前角色卡 (`'character'`)、当前预设 (`'preset'`) 或全局变量 (`'global'`) 进行操作 */
+  type: 'chat' | 'character' | 'preset' | 'global';
+};
+type VariableOptionMessage = {
+  /** 对消息楼层变量 (`message`) 进行操作 */
+  type: 'message';
+  /** 指定要获取变量的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'` */
   message_id?: number | 'latest';
-
-  /**
-   * 当 `type` 为 `'script'` 时, 该参数指定要获取变量的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID
-   */
-  script_id?: string;
-}
+};
+type VariableOptionScript = {
+  /** 对脚本变量 (`'script'`) 进行操作 */
+  type: 'script';
+  /** 指定要操作变量的脚本 ID; 如果在脚本内调用, 则你可以用 `getScriptId()` 获取该脚本 ID */
+  script_id: string;
+};
+type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript;
 
 /**
  * 获取变量表
@@ -46,7 +47,7 @@ type VariableOption = {
  * // 在脚本内获取该脚本绑定的变量
  * const variables = getVariables({type: 'script', script_id: getScriptId()});
  */
-declare function getVariables({ type, message_id, script_id }?: VariableOption): Record<string, any>;
+declare function getVariables(option: VariableOption): Record<string, any>;
 
 /**
  * 完全替换变量表为 `variables`
@@ -75,10 +76,7 @@ declare function getVariables({ type, message_id, script_id }?: VariableOption):
  * // 在脚本内替换该脚本绑定的变量
  * await replaceVariables({神乐光: {好感度: 5, 认知度: 0}}, {type: 'script', script_id: getScriptId()});
  */
-declare function replaceVariables(
-  variables: Record<string, any>,
-  { type, message_id, script_id }?: VariableOption,
-): Promise<void>;
+declare function replaceVariables(variables: Record<string, any>, option: VariableOption): Promise<void>;
 
 type VariablesUpdater =
   | ((variables: Record<string, any>) => Record<string, any>)
@@ -103,10 +101,7 @@ type VariablesUpdater =
  * // 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
  * await updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
  */
-declare function updateVariablesWith(
-  updater: VariablesUpdater,
-  { type, message_id, script_id }?: VariableOption,
-): Promise<Record<string, any>>;
+declare function updateVariablesWith(updater: VariablesUpdater, option: VariableOption): Promise<Record<string, any>>;
 
 /**
  * 插入或修改变量值, 取决于变量是否存在.
@@ -128,7 +123,7 @@ declare function updateVariablesWith(
  */
 declare function insertOrAssignVariables(
   variables: Record<string, any>,
-  { type, message_id, script_id }?: VariableOption,
+  option: VariableOption,
 ): Promise<Record<string, any>>;
 
 /**
@@ -149,10 +144,7 @@ declare function insertOrAssignVariables(
  * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
  * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-declare function insertVariables(
-  variables: Record<string, any>,
-  { type, message_id, script_id }?: VariableOption,
-): Promise<Record<string, any>>;
+declare function insertVariables(variables: Record<string, any>, option: VariableOption): Promise<Record<string, any>>;
 
 /**
  * 删除变量, 如果变量不存在则什么也不做
@@ -174,5 +166,5 @@ declare function insertVariables(
  */
 declare function deleteVariable(
   variable_path: string,
-  { type, message_id, script_id }?: VariableOption,
+  option: VariableOption,
 ): Promise<{ variables: Record<string, any>; delete_occurred: boolean }>;
