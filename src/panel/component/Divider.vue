@@ -8,7 +8,10 @@
     >
       <slot></slot>
     </div>
-    <div class="flex-grow bg-[var(--grey5050a)]" :class="type === 'plain' ? 'h-[1px]' : 'h-[2px]'"></div>
+    <div
+      class="flex-grow bg-[var(--grey5050a)]"
+      :class="weight ? weight : (type === 'plain' ? 'h-[1px]' : 'h-[2px]')"
+    ></div>
   </div>
 </template>
 
@@ -17,7 +20,8 @@ withDefaults(
   defineProps<{
     type?: 'plain' | 'major';
     marginY?: string;
+    weight?: string;
   }>(),
-  { type: 'plain', marginY: 'my-0.5' },
+  { type: 'plain', marginY: 'my-0.5', weight: 'h-[1px]' },
 );
 </script>

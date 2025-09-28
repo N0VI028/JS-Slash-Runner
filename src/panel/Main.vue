@@ -10,9 +10,11 @@
     <i class="fa-solid fa-tools mr-0.5" />
     <div style="word-spacing: 1.5">{{ t`开发工具` }}</div>
   </Divider>
-  <Listener />
-  <Reference />
-  <Macrolike />
+  <div class="flex flex-col gap-0.75">
+    <Listener />
+    <Reference />
+    <Macrolike />
+  </div>
   <Divider type="major">
     <i class="fa-solid fa-shapes mr-0.5" />
     <div style="word-spacing: 1.5">{{ t`扩展信息` }}</div>

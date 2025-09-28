@@ -37,7 +37,8 @@
       >
         <NonDetailPart />
       </div>
-      <div ref="content_ref" class="TH-collapsible-content flex w-full flex-wrap gap-0.75">
+      <div ref="content_ref" class="TH-collapsible-content flex w-full flex-col flex-wrap gap-0.5">
+        <Divider type="major" margin-y="my-0.25" weight="h-[0.75px]" />
         <slot name="detail" />
       </div>
     </template>

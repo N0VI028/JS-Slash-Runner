@@ -5,17 +5,17 @@
     <template #content
       ><i
         id="online_status_indicator"
-        class="fa-solid fa-wifi margin-r5"
+        class="fa-solid fa-wifi mr-0.5"
         :style="{ color: enabled ? 'green' : 'rgb(170, 0, 0)' }"
     /></template>
     <template #detail>
-      <div class="flex-container spaceBetween alignItemsCenter">
-        <div class="flex-container" style="margin: 10px 0">
-          <div class="alignItemsCenter flex">
+      <div class="flex flex-wrap items-center justify-between gap-0.5">
+        <div class="flex-container">
+          <div class="flex items-center">
             <input v-model="enabled" type="checkbox" style="margin: 0 5px 0 1px" />
             <span style="margin-right: 10px">允许监听</span>
           </div>
-          <div class="alignItemsCenter flex">
+          <div class="flex items-center">
             <input v-model="enable_echo" type="checkbox" style="margin: 0 5px 0 1px" />
             <span>启用弹窗报错</span>
           </div>
@@ -29,9 +29,9 @@
           </a>
         </div>
       </div>
-      <div class="flex-container flexFlowColumn">
-        <div class="flexFlowColumn flex">
-          <b class="table_setting_category_header">刷新间隔 (毫秒)</b>
+      <div class="flex flex-col flex-wrap gap-0.5">
+        <div class="flex flex-col">
+          <b>刷新间隔 (毫秒)</b>
           <input v-model="duration" class="text_pole" type="number" min="1" />
         </div>
       </div>
