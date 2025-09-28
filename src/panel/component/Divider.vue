@@ -10,7 +10,7 @@
     </div>
     <div
       class="flex-grow bg-[var(--grey5050a)]"
-      :class="weight ? weight : (type === 'plain' ? 'h-[1px]' : 'h-[2px]')"
+      :class="weight ? weight : type === 'plain' ? 'h-[1px]' : 'h-[2px]'"
     ></div>
   </div>
 </template>
@@ -22,6 +22,6 @@ withDefaults(
     marginY?: string;
     weight?: string;
   }>(),
-  { type: 'plain', marginY: 'my-0.5', weight: 'h-[1px]' },
+  { type: 'plain', marginY: 'my-0.5', weight: undefined },
 );
 </script>
