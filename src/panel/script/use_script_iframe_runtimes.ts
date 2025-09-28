@@ -1,5 +1,5 @@
 import { useGlobalScriptsStore } from '@/store/scripts';
-import { isScript, Script } from '@/type/scripts';
+import { Script } from '@/type/scripts';
 import { sha224 } from 'js-sha256';
 
 interface ScriptRuntime {
@@ -16,20 +16,6 @@ function toScriptRuntime(script: Script): ScriptRuntime {
   };
 }
 
-function flatScripts(store: ReturnType<typeof useGlobalScriptsStore>): ScriptRuntime[] {
-  if (!store.enabled) {
-    return [];
-  }
-  return _(store.script_trees)
-    .flatMap(script => {
-      if (isScript(script)) {
-        return script.enabled ? [toScriptRuntime(script)] : [];
-      }
-      return script.scripts.filter(script => script.enabled).map(toScriptRuntime);
-    })
-    .value();
-}
-
 export function useScriptIframeRuntimes(
   app_ready: Ref<boolean>,
   ...stores: ReturnType<typeof useGlobalScriptsStore>[]
@@ -37,7 +23,10 @@ export function useScriptIframeRuntimes(
   return computed(() => {
     return app_ready.value
       ? _(stores)
-          .flatMap(flatScripts)
+          .filter(store => store.enabled)
+          .flatMap(store => store.flattened_scripts)
+          .filter(script => script.enabled)
+          .map(toScriptRuntime)
           .sortBy(script => script.id)
           .value()
       : [];
