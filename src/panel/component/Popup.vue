@@ -1,7 +1,7 @@
 ﻿<template>
   <Teleport v-if="visible" to="body">
     <!-- prettier-ignore-attribute -->
-    <dialog ref="dialog_ref" class="popup" @close="close">
+    <dialog ref="dialog_ref" class="popup pt-0.75!" @close="close">
       <slot></slot>
       <div v-if="all_actions.length" class="flex items-center justify-center gap-[20px]">
         <button

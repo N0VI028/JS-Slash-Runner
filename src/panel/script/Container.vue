@@ -17,7 +17,7 @@
     <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
       <template v-for="(script, index) in store.script_trees" :key="script.id">
         <template v-if="isScript(store.script_trees[index])">
-          <ScriptItem v-model="store.script_trees[index]" />
+          <ScriptItem v-model="store.script_trees[index]" @delete="handleDelete" />
         </template>
         <template v-else>
           <FolderItem v-model="store.script_trees[index]" />
@@ -40,6 +40,15 @@ const props = defineProps<{
 }>();
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
+
+const handleDelete = (id: string) => {
+  try {
+    store.value.script_trees = store.value.script_trees.filter(script => script.id !== id);
+    toastr.success('脚本删除成功');
+  } catch (error) {
+    toastr.error(error as string, '脚本删除失败');
+  }
+};
 
 const list_ref = useTemplateRef<HTMLDivElement>('list_ref');
 useSortable(list_ref, toRef(store.value, 'script_trees'), {

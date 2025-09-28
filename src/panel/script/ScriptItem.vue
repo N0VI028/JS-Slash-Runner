@@ -32,11 +32,14 @@
       <ToolButton name="编辑脚本" icon="fa-pencil" @click="show_editor = true" />
       <ToolButton name="移动到其他脚本库" icon="fa-exchange-alt" />
       <ToolButton name="导出脚本" icon="fa-file-export" />
-      <ToolButton name="删除脚本" icon="fa-trash" />
+      <ToolButton name="删除脚本" icon="fa-trash" @click="show_delete = true" />
     </div>
   </div>
 
   <Editor v-model="show_editor" :script="script" @submit="onEditorSubmit" />
+  <Popup v-model="show_delete" @confirm="onDeleteConfirm">
+    <div>确定要删除脚本吗？此操作无法撤销。</div>
+  </Popup>
 </template>
 
 <script setup lang="ts">
@@ -52,10 +55,20 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
 
 const script = defineModel<Script>({ required: true });
 
+const emit = defineEmits<{
+  delete: [id: string];
+}>();
+
 const show_editor = ref(false);
+const show_delete = ref(false);
 
 function onEditorSubmit(result: ScriptForm) {
   _.assign(script.value, result);
+}
+
+function onDeleteConfirm() {
+  emit('delete', script.value.id);
+  return true;
 }
 </script>
 
