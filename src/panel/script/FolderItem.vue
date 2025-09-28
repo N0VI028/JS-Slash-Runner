@@ -19,37 +19,59 @@
         >
           <i class="fa-solid fa-toggle-on"></i>
         </div>
-        <DefineScriptFolderIcon v-slot="{ name, icon }">
+        <DefineScriptFolderButton v-slot="{ name, icon }">
           <div class="menu_button interactable mt-0! mr-0.5 mb-0!" :title="name">
             <i class="fa-solid" :class="icon"></i>
           </div>
-        </DefineScriptFolderIcon>
-        <ScriptFolderIcon name="编辑文件夹" icon="fa-pencil" />
-        <ScriptFolderIcon name="导出文件夹" icon="fa-file-export" />
-        <ScriptFolderIcon name="移动到其他脚本库" icon="fa-exchange-alt" />
-        <ScriptFolderIcon name="删除文件夹" icon="fa-trash" />
-        <ScriptFolderIcon name="展开或折叠文件夹" icon="fa-chevron-down" />
+        </DefineScriptFolderButton>
+        <SCriptFolderButton name="编辑文件夹" icon="fa-pencil" @click="show_editor = true" />
+        <SCriptFolderButton name="导出文件夹" icon="fa-file-export" />
+        <SCriptFolderButton name="移动到其他脚本库" icon="fa-exchange-alt" />
+        <SCriptFolderButton name="删除文件夹" icon="fa-trash" @click="show_delete = true" />
+        <SCriptFolderButton name="展开或折叠文件夹" icon="fa-chevron-down" />
       </div>
     </div>
     <div ref="folder_content_ref" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
+
+    <FolderEditor v-model="show_editor" :script-folder="script_folder" @submit="onEditorSubmit" />
+    <Popup v-model="show_delete" @confirm="onDeleteConfirm">
+      <div>确定要删除脚本吗？此操作无法撤销。</div>
+    </Popup>
   </div>
 </template>
 
 <script setup lang="ts">
+import FolderEditor from '@/panel/script/FolderEditor.vue';
+import { ScriptFolderForm } from '@/panel/script/type';
 import { ScriptFolder } from '@/type/scripts';
 import { createReusableTemplate } from '@vueuse/core';
 import { useSortable } from '@vueuse/integrations/useSortable';
 
-const script_folder = defineModel<ScriptFolder>({ required: true });
-
-const [DefineScriptFolderIcon, ScriptFolderIcon] = createReusableTemplate<{
+const [DefineScriptFolderButton, SCriptFolderButton] = createReusableTemplate<{
   name: string;
   icon: string;
 }>();
 
+const script_folder = defineModel<ScriptFolder>({ required: true });
+
+const emit = defineEmits<{
+  delete: [id: string];
+}>();
+
+const show_editor = ref(false);
+function onEditorSubmit(result: ScriptFolderForm) {
+  _.assign(script_folder.value, result);
+  return true;
+}
+
+const show_delete = ref(false);
+function onDeleteConfirm() {
+  emit('delete', script_folder.value.id);
+  return true;
+}
+
 const folder_header_ref = useTemplateRef<HTMLElement>('folder_header_ref');
 const folder_content_ref = useTemplateRef<HTMLElement>('folder_content_ref');
-
 useSortable(folder_content_ref, script_folder.value.scripts, {
   group: { name: 'scripts', pull: true, put: true },
   handle: '.TH-handle',

@@ -60,8 +60,6 @@ const emit = defineEmits<{
 }>();
 
 const show_editor = ref(false);
-const show_delete = ref(false);
-
 function onEditorSubmit(result: ScriptForm) {
   const should_reload =
     script.value.enabled && !_.isEqual(_.pick(script.value, 'content', 'data'), _.pick(result, 'content', 'data'));
@@ -71,6 +69,7 @@ function onEditorSubmit(result: ScriptForm) {
   }
 }
 
+const show_delete = ref(false);
 function onDeleteConfirm() {
   emit('delete', script.value.id);
   return true;

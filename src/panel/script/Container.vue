@@ -16,12 +16,8 @@
   <div class="flex h-full flex-col overflow-hidden">
     <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
       <template v-for="(script, index) in script_trees" :key="script.id">
-        <template v-if="isScript(script_trees[index])">
-          <ScriptItem v-model="script_trees[index]" @delete="handleDelete" />
-        </template>
-        <template v-else>
-          <FolderItem v-model="script_trees[index]" />
-        </template>
+        <ScriptItem v-if="isScript(script_trees[index])" v-model="script_trees[index]" @delete="handleDelete" />
+        <FolderItem v-else v-model="script_trees[index]" @delete="handleDelete" />
       </template>
     </div>
   </div>
@@ -43,12 +39,7 @@ const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: 
 const script_trees = toRef(store.value, 'script_trees');
 
 const handleDelete = (id: string) => {
-  try {
-    _.remove(store.value.script_trees, script => script.id === id);
-    toastr.success('脚本删除成功');
-  } catch (error) {
-    toastr.error(error as string, '脚本删除失败');
-  }
+  _.remove(store.value.script_trees, script => script.id === id);
 };
 
 const list_ref = useTemplateRef<HTMLDivElement>('list_ref');
