@@ -43,7 +43,7 @@ const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: 
 
 const handleDelete = (id: string) => {
   try {
-    store.value.script_trees = store.value.script_trees.filter(script => script.id !== id);
+    _.remove(store.value.script_trees, script => script.id === id);
     toastr.success('脚本删除成功');
   } catch (error) {
     toastr.error(error as string, '脚本删除失败');

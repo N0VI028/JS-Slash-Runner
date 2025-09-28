@@ -13,7 +13,7 @@
   <div class="flex flex-col gap-0.75">
     <Listener />
     <Reference />
-    <Macrolike />
+    <MacroLike />
   </div>
   <Divider type="major">
     <i class="fa-solid fa-shapes mr-0.5" />
@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import Info from '@/panel/main/Info.vue';
 import Listener from '@/panel/main/Listener.vue';
-import Macrolike from '@/panel/main/Macrolike.vue';
+import MacroLike from '@/panel/main/MacroLike.vue';
 import Reference from '@/panel/main/Reference.vue';
 import { make_TODO } from '@/todo';
 </script>

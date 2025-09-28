@@ -45,14 +45,20 @@
 </template>
 
 <script setup lang="ts">
+import { initTavernHelperObject } from '@/function';
 import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
-import { disableIncompatibleOption } from './panel/disable_incompatible_option';
+import { initThirdPartyObject } from '@/panel/global';
+import { disableIncompatibleOption } from '@/panel/incompatible_option';
+import { registerMacros } from '@/panel/macro';
 
 z.config(z.locales.zhCN());
 disableIncompatibleOption();
+registerMacros();
+initTavernHelperObject();
+initThirdPartyObject();
 
 const tabs = [
   { name: t`主设置`, icon: 'fa-solid fa-gear', component: Main },
