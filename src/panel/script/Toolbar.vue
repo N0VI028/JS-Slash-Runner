@@ -29,8 +29,7 @@ import { ref } from 'vue';
 type CreationType = 'script' | 'folder';
 
 const show_creator = ref(false);
-const creation_type = ref<CreationType>('script');
-
+const creation_type = ref<CreationType>();
 function openCreator(type: CreationType) {
   creation_type.value = type;
   show_creator.value = true;

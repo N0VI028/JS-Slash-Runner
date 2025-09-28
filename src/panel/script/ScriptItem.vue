@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import Editor from '@/panel/script/Editor.vue';
+import Editor from '@/panel/script/ItemEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';

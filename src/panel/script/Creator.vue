@@ -18,55 +18,34 @@
     />
   </Popup>
 
-  <Editor v-model="show_editor" @submit="onEditorSubmit" />
-  <FolderCreate v-model="show_folder_creator" />
+  <FolderEditor v-if="type === 'folder'" v-model="show_editor" @submit="onFolderEditorSubmit" />
+  <ItemEditor v-else v-model="show_editor" @submit="onItemEditorSubmit" />
 </template>
 
 <script setup lang="ts">
-import Editor from '@/panel/script/Editor.vue';
-import FolderCreate from '@/panel/script/FolderCreate.vue';
-import { ScriptForm } from '@/panel/script/type';
+import FolderEditor from '@/panel/script/FolderEditor.vue';
+import ItemEditor from '@/panel/script/ItemEditor.vue';
+import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore } from '@/store/settings';
-import { Script } from '@/type/scripts';
+import { Script, ScriptFolder } from '@/type/scripts';
 import { uuidv4 } from '@sillytavern/scripts/utils';
-import { ref, watch } from 'vue';
-
-type CreationType = 'script' | 'folder';
+import { ref } from 'vue';
 
 const show_selector = defineModel<boolean>({ required: true });
 
-const props = withDefaults(defineProps<{ type?: CreationType }>(), {
-  type: 'script',
-});
+defineProps<{ type?: 'script' | 'folder' }>();
 
-const target = ref<string>('global');
+const target = ref<'global' | 'character' | 'preset'>('global');
 function onSelectorConfirm() {
   show_selector.value = false;
-  show_editor.value = false;
-  show_folder_creator.value = false;
-
-  if (props.type === 'folder') {
-    show_folder_creator.value = true;
-  } else {
-    show_editor.value = true;
-  }
-
+  show_editor.value = true;
   return true;
 }
 
 const show_editor = ref<boolean>(false);
-const show_folder_creator = ref<boolean>(false);
 
-watch(
-  () => props.type,
-  () => {
-    show_editor.value = false;
-    show_folder_creator.value = false;
-  },
-);
-
-function onEditorSubmit(result: ScriptForm) {
+function onItemEditorSubmit(result: ScriptForm) {
   const script: Script = {
     type: 'script',
     enabled: false,
@@ -82,6 +61,27 @@ function onEditorSubmit(result: ScriptForm) {
       break;
     case 'preset':
       usePresetScriptsStore().script_trees.push(script);
+      break;
+  }
+}
+
+function onFolderEditorSubmit(result: ScriptFolderForm) {
+  const folder: ScriptFolder = {
+    type: 'folder',
+    enabled: false,
+    id: uuidv4(),
+    scripts: [],
+    ...result,
+  };
+  switch (target.value) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(folder);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(folder);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(folder);
       break;
   }
 }

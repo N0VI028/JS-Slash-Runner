@@ -46,19 +46,19 @@
             </div>
             <small>需配合getButtonEvent使用</small>
           </div>
-          <Toggle id="button-trigger-toggle" v-model="script.buttons.enable" />
+          <Toggle id="button-trigger-toggle" v-model="script.buttons_enabled" />
         </div>
         <div class="button-list">
           <div
-            v-for="(button, buttonIndex) in script.buttons.list"
-            :key="`button-${buttonIndex}`"
+            v-for="(button, index) in script.buttons"
+            :key="`button-${index}`"
             class="flex items-center justify-between gap-1"
           >
             <!-- TODO: 拖拽功能 -->
             <span class="">☰</span>
             <input v-model="button.visible" type="checkbox" />
             <input v-model="button.name" class="text_pole" type="text" placeholder="按钮名称" />
-            <div class="menu_button interactable" :data-index="buttonIndex" @click="deleteButton(buttonIndex)">
+            <div class="menu_button interactable" :data-index="index" @click="deleteButton(index)">
               <i class="fa-solid fa-trash"></i>
             </div>
           </div>
@@ -77,7 +77,8 @@ const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
     name: '',
     content: '',
     info: '',
-    buttons: { enable: true, list: [] },
+    buttons_enabled: true,
+    buttons: [],
     data: {},
   }),
 });
@@ -89,7 +90,6 @@ const emit = defineEmits<{
 const script = ref<ScriptForm>(_.cloneDeep(props.script));
 
 const submit = () => {
-  script.value.data.button_trigger_enabled = script.value.buttons.enable;
   const result = ScriptForm.safeParse(script.value);
   if (!result.success) {
     _(result.error.issues)
@@ -105,18 +105,18 @@ const submit = () => {
 };
 
 const addVariable = () => {
-  //TODO:直接使用变量编辑器？
+  // TODO: 直接使用变量编辑器？
 };
 
 const addButton = () => {
-  script.value.buttons.list.push({
+  script.value.buttons.push({
     name: '',
     visible: true,
   });
 };
 
-const deleteButton = (buttonIndex: number) => {
-  script.value.buttons.list.splice(buttonIndex, 1);
+const deleteButton = (index: number) => {
+  script.value.buttons.splice(index, 1);
 };
 </script>
 
