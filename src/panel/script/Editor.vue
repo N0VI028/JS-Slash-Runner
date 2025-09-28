@@ -35,7 +35,7 @@
         <small>绑定到脚本的变量，会随脚本一同导出</small>
         <div id="variable-list" class="flex w-full flex-col flex-wrap gap-1"></div>
       </div>
-      <div id="script-button-content" class="TH-script-editor-container" :class="buttonSectionClass">
+      <div id="script-button-content" class="TH-script-editor-container">
         <div class="flex w-full items-center justify-between">
           <div class="flex flex-col">
             <div class="flex flex-wrap items-center gap-[5px]">
@@ -46,11 +46,7 @@
             </div>
             <small>需配合getButtonEvent使用</small>
           </div>
-          <Toggle
-            id="button-trigger-toggle"
-            v-model="script.buttons.enable"
-            :class="['TH-button-toggle', buttonToggleClass]"
-          />
+          <Toggle id="button-trigger-toggle" v-model="script.buttons.enable" />
         </div>
         <div class="button-list">
           <div
@@ -81,7 +77,7 @@ const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
     name: '',
     content: '',
     info: '',
-    buttons: { enable: false, list: [] },
+    buttons: { enable: true, list: [] },
     data: {},
   }),
 });
@@ -91,31 +87,6 @@ const emit = defineEmits<{
 }>();
 
 const script = ref<ScriptForm>(_.cloneDeep(props.script));
-
-const buttonSectionClass = computed(() =>
-  script.value.buttons.enable ? 'TH-script-button--active' : 'TH-script-button--inactive',
-);
-
-const buttonToggleClass = computed(() =>
-  script.value.buttons.enable ? 'TH-button-toggle--enabled' : 'TH-button-toggle--disabled',
-);
-
-onMounted(() => {
-  const stored = _.get(script.value.data, 'button_trigger_enabled');
-  if (_.isBoolean(stored)) {
-    script.value.buttons.enable = stored;
-  } else {
-    script.value.data.button_trigger_enabled = script.value.buttons.enable;
-  }
-});
-
-watch(
-  () => script.value.buttons.enable,
-  value => {
-    script.value.data.button_trigger_enabled = value;
-  },
-  { immediate: true },
-);
 
 const submit = () => {
   script.value.data.button_trigger_enabled = script.value.buttons.enable;
