@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 declare namespace SillyTavern {
   type ChatMessage = {
     message_id: number;
