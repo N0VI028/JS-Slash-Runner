@@ -1,4 +1,5 @@
 <template>
+  <!-- prettier-ignore -->
   <div class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
     <div class="z-1 flex-shrink-0">
       <Transition
@@ -31,7 +32,7 @@
           @click="handleRefresh"
         ></div>
       </div>
-      <div class="my-0.75 flex flex-col bg-(--grey5020a) px-0.5 py-1">
+      <div class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
         <div class="flex items-center justify-between gap-0.5">
           <!-- prettier-ignore-attribute -->
           <div
@@ -91,7 +92,7 @@
       class="relative flex-1 overflow-x-hidden overflow-y-auto"
     >
       <template #default="{ data }">
-        <div class="mb-1 rounded-md border border-(--SmartThemeBorderColor) p-1 text-(--SmartThemeBodyColor)">
+        <div class="mb-0.5 rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
           <div
             class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
             @click="data.is_expanded = !data.is_expanded"
@@ -160,6 +161,7 @@ function handleRefresh(): void {
   }
 
   if (online_status === 'no_connection') {
+    toastr.error('未连接到 API, 提示词查看器将无法获取数据', '未连接到 API');
     return;
   }
 
