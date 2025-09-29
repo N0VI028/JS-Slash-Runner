@@ -24,7 +24,7 @@
         <FolderItem
           v-else
           v-model="filtered_script_trees[index]"
-          :search_input="props.searchInput"
+          :search-input="props.searchInput"
           @delete="handleDelete"
         />
       </template>
