@@ -1,10 +1,7 @@
 <template>
   <!-- prettier-ignore-attribute -->
   <div
-    class="
-      relative mb-1 flex flex-col gap-0.25 overflow-hidden rounded-sm bg-(--SmartThemeChatTintColor) p-0.5
-      text-sm
-    "
+    class="relative mb-1 flex flex-col gap-0.25 overflow-hidden rounded-sm bg-(--SmartThemeChatTintColor) p-0.5 text-sm"
   >
     <div class="flex items-center justify-between gap-0.5">
       <div class="flex min-w-0 flex-1 items-center gap-0.5 overflow-hidden">
@@ -12,11 +9,7 @@
         <!-- prettier-ignore-attribute -->
         <input
           type="text"
-          class="
-            min-w-0 flex-1 border-none! bg-transparent!
-            text-sm!
-            font-bold text-(--SmartThemeBodyColor)!
-          "
+          class="min-w-0 flex-1 border-none! bg-transparent! text-sm! font-bold text-(--SmartThemeBodyColor)!"
           :value="name"
         />
       </div>

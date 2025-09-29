@@ -11,8 +11,7 @@
         <button
           id="floor-filter-btn"
           class="
-            flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25
-            text-sm
+            flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25 text-sm
             text-(--SmartThemeTextColor)
           "
         >
