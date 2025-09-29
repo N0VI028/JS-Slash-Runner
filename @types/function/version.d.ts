@@ -4,6 +4,6 @@
 declare function getTavernHelperVersion(): string;
 
 /**
- * 更新酒馆助手
+ * 获取酒馆版本号
  */
-declare function updateTavernHelper(): Promise<boolean>;
+declare function getTavernVersion(): Promise<string>;

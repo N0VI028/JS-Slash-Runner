@@ -99,6 +99,16 @@ import { triggerSlash } from '@/function/slash';
 //   updateTavernRegexesWith,
 // } from '@/function/tavern_regex';
 import {
+  getExtensionInstallationInfo,
+  getExtensionType,
+  installExtension,
+  isAdmin,
+  isInstalledExtension,
+  reinstallExtension,
+  uninstallExtension,
+  updateExtension,
+} from '@/function/extension';
+import {
   _getCurrentMessageId,
   _getIframeName,
   _getScriptId,
@@ -122,7 +132,7 @@ import {
   replaceVariables,
   updateVariablesWith,
 } from '@/function/variables';
-// import { getTavernHelperVersion, getTavernVersion, updateTavernHelper } from '@/function/version';
+import { getTavernHelperVersion, getTavernVersion, updateTavernHelper } from '@/function/version';
 import {
   createOrReplaceWorldbook,
   createWorldbook,
@@ -214,6 +224,16 @@ function getTavernHelper() {
     // event
     tavern_events,
     iframe_events,
+
+    // extension
+    isAdmin,
+    getExtensionType,
+    getExtensionStatus: getExtensionInstallationInfo,
+    isInstalledExtension,
+    installExtension,
+    uninstallExtension,
+    reinstallExtension,
+    updateExtension,
 
     // // import_raw
     // importRawCharacter,
@@ -308,12 +328,12 @@ function getTavernHelper() {
     deleteVariable,
     insertVariables,
 
-    // // version
-    // getTavernHelperVersion,
-    // getFrontendVersion: getTavernHelperVersion,
-    // updateTavernHelper,
-    // updateFrontendVersion: updateTavernHelper,
-    // getTavernVersion
+    // version
+    getTavernHelperVersion,
+    getFrontendVersion: getTavernHelperVersion,
+    updateTavernHelper,
+    updateFrontendVersion: updateTavernHelper,
+    getTavernVersion,
 
     // worldbook
     getWorldbookNames,
