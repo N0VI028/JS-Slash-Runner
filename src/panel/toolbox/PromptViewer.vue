@@ -87,7 +87,7 @@
     </div>
     <VirtList item-key="id" :list="filtered_prompts" :min-size="20">
       <template #default="{ itemData }">
-        <div class="mb-0.5 rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
+        <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
           <div
             class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
             @click="is_expanded[itemData.id] = !is_expanded[itemData.id]"
