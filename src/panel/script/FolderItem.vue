@@ -8,7 +8,7 @@
     <div ref="folder_header_ref" class="TH-folder-header flex flex-nowrap items-center justify-between px-0.5">
       <!-- prettier-ignore-attribute -->
       <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true"> ☰ </span>
-      <i class="fa-solid fa-folder-open ml-0.5"></i>
+      <i class="fa-solid fa-folder-open ml-0.5" :style="{ color: script_folder.color || 'var(--SmartThemeQuoteColor)' }"></i>
       <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden">{{ script_folder.name }}</span>
       <div class="flex shrink-0 flex-nowrap items-center gap-0.25">
         <!-- prettier-ignore-attribute -->
