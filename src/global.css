@@ -15,42 +15,8 @@
 @layer base {
   /* 重置dialog的样式，防止popup位置偏移 */
   dialog {
-    position: fixed !important;
     left: 50% !important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
   }
-}
-
-.script-editor-container input:not([type='checkbox']) {
-  width: 100%;
-  padding: 0.1em 0.75em;
-  border-radius: 5px;
-  background-color: var(--black30a);
-  border: 1px solid var(--SmartThemeBorderColor);
-}
-
-.text-decoration {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: calc(var(--mainFontSize) * 2);
-  font-weight: 700;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: -1;
-}
-
-#script-settings-content {
-  padding-top: 0;
-}
-
-#update-extension {
-  cursor: pointer;
-}
-
-.input-number-wrapper input {
-  width: 50px !important;
 }

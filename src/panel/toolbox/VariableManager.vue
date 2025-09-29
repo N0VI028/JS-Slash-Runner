@@ -38,7 +38,7 @@ const search_input = ref('');
 </script>
 
 <style lang="scss" scoped>
-@reference "tailwindcss";
+@reference "../../global.css";
 
 .TH-tab-item {
   @apply px-1 cursor-pointer relative flex items-center z-1 h-full;
