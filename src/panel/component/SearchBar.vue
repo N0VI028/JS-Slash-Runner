@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="flex w-full flex-wrap items-center gap-0.5">
     <div class="relative flex min-w-0 flex-1">
       <input
@@ -32,70 +32,25 @@
 </template>
 
 <script setup lang="ts">
-interface SearchBarProps<T = any> {
-  placeholder?: string;
-  debounce?: number;
-  clearable?: boolean;
-  items?: T[];
-  searchFields?: (keyof T)[];
-  strategy?: 'includes' | 'regex';
-}
-
 const input = defineModel<string>({ required: true });
-
-const props = withDefaults(defineProps<SearchBarProps>(), {
-  placeholder: '请输入文本...',
-  debounce: 300,
-  clearable: true,
-  strategy: 'includes',
-  items: () => [],
-  searchFields: () => [],
-});
-
-// emits
-const emit = defineEmits<{
-  'update:filteredItems': [items: any[]];
-}>();
-
-const onInput = useDebounceFn((event: Event) => {
-  input.value = (event.target as HTMLInputElement).value;
-}, props.debounce);
-
-const filteredItems = computed(() => {
-  // 注释
-  if (!props.items || !input.value) {
-    return props.items || [];
-  }
-
-  return props.items.filter(item => {
-    if (!props.searchFields || props.searchFields.length === 0) {
-      return true;
-    }
-
-    return props.searchFields.some(field => {
-      const value = (item as any)[field]?.toString().toLowerCase() || '';
-      const query = input.value.toLowerCase();
-
-      if (props.strategy === 'regex') {
-        try {
-          const regex = new RegExp(query, 'gi');
-          return regex.test(value);
-        } catch {
-          return value.includes(query);
-        }
-      }
-
-      return value.includes(query);
-    });
-  });
-});
-
-watch(
-  filteredItems,
-  newValue => {
-    emit('update:filteredItems', newValue);
+const props = withDefaults(
+  defineProps<{
+    placeholder?: string;
+    debounce?: number;
+    clearable?: boolean;
+  }>(),
+  {
+    placeholder: '请输入文本...',
+    debounce: 300,
+    clearable: true,
   },
-  { immediate: true },
+);
+
+const onInput = useDebounceFn(
+  (event: Event) => {
+    input.value = (event.target as HTMLInputElement).value;
+  },
+  () => props.debounce,
 );
 </script>
 
