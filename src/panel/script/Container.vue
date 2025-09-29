@@ -53,7 +53,12 @@ const filtered_script_trees = computed(() => {
   if (props.searchInput === '') {
     return script_trees.value;
   }
-  return script_trees.value.filter(script => includesOrTest(script.name, props.searchInput));
+  return script_trees.value.filter(script =>
+    isScript(script)
+      ? includesOrTest(script.name, props.searchInput)
+      : includesOrTest(script.name, props.searchInput) &&
+        script.scripts.some(script => includesOrTest(script.name, props.searchInput)),
+  );
 });
 
 const handleDelete = (id: string) => {
