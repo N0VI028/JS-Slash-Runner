@@ -21,7 +21,7 @@
   </Divider>
   <Info />
 
-  <Update v-if="show_update" v-model="show_update" />
+  <Update v-model="show_update" />
 </template>
 
 <script setup lang="ts">
