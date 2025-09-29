@@ -47,6 +47,7 @@
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
 import { ScriptFolder } from '@/type/scripts';
+import { includesOrTest } from '@/util/search';
 import { createReusableTemplate } from '@vueuse/core';
 import { useSortable } from '@vueuse/integrations/useSortable';
 
@@ -57,9 +58,18 @@ const [DefineScriptFolderButton, SCriptFolderButton] = createReusableTemplate<{
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
 
+const props = defineProps<{ searchInput: string | RegExp }>();
+
 const emit = defineEmits<{
   delete: [id: string];
 }>();
+
+const filtered_scripts = computed(() => {
+  if (props.searchInput === '') {
+    return script_folder.value.scripts;
+  }
+  return script_folder.value.scripts.filter(script => includesOrTest(script.name, props.searchInput));
+});
 
 const show_editor = ref(false);
 function onEditorSubmit(result: ScriptFolderForm) {

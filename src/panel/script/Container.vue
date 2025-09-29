@@ -15,9 +15,18 @@
 
   <div class="flex h-full flex-col overflow-hidden">
     <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
-      <template v-for="(script, index) in script_trees" :key="script.id">
-        <ScriptItem v-if="isScript(script_trees[index])" v-model="script_trees[index]" @delete="handleDelete" />
-        <FolderItem v-else v-model="script_trees[index]" @delete="handleDelete" />
+      <template v-for="(script, index) in filtered_script_trees" :key="script.id">
+        <ScriptItem
+          v-if="isScript(filtered_script_trees[index])"
+          v-model="filtered_script_trees[index]"
+          @delete="handleDelete"
+        />
+        <FolderItem
+          v-else
+          v-model="filtered_script_trees[index]"
+          :search_input="props.searchInput"
+          @delete="handleDelete"
+        />
       </template>
     </div>
   </div>
@@ -28,15 +37,24 @@ import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
+import { includesOrTest } from '@/util/search';
 import { useSortable } from '@vueuse/integrations/useSortable';
+
+const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
 
 const props = defineProps<{
   title: string;
   description: string;
+  searchInput: string | RegExp;
 }>();
 
-const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
 const script_trees = toRef(store.value, 'script_trees');
+const filtered_script_trees = computed(() => {
+  if (props.searchInput === '') {
+    return script_trees.value;
+  }
+  return script_trees.value.filter(script => includesOrTest(script.name, props.searchInput));
+});
 
 const handleDelete = (id: string) => {
   _.remove(store.value.script_trees, script => script.id === id);

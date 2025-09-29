@@ -7,13 +7,20 @@
     clearable
   />
 
-  <Container v-model="global_scripts" title="全局脚本" description="酒馆全局可用" />
+  <Container v-model="global_scripts" title="全局脚本" description="酒馆全局可用" :search-input="search_input" />
+
   <template v-if="character_id !== undefined">
     <Divider />
-    <Container v-model="character_scripts" title="角色脚本" description="绑定到当前角色卡" />
+    <Container
+      v-model="character_scripts"
+      title="角色脚本"
+      description="绑定到当前角色卡"
+      :search-input="search_input"
+    />
   </template>
+
   <Divider />
-  <Container v-model="preset_scripts" title="预设脚本" description="绑定到当前预设" />
+  <Container v-model="preset_scripts" title="预设脚本" description="绑定到当前预设" :search-input="search_input" />
 
   <template v-for="script in runtimes" :key="script.id + script.reload_memo">
     <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
@@ -27,10 +34,8 @@ import Toolbar from '@/panel/script/Toolbar.vue';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore, useGlobalSettingsStore } from '@/store/settings';
-import { make_TODO } from '@/todo';
 
-const search_input = ref('');
-watch(search_input, make_TODO('按照搜索结果筛选脚本'));
+const search_input = ref<string | RegExp>('');
 
 const character_id = toRef(useCharacterSettingsStore(), 'id');
 

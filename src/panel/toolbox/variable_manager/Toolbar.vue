@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-const search_input = defineModel<string>('search_input', { required: true });
+const search_input = defineModel<string | RegExp>('search_input', { required: true });
 
 const [DefineFilter, Filter] = createReusableTemplate<{
   type: string;

@@ -17,7 +17,7 @@
       ></i>
       <!-- prettier-ignore-attribute -->
       <button
-        v-if="clearable && input.length > 0"
+        v-if="clearable && input !== ''"
         class="
           absolute top-1/2 right-0.5 z-2 flex h-1.5 w-1.5 -translate-y-[50%] cursor-pointer border-none bg-transparent
           text-(--SmartThemeBodyColor) opacity-80
@@ -32,7 +32,9 @@
 </template>
 
 <script setup lang="ts">
-const input = defineModel<string>({ required: true });
+import { regexFromString } from '@sillytavern/scripts/utils';
+
+const input = defineModel<string | RegExp>({ required: true });
 const props = withDefaults(
   defineProps<{
     placeholder?: string;
@@ -46,45 +48,12 @@ const props = withDefaults(
   },
 );
 
-const onInput = useDebounceFn((event: Event) => {
-  input.value = (event.target as HTMLInputElement).value;
-}, props.debounce);
-
-const filteredItems = computed(() => {
-  // 注释
-  if (!props.items || !input.value) {
-    return props.items || [];
-  }
-
-  return props.items.filter(item => {
-    if (!props.searchFields || props.searchFields.length === 0) {
-      return true;
-    }
-
-    return props.searchFields.some(field => {
-      const value = (item as any)[field]?.toString().toLowerCase() || '';
-      const query = input.value.toLowerCase();
-
-      if (props.strategy === 'regex') {
-        try {
-          const regex = new RegExp(query, 'gi');
-          return regex.test(value);
-        } catch {
-          return value.includes(query);
-        }
-      }
-
-      return value.includes(query);
-    });
-  });
-});
-
-watch(
-  filteredItems,
-  newValue => {
-    emit('update:filteredItems', newValue);
+const onInput = useDebounceFn(
+  (event: Event) => {
+    const result = (event.target as HTMLInputElement).value;
+    input.value = result.startsWith('/') ? (regexFromString(result) ?? result) : result;
   },
-  { immediate: true },
+  () => props.debounce,
 );
 </script>
 

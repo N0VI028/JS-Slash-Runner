@@ -33,7 +33,7 @@ const tabs = [
   { name: t`消息楼层`, component: Message },
 ];
 
-const search_input = ref('');
+const search_input = ref<string | RegExp>('');
 // TODO: 将 search_input 等 Toolbar 数据传入 tabs.component
 </script>
 
