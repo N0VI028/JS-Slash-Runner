@@ -82,14 +82,14 @@ import {
   setPreset,
   updatePresetWith,
 } from '@/function/preset';
-// import {
-//   _appendInexistentScriptButtons,
-//   _getButtonEvent,
-//   _getScriptButtons,
-//   _getScriptInfo,
-//   _replaceScriptButtons,
-//   _replaceScriptInfo,
-// } from '@/function/script';
+import {
+  _appendInexistentScriptButtons,
+  _getButtonEvent,
+  _getScriptButtons,
+  _getScriptInfo,
+  _replaceScriptButtons,
+  _replaceScriptInfo,
+} from '@/function/script';
 import { triggerSlash } from '@/function/slash';
 // import {
 //   formatAsTavernRegexedString,
@@ -179,12 +179,12 @@ function getTavernHelper() {
       _waitGlobalInitialized,
 
       // // script
-      // _getButtonEvent,
-      // _getScriptButtons,
-      // _replaceScriptButtons,
-      // _appendInexistentScriptButtons,
-      // _getScriptInfo,
-      // _replaceScriptInfo,
+      _getButtonEvent,
+      _getScriptButtons,
+      _replaceScriptButtons,
+      _appendInexistentScriptButtons,
+      _getScriptInfo,
+      _replaceScriptInfo,
 
       // variables
       _getVariables,

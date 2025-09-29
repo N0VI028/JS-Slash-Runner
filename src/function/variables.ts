@@ -1,5 +1,5 @@
+import { get_script } from '@/function/script';
 import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
-import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { saveChatConditionalDebounced } from '@/util/save';
 import { chat, chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
@@ -45,13 +45,7 @@ export function get_variables_without_clone(option: VariableOption): Record<stri
       if (!option.script_id) {
         throw Error('获取变量失败, 未指定 script_id');
       }
-      // 仅允许脚本对自身获取变量, 因此只考虑 enabled_scripts
-      const script = _.concat(
-        useGlobalScriptsStore().enabled_scripts,
-        useCharacterScriptsStore().enabled_scripts,
-        usePresetScriptsStore().enabled_scripts,
-      ).find(script => script.id === option.script_id);
-      return script?.data ?? {};
+      return get_script(option.script_id)?.data ?? {};
     }
   }
 }
@@ -130,16 +124,11 @@ export function replaceVariables(variables: Record<string, any>, option: Variabl
       if (!option.script_id) {
         throw Error('保存变量失败, 未指定 script_id');
       }
-      // 仅允许脚本对自身修改变量, 因此只考虑 enabled_scripts
-      const script = _.concat(
-        useGlobalScriptsStore().enabled_scripts,
-        useCharacterScriptsStore().enabled_scripts,
-        usePresetScriptsStore().enabled_scripts,
-      ).find(script => script.id === option.script_id);
+      const script = get_script(option.script_id);
       if (!script) {
         throw Error(`保存变量失败, '${option.script_id}' 脚本不存在`);
       }
-      _.assign(script.data, variables);
+      script.data = variables;
       break;
     }
   }

@@ -89,6 +89,8 @@ const emit = defineEmits<{
   submit: [script: ScriptForm];
 }>();
 
+// TODO: 由于 ItemEditor 本身不会 v-if 卸载, 如果不通过编辑器修改了数据 (如 `replaceScriptButtons`), script 依旧记录的是之前 _.cloneDeep 缓存的数据
+// 应该怎样 v-if 和 v-model 一起用? 还是说只能到处传递 v-if 和 v-model
 const script = ref<ScriptForm>(_.cloneDeep(props.script));
 
 const submit = () => {
