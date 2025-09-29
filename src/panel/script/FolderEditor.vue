@@ -55,7 +55,6 @@ const emit = defineEmits<{
 const script_folder = ref<ScriptFolderForm>(_.cloneDeep(props.scriptFolder));
 const colorPickerRef = useTemplateRef<HTMLElement>('colorPickerRef');
 
-
 const onColorChange = (evt: any) => {
   if (evt.detail?.rgba) {
     script_folder.value.color = evt.detail.rgba;
