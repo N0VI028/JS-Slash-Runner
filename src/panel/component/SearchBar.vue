@@ -1,7 +1,13 @@
 <template>
   <div class="flex w-full flex-wrap items-center gap-0.5">
     <div class="relative flex min-w-0 flex-1">
-      <input :placeholder="placeholder" class="text_pole w-full pr-2! pl-2!" type="text" @input="onInput" />
+      <input
+        ref="internal"
+        :placeholder="placeholder"
+        class="text_pole w-full pr-2! pl-2!"
+        type="text"
+        @input="onInput"
+      />
       <!-- prettier-ignore-attribute -->
       <i
         class="
@@ -17,7 +23,7 @@
           text-(--SmartThemeBodyColor) opacity-80
         "
         title="清除"
-        @click="input = ''"
+        @click="onClear"
       >
         <i class="fa-solid fa-xmark"></i>
       </button>
@@ -42,13 +48,18 @@ const props = withDefaults(
   },
 );
 
+const internal = useTemplateRef<HTMLInputElement>('internal');
 const onInput = useDebounceFn(
-  (event: Event) => {
-    const result = (event.target as HTMLInputElement).value;
+  () => {
+    const result = internal.value!.value;
     input.value = result.startsWith('/') ? (regexFromString(result) ?? result) : result;
   },
   () => props.debounce,
 );
+function onClear() {
+  internal.value!.value = '';
+  input.value = '';
+}
 </script>
 
 <style lang="scss" scoped>
