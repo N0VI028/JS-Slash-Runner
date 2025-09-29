@@ -1,7 +1,7 @@
 <template>
   <div class="relative flex w-full justify-between gap-1 rounded-md bg-[var(--grey5020a)] p-1.5">
     <!-- prettier-ignore-attribute -->
-    <div class="flex flex-1 flex-col text-(length:--TH-FontSize-sm) opacity-70">
+    <div class="flex flex-1 flex-col text-sm opacity-70">
       <div class="mb-1.5">
         {{ t`作者：KAKAA，青空莉想做舞台少女的狗` }}
       </div>
@@ -27,11 +27,7 @@
     </div>
     <!-- prettier-ignore-attribute -->
     <div
-      class="
-        pointer-events-none absolute top-[50%] right-0.75 z-[-1] translate-y-[-50%]
-        text-(length:--TH-FontSize-xl)
-        font-bold opacity-10
-      "
+      class="pointer-events-none absolute top-[50%] right-0.75 z-[-1] translate-y-[-50%] text-xl font-bold opacity-10"
     >
       About Us
     </div>

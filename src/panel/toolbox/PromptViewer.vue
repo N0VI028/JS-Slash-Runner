@@ -11,15 +11,13 @@
       </Transition>
       <div class="mb-0.75 flex items-center justify-between p-0.5">
         <div class="flex flex-col gap-0.25">
-          <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">
+          <div class="text-base font-bold text-(--SmartThemeQuoteColor)">
             总token数: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
           </div>
-          <div class="text-(length:--TH-FontSize-sm) text-(--SmartThemeQuoteColor)">
-            共 {{ filtered_prompts.length }} 条消息
-          </div>
+          <div class="text-sm text-(--SmartThemeQuoteColor)">共 {{ filtered_prompts.length }} 条消息</div>
         </div>
         <div
-          class="fa-solid fa-rotate-right cursor-pointer text-(length:--TH-FontSize-base) duration-200"
+          class="fa-solid fa-rotate-right cursor-pointer text-base duration-200"
           :class="{ 'animate-spin': is_refreshing }"
           title="刷新"
           @click="handleRefresh"
@@ -29,10 +27,7 @@
         <div class="flex items-center justify-between gap-0.5">
           <!-- prettier-ignore-attribute -->
           <div
-            class="
-              flex h-(--TH-FontSize-xl) w-(--TH-FontSize-xl) cursor-pointer items-center justify-center
-              text-(--SmartThemeQuoteColor)
-            "
+            class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
             title="筛选消息类型"
           >
             <i class="fa-solid fa-filter"></i>
@@ -42,9 +37,7 @@
             <input
               type="text"
               class="
-                h-(--TH-FontSize-xl) w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5
-                pr-8 pl-1
-                text-(length:--TH-FontSize-base)
+                h-2 w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8 pl-1 text-base
                 text-(--mainTextColor)
               "
               placeholder="搜索消息内容..."
@@ -52,12 +45,11 @@
             <!-- prettier-ignore-attribute -->
             <div
               class="
-                pointer-events-auto absolute top-[25%] right-1 flex items-center rounded-sm
-                text-(length:--TH-FontSize-sm)
-                whitespace-nowrap text-(--SmartThemeBodyColor)
+                pointer-events-auto absolute top-[25%] right-1 flex items-center rounded-sm text-sm whitespace-nowrap
+                text-(--SmartThemeBodyColor)
               "
             >
-              <input type="checkbox" class="mr-0.25 mb-0 h-(--TH-FontSize-sm) w-(--TH-FontSize-sm)" />
+              <input type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
               <label for="prompt-search-compact-mode">仅显示匹配</label>
             </div>
           </div>
@@ -78,9 +70,12 @@
         </div>
       </div>
     </div>
-    <VirtList item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
+    <VirtList item-key="id" :list="filtered_prompts" :min-size="height" :item-gap="7">
       <template #default="{ itemData }">
-        <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
+        <div
+          ref="min-height"
+          class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)"
+        >
           <div
             class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
             @click="is_expanded[itemData.id] = !is_expanded[itemData.id]"
@@ -126,6 +121,9 @@ const is_expanded = ref<boolean[]>([]);
 const is_refreshing = ref<boolean>(false);
 
 const is_tips_hide = useTimeout(5000);
+
+const min_height = useTemplateRef('min-height');
+const { height } = useElementSize(min_height);
 
 const filtered_prompts = computed(() => {
   // TODO: 处理身份筛选和搜索
@@ -186,7 +184,7 @@ useEventSourceOn(
 
 .TH-prompt-view-tips {
   background-color: rgba(248, 211, 0, 0.5);
-  @apply text-(--black90a) text-(length:--TH-FontSize-xs) mb-0.25 rounded-sm p-0.25;
+  @apply text-(--black90a) text-xs mb-0.25 rounded-sm p-0.25;
 }
 
 .v-leave-active {

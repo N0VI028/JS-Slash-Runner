@@ -1,7 +1,7 @@
 <template>
   <!--prettier-ignore-attribute-->
   <Popup v-model="visible" @confirm="submit">
-    <div class="my-0.5 text-(length:--TH-FontSize-md) font-bold">创建新文件夹</div>
+    <div class="my-0.5 text-md font-bold">创建新文件夹</div>
     <div class="flex w-full flex-col justify-center gap-0.5 p-1">
       <div class="flex flex-col items-start">
         <div class="font-bold">文件夹名称:</div>

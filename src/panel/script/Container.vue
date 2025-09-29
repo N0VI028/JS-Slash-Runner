@@ -8,7 +8,7 @@
         </div>
       </div>
       <!-- prettier-ignore-attribute -->
-      <div class="mt-0.25 text-(length:--TH-FontSize-sm) opacity-70">{{ props.description }}</div>
+      <div class="mt-0.25 text-sm opacity-70">{{ props.description }}</div>
     </div>
     <Toggle :id="`${props.title}-script-enable-toggle`" v-model="store.enabled" />
   </div>

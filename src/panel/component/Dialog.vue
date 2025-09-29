@@ -24,7 +24,7 @@
           <button
             class="
               relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
-              text-(length:--TH-FontSize-base)!
+              text-base!
               text-(--SmartThemeBodyColor)
             "
             :title="is_collapsed ? t`展开` : t`折叠`"
@@ -37,7 +37,7 @@
             class="
               fa-solid fa-close relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none
               bg-transparent
-              text-(length:--TH-FontSize-base)!
+              text-base!
               text-(--SmartThemeBodyColor)
             "
             :title="t`关闭`"
@@ -325,7 +325,6 @@ interface SizeStorage {
   mobileWidth?: number;
   mobileHeight?: number;
 }
-
 
 const position_storage = props.storageId
   ? useLocalStorage<PositionStorage>(`TH-Dialog-${props.storageId}:pos`, {}, { mergeDefaults: true })

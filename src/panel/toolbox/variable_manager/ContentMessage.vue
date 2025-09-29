@@ -1,5 +1,5 @@
 <template>
-  <div class="my-0.75 rounded-sm bg-(--SmartThemeQuoteColor) p-0.75 text-(length:--TH-FontSize-sm)">
+  <div class="my-0.75 rounded-sm bg-(--SmartThemeQuoteColor) p-0.75 text-sm">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-between gap-0.75">
         <div class="flex flex-1 items-center">
@@ -12,7 +12,7 @@
           id="floor-filter-btn"
           class="
             flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25
-            text-(length:--TH-FontSize-sm)
+            text-sm
             text-(--SmartThemeTextColor)
           "
         >
@@ -20,9 +20,7 @@
           <span>确认</span>
         </button>
       </div>
-      <div id="floor-filter-error" class="py-0.25 text-(length:--TH-FontSize-sm) text-(--warning)">
-        最大楼层不能小于最小楼层
-      </div>
+      <div id="floor-filter-error" class="py-0.25 text-sm text-(--warning)">最大楼层不能小于最小楼层</div>
     </div>
   </div>
 

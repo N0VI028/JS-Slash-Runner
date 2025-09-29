@@ -3,7 +3,7 @@
     <!-- prettier-ignore-attribute -->
     <div
       v-if="$slots.default"
-      class="mr-(--TH-FontSize-sm) flex text-(length:--TH-FontSize-sm) whitespace-nowrap"
+      class="mr-0.75 flex text-sm whitespace-nowrap"
       :style="type === 'plain' ? '' : 'word-spacing: 1.5'"
     >
       <slot></slot>

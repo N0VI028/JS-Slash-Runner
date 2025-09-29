@@ -1,7 +1,7 @@
 <template>
   <Popup v-model="visible" @confirm="submit">
     <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
-      <div class="my-0.5 text-(length:--TH-FontSize-md) font-bold">脚本编辑</div>
+      <div class="my-0.5 text-md font-bold">脚本编辑</div>
       <div id="script-name" class="TH-script-editor-container">
         <div>脚本名称</div>
         <input v-model="script.name" type="text" class="text_pole" />

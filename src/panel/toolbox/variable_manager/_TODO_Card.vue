@@ -3,7 +3,7 @@
   <div
     class="
       relative mb-1 flex flex-col gap-0.25 overflow-hidden rounded-sm bg-(--SmartThemeChatTintColor) p-0.5
-      text-(length:--TH-FontSize-sm)
+      text-sm
     "
   >
     <div class="flex items-center justify-between gap-0.5">
@@ -14,7 +14,7 @@
           type="text"
           class="
             min-w-0 flex-1 border-none! bg-transparent!
-            text-(length:--TH-FontSize-sm)!
+            text-sm!
             font-bold text-(--SmartThemeBodyColor)!
           "
           :value="name"
@@ -29,7 +29,7 @@
         </div>
       </div>
     </div>
-    <input :value="content" class="text-(length:--TH-FontSize-sm)!" />
+    <input :value="content" class="text-sm!" />
   </div>
 </template>
 

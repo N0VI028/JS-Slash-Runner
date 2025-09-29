@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="type === 'tavern_helper' ? 'TH-Button--container' : 'menu_button menu_button_icon interactable'"
+    :class="type === 'tavern_helper' ? 'TH-Button--container' : 'menu_button menu_button_icon interactable flex-wrap'"
     @click="onClick"
   >
     <slot />
@@ -18,25 +18,18 @@ withDefaults(
 </script>
 
 <style lang="scss" scoped>
+@reference 'tailwindcss';
+
 .TH-Button-- {
   &container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 55px;
-    border: 1px solid var(--SmartThemeQuoteColor);
-    border-radius: 5px;
-    padding: 3px 5px;
-    font-size: var(--TH-FontSize-sm);
-    color: var(--SmartThemeBodyColor);
+    @apply flex items-center justify-center w-4 border-1 border-(--SmartThemeQuoteColor) rounded-sm py-[3px] px-[5px] text-xs text-(--SmartThemeBodyColor);
 
     a {
       color: var(--SmartThemeBodyColor);
     }
 
     i {
-      font-size: var(--TH-FontSize-xs) !important;
-      margin-left: 5px;
+      @apply text-xs! ml-0.5;
     }
   }
 }

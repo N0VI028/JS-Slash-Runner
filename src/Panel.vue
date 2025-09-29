@@ -10,7 +10,7 @@
         <div
           class="
             flex w-full items-center rounded-full border border-(--grey5050a) p-0.5
-            text-(length:--TH-FontSize-base)
+            text-base
           "
         >
           <div

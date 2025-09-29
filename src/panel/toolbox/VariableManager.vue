@@ -44,7 +44,7 @@ const search_input = ref('');
   @apply px-1 cursor-pointer relative flex items-center z-1 h-full;
 
   &-text {
-    @apply text-(length:--TH-FontSize-base) transition-all duration-300 ease-in-out relative inline-block;
+    @apply text-base transition-all duration-300 ease-in-out relative inline-block;
   }
 
   &-text::after {
@@ -54,7 +54,7 @@ const search_input = ref('');
   }
 
   &.TH-tab-active &-text {
-    @apply font-bold text-(length:--TH-FontSize-md);
+    @apply font-bold text-md;
   }
   &.TH-tab-active &-text::after {
     transform: scaleX(1);

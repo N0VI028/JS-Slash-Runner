@@ -31,14 +31,12 @@
             <a
               href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.zip?ref_type=heads&inline=false"
               class="list-group-item"
-              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSize-sm); cursor: pointer"
             >
               {{ t`电脑编写模板用` }}
             </a>
             <a
               href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.txt?ref_type=heads&inline=false"
               class="list-group-item"
-              style="padding: 3px 3px; padding-bottom: 3px; font-size: var(--TH-FontSize-sm); cursor: pointer"
             >
               {{ t`手机或 AI 官网用` }}
             </a>
@@ -59,7 +57,6 @@
           <div class="TH-reference-button">
             <a
               target="_blank"
-              style="cursor: pointer"
               :title="t`下载你所用酒馆版本及扩展所提供的酒馆 STScript 命令列表, 可发给 ai 参考了解`"
               @click="downloadSlashCommands"
             >
@@ -166,20 +163,17 @@ function downloadSlashCommands(event: Event) {
 </script>
 
 <style lang="scss" scoped>
+@reference 'tailwindcss';
 .TH-reference-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--grey5020a);
-  border-radius: 50px;
-  padding: 5px 10px;
+  @apply cursor-pointer flex items-center justify-center bg-(--grey5020a) rounded-sm p-0.5 text-xs text-(--SmartThemeBodyColor) gap-0.5;
   margin-top: 5px;
-  font-size: var(--TH-FontSize-sm);
-  color: var(--SmartThemeBodyColor);
-  gap: 5px;
 
   a {
-    color: var(--SmartThemeBodyColor);
+    @apply text-(--SmartThemeBodyColor);
   }
+}
+
+.list-group-item {
+  @apply p-0.5 text-sm cursor-pointer;
 }
 </style>
