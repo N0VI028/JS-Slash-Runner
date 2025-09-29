@@ -3,9 +3,21 @@
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-between gap-0.75">
         <div class="flex flex-1 items-center">
-          <input v-model="min_message_id" type="number" class="TH-floor-input" min="0" :max="chat.length - 1" />
+          <input
+            v-model="from"
+            type="number"
+            class="TH-floor-input"
+            :min="sync_bottom ? -chat.length : 0"
+            :max="sync_bottom ? -1 : chat.length - 1"
+          />
           <span class="mx-0.5 text-(--SmartThemeBodyColor)">~</span>
-          <input v-model="max_message_id" type="number" class="TH-floor-input" min="0" :max="chat.length - 1" />
+          <input
+            v-model="to"
+            type="number"
+            class="TH-floor-input"
+            :min="sync_bottom ? -chat.length : 0"
+            :max="sync_bottom ? -1 : chat.length - 1"
+          />
         </div>
         <!-- prettier-ignore-attribute -->
         <button
@@ -23,30 +35,65 @@
     </div>
   </div>
 
-  <template v-for="message_id in message_range" :key="message_id">
-    <!-- TODO: 从 message_id 获取 variables -->
-    <Editor v-model="variables" />
+  <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
+    <Editor v-model="variables_map[message_id]" />
   </template>
 </template>
 
 <script setup lang="ts">
+import { get_variables_without_clone, replaceVariables } from '@/function/variables';
 import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
+import { fromBackwardMessageId, toBackwardMessageId } from '@/util/message';
 import { chat } from '@sillytavern/script';
 
-const min_message_id = ref(0);
-const max_message_id = ref(0);
-const message_range = computed(() => _.range(min_message_id.value, max_message_id.value + 1));
+const from = ref(-1);
+const to = ref(-1);
 
-const variables = ref<Record<string, any>>({
-  字符串: '字符串',
-  数值: 123,
-  布尔: true,
-  对象: {
-    a: 1,
-    b: 2,
-  },
-  数组: [1, 2, 3],
+const sync_bottom = ref(true);
+watch(sync_bottom, () => {
+  if (sync_bottom.value) {
+    from.value = toBackwardMessageId(from.value);
+    to.value = toBackwardMessageId(to.value);
+  } else {
+    from.value = fromBackwardMessageId(from.value);
+    to.value = fromBackwardMessageId(to.value);
+  }
 });
+
+const message_range = computed(() => {
+  if (from.value > to.value) {
+    return _.range(to.value, from.value + 1);
+  }
+  return _.range(from.value, to.value + 1);
+});
+function get_variables_array() {
+  return Object.fromEntries(
+    message_range.value.map(message_id => [message_id, get_variables_without_clone({ type: 'message', message_id })]),
+  );
+}
+watchDebounced(
+  message_range,
+  () => {
+    variables_map.value = get_variables_array();
+  },
+  { debounce: 1000 },
+);
+
+const variables_map = shallowRef<{ [message_id: string]: Record<string, any> }>(get_variables_array());
+useIntervalFn(() => {
+  const new_variables_array = get_variables_array();
+  if (!_.isEqual(variables_map.value, new_variables_array)) {
+    variables_map.value = new_variables_array;
+  }
+}, 2000);
+
+watchDebounced(
+  variables_map,
+  new_variables => {
+    replaceVariables(toRaw(new_variables), { type: 'chat' });
+  },
+  { debounce: 1000 },
+);
 </script>
 
 <style lang="scss" scoped>

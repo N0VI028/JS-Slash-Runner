@@ -3,16 +3,26 @@
 </template>
 
 <script setup lang="ts">
+import { get_variables_without_clone, replaceVariables } from '@/function/variables';
 import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
+import { event_types } from '@sillytavern/script';
 
-const variables = ref<Record<string, any>>({
-  字符串: '字符串',
-  数值: 123,
-  布尔: true,
-  对象: {
-    a: 1,
-    b: 2,
+const variables = shallowRef<Record<string, any>>(get_variables_without_clone({ type: 'global' }));
+useEventSourceOn(
+  event_types.SETTINGS_UPDATED,
+  _.debounce(() => {
+    const new_variables = get_variables_without_clone({ type: 'global' });
+    if (!_.isEqual(variables.value, new_variables)) {
+      variables.value = new_variables;
+    }
+  }, 1000),
+);
+
+watchDebounced(
+  variables,
+  new_variables => {
+    replaceVariables(toRaw(new_variables), { type: 'global' });
   },
-  数组: [1, 2, 3],
-});
+  { debounce: 1000, deep: true },
+);
 </script>
