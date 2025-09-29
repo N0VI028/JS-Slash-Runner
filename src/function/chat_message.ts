@@ -130,9 +130,9 @@ export function getChatMessages(
     let swipes_data: Record<string, any>[] = message?.variables ?? [{}];
     let swipes_info: Record<string, any>[] = message?.swipes_info ?? [message?.extra ?? {}];
     const max_length = _.max([swipes.length, swipes_data.length, swipes_info.length]) ?? 1;
-    swipes = _.range(0, max_length).map(i => swipes[i] ?? '');
-    swipes_data = _.range(0, max_length).map(i => swipes_data[i] ?? {});
-    swipes_info = _.range(0, max_length).map(i => swipes_info[i] ?? {});
+    swipes = _.range(0, max_length).map(i => swipes?.[i] ?? '');
+    swipes_data = _.range(0, max_length).map(i => swipes_data?.[i] ?? {});
+    swipes_info = _.range(0, max_length).map(i => swipes_info?.[i] ?? {});
 
     const extra = swipes_info[swipe_id];
     const data = swipes_data[swipe_id];
