@@ -15,9 +15,9 @@ function saveSettingsToMemoryDebounced(id: string, settings: PresetSettings) {
   saveSettingsDebounced();
 }
 
-function saveSettingsToFile(id: string, settings: PresetSettings) {
+async function saveSettingsToFile(id: string, settings: PresetSettings) {
   _.set(preset_manager.getPresetList().presets[Number(id)], `extensions.${setting_field}`, settings);
-  preset_manager.savePreset(
+  await preset_manager.savePreset(
     Object.keys(preset_manager.getPresetList().preset_names)[Number(id)],
     preset_manager.getPresetList().presets[Number(id)],
   );

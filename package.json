@@ -59,6 +59,7 @@
     "@vueuse/shared": "^13.9.0",
     "compare-versions": "^6.1.1",
     "emittery": "^1.2.0",
+    "is-promise": "^4.0.0",
     "marked": "^16.3.0",
     "pinia": "^3.0.3",
     "socket.io-client": "^4.8.1",

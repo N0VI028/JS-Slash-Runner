@@ -25,6 +25,8 @@ import {
   tavern_events,
 } from '@/function/event';
 import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
+import { builtin_prompt_default_order } from '@/function/generate/types';
+import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
 import {
   getCharAvatarPath,
   getCharData,
@@ -32,8 +34,6 @@ import {
   getChatHistoryDetail,
   RawCharacter,
 } from '@/function/raw_character';
-import { builtin_prompt_default_order } from '@/function/generate/types';
-import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
 // import {
 //   importRawCharacter,
 //   importRawChat,
@@ -107,15 +107,21 @@ import {
   getMessageId,
   substitudeMacros,
 } from '@/function/util';
-// import {
-//   _getAllVariables,
-//   deleteVariable,
-//   getVariables,
-//   insertOrAssignVariables,
-//   insertVariables,
-//   replaceVariables,
-//   updateVariablesWith,
-// } from '@/function/variables';
+import {
+  _deleteVariable,
+  _getAllVariables,
+  _getVariables,
+  _insertOrAssignVariables,
+  _insertVariables,
+  _replaceVariables,
+  _updateVariablesWith,
+  deleteVariable,
+  getVariables,
+  insertOrAssignVariables,
+  insertVariables,
+  replaceVariables,
+  updateVariablesWith,
+} from '@/function/variables';
 // import { getTavernHelperVersion, getTavernVersion, updateTavernHelper } from '@/function/version';
 import {
   createOrReplaceWorldbook,
@@ -165,8 +171,14 @@ function getTavernHelper() {
       // _getScriptInfo,
       // _replaceScriptInfo,
 
-      // // variables
-      // _getAllVariables,
+      // variables
+      _getVariables,
+      _getAllVariables,
+      _replaceVariables,
+      _updateVariablesWith,
+      _insertOrAssignVariables,
+      _insertVariables,
+      _deleteVariable,
 
       // util
       _getIframeName,
@@ -288,13 +300,13 @@ function getTavernHelper() {
     errorCatched,
     getMessageId,
 
-    // // variables
-    // getVariables,
-    // replaceVariables,
-    // updateVariablesWith,
-    // insertOrAssignVariables,
-    // deleteVariable,
-    // insertVariables,
+    // variables
+    getVariables,
+    replaceVariables,
+    updateVariablesWith,
+    insertOrAssignVariables,
+    deleteVariable,
+    insertVariables,
 
     // // version
     // getTavernHelperVersion,

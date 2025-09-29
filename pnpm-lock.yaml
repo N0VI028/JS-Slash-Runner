@@ -26,6 +26,9 @@ importers:
       emittery:
         specifier: ^1.2.0
         version: 1.2.0
+      is-promise:
+        specifier: ^4.0.0
+        version: 4.0.0
       marked:
         specifier: ^16.3.0
         version: 16.3.0
@@ -1650,6 +1653,9 @@ packages:
   is-number@7.0.0:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
+
+  is-promise@4.0.0:
+    resolution: {integrity: sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ==}
 
   is-what-type@1.1.4:
     resolution: {integrity: sha512-120PeT8LdXO7m503rQtOapWA7lHBtWErN+asRxKyxF/SFGeqLEAZhlItjNynNVABHteRMSjomQCdAnxEJldMMQ==}
@@ -3766,6 +3772,8 @@ snapshots:
       is-extglob: 2.1.1
 
   is-number@7.0.0: {}
+
+  is-promise@4.0.0: {}
 
   is-what-type@1.1.4: {}
 

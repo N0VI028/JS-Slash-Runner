@@ -82,6 +82,7 @@ export type GlobalSettings = z.infer<typeof GlobalSettings>;
 export const CharacterSettings = z
   .object({
     scripts: z.array(ScriptTree).default([]),
+    variables: z.record(z.string(), z.any()).default({}),
   })
   .prefault({});
 export type CharacterSettings = z.infer<typeof CharacterSettings>;
@@ -89,6 +90,7 @@ export type CharacterSettings = z.infer<typeof CharacterSettings>;
 export const PresetSettings = z
   .object({
     scripts: z.array(ScriptTree).default([]),
+    variables: z.record(z.string(), z.any()).default({}),
   })
   .prefault({});
 export type PresetSettings = z.infer<typeof CharacterSettings>;

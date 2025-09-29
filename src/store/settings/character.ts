@@ -10,8 +10,8 @@ function getSettings(id: string | undefined): CharacterSettings {
   );
 }
 
-function saveSettings(id: string, settings: CharacterSettings) {
-  writeExtensionField(id, setting_field, settings);
+async function saveSettings(id: string, settings: CharacterSettings) {
+  await writeExtensionField(id, setting_field, settings);
 }
 const saveSettingsDebounced = _.debounce(saveSettings, 1000);
 
