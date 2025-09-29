@@ -85,24 +85,19 @@
         </div>
       </div>
     </div>
-    <UseVirtualList
-      :list="filtered_prompts"
-      :options="{ itemHeight: 60 }"
-      height="100%"
-      class="relative flex-1 overflow-x-hidden overflow-y-auto"
-    >
-      <template #default="{ data }">
+    <VirtList item-key="id" :list="filtered_prompts" :min-size="20">
+      <template #default="{ itemData }">
         <div class="mb-0.5 rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
           <div
             class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
-            @click="data.is_expanded = !data.is_expanded"
+            @click="is_expanded[itemData.id] = !is_expanded[itemData.id]"
           >
             <span>
-              Role: <span>{{ data.role }}</span> | Token: <span>{{ data.token }}</span>
+              Role: <span>{{ itemData.role }}</span> | Token: <span>{{ itemData.token }}</span>
             </span>
             <div class="fa-solid fa-circle-chevron-down"></div>
           </div>
-          <template v-if="data.is_expanded">
+          <template v-if="is_expanded[itemData.id]">
             <Divider />
             <!-- prettier-ignore-attribute -->
             <div
@@ -111,12 +106,12 @@
                 whitespace-pre-wrap text-(--mainFontSize)
               "
             >
-              <span>{{ data.content }}</span>
+              <span>{{ itemData.content }}</span>
             </div>
           </template>
         </div>
       </template>
-    </UseVirtualList>
+    </VirtList>
   </div>
 </template>
 
@@ -124,14 +119,17 @@
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
 import { oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
+import { VirtList } from 'vue-virt-list';
 
 export interface PromptData {
+  id: number;
   role: string;
   content: string;
   token: number;
 }
 
 const prompts = shallowRef<PromptData[]>([]);
+const is_expanded = ref<boolean[]>([]);
 const is_refreshing = ref<boolean>(false);
 
 const isTipsVisible = ref(true);
@@ -147,7 +145,7 @@ useTimeoutFn(() => {
 
 const filtered_prompts = computed(() => {
   // TODO: 处理身份筛选和搜索
-  return prompts.value.map(prompt => ({ ...prompt, is_expanded: false }));
+  return prompts.value;
 });
 
 function handleRefresh(): void {
@@ -184,14 +182,16 @@ useEventSourceOn(
 
     setTimeout(async () => {
       prompts.value = await Promise.all(
-        data.chat.map(async ({ role, content }) => {
+        data.chat.map(async ({ role, content }, index) => {
           return {
+            id: index,
             role,
             content: content,
             token: await getTokenCountAsync(content),
           };
         }),
       );
+      is_expanded.value = _.times(data.chat.length, _.constant(false));
     });
   },
 );

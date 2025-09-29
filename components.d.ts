@@ -18,6 +18,5 @@ declare module 'vue' {
     SearchBar: typeof import('./src/panel/component/SearchBar.vue')['default']
     Selector: typeof import('./src/panel/component/Selector.vue')['default']
     Toggle: typeof import('./src/panel/component/Toggle.vue')['default']
-    UseVirtualList: typeof import('@vueuse/components')['UseVirtualList']
   }
 }
