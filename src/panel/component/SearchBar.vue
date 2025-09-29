@@ -1,13 +1,7 @@
 <template>
   <div class="flex w-full flex-wrap items-center gap-0.5">
     <div class="relative flex min-w-0 flex-1">
-      <input
-        :value="input"
-        :placeholder="placeholder"
-        class="text_pole w-full pr-2! pl-2!"
-        type="text"
-        @input="onInput"
-      />
+      <input :placeholder="placeholder" class="text_pole w-full pr-2! pl-2!" type="text" @input="onInput" />
       <!-- prettier-ignore-attribute -->
       <i
         class="
