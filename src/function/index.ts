@@ -9,22 +9,22 @@ import {
   setChatMessages,
 } from '@/function/chat_message';
 import { formatAsDisplayedMessage, retrieveDisplayedMessage } from '@/function/displayed_message';
-// import {
-//   _eventClearAll,
-//   _eventClearEvent,
-//   _eventClearListener,
-//   _eventEmit,
-//   _eventEmitAndWait,
-//   _eventMakeFirst,
-//   _eventMakeLast,
-//   _eventOn,
-//   _eventOnButton,
-//   _eventOnce,
-//   _eventRemoveListener,
-//   iframe_events,
-//   tavern_events,
-// } from '@/function/event';
-// import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
+import {
+  _eventClearAll,
+  _eventClearEvent,
+  _eventClearListener,
+  _eventEmit,
+  _eventEmitAndWait,
+  _eventMakeFirst,
+  _eventMakeLast,
+  _eventOn,
+  // _eventOnButton,
+  _eventOnce,
+  _eventRemoveListener,
+  iframe_events,
+  tavern_events,
+} from '@/function/event';
+import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
 import {
   getCharAvatarPath,
   getCharData,
@@ -32,8 +32,8 @@ import {
   getChatHistoryDetail,
   RawCharacter,
 } from '@/function/raw_character';
-// import { builtin_prompt_default_order } from '@/function/generate/types';
-// import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
+import { builtin_prompt_default_order } from '@/function/generate/types';
+import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
 // import {
 //   importRawCharacter,
 //   importRawChat,
@@ -41,7 +41,7 @@ import {
 //   importRawTavernRegex,
 //   importRawWorldbook,
 // } from '@/function/import_raw';
-// import { injectPrompts, uninjectPrompts } from '@/function/inject';
+import { injectPrompts, uninjectPrompts } from '@/function/inject';
 import {
   createLorebook,
   deleteLorebook,
@@ -116,7 +116,7 @@ import {
 //   replaceVariables,
 //   updateVariablesWith,
 // } from '@/function/variables';
-// import { getTavernHelperVersion } from '@/function/version';
+// import { getTavernHelperVersion, getTavernVersion, updateTavernHelper } from '@/function/version';
 import {
   createOrReplaceWorldbook,
   createWorldbook,
@@ -140,22 +140,22 @@ import {
 function getTavernHelper() {
   return {
     _bind: {
-      // // event
-      // _eventOn,
+      // event
+      _eventOn,
       // _eventOnButton,
-      // _eventMakeLast,
-      // _eventMakeFirst,
-      // _eventOnce,
-      // _eventEmit,
-      // _eventEmitAndWait,
-      // _eventRemoveListener,
-      // _eventClearEvent,
-      // _eventClearListener,
-      // _eventClearAll,
+      _eventMakeLast,
+      _eventMakeFirst,
+      _eventOnce,
+      _eventEmit,
+      _eventEmitAndWait,
+      _eventRemoveListener,
+      _eventClearEvent,
+      _eventClearListener,
+      _eventClearAll,
 
-      // // global
-      // _initializeGlobal,
-      // _waitGlobalInitialized,
+      // global
+      _initializeGlobal,
+      _waitGlobalInitialized,
 
       // // script
       // _getButtonEvent,
@@ -199,9 +199,9 @@ function getTavernHelper() {
     formatAsDisplayedMessage,
     retrieveDisplayedMessage,
 
-    // // event
-    // tavern_events,
-    // iframe_events,
+    // event
+    tavern_events,
+    iframe_events,
 
     // // import_raw
     // importRawCharacter,
@@ -210,16 +210,16 @@ function getTavernHelper() {
     // importRawWorldbook,
     // importRawTavernRegex,
 
-    // // inject
-    // injectPrompts,
-    // uninjectPrompts,
+    // inject
+    injectPrompts,
+    uninjectPrompts,
 
-    // // generate
-    // builtin_prompt_default_order,
-    // generate,
-    // generateRaw,
-    // stopGenerationById,
-    // stopAllGeneration,
+    // generate
+    builtin_prompt_default_order,
+    generate,
+    generateRaw,
+    stopGenerationById,
+    stopAllGeneration,
 
     // lorebook_entry
     getLorebookEntries,
@@ -298,9 +298,10 @@ function getTavernHelper() {
 
     // // version
     // getTavernHelperVersion,
-    // updateTavernHelper,
     // getFrontendVersion: getTavernHelperVersion,
+    // updateTavernHelper,
     // updateFrontendVersion: updateTavernHelper,
+    // getTavernVersion
 
     // worldbook
     getWorldbookNames,

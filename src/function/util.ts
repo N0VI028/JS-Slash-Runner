@@ -33,11 +33,11 @@ export function _getIframeName(this: Window): string {
 }
 
 export function _getScriptId(this: Window): string {
-  const script_id = $(this.frameElement as Element).attr('script-id');
-  if (!script_id) {
+  const iframe_name = _getIframeName.call(this);
+  if (!iframe_name.startsWith('TH-script-')) {
     throw new Error('你只能在脚本 iframe 内获取 getScriptId!');
   }
-  return script_id;
+  return iframe_name.replace('TH-script-', '');
 }
 
 export function _getCurrentMessageId(this: Window): number {
