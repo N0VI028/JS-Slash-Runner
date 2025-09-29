@@ -127,7 +127,7 @@ const props = withDefaults(
     storageId?: string;
   }>(),
   {
-    width: '50vw',
+    width: '60vw',
     height: '70vh',
     mobileWidth: '90vw',
     mobileHeight: '70vh',

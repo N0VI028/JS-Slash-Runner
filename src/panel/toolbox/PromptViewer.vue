@@ -1,11 +1,21 @@
 <template>
   <div class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
     <div class="z-1 flex-shrink-0">
-      <div>💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况</div>
-      <div v-if="oai_settings.squash_system_messages === true">
-        ⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理
-      </div>
-      <div class="mb-0.75 flex items-center justify-between p-1">
+      <Transition
+        ><div v-if="isTipsVisible" class="TH-prompt-view-tips">
+          💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况
+        </div></Transition
+      >
+      <Transition
+        ><div
+          v-if="oai_settings.squash_system_messages === true"
+          v-show="isMergeTipsVisible"
+          class="TH-prompt-view-tips"
+        >
+          ⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理
+        </div></Transition
+      >
+      <div class="mb-0.75 flex items-center justify-between p-0.75">
         <div class="flex flex-col gap-0.25">
           <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">
             总token数: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
@@ -123,6 +133,17 @@ export interface PromptData {
 const prompts = shallowRef<PromptData[]>([]);
 const is_refreshing = ref<boolean>(false);
 
+const isTipsVisible = ref(true);
+const isMergeTipsVisible = ref(true);
+
+/**
+ * 隐藏Tips提示
+ */
+useTimeoutFn(() => {
+  isTipsVisible.value = false;
+  isMergeTipsVisible.value = false;
+}, 5000); // 5秒
+
 const filtered_prompts = computed(() => {
   // TODO: 处理身份筛选和搜索
   return prompts.value.map(prompt => ({ ...prompt, is_expanded: false }));
@@ -173,3 +194,20 @@ useEventSourceOn(
   },
 );
 </script>
+
+<style scoped>
+@reference 'tailwindcss';
+
+.TH-prompt-view-tips {
+  background-color: rgba(248, 211, 0, 0.5);
+  @apply text-(--black90a) text-(length:--TH-FontSize-xs) mb-0.25 rounded-sm p-0.25;
+}
+
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-leave-to {
+  opacity: 0;
+}
+</style>
