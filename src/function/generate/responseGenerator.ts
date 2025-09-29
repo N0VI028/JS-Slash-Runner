@@ -5,6 +5,7 @@ import {
   setupImageArrayProcessing,
   unblockGeneration,
 } from '@/function/generate/utils';
+import { saveChatConditionalDebounced } from '@/util/save';
 import {
   cleanUpMessage,
   countOccurrences,
@@ -12,7 +13,6 @@ import {
   eventSource,
   event_types,
   isOdd,
-  saveChatConditional,
   saveSettingsDebounced,
 } from '@sillytavern/script';
 import { oai_settings, sendOpenAIRequest } from '@sillytavern/scripts/openai';
@@ -76,7 +76,7 @@ class StreamingProcessor {
     }
     this.isStopped = true;
     unblockGeneration();
-    saveChatConditional();
+    saveChatConditionalDebounced();
   }
 
   // eslint-disable-next-line require-yield

@@ -1,5 +1,6 @@
 import { highlight_code } from '@/util/highlight_code';
 import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
+import { saveChatConditionalDebounced } from '@/util/save';
 import {
   addOneMessage,
   chat,
@@ -298,11 +299,14 @@ export async function setChatMessages(
 
   chat_messages = convert_and_merge_messages(chat_messages);
   await Promise.all(chat_messages.map(modify));
-  await saveChatConditional();
   if (refresh === 'all') {
+    await saveChatConditional();
     await reloadCurrentChat();
-  } else if (refresh === 'affected') {
-    await Promise.all(chat_messages.map(message => render(message.message_id)));
+  } else {
+    saveChatConditionalDebounced();
+    if (refresh === 'affected') {
+      await Promise.all(chat_messages.map(message => render(message.message_id)));
+    }
   }
 }
 
@@ -362,8 +366,8 @@ export async function createChatMessages(
   } else {
     chat.splice(insert_at, 0, ...converted);
   }
-  await saveChatConditional();
   if (refresh === 'affected' && insert_at === 'end') {
+    saveChatConditionalDebounced();
     converted.forEach(message => addOneMessage(message));
     converted.forEach(async (message, index) => {
       await eventSource.emit(
@@ -372,7 +376,10 @@ export async function createChatMessages(
       );
     });
   } else if (refresh !== 'none') {
+    await saveChatConditional();
     await reloadCurrentChat();
+  } else {
+    saveChatConditionalDebounced();
   }
 }
 
@@ -387,9 +394,11 @@ export async function deleteChatMessages(
   message_ids = message_ids.filter(inUnnormalizedMessageRange).map(id => normalizeMessageId(id));
 
   _.pullAt(chat, message_ids);
-  await saveChatConditional();
   if (refresh === 'all') {
+    await saveChatConditional();
     await reloadCurrentChat();
+  } else {
+    saveChatConditionalDebounced();
   }
 }
 
@@ -405,9 +414,11 @@ export async function rotateChatMessages(
 ): Promise<void> {
   const right_part = chat.splice(middle, end - middle);
   chat.splice(begin, 0, ...right_part);
-  await saveChatConditional();
   if (refresh === 'all') {
+    await saveChatConditional();
     await reloadCurrentChat();
+  } else {
+    saveChatConditionalDebounced();
   }
 }
 

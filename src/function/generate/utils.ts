@@ -1,3 +1,4 @@
+import { saveChatConditionalDebounced } from '@/util/save';
 import {
   activateSendButtons,
   eventSource,
@@ -175,8 +176,7 @@ export async function clearInjectionPrompts(prefixes: string[]): Promise<void> {
   Object.keys(prompts)
     .filter(key => prefixes.some(prefix => key.startsWith(prefix)))
     .forEach(key => delete prompts[key]);
-
-  await saveChatConditional();
+  saveChatConditionalDebounced();
 }
 
 /**
