@@ -9,7 +9,7 @@
           </div>
         </template>
       </Transition>
-      <div class="mb-0.75 flex items-center justify-between p-0.75">
+      <div class="mb-0.75 flex items-center justify-between p-0.5">
         <div class="flex flex-col gap-0.25">
           <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">
             总token数: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
@@ -78,7 +78,7 @@
         </div>
       </div>
     </div>
-    <VirtList item-key="id" :list="filtered_prompts" :min-size="20">
+    <VirtList item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
       <template #default="{ itemData }">
         <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
           <div
