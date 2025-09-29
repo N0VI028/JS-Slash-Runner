@@ -1,6 +1,7 @@
 <template>
   <div
     :class="type === 'tavern_helper' ? 'TH-Button--container' : 'menu_button menu_button_icon interactable flex-wrap'"
+    class="cursor-pointer"
     @click="onClick"
   >
     <slot />

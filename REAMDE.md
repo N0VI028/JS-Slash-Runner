@@ -8,3 +8,4 @@
 - 去除 `.gitignore` 中的 `dist`
 - 删除 `.github/workflows`、`dist`
 - 去除 `TODO`
+- 测试更新酒馆助手功能

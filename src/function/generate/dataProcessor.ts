@@ -317,7 +317,7 @@ async function processWorldInfo(
     creatorNotes: characterInfo.creatorNotes,
   };
   const { worldInfoString, worldInfoBefore, worldInfoAfter, worldInfoExamples, worldInfoDepth } =
-  // @ts-expect-error 不考虑新的 trigger 字段
+    // @ts-expect-error 不考虑新的 trigger 字段
     await getWorldInfoPrompt(chatForWI, this_max_context, false, globalScanData);
 
   await clearInjectionPrompts(['customDepthWI']);

@@ -70,7 +70,10 @@ export function _getAllVariables(this: Window): Record<string, any> {
   const is_message_iframe = _getIframeName.call(this).startsWith('TH-message');
 
   let result = _({});
-  result = result.assign(get_variables_without_clone({ type: 'global' }), get_variables_without_clone({ type: 'character' }));
+  result = result.assign(
+    get_variables_without_clone({ type: 'global' }),
+    get_variables_without_clone({ type: 'character' }),
+  );
   if (!is_message_iframe) {
     result = result.assign(get_variables_without_clone({ type: 'script', script_id: _getScriptId.call(this) }));
   }

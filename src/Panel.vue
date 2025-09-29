@@ -1,18 +1,13 @@
 <template>
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
-      <b>{{ t`酒馆助手新` }}</b>
+      <b>{{ t`酒馆助手新` }} <span v-if="has_update" class="text-xs font-bold text-red-500">New!</span></b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
     </div>
     <div class="inline-drawer-content">
       <div class="mt-0.5 mb-0.75">
         <!-- prettier-ignore-attribute -->
-        <div
-          class="
-            flex w-full items-center rounded-full border border-(--grey5050a) p-0.5
-            text-base
-          "
-        >
+        <div class="flex w-full items-center rounded-full border border-(--grey5050a) p-0.5 text-base">
           <div
             v-for="({ name, icon }, index) in tabs"
             :key="index"
@@ -53,6 +48,7 @@ import Toolbox from '@/panel/Toolbox.vue';
 import { initThirdPartyObject } from '@/panel/global';
 import { disableIncompatibleOption } from '@/panel/incompatible_option';
 import { registerMacros } from '@/panel/macro';
+import { hasUpdate } from '@/panel/main/update';
 
 z.config(z.locales.zhCN());
 disableIncompatibleOption();
@@ -67,4 +63,9 @@ const tabs = [
   { name: t`工具箱`, icon: 'fa-solid fa-toolbox', component: Toolbox },
 ] as const;
 const active_tab = useLocalStorage<number>('TH-Panel:active_tab', 0);
+
+const has_update = ref(false);
+onMounted(async () => {
+  has_update.value = await hasUpdate();
+});
 </script>
