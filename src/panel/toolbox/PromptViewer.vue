@@ -1,21 +1,14 @@
 <template>
-  <!-- prettier-ignore -->
   <div class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
     <div class="z-1 flex-shrink-0">
-      <Transition
-        ><div v-if="isTipsVisible" class="TH-prompt-view-tips">
-          💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况
-        </div></Transition
-      >
-      <Transition
-        ><div
-          v-if="oai_settings.squash_system_messages === true"
-          v-show="isMergeTipsVisible"
-          class="TH-prompt-view-tips"
-        >
-          ⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理
-        </div></Transition
-      >
+      <Transition>
+        <template v-if="!is_tips_hide">
+          <div class="TH-prompt-view-tips">💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况</div>
+          <div v-if="oai_settings.squash_system_messages === true" class="TH-prompt-view-tips">
+            ⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理
+          </div>
+        </template>
+      </Transition>
       <div class="mb-0.75 flex items-center justify-between p-0.75">
         <div class="flex flex-col gap-0.25">
           <div class="text-(length:--TH-FontSize-base) font-bold text-(--SmartThemeQuoteColor)">
@@ -132,16 +125,7 @@ const prompts = shallowRef<PromptData[]>([]);
 const is_expanded = ref<boolean[]>([]);
 const is_refreshing = ref<boolean>(false);
 
-const isTipsVisible = ref(true);
-const isMergeTipsVisible = ref(true);
-
-/**
- * 隐藏Tips提示
- */
-useTimeoutFn(() => {
-  isTipsVisible.value = false;
-  isMergeTipsVisible.value = false;
-}, 5000); // 5秒
+const is_tips_hide = useTimeout(5000);
 
 const filtered_prompts = computed(() => {
   // TODO: 处理身份筛选和搜索
