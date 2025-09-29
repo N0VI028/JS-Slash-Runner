@@ -7,7 +7,7 @@ declare function isAdmin(): boolean;
  * - `'global'`: 全局扩展, 酒馆所有用户可用
  * - `'system'`: 酒馆内置扩展, 如正则等
  *
- * @param extension_id 扩展文件夹名称
+ * @param extension_id 扩展 id, 一般是扩展文件夹名
  */
 declare function getExtensionType(extension_id: string): 'local' | 'global' | 'system' | null;
 
@@ -21,14 +21,14 @@ type ExtensionInstallationInfo = {
 /**
  * 获取扩展安装信息
  *
- * @param extension_id 扩展文件夹名称
+ * @param extension_id 扩展 id, 一般是扩展文件夹名
  */
 declare function getExtensionInstallationInfo(extension_id: string): Promise<ExtensionInstallationInfo | null>;
 
 /**
  * 检查是否已安装某一扩展
  *
- * @param extension_id 扩展文件夹名称
+ * @param extension_id 扩展 id, 一般是扩展文件夹名
  *
  * @example
  * // 检查是否已安装酒馆助手
@@ -58,7 +58,7 @@ declare function installExtension(url: string, type: 'local' | 'global'): Promis
 /**
  * 卸载扩展; 卸载后需要刷新页面 (`triggerSlash('/reload-page')`) 才生效
  *
- * @param extension_id 扩展文件夹名称
+ * @param extension_id 扩展 id, 一般是扩展文件夹名
  *
  * @example
  * // 卸载酒馆助手
@@ -73,7 +73,7 @@ declare function uninstallExtension(extension_id: string): Promise<Response>;
 /**
  * 重新安装扩展; 重新安装后需要刷新页面 (`triggerSlash('/reload-page')`) 才生效
  *
- * @param extension_id 扩展文件夹名称
+ * @param extension_id 扩展 id, 一般是扩展文件夹名
  *
  * @example
  * // 重新安装酒馆助手
@@ -88,7 +88,7 @@ declare function reinstallExtension(extension_id: string): Promise<Response>;
 /**
  * 更新扩展; 更新后需要刷新页面 (`triggerSlash('/reload-page')`) 才生效
  *
- * @param extension_id 扩展文件夹名称
+ * @param extension_id 扩展 id, 一般是扩展文件夹名
  *
  * @example
  * // 更新酒馆助手

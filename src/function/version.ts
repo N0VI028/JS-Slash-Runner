@@ -1,12 +1,16 @@
+import manifest from '@/../manifest.json';
 import { updateExtension } from '@/function/extension';
-import { getCurrentVersion } from '@/panel/main/check_update';
 
 export function getTavernHelperVersion(): string {
-  return getCurrentVersion();
+  return manifest.version;
+}
+
+export function getTavernHelperExtensionId(): string {
+  return 'JS-Slash-Runner';
 }
 
 export async function updateTavernHelper(): Promise<boolean> {
-  return updateExtension('JS-Slash-Runner').then(res => res.ok);
+  return updateExtension(getTavernHelperExtensionId()).then(res => res.ok);
 }
 
 export async function getTavernVersion(): Promise<string> {

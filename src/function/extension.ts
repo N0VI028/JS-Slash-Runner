@@ -40,7 +40,7 @@ export function isInstalledExtension(extension_id: string): boolean {
 
 export async function installExtension(url: string, type: 'local' | 'global'): Promise<Response> {
   if (!isAdmin() && type === 'global') {
-    throw Error('只有管理员才能安装全局扩展');
+    return Response.json({ message: '只有管理员才能安装全局扩展' }, { status: 403 });
   }
   const response = await fetch('/api/extensions/install', {
     method: 'POST',
@@ -53,10 +53,10 @@ export async function installExtension(url: string, type: 'local' | 'global'): P
 export async function uninstallExtension(extension_id: string): Promise<Response> {
   const type = getExtensionType(extension_id);
   if (!type) {
-    throw Error('扩展不存在');
+    return Response.json({ message: '扩展不存在' }, { status: 404 });
   }
   if (!isAdmin() && type === 'global') {
-    throw Error('只有管理员才能卸载全局扩展');
+    return Response.json({ message: '只有管理员才能卸载全局扩展' }, { status: 403 });
   }
   const response = await fetch('/api/extensions/delete', {
     method: 'POST',
@@ -69,10 +69,10 @@ export async function uninstallExtension(extension_id: string): Promise<Response
 export async function reinstallExtension(extension_id: string): Promise<Response> {
   const type = getExtensionType(extension_id);
   if (!type) {
-    throw Error('扩展不存在');
+    return Response.json({ message: '扩展不存在' }, { status: 404 });
   }
   if (!isAdmin() && type === 'global') {
-    throw Error('只有管理员才能重新安装全局扩展');
+    return Response.json({ message: '只有管理员才能重新安装全局扩展' }, { status: 403 });
   }
   const status = (await getExtensionInstallationInfo(extension_id))!;
   if (status.is_up_to_date) {
@@ -88,10 +88,10 @@ export async function reinstallExtension(extension_id: string): Promise<Response
 export async function updateExtension(extension_id: string): Promise<Response> {
   const type = getExtensionType(extension_id);
   if (!type) {
-    throw Error('扩展不存在');
+    return Response.json({ message: '扩展不存在' }, { status: 404 });
   }
   if (!isAdmin() && type === 'global') {
-    throw Error('只有管理员才能更新全局扩展');
+    return Response.json({ message: '只有管理员才能更新全局扩展' }, { status: 403 });
   }
   const response = await fetch('/api/extensions/update', {
     method: 'POST',
