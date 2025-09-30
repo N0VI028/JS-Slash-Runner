@@ -85,12 +85,12 @@ const { open: openDeleteConfirm } = useModal({
       {
         name: '确定',
         shouldEmphasize: true,
-        onClick: () => {
+        onClick: close => {
           emit('delete', script_folder.value.id);
-          return true;
+          close();
         },
       },
-      { name: '取消', onClick: () => true },
+      { name: '取消' },
     ],
   },
   slots: {
