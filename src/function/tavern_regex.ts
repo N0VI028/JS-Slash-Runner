@@ -1,6 +1,6 @@
-import { macros } from '@/component/macrolike';
-import { reloadChatWithoutEventsButRender } from '@/util/reload_chat';
-import { characters, chat, saveChatConditional, saveSettings, substituteParams, this_chid } from '@sillytavern/script';
+import { macros } from '@/function/macro_like';
+import { reloadAndRenderChatWithoutEvents } from '@/util/reload_chat';
+import { characters, chat, saveSettings, substituteParams, this_chid } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
@@ -189,10 +189,7 @@ type ReplaceTavernRegexesOption = {
 
 export async function render_tavern_regexes() {
   await saveSettings();
-  if (characters.at(this_chid as unknown as number)) {
-    await saveChatConditional();
-  }
-  await reloadChatWithoutEventsButRender();
+  await reloadAndRenderChatWithoutEvents();
 }
 export const render_tavern_regexes_debounced = _.debounce(render_tavern_regexes, 1000);
 

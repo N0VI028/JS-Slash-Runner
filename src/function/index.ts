@@ -1,4 +1,3 @@
-import { registerMacroLike } from '@/function/macro_like';
 import { builtin } from '@/function/builtin';
 import {
   createChatMessages,
@@ -24,23 +23,26 @@ import {
   iframe_events,
   tavern_events,
 } from '@/function/event';
+import {
+  getExtensionInstallationInfo,
+  getExtensionType,
+  installExtension,
+  isAdmin,
+  isInstalledExtension,
+  reinstallExtension,
+  uninstallExtension,
+  updateExtension,
+} from '@/function/extension';
 import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
 import { builtin_prompt_default_order } from '@/function/generate/types';
 import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
 import {
-  getCharAvatarPath,
-  getCharData,
-  getChatHistoryBrief,
-  getChatHistoryDetail,
-  RawCharacter,
-} from '@/function/raw_character';
-// import {
-//   importRawCharacter,
-//   importRawChat,
-//   importRawPreset,
-//   importRawTavernRegex,
-//   importRawWorldbook,
-// } from '@/function/import_raw';
+  importRawCharacter,
+  importRawChat,
+  importRawPreset,
+  importRawTavernRegex,
+  importRawWorldbook,
+} from '@/function/import_raw';
 import { injectPrompts, uninjectPrompts } from '@/function/inject';
 import {
   createLorebook,
@@ -65,6 +67,7 @@ import {
   setLorebookEntries,
   updateLorebookEntriesWith,
 } from '@/function/lorebook_entry';
+import { registerMacroLike } from '@/function/macro_like';
 import {
   createOrReplacePreset,
   createPreset,
@@ -83,6 +86,13 @@ import {
   updatePresetWith,
 } from '@/function/preset';
 import {
+  getCharAvatarPath,
+  getCharData,
+  getChatHistoryBrief,
+  getChatHistoryDetail,
+  RawCharacter,
+} from '@/function/raw_character';
+import {
   _appendInexistentScriptButtons,
   _getButtonEvent,
   _getScriptButtons,
@@ -91,23 +101,13 @@ import {
   _replaceScriptInfo,
 } from '@/function/script';
 import { triggerSlash } from '@/function/slash';
-// import {
-//   formatAsTavernRegexedString,
-//   getTavernRegexes,
-//   isCharacterTavernRegexesEnabled,
-//   replaceTavernRegexes,
-//   updateTavernRegexesWith,
-// } from '@/function/tavern_regex';
 import {
-  getExtensionInstallationInfo,
-  getExtensionType,
-  installExtension,
-  isAdmin,
-  isInstalledExtension,
-  reinstallExtension,
-  uninstallExtension,
-  updateExtension,
-} from '@/function/extension';
+  formatAsTavernRegexedString,
+  getTavernRegexes,
+  isCharacterTavernRegexesEnabled,
+  replaceTavernRegexes,
+  updateTavernRegexesWith,
+} from '@/function/tavern_regex';
 import {
   _getCurrentMessageId,
   _getIframeName,
@@ -240,12 +240,12 @@ function getTavernHelper() {
     reinstallExtension,
     updateExtension,
 
-    // // import_raw
-    // importRawCharacter,
-    // importRawPreset,
-    // importRawChat,
-    // importRawWorldbook,
-    // importRawTavernRegex,
+    // import_raw
+    importRawCharacter,
+    importRawPreset,
+    importRawChat,
+    importRawWorldbook,
+    importRawTavernRegex,
 
     // inject
     injectPrompts,
@@ -312,12 +312,12 @@ function getTavernHelper() {
     triggerSlash,
     triggerSlashWithResult: triggerSlash,
 
-    // // tavern_regex
-    // formatAsTavernRegexedString,
-    // isCharacterTavernRegexesEnabled,
-    // getTavernRegexes,
-    // replaceTavernRegexes,
-    // updateTavernRegexesWith,
+    // tavern_regex
+    formatAsTavernRegexedString,
+    isCharacterTavernRegexesEnabled,
+    getTavernRegexes,
+    replaceTavernRegexes,
+    updateTavernRegexesWith,
 
     // util
     substitudeMacros,

@@ -1,9 +1,19 @@
-import { clearChat, event_types, eventSource, printMessages, saveChatConditional } from '@sillytavern/script';
+import {
+  characters,
+  clearChat,
+  event_types,
+  eventSource,
+  printMessages,
+  saveChatConditional,
+  this_chid,
+} from '@sillytavern/script';
 
 export async function reloadChatWithoutEvents() {
-  await saveChatConditional();
-  await clearChat();
-  await printMessages();
+  if (characters.at(this_chid as unknown as number)) {
+    await saveChatConditional();
+    await clearChat();
+    await printMessages();
+  }
 }
 
 export function invokeMessageRenders() {
