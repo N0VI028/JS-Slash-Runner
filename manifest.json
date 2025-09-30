@@ -1,6 +1,6 @@
 {
   "display_name": "酒馆助手vue",
-  "loading_order": 100,
+  "loading_order": 50,
   "requires": [],
   "optional": [],
   "js": "dist/index.js",
