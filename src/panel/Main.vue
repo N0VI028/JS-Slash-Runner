@@ -1,7 +1,14 @@
 <template>
   <Item type="plain">
-    <template #title>{{ t`版本更新` }}</template>
-    <template #description>{{ t`查看最新特性，检查并更新扩展` }}</template>
+    <template #title>
+      <div class="flex items-center gap-0.5">
+        <span>{{ t`版本更新` }}</span>
+        <div v-if="has_update" class="rounded-full bg-(--SmartThemeQuoteColor) px-0.5 text-xs font-medium">
+          {{ t`最新：Ver ${latest_version}` }}
+        </div>
+      </div>
+    </template>
+    <template #description>{{ t`当前版本: ${current_version}` }}</template>
     <template #content>
       <Button @click="show_update = true">{{ t`更新` }}</Button>
     </template>
@@ -25,11 +32,22 @@
 </template>
 
 <script setup lang="ts">
+import { getTavernHelperVersion } from '@/function/version';
 import Info from '@/panel/main/Info.vue';
 import Listener from '@/panel/main/Listener.vue';
 import MacroLike from '@/panel/main/MacroLike.vue';
 import Reference from '@/panel/main/Reference.vue';
+import { getLatestVersion, hasUpdate } from '@/panel/main/update';
 import Update from '@/panel/main/Update.vue';
 
 const show_update = ref(false);
+const current_version = getTavernHelperVersion();
+const has_update = ref(false);
+const latest_version = ref('');
+onMounted(async () => {
+  has_update.value = await hasUpdate();
+  if (has_update.value) {
+    latest_version.value = await getLatestVersion();
+  }
+});
 </script>
