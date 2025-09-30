@@ -29,7 +29,7 @@
         </div>
       </DefineToolButton>
       <ToolButton name="查看脚本信息" icon="fa-info-circle" />
-      <ToolButton name="编辑脚本" icon="fa-pencil" @click="openItemEditor" />
+      <ToolButton name="编辑脚本" icon="fa-pencil" @click="openScriptEditor" />
       <ToolButton name="导出脚本" icon="fa-file-export" />
       <ToolButton name="删除脚本" icon="fa-trash" @click="openDeleteConfirm" />
     </div>
@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import ItemEditor from '@/panel/script/ItemEditor.vue';
+import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
@@ -55,8 +55,8 @@ const emit = defineEmits<{
   delete: [id: string];
 }>();
 
-const { open: openItemEditor } = useModal({
-  component: ItemEditor,
+const { open: openScriptEditor } = useModal({
+  component: ScriptEditor,
   attrs: {
     script: script.value,
     onSubmit: (result: ScriptForm) => {

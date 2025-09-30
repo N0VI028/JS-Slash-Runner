@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import FolderEditor from '@/panel/script/FolderEditor.vue';
-import ItemEditor from '@/panel/script/ItemEditor.vue';
+import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
@@ -41,11 +41,11 @@ function openCreator(type: 'script' | 'folder') {
     },
   });
   const editor = useModal({
-    component: type === 'script' ? ItemEditor : FolderEditor,
+    component: type === 'script' ? ScriptEditor : FolderEditor,
     attrs: {
       onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
         if (type === 'script') {
-          onItemEditorSubmit(target, result as ScriptForm);
+          onScriptEditorSubmit(target, result as ScriptForm);
         } else {
           onFolderEditorSubmit(target, result as ScriptFolderForm);
         }
@@ -56,7 +56,7 @@ function openCreator(type: 'script' | 'folder') {
   target_selector.open();
 }
 
-function onItemEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptForm) {
+function onScriptEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptForm) {
   const script: Script = {
     type: 'script',
     enabled: false,
