@@ -42,6 +42,8 @@ import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
 import { includesOrTest } from '@/util/search';
 import { useSortable } from '@vueuse/integrations/useSortable';
+import ScriptItem from '@/panel/script/ScriptItem.vue';
+import FolderItem from '@/panel/script/FolderItem.vue';
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
 
