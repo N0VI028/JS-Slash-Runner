@@ -15,26 +15,29 @@
 
   <div class="flex h-full flex-col overflow-hidden">
     <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
-      <template v-for="(script, index) in filtered_script_trees" :key="script.id">
-        <ScriptItem
-          v-if="isScript(filtered_script_trees[index])"
-          v-model="filtered_script_trees[index]"
-          @delete="handleDelete"
-        />
-        <FolderItem
-          v-else
-          v-model="filtered_script_trees[index]"
-          :search-input="props.searchInput"
-          @delete="handleDelete"
-        />
+      <template v-if="filtered_script_trees.length > 0">
+        <template v-for="(script, index) in filtered_script_trees" :key="script.id">
+          <ScriptItem
+            v-if="isScript(filtered_script_trees[index])"
+            v-model="filtered_script_trees[index]"
+            @delete="handleDelete"
+          />
+          <FolderItem
+            v-else
+            v-model="filtered_script_trees[index]"
+            :search-input="props.searchInput"
+            @delete="handleDelete"
+          />
+        </template>
+      </template>
+      <template v-else>
+        <div class="text-center opacity-50">暂无脚本</div>
       </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import FolderItem from '@/panel/script/FolderItem.vue';
-import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
 import { includesOrTest } from '@/util/search';
