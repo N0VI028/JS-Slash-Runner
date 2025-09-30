@@ -1,4 +1,4 @@
-// import { registerMacroLike } from '@/component/macrolike';
+import { registerMacroLike } from '@/function/macro_like';
 import { builtin } from '@/function/builtin';
 import {
   createChatMessages,
@@ -305,8 +305,8 @@ function getTavernHelper() {
     getChatHistoryBrief,
     getChatHistoryDetail,
 
-    // // macrolike
-    // registerMacroLike,
+    // macro_like
+    registerMacroLike,
 
     // slash
     triggerSlash,

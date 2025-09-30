@@ -5,7 +5,7 @@ import { extension_settings } from '@sillytavern/scripts/extensions';
 
 export const useGlobalSettingsStore = defineStore('global_settings', () => {
   const app_ready = ref<boolean>(false);
-  [event_types.APP_READY, event_types.SETTINGS_UPDATED].forEach(event =>
+  [event_types.APP_READY, 'chatLoaded', event_types.SETTINGS_UPDATED].forEach(event =>
     eventSource.once(event, () => {
       app_ready.value = true;
     }),

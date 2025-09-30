@@ -11,8 +11,11 @@
 </template>
 
 <script setup lang="ts">
+import { useMacroLike } from '@/panel/main/macro_like';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 const enabled = toRef(useGlobalSettingsStore().settings.macro, 'enabled');
 const disabled = useNegate(enabled);
+
+useMacroLike(enabled);
 </script>

@@ -49,33 +49,29 @@ function uncollapseCodeBlockForAll() {
     .show();
 }
 
-export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<boolean>>) {
-  watch(
-    collapse_code_block,
-    (value, old_value) => {
-      if (value) {
-        collapseCodeBlockForAll();
-        return;
-      }
-      if (!value && old_value) {
-        uncollapseCodeBlockForAll();
-      }
-    },
-    { immediate: true },
-  );
+export function useCollapseCodeBlock(enabled: Readonly<Ref<boolean>>) {
+  watch(enabled, (value, old_value) => {
+    if (value) {
+      collapseCodeBlockForAll();
+      return;
+    }
+    if (!value && old_value) {
+      uncollapseCodeBlockForAll();
+    }
+  });
 
   eventSource.on('chatLoaded', () => {
-    if (collapse_code_block.value) {
+    if (enabled.value) {
       collapseCodeBlockForAll();
     }
   });
   eventSource.on(event_types.MESSAGE_UPDATED, (message_id: string | number) => {
-    if (collapse_code_block.value) {
+    if (enabled.value) {
       collapseCodeBlockForMessageId(Number(message_id));
     }
   });
   eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: string | number) => {
-    if (collapse_code_block.value) {
+    if (enabled.value) {
       collapseCodeBlockForMessageId(Number(message_id));
     }
   });
