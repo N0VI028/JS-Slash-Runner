@@ -36,6 +36,7 @@
         </template>
       </div>
     </div>
+    <ModalsContainer />
   </div>
 </template>
 
@@ -49,6 +50,7 @@ import { initThirdPartyObject } from '@/panel/global';
 import { disableIncompatibleOption } from '@/panel/incompatible_option';
 import { registerMacros } from '@/panel/macro';
 import { hasUpdate } from '@/panel/main/update';
+import { ModalsContainer } from 'vue-final-modal';
 
 z.config(z.locales.zhCN());
 disableIncompatibleOption();

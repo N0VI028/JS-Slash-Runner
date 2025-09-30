@@ -1,11 +1,16 @@
 import '@/global.css';
 import Panel from '@/Panel.vue';
 import { App } from 'vue';
+import { createVfm } from 'vue-final-modal';
+import 'vue-final-modal/style.css';
 
 const app = createApp(Panel);
 
 const pinia = createPinia();
 app.use(pinia);
+
+const vfm = createVfm();
+app.use(vfm);
 
 declare module 'vue' {
   interface ComponentCustomProperties {

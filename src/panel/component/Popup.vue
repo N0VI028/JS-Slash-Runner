@@ -1,126 +1,52 @@
-﻿<template>
-  <Teleport v-if="visible" to="body">
+<template>
+  <VueFinalModal
+    :click-to-close="clickToClose"
+    overlay-behavior="persist"
+    :z-index-fn="({ index }) => 9999 + 2 * index"
+    @update:model-value="value => emit('update:modelValue', value)"
+  >
     <!-- prettier-ignore-attribute -->
-    <dialog ref="dialog_ref" class="popup pt-0.75!" @close="close">
+    <dialog class="popup pt-0.75!">
       <slot></slot>
-      <div v-if="all_actions.length" class="flex items-center justify-center gap-[20px]">
+      <div v-if="buttons.length" class="flex items-center justify-center gap-[20px]">
         <button
-          v-for="action in all_actions"
-          :key="action.key ?? action.label"
+          v-for="action in buttons"
+          :key="action.name"
           class="menu_button interactable w-[unset]!"
-          :class="action.class"
-          @click="handleActionClick(action)"
+          :class="[action.class, { 'popup-button-ok': action.shouldEmphasize }]"
+          @click="action.onClick ? action.onClick(close) : close()"
         >
-          {{ action.label }}
+          {{ action.name }}
         </button>
       </div>
     </dialog>
-  </Teleport>
+  </VueFinalModal>
 </template>
 
 <script setup lang="ts">
-const dialog_ref = useTemplateRef<HTMLDialogElement>('dialog_ref');
+import { VueFinalModal } from 'vue-final-modal';
 
-type PopupButton = {
-  key?: string | number;
-  label: string;
-  /** 返回 true 代表关闭弹窗。 */
-  onClick: (() => boolean) | (() => Promise<boolean>);
-  class?: string;
-};
-
-const visible = defineModel<boolean>({ required: true });
-
-const props = defineProps<{
-  buttons?: PopupButton[];
-  /** 可选确认处理。 */
-  onConfirm?: (() => boolean) | (() => Promise<boolean>);
-  /** 可选取消处理，默认直接关闭。 */
-  onCancel?: (() => boolean) | (() => Promise<boolean>);
+const emit = defineEmits<{
+  'update:modelValue': [model_value: boolean];
 }>();
 
-const all_actions = computed(() => {
-  const actions: PopupButton[] = [];
-
-  if (props.buttons && props.buttons.length > 0) {
-    actions.push(...props.buttons);
-  }
-
-  const has_confirm = actions.some(action => action.key === 'confirm');
-  if (!has_confirm && props.onConfirm) {
-    actions.push({
-      key: 'confirm',
-      label: '确认',
-      onClick: async () => {
-        return await props.onConfirm!();
-      },
-      class: 'popup-button-ok',
-    });
-  }
-
-  const has_cancel = actions.some(action => action.key === 'cancel');
-  if (!has_cancel) {
-    actions.push({
-      key: 'cancel',
-      label: '取消',
-      onClick: async () => {
-        if (!props.onCancel) {
-          return true;
-        }
-        return await props.onCancel();
-      },
-    });
-  }
-
-  return actions;
-});
-
-const ensureDialogClosed = () => {
-  const dialog_element = dialog_ref.value;
-  if (dialog_element?.open) {
-    dialog_element.close();
-  }
-};
-
-const ensureDialogVisible = async () => {
-  await nextTick();
-  const dialog_element = dialog_ref.value;
-  if (dialog_element && !dialog_element.open) {
-    dialog_element.showModal();
-  }
-};
-
-const syncDialogVisibility = (should_open: boolean) => {
-  if (should_open) {
-    ensureDialogVisible();
-  } else {
-    ensureDialogClosed();
-  }
-};
-
-const handleActionClick = async (action: PopupButton) => {
-  const result = await action.onClick();
-  if (result) {
-    close();
-  }
-};
-
-const close = () => {
-  ensureDialogClosed();
-  visible.value = false;
-};
-
-watch(
-  () => visible.value,
-  new_value => {
-    syncDialogVisibility(new_value);
+withDefaults(
+  defineProps<{
+    clickToClose?: boolean;
+    buttons?: {
+      name: string;
+      onClick?: ((close: () => void) => void) | ((close: () => void) => Promise<void>);
+      shouldEmphasize?: boolean;
+      class?: string;
+    }[];
+  }>(),
+  {
+    clickToClose: false,
+    buttons: () => [{ name: '取消' }],
   },
-  { immediate: true },
 );
 
-onMounted(() => {
-  syncDialogVisibility(visible.value);
-});
-
-defineExpose({ close });
+function close() {
+  emit('update:modelValue', false);
+}
 </script>

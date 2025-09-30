@@ -1,5 +1,5 @@
 <template>
-  <Popup v-model="visible" @confirm="submit">
+  <Popup :buttons="[{ name: '确认', shouldEmphasize: true, onClick: submit }, { name: '取消' }]">
     <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
       <div class="my-0.5 text-md font-bold">脚本编辑</div>
       <div id="script-name" class="TH-script-editor-container">
@@ -70,8 +70,6 @@
 <script setup lang="ts">
 import { ScriptForm } from '@/panel/script/type';
 
-const visible = defineModel<boolean>({ required: true });
-
 const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
   script: (): ScriptForm => ({
     name: '',
@@ -89,11 +87,9 @@ const emit = defineEmits<{
   submit: [script: ScriptForm];
 }>();
 
-// TODO: 由于 ItemEditor 本身不会 v-if 卸载, 如果不通过编辑器修改了数据 (如 `replaceScriptButtons`), script 依旧记录的是之前 _.cloneDeep 缓存的数据
-// 应该怎样 v-if 和 v-model 一起用? 还是说只能到处传递 v-if 和 v-model
 const script = ref<ScriptForm>(_.cloneDeep(props.script));
 
-const submit = () => {
+const submit = (close: () => void) => {
   const result = ScriptForm.safeParse(script.value);
   if (!result.success) {
     _(result.error.issues)
@@ -102,10 +98,10 @@ const submit = () => {
       .forEach(([path, issues]) => {
         toastr.error(issues.map(issue => issue.message).join('\n'), path);
       });
-    return false;
+    return;
   }
   emit('submit', result.data);
-  return true;
+  close();
 };
 
 const addVariable = () => {

@@ -29,20 +29,16 @@
         </div>
       </DefineToolButton>
       <ToolButton name="查看脚本信息" icon="fa-info-circle" />
-      <ToolButton name="编辑脚本" icon="fa-pencil" @click="show_editor = true" />
+      <ToolButton name="编辑脚本" icon="fa-pencil" @click="openItemEditor" />
       <ToolButton name="导出脚本" icon="fa-file-export" />
-      <ToolButton name="删除脚本" icon="fa-trash" @click="show_delete = true" />
+      <ToolButton name="删除脚本" icon="fa-trash" @click="openDeleteConfirm" />
     </div>
   </div>
-
-  <Editor v-model="show_editor" :script="script" @submit="onEditorSubmit" />
-  <Popup v-model="show_delete" @confirm="onDeleteConfirm">
-    <div>确定要删除脚本吗？此操作无法撤销。</div>
-  </Popup>
 </template>
 
 <script setup lang="ts">
-import Editor from '@/panel/script/ItemEditor.vue';
+import Popup from '@/panel/component/Popup.vue';
+import ItemEditor from '@/panel/script/ItemEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
@@ -59,21 +55,40 @@ const emit = defineEmits<{
   delete: [id: string];
 }>();
 
-const show_editor = ref(false);
-function onEditorSubmit(result: ScriptForm) {
-  const should_reload =
-    script.value.enabled && !_.isEqual(_.pick(script.value, 'content', 'data'), _.pick(result, 'content', 'data'));
-  _.assign(script.value, result);
-  if (should_reload) {
-    useScriptIframeRuntimesStore().reload(script.value.id);
-  }
-}
+const { open: openItemEditor } = useModal({
+  component: ItemEditor,
+  attrs: {
+    script: script.value,
+    onSubmit: (result: ScriptForm) => {
+      const should_reload =
+        script.value.enabled && !_.isEqual(_.pick(script.value, 'content', 'data'), _.pick(result, 'content', 'data'));
+      _.assign(script.value, result);
+      if (should_reload) {
+        useScriptIframeRuntimesStore().reload(script.value.id);
+      }
+    },
+  },
+});
 
-const show_delete = ref(false);
-function onDeleteConfirm() {
-  emit('delete', script.value.id);
-  return true;
-}
+const { open: openDeleteConfirm } = useModal({
+  component: Popup,
+  attrs: {
+    buttons: [
+      {
+        name: '确定',
+        shouldEmphasize: true,
+        onClick: () => {
+          emit('delete', script.value.id);
+          return true;
+        },
+      },
+      { name: '取消', onClick: () => true },
+    ],
+  },
+  slots: {
+    default: `<div>确定要删除脚本吗？此操作无法撤销。</div>`,
+  },
+});
 </script>
 
 <style lang="scss" scoped>

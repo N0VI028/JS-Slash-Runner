@@ -27,23 +27,19 @@
             <i class="fa-solid" :class="icon"></i>
           </div>
         </DefineScriptFolderButton>
-        <SCriptFolderButton name="编辑文件夹" icon="fa-pencil" @click="show_editor = true" />
+        <SCriptFolderButton name="编辑文件夹" icon="fa-pencil" @click="openFolderEditor" />
         <SCriptFolderButton name="导出文件夹" icon="fa-file-export" />
         <SCriptFolderButton name="移动到其他脚本库" icon="fa-exchange-alt" />
-        <SCriptFolderButton name="删除文件夹" icon="fa-trash" @click="show_delete = true" />
+        <SCriptFolderButton name="删除文件夹" icon="fa-trash" @click="openDeleteConfirm" />
         <SCriptFolderButton name="展开或折叠文件夹" icon="fa-chevron-down" />
       </div>
     </div>
     <div ref="folder_content_ref" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
-
-    <FolderEditor v-model="show_editor" :script-folder="script_folder" @submit="onEditorSubmit" />
-    <Popup v-model="show_delete" @confirm="onDeleteConfirm">
-      <div>确定要删除脚本吗？此操作无法撤销。</div>
-    </Popup>
   </div>
 </template>
 
 <script setup lang="ts">
+import Popup from '@/panel/component/Popup.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
 import { ScriptFolder } from '@/type/scripts';
@@ -71,17 +67,36 @@ const filtered_scripts = computed(() => {
   return script_folder.value.scripts.filter(script => includesOrTest(script.name, props.searchInput));
 });
 
-const show_editor = ref(false);
-function onEditorSubmit(result: ScriptFolderForm) {
-  _.assign(script_folder.value, result);
-  return true;
-}
+const { open: openFolderEditor } = useModal({
+  component: FolderEditor,
+  attrs: {
+    scriptFolder: script_folder.value,
+    onSubmit: (result: ScriptFolderForm) => {
+      _.assign(script_folder.value, result);
+      return true;
+    },
+  },
+});
 
-const show_delete = ref(false);
-function onDeleteConfirm() {
-  emit('delete', script_folder.value.id);
-  return true;
-}
+const { open: openDeleteConfirm } = useModal({
+  component: Popup,
+  attrs: {
+    buttons: [
+      {
+        name: '确定',
+        shouldEmphasize: true,
+        onClick: () => {
+          emit('delete', script_folder.value.id);
+          return true;
+        },
+      },
+      { name: '取消', onClick: () => true },
+    ],
+  },
+  slots: {
+    default: `<div>确定要删除文件夹及其中所有脚本吗？此操作无法撤销。</div>`,
+  },
+});
 
 const folder_header_ref = useTemplateRef<HTMLElement>('folder_header_ref');
 const folder_content_ref = useTemplateRef<HTMLElement>('folder_content_ref');

@@ -17,21 +17,83 @@
       <small>{{ t`内置库` }}</small>
     </Button>
   </div>
-
-  <Creator v-model="show_creator" :type="creation_type" />
 </template>
 
 <script setup lang="ts">
-import Creator from '@/panel/script/Creator.vue';
+import FolderEditor from '@/panel/script/FolderEditor.vue';
+import ItemEditor from '@/panel/script/ItemEditor.vue';
+import TargetSelector from '@/panel/script/TargetSelector.vue';
+import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
+import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
-import { ref } from 'vue';
+import { Script, ScriptFolder } from '@/type/scripts';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
-type CreationType = 'script' | 'folder';
+function openCreator(type: 'script' | 'folder') {
+  let target: 'global' | 'character' | 'preset';
+  const target_selector = useModal({
+    component: TargetSelector,
+    attrs: {
+      onSubmit: async (value: 'global' | 'character' | 'preset') => {
+        target = value;
+        editor.open();
+      },
+    },
+  });
+  const editor = useModal({
+    component: type === 'script' ? ItemEditor : FolderEditor,
+    attrs: {
+      onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
+        if (type === 'script') {
+          onItemEditorSubmit(target, result as ScriptForm);
+        } else {
+          onFolderEditorSubmit(target, result as ScriptFolderForm);
+        }
+        target_selector.close();
+      },
+    },
+  });
+  target_selector.open();
+}
 
-const show_creator = ref(false);
-const creation_type = ref<CreationType>();
-function openCreator(type: CreationType) {
-  creation_type.value = type;
-  show_creator.value = true;
+function onItemEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptForm) {
+  const script: Script = {
+    type: 'script',
+    enabled: false,
+    id: uuidv4(),
+    ...result,
+  };
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(script);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(script);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(script);
+      break;
+  }
+}
+
+function onFolderEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptFolderForm) {
+  const folder: ScriptFolder = {
+    type: 'folder',
+    enabled: false,
+    id: uuidv4(),
+    scripts: [],
+    ...result,
+  };
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(folder);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(folder);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(folder);
+      break;
+  }
 }
 </script>

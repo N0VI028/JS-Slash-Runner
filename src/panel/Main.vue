@@ -10,7 +10,7 @@
     </template>
     <template #description>{{ t`当前版本: ${current_version}` }}</template>
     <template #content>
-      <Button @click="show_update = true">{{ t`更新` }}</Button>
+      <Button @click="openUpdateModal">{{ t`更新` }}</Button>
     </template>
   </Item>
   <Divider type="major">
@@ -27,8 +27,6 @@
     <div style="word-spacing: 1.5">{{ t`扩展信息` }}</div>
   </Divider>
   <Info />
-
-  <Update v-model="show_update" />
 </template>
 
 <script setup lang="ts">
@@ -40,7 +38,6 @@ import Reference from '@/panel/main/Reference.vue';
 import { getLatestVersion, hasUpdate } from '@/panel/main/update';
 import Update from '@/panel/main/Update.vue';
 
-const show_update = ref(false);
 const current_version = getTavernHelperVersion();
 const has_update = ref(false);
 const latest_version = ref('');
@@ -49,5 +46,9 @@ onMounted(async () => {
   if (has_update.value) {
     latest_version.value = await getLatestVersion();
   }
+});
+
+const { open: openUpdateModal } = useModal({
+  component: Update,
 });
 </script>

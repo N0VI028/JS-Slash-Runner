@@ -1,6 +1,6 @@
 <template>
   <!--prettier-ignore-attribute-->
-  <Popup v-model="visible" @confirm="submit">
+  <Popup :buttons="[{ name: '创建', shouldEmphasize: true, onClick: submit }, { name: '取消' }]">
     <div class="my-0.5 text-md font-bold">创建新文件夹</div>
     <div class="flex w-full flex-col justify-center gap-0.5 p-1">
       <div class="flex flex-col items-start">
@@ -38,8 +38,6 @@
 <script setup lang="ts">
 import { ScriptFolderForm } from '@/panel/script/type';
 
-const visible = defineModel<boolean>({ required: true });
-
 const props = withDefaults(defineProps<{ scriptFolder?: ScriptFolderForm }>(), {
   scriptFolder: (): ScriptFolderForm => ({
     name: '',
@@ -61,7 +59,7 @@ const onColorChange = (evt: any) => {
   }
 };
 
-const submit = () => {
+const submit = (close: () => void) => {
   const result = ScriptFolderForm.safeParse(script_folder.value);
   if (!result.success) {
     _(result.error.issues)
@@ -70,9 +68,9 @@ const submit = () => {
       .forEach(([path, issues]) => {
         toastr.error(issues.map(issue => issue.message).join('\n'), path);
       });
-    return false;
+    return;
   }
   emit('submit', result.data);
-  return true;
+  close();
 };
 </script>
