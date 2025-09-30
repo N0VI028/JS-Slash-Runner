@@ -154,6 +154,11 @@ type ChatMessageCreating = {
   is_hidden?: boolean;
   message: string;
   data?: Record<string, any>;
+  extra?: {
+    isSmallSys: boolean;
+    image: string;
+    inline_image: boolean;
+  };
 };
 
 type CreateChatMessagesOption = {
