@@ -1,12 +1,7 @@
 <template>
-  <VueFinalModal
-    :click-to-close="clickToClose"
-    overlay-behavior="persist"
-    :z-index-fn="({ index }) => 9999 + 2 * index"
-    @update:model-value="value => emit('update:modelValue', value)"
-  >
+  <Teleport :if="visible" to="body">
     <!-- prettier-ignore-attribute -->
-    <dialog class="popup pt-0.75!">
+    <dialog ref="dialog_ref" class="popup pt-0.75!">
       <slot></slot>
       <div v-if="buttons.length" class="flex items-center justify-center gap-[20px]">
         <button
@@ -20,14 +15,17 @@
         </button>
       </div>
     </dialog>
-  </VueFinalModal>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { VueFinalModal } from 'vue-final-modal';
+const visible = defineModel<boolean>();
 
 const emit = defineEmits<{
   'update:modelValue': [model_value: boolean];
+  opened: [void];
+  beforeClose: [event: { stop: () => void }];
+  closed: [void];
 }>();
 
 withDefaults(
@@ -41,12 +39,31 @@ withDefaults(
     }[];
   }>(),
   {
+    modelValue: true,
     clickToClose: false,
     buttons: () => [{ name: '取消' }],
   },
 );
 
+onMounted(() => {
+  emit('opened');
+});
 function close() {
-  emit('update:modelValue', false);
+  let should_stop = false;
+  emit('beforeClose', { stop: () => (should_stop = true) });
+  if (should_stop) {
+    return;
+  }
+
+  visible.value = false;
+  emit('closed');
 }
+
+const dialog_ref = useTemplateRef('dialog_ref');
+onMounted(() => {
+  dialog_ref.value?.showModal();
+});
+onBeforeUnmount(() => {
+  dialog_ref.value?.close();
+});
 </script>
