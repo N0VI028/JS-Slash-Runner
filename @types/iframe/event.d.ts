@@ -229,6 +229,24 @@ declare const tavern_events: {
   CONNECTION_PROFILE_LOADED: 'connection_profile_loaded';
   TOOL_CALLS_PERFORMED: 'tool_calls_performed';
   TOOL_CALLS_RENDERED: 'tool_calls_rendered';
+  /** since SillyTavern v1.13.2 */
+  CHARACTER_MANAGEMENT_DROPDOWN: 'charManagementDropdown';
+  /** since SillyTavern v1.13.2 */
+  SECRET_WRITTEN: 'secret_written';
+  /** since SillyTavern v1.13.2 */
+  SECRET_DELETED: 'secret_deleted';
+  /** since SillyTavern v1.13.2 */
+  SECRET_ROTATED: 'secret_rotated';
+  /** since SillyTavern v1.13.2 */
+  SECRET_EDITED: 'secret_edited';
+  /** since SillyTavern v1.13.2 */
+  PRESET_CHANGED: 'preset_changed';
+  /** since SillyTavern v1.13.2 */
+  PRESET_DELETED: 'preset_deleted';
+  /** since SillyTavern v1.13.2 */
+  PRESET_RENAMED: 'preset_renamed';
+  /** since SillyTavern v1.13.2 */
+  MAIN_API_CHANGED: 'main_api_changed';
   /** since SillyTavern v1.13.4 */
   WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded';
 };
@@ -386,5 +404,14 @@ interface ListenerType {
     chatLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
     personaLore: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[];
   }) => void;
+  [tavern_events.CHARACTER_MANAGEMENT_DROPDOWN]: (target: JQuery) => void;
+  [tavern_events.SECRET_WRITTEN]: (secret: string) => void;
+  [tavern_events.SECRET_DELETED]: (secret: string) => void;
+  [tavern_events.SECRET_ROTATED]: (secret: string) => void;
+  [tavern_events.SECRET_EDITED]: (secret: string) => void;
+  [tavern_events.PRESET_CHANGED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_DELETED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_RENAMED]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.MAIN_API_CHANGED]: (data: { apiId: string }) => void;
   [custom_event: string]: (...args: any) => any;
 }

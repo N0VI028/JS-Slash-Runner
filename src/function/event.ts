@@ -180,6 +180,15 @@ export const tavern_events = {
   CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',
   TOOL_CALLS_PERFORMED: 'tool_calls_performed',
   TOOL_CALLS_RENDERED: 'tool_calls_rendered',
+  CHARACTER_MANAGEMENT_DROPDOWN: 'charManagementDropdown',
+  SECRET_WRITTEN: 'secret_written',
+  SECRET_DELETED: 'secret_deleted',
+  SECRET_ROTATED: 'secret_rotated',
+  SECRET_EDITED: 'secret_edited',
+  PRESET_CHANGED: 'preset_changed',
+  PRESET_DELETED: 'preset_deleted',
+  PRESET_RENAMED: 'preset_renamed',
+  MAIN_API_CHANGED: 'main_api_changed',
   WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded',
 } as const;
 
@@ -325,6 +334,15 @@ export type ListenerType = {
   [tavern_events.CONNECTION_PROFILE_LOADED]: (profile_name: string) => void;
   [tavern_events.TOOL_CALLS_PERFORMED]: (tool_invocations: object[]) => void;
   [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: object[]) => void;
+  [tavern_events.CHARACTER_MANAGEMENT_DROPDOWN]: (target: JQuery) => void;
+  [tavern_events.SECRET_WRITTEN]: (secret: string) => void;
+  [tavern_events.SECRET_DELETED]: (secret: string) => void;
+  [tavern_events.SECRET_ROTATED]: (secret: string) => void;
+  [tavern_events.SECRET_EDITED]: (secret: string) => void;
+  [tavern_events.PRESET_CHANGED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_DELETED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_RENAMED]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.MAIN_API_CHANGED]: (data: { apiId: string }) => void;
   [tavern_events.WORLDINFO_ENTRIES_LOADED]: (lores: {
     globalLore: Record<string, any>[];
     characterLore: Record<string, any>[];

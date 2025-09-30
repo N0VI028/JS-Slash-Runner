@@ -17,6 +17,7 @@
 - 新增 `installExtension` 等安装酒馆插件相关接口, 现在你可以在酒馆助手中安装酒馆插件了 (虽然已经有[自动安装插件脚本](https://stagedog.github.io/青空莉/作品集/))
 - 新增 `getTavernVersion` 函数用于获取酒馆版本
 - 新增酒馆助手宏 `{{get_character_variable::变量}}` 和 `{{get_preset_variable::变量}}`, 用于获取角色卡和预设变量
+- 补充了一些新酒馆事件的类型定义
 
 ### 🗑️移除
 
