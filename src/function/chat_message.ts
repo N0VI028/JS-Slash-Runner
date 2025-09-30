@@ -316,6 +316,7 @@ type ChatMessageCreating = {
   is_hidden?: boolean;
   message: string;
   data?: Record<string, any>;
+  extra?: Record<string, any>;
 };
 
 type CreateChatMessagesOption = {
@@ -356,6 +357,9 @@ export async function createChatMessages(
     result = result.set('mes', chat_message.message);
     if (chat_message.data) {
       result = result.set(['variables', 0], chat_message.data);
+    }
+    if (chat_message.extra) {
+      result = result.set('extra', chat_message.extra);
     }
     return result.value();
   };
