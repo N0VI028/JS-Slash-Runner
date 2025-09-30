@@ -40,9 +40,9 @@
 </template>
 
 <script setup lang="ts">
+import { useListener } from '@/panel/main/listener';
 import { useGlobalSettingsStore } from '@/store/settings';
 
-const { enabled, enable_echo, duration } = toRefs(useGlobalSettingsStore().settings.listener);
-
-// TODO: 完成相关功能, 通过直接开关相关设置来实现刷新
+const { enabled, enable_echo, url, duration } = toRefs(useGlobalSettingsStore().settings.listener);
+useListener(enabled, enable_echo, url, duration);
 </script>
