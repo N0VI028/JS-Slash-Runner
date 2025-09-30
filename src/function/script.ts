@@ -1,38 +1,24 @@
 import { _getScriptId } from '@/function/util';
-import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
-import { Script } from '@/type/scripts';
-import { getStringHash } from '@sillytavern/scripts/utils';
+import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
+import { getButtonId } from '@/store/iframe_runtimes/script';
 
 type ScriptButton = {
   name: string;
   visible: boolean;
 };
 
-export function get_button_id(iframe_id: string, button_name: string): string {
-  return `${iframe_id}_${getStringHash(button_name)}`;
-}
-
-export function get_script(script_id: string): Script | undefined {
-  // 仅允许脚本对自身操作, 因此只考虑 enabled_scripts
-  return _.concat(
-    useGlobalScriptsStore().enabled_scripts,
-    useCharacterScriptsStore().enabled_scripts,
-    usePresetScriptsStore().enabled_scripts,
-  ).find(script => script.id === script_id);
-}
-
 export function _getButtonEvent(this: Window, button_name: string): string {
-  return get_button_id(String(_getScriptId.call(this)), button_name);
+  return getButtonId(String(_getScriptId.call(this)), button_name);
 }
 
 export function _getScriptButtons(this: Window): ScriptButton[] {
-  return _.cloneDeep(get_script(_getScriptId.call(this))!.button.buttons);
+  return _.cloneDeep(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
 }
 
 export function _replaceScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, param1: string | ScriptButton[], param2?: ScriptButton[]): void {
-  const script = get_script(_getScriptId.call(this))!;
+  const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this))!;
   script.button.buttons = typeof param1 === 'string' ? param2! : param1;
 }
 
@@ -53,10 +39,10 @@ export function _appendInexistentScriptButtons(
 }
 
 export function _getScriptInfo(this: Window): string {
-  return get_script(_getScriptId.call(this))!.info;
+  return useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.info;
 }
 
 export function _replaceScriptInfo(this: Window, info: string): void {
-  const script = get_script(_getScriptId.call(this))!;
+  const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this))!;
   script.info = info;
 }
