@@ -20,6 +20,8 @@ const props = defineProps<{
   useBlobUrl: boolean;
 }>();
 
+const $element = $(props.element);
+
 const loading = ref(props.withLoading);
 
 const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => {
@@ -27,7 +29,7 @@ const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => 
     URL.revokeObjectURL(old_src_prop.src);
   }
 
-  const content = createSrcContent($(props.element).find('code').text(), props.useBlobUrl);
+  const content = createSrcContent($element.find('code').text(), props.useBlobUrl);
   if (!props.useBlobUrl) {
     return { srcdoc: content };
   }
@@ -41,15 +43,15 @@ onUnmounted(() => {
 
 // TODO: 应该有更好的办法处理和折叠代码块的兼容性
 onMounted(() => {
-  $(props.element)
+  $element
     .children()
     .filter((_index, child) => !$(child).is('iframe') && !$(child).hasClass('TH-message-iframe-loading'))
     .hide();
 });
 onBeforeUnmount(() => {
-  const $button = $(props.element).children('.TH-collapse-code-block-button');
+  const $button = $element.children('.TH-collapse-code-block-button');
   if ($button.length === 0) {
-    $(props.element).children('code').show();
+    $element.children('code').show();
   } else {
     $button.text('显示代码块').show();
   }
