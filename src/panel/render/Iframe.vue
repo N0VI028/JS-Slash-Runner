@@ -5,14 +5,13 @@
     :id="`TH-message-${id}`"
     ref="iframe"
     loading="lazy"
-    :src="useBlobUrl ? url : undefined"
-    :srcdoc="useBlobUrl ? undefined : srcdoc"
-    @load="onIframeLoad"
+    v-bind="src_prop"
+    @load="loading = false"
   />
 </template>
 
 <script setup lang="ts">
-import { createSrcdoc } from '@/panel/render/iframe';
+import { createSrcContent } from '@/panel/render/iframe';
 
 const props = defineProps<{
   id: string;
@@ -21,45 +20,36 @@ const props = defineProps<{
   useBlobUrl: boolean;
 }>();
 
-const $element = $(props.element);
-
 const loading = ref(props.withLoading);
-function onIframeLoad() {
-  loading.value = false;
-}
 
-const srcdoc = createSrcdoc($(props.element).find('code').text(), props.useBlobUrl);
+const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => {
+  if (old_src_prop?.src) {
+    URL.revokeObjectURL(old_src_prop.src);
+  }
 
-// @ts-expect-error 类型是正确的
-const url = computed((old_url?: string) => {
-  if (props.useBlobUrl) {
-    if (old_url) {
-      return old_url;
-    }
-    return URL.createObjectURL(new Blob([srcdoc], { type: 'text/html' }));
+  const content = createSrcContent($(props.element).find('code').text(), props.useBlobUrl);
+  if (!props.useBlobUrl) {
+    return { srcdoc: content };
   }
-  if (old_url) {
-    URL.revokeObjectURL(old_url);
-  }
-  return undefined;
+  return { src: URL.createObjectURL(new Blob([content], { type: 'text/html' })) };
 });
 onUnmounted(() => {
-  if (url.value) {
-    URL.revokeObjectURL(url.value);
+  if (src_prop.value.src) {
+    URL.revokeObjectURL(src_prop.value.src);
   }
 });
 
 // TODO: 应该有更好的办法处理和折叠代码块的兼容性
 onMounted(() => {
-  $element
+  $(props.element)
     .children()
     .filter((_index, child) => !$(child).is('iframe') && !$(child).hasClass('TH-message-iframe-loading'))
     .hide();
 });
 onBeforeUnmount(() => {
-  const $button = $element.children('.TH-collapse-code-block-button');
+  const $button = $(props.element).children('.TH-collapse-code-block-button');
   if ($button.length === 0) {
-    $element.children('code').show();
+    $(props.element).children('code').show();
   } else {
     $button.text('显示代码块').show();
   }

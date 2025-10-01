@@ -1,35 +1,26 @@
 <template>
-  <iframe
-    v-show="false"
-    :id="`TH-script-${id}`"
-    :src="useBlobUrl ? url : undefined"
-    :srcdoc="useBlobUrl ? undefined : srcdoc"
-  />
+  <iframe v-show="false" :id="`TH-script-${id}`" v-bind="src_prop" />
 </template>
 
 <script setup lang="ts">
-import { createSrcdoc } from '@/panel/script/iframe';
+import { createSrcContent } from '@/panel/script/iframe';
 
 const props = defineProps<{ id: string; content: string; useBlobUrl: boolean }>();
 
-const srcdoc = createSrcdoc(props.content, props.useBlobUrl);
+const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => {
+  if (old_src_prop?.src) {
+    URL.revokeObjectURL(old_src_prop.src);
+  }
 
-// @ts-expect-error 类型是正确的
-const url = computed((old_url?: string) => {
-  if (props.useBlobUrl) {
-    if (old_url) {
-      return old_url;
-    }
-    return URL.createObjectURL(new Blob([srcdoc], { type: 'text/html' }));
+  const content = createSrcContent($(props.content).find('code').text(), props.useBlobUrl);
+  if (!props.useBlobUrl) {
+    return { srcdoc: content };
   }
-  if (old_url) {
-    URL.revokeObjectURL(old_url);
-  }
-  return undefined;
+  return { src: URL.createObjectURL(new Blob([content], { type: 'text/html' })) };
 });
 onUnmounted(() => {
-  if (url.value) {
-    URL.revokeObjectURL(url.value);
+  if (src_prop.value.src) {
+    URL.revokeObjectURL(src_prop.value.src);
   }
 });
 </script>
