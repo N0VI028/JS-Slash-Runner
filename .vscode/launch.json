@@ -12,7 +12,7 @@
       "internalConsoleOptions": "openOnSessionStart",
       "webRoot": "${workspaceFolder}/../../../../",
       "cwd": "${workspaceFolder}",
-      "timeout": 100000,
+      "timeout": 1000000,
       "skipFiles": [
         "**/jquery*.min.js",
         "**/node_modules/**"
@@ -29,7 +29,7 @@
       "internalConsoleOptions": "openOnSessionStart",
       "webRoot": "${workspaceFolder}/../../../../",
       "cwd": "${workspaceFolder}",
-      "timeout": 100000,
+      "timeout": 1000000,
       "skipFiles": [
         "**/jquery*.min.js",
         "**/node_modules/**"
