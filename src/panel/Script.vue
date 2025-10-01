@@ -7,7 +7,13 @@
     clearable
   />
 
-  <Container v-model="global_scripts" title="全局脚本" description="酒馆全局可用" :search-input="search_input" />
+  <Container
+    v-model="global_scripts"
+    title="全局脚本"
+    description="酒馆全局可用"
+    :search-input="search_input"
+    store-type="global"
+  />
 
   <template v-if="character_id !== undefined">
     <Divider />
@@ -16,11 +22,18 @@
       title="角色脚本"
       description="绑定到当前角色卡"
       :search-input="search_input"
+      store-type="character"
     />
   </template>
 
   <Divider />
-  <Container v-model="preset_scripts" title="预设脚本" description="绑定到当前预设" :search-input="search_input" />
+  <Container
+    v-model="preset_scripts"
+    title="预设脚本"
+    description="绑定到当前预设"
+    :search-input="search_input"
+    store-type="preset"
+  />
 
   <template v-for="script in runtimes" :key="script.id + script.reload_memo">
     <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />

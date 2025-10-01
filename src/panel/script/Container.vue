@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="mt-0.5 flex items-center justify-between">
     <div class="flex flex-col">
       <div class="flex items-center">
@@ -14,36 +14,34 @@
   </div>
 
   <div class="flex h-full flex-col overflow-hidden">
-    <div ref="list_ref" class="script-list TH-script-list flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5">
-      <template v-if="filtered_script_trees.length > 0">
-        <template v-for="(script, index) in filtered_script_trees" :key="script.id">
-          <ScriptItem
-            v-if="isScript(filtered_script_trees[index])"
-            v-model="filtered_script_trees[index]"
-            @delete="handleDelete"
-          />
-          <FolderItem
-            v-else
-            v-model="filtered_script_trees[index]"
-            :search-input="props.searchInput"
-            @delete="handleDelete"
-          />
-        </template>
-      </template>
-      <template v-else>
-        <div class="text-center opacity-50">暂无脚本</div>
-      </template>
-    </div>
+    <VueDraggable
+      v-model="script_trees"
+      group="scripts"
+      handle=".TH-handle"
+      class="flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5"
+      :class="{ 'min-h-2': script_trees.length === 0 }"
+      item-key="id"
+      :force-fallback="true"
+      :fallback-offset="{ x: 0, y: 0 }"
+      :fallback-on-body="true"
+      :data-container-type="props.storeType"
+      direction="vertical"
+    >
+      <div v-for="(script, index) in script_trees" :key="script.id">
+        <ScriptItem v-if="isScript(script_trees[index])" v-model="script_trees[index]" @delete="handleDelete" />
+        <FolderItem v-else v-model="script_trees[index]" :search-input="props.searchInput" @delete="handleDelete" />
+      </div>    <div v-if="script_trees.length === 0" class="text-center opacity-50">暂无脚本</div>
+    </VueDraggable>
+
   </div>
 </template>
 
 <script setup lang="ts">
+import FolderItem from '@/panel/script/FolderItem.vue';
+import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
-import { includesOrTest } from '@/util/search';
-import { useSortable } from '@vueuse/integrations/useSortable';
-import ScriptItem from '@/panel/script/ScriptItem.vue';
-import FolderItem from '@/panel/script/FolderItem.vue';
+import { VueDraggable } from 'vue-draggable-plus';
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
 
@@ -51,57 +49,25 @@ const props = defineProps<{
   title: string;
   description: string;
   searchInput: string | RegExp;
+  storeType: 'global' | 'character' | 'preset';
 }>();
 
 const script_trees = toRef(store.value, 'script_trees');
-const filtered_script_trees = computed(() => {
-  if (props.searchInput === '') {
-    return script_trees.value;
-  }
-  return script_trees.value.filter(script =>
-    isScript(script)
-      ? includesOrTest(script.name, props.searchInput)
-      : includesOrTest(script.name, props.searchInput) &&
-        script.scripts.some(script => includesOrTest(script.name, props.searchInput)),
-  );
-});
+
+// const filtered_script_trees = computed(() => {
+//   if (props.searchInput === '') {
+//     return script_trees.value;
+//   }
+//   return script_trees.value.filter(script =>
+//     isScript(script)
+//       ? includesOrTest(script.name, props.searchInput)
+//       : includesOrTest(script.name, props.searchInput) &&
+//         script.scripts.some(script => includesOrTest(script.name, props.searchInput)),
+//   );
+// });
 
 const handleDelete = (id: string) => {
   _.remove(store.value.script_trees, script => script.id === id);
 };
 
-const list_ref = useTemplateRef<HTMLDivElement>('list_ref');
-useSortable(list_ref, script_trees, {
-  group: { name: 'scripts', pull: true, put: true },
-  handle: '.TH-handle',
-  draggable: '[data-sortable-item]',
-  // TODO: onMove 导致脚本拖动时显示增值 - 脚本在原来的位置依旧有一个显示, 而新位置也有一个.
-  // onMove: event => {
-  //   const to = event.to;
-  //   const dragged = event.dragged;
-  //   if (to?.hasAttribute('data-folder-content') && dragged?.dataset.type === 'folder') {
-  //     return false;
-  //   }
-  //   return true;
-  // },
-});
 </script>
-
-<style lang="scss" scoped>
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-  padding: 20px;
-  opacity: 0.5;
-}
-
-.script-list.root-drag-target {
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 5%, transparent);
-  border: 1px solid var(--SmartThemeQuoteColor);
-  border-radius: 5px;
-}
-</style>

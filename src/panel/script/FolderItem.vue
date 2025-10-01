@@ -2,10 +2,10 @@
   <div
     class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)"
     data-type="folder"
-    data-sortable-item
     data-folder
+    :data-folder-id="script_folder.id"
   >
-    <div ref="folder_header_ref" class="TH-folder-header flex flex-nowrap items-center justify-between px-0.5">
+    <div class="flex w-full flex-wrap items-center justify-between p-0.5">
       <!-- prettier-ignore-attribute -->
       <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true"> ☰ </span>
       <i
@@ -13,17 +13,17 @@
         :style="{ color: script_folder.color || 'var(--SmartThemeQuoteColor)' }"
       ></i>
       <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden">{{ script_folder.name }}</span>
-      <div class="flex shrink-0 flex-nowrap items-center gap-0.25">
+      <div class="flex shrink-0 flex-wrap items-center gap-0.25">
         <!-- prettier-ignore-attribute -->
         <div
-          class="menu_button interactable mt-0! mr-0.5 mb-0!"
+          class="mt-0! mr-0.5 mb-0!"
           :class="{ enabled: true }"
           title="批量开关文件夹内脚本"
         >
           <i class="fa-solid fa-toggle-on"></i>
         </div>
         <DefineScriptFolderButton v-slot="{ name, icon }">
-          <div class="menu_button interactable mt-0! mr-0.5 mb-0!" :title="name">
+          <div class="mt-0! mr-0.5 mb-0!" :title="name">
             <i class="fa-solid" :class="icon"></i>
           </div>
         </DefineScriptFolderButton>
@@ -34,18 +34,32 @@
         <SCriptFolderButton name="展开或折叠文件夹" icon="fa-chevron-down" />
       </div>
     </div>
-    <div ref="folder_content_ref" data-folder-content class="flex flex-col gap-0.5 p-0.5"></div>
+    <VueDraggable
+      v-model="script_folder.scripts"
+      group="scripts"
+      handle=".TH-handle"
+      class="flex flex-grow flex-col gap-[5px] overflow-y-auto p-0.5"
+      item-key="id"
+      :force-fallback="true"
+      :fallback-offset="{ x: 0, y: 0 }"
+      :fallback-on-body="true"
+      direction="vertical"
+    >
+      <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
+        <ScriptItem v-model="script_folder.scripts[index]" @delete="handleScriptDelete" />
+      </div>
+    </VueDraggable>
   </div>
 </template>
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
+import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
 import { ScriptFolder } from '@/type/scripts';
-import { includesOrTest } from '@/util/search';
 import { createReusableTemplate } from '@vueuse/core';
-import { useSortable } from '@vueuse/integrations/useSortable';
+import { VueDraggable } from 'vue-draggable-plus';
 
 const [DefineScriptFolderButton, SCriptFolderButton] = createReusableTemplate<{
   name: string;
@@ -60,12 +74,12 @@ const emit = defineEmits<{
   delete: [id: string];
 }>();
 
-const filtered_scripts = computed(() => {
-  if (props.searchInput === '') {
-    return script_folder.value.scripts;
-  }
-  return script_folder.value.scripts.filter(script => includesOrTest(script.name, props.searchInput));
-});
+// const filtered_scripts = computed(() => {
+//   if (props.searchInput === '') {
+//     return script_folder.value.scripts;
+//   }
+//   return script_folder.value.scripts.filter(script => includesOrTest(script.name, props.searchInput));
+// });
 
 const { open: openFolderEditor } = useModal({
   component: FolderEditor,
@@ -77,6 +91,10 @@ const { open: openFolderEditor } = useModal({
     },
   },
 });
+
+const handleScriptDelete = (id: string) => {
+  _.remove(script_folder.value.scripts, script => script.id === id);
+};
 
 const { open: openDeleteConfirm } = useModal({
   component: Popup,
@@ -97,95 +115,4 @@ const { open: openDeleteConfirm } = useModal({
     default: `<div>确定要删除文件夹及其中所有脚本吗？此操作无法撤销。</div>`,
   },
 });
-
-const folder_header_ref = useTemplateRef<HTMLElement>('folder_header_ref');
-const folder_content_ref = useTemplateRef<HTMLElement>('folder_content_ref');
-useSortable(folder_content_ref, script_folder.value.scripts, {
-  group: { name: 'scripts', pull: true, put: true },
-  handle: '.TH-handle',
-  draggable: '[data-sortable-item]',
-  onMove: event => {
-    const to = event.to as HTMLElement | null;
-    const dragged = event.dragged as HTMLElement | null;
-    if (to?.hasAttribute('data-folder-content') && dragged?.dataset.type === 'folder') return false;
-    return true;
-  },
-});
 </script>
-
-<style lang="scss" scoped>
-@reference "tailwindcss";
-
-.batch-mode.selected {
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
-  border-color: var(--SmartThemeQuoteColor);
-}
-
-::has(.TH-script-toggle:not(.enabled)) .TH-folder-name {
-  text-decoration: line-through;
-  filter: grayscale(0.5);
-}
-
-[data-folder-content] {
-  border-top: 1px solid var(--SmartThemeBorderColor);
-}
-
-[data-folder-content] :deep([data-sortable-item]) {
-  background-color: var(--SmartThemeBlurTintColor);
-}
-
-[data-folder-content] :deep([data-sortable-item]:last-child) {
-  margin-bottom: 0;
-}
-
-/* 拖拽状态样式 */
-.dragging-source {
-  opacity: 0.6;
-}
-
-.ui-dragging {
-  opacity: 0.8;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* 文件夹头部交互 */
-.TH-folder-header {
-  @apply cursor-pointer transition-colors duration-200 my-0.5;
-}
-
-.folder-slide-enter-from {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.folder-slide-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.folder-slide-enter-to,
-.folder-slide-leave-from {
-  max-height: 1000px; /* 足够大的值 */
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* 拖拽状态样式 */
-[data-folder].dragging-source {
-  opacity: 0.6;
-}
-
-[data-folder].ui-dragging {
-  opacity: 0.8;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-[data-folder].folder-drag-target .TH-folder-header {
-  border-color: var(--SmartThemeQuoteColor);
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 15%, transparent);
-}
-</style>

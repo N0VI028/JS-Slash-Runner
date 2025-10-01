@@ -5,11 +5,10 @@
       flex w-full flex-wrap items-center justify-between rounded-[10px] border border-(--SmartThemeBorderColor) p-[5px]
     "
     data-type="script"
-    data-sortable-item
   >
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
     <div
-      class="TH-script-item-name ml-0.5 flex-grow overflow-hidden"
+      class="ml-0.5 flex-grow overflow-hidden"
       :style="{
         textDecoration: script.enabled ? 'none' : 'line-through',
         filter: script.enabled ? 'none' : 'grayscale(0.5)',
