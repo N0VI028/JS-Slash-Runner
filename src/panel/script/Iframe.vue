@@ -12,7 +12,7 @@ const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => 
     URL.revokeObjectURL(old_src_prop.src);
   }
 
-  const content = createSrcContent($(props.content).find('code').text(), props.useBlobUrl);
+  const content = createSrcContent(props.content, props.useBlobUrl);
   if (!props.useBlobUrl) {
     return { srcdoc: content };
   }

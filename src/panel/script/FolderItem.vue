@@ -15,11 +15,7 @@
       <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden">{{ script_folder.name }}</span>
       <div class="flex shrink-0 flex-wrap items-center gap-0.25">
         <!-- prettier-ignore-attribute -->
-        <div
-          class="mt-0! mr-0.5 mb-0!"
-          :class="{ enabled: true }"
-          title="批量开关文件夹内脚本"
-        >
+        <div class="mt-0! mr-0.5 mb-0!" :class="{ enabled: true }" title="批量开关文件夹内脚本">
           <i class="fa-solid fa-toggle-on"></i>
         </div>
         <DefineScriptFolderButton v-slot="{ name, icon }">
