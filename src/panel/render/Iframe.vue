@@ -30,10 +30,24 @@ function onIframeLoad() {
 
 const srcdoc = createSrcdoc($(props.element).find('code').text(), props.useBlobUrl);
 
-let url: Ref<string | undefined>;
-if (props.useBlobUrl) {
-  url = useObjectUrl(new Blob([srcdoc], { type: 'text/html' }));
-}
+// @ts-expect-error 类型是正确的
+const url = computed((old_url?: string) => {
+  if (props.useBlobUrl) {
+    if (old_url) {
+      return old_url;
+    }
+    return URL.createObjectURL(new Blob([srcdoc], { type: 'text/html' }));
+  }
+  if (old_url) {
+    URL.revokeObjectURL(old_url);
+  }
+  return undefined;
+});
+onUnmounted(() => {
+  if (url.value) {
+    URL.revokeObjectURL(url.value);
+  }
+});
 
 // TODO: 应该有更好的办法处理和折叠代码块的兼容性
 onMounted(() => {
