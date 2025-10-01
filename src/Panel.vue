@@ -46,7 +46,7 @@ import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
-import { initThirdPartyObject } from '@/panel/global';
+import { initThirdPartyObject } from '@/panel/third_party_object';
 import { disableIncompatibleOption } from '@/panel/incompatible_option';
 import { registerMacros } from '@/panel/macro';
 import { hasUpdate } from '@/panel/main/update';
