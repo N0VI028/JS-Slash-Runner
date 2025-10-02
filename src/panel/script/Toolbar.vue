@@ -8,7 +8,7 @@
       <i class="fa-solid fa-folder-plus" />
       <small>{{ t`+ 文件夹` }}</small>
     </Button>
-    <Button type="tavern" @click="make_TODO('导入脚本库脚本')">
+    <Button type="tavern" @click="openImport">
       <i class="fa-solid fa-file-import" />
       <small>{{ t`导入` }}</small>
     </Button>
@@ -26,8 +26,9 @@ import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
-import { Script, ScriptFolder } from '@/type/scripts';
+import { Script, ScriptButton, ScriptFolder } from '@/type/scripts';
 import { uuidv4 } from '@sillytavern/scripts/utils';
+import { useFileDialog } from '@vueuse/core';
 
 function openCreator(type: 'script' | 'folder') {
   let target: 'global' | 'character' | 'preset';
@@ -95,5 +96,90 @@ function onFolderEditorSubmit(target: 'global' | 'character' | 'preset', result:
       usePresetScriptsStore().script_trees.push(folder);
       break;
   }
+}
+
+/**
+ * 导入脚本库
+ */
+
+const { open, onChange } = useFileDialog({
+  accept: '.json,.zip',
+  directory: false,
+});
+
+async function handleImport(target: 'global' | 'character' | 'preset', filesList: FileList | null) {
+  if (!filesList) return;
+  const jsonFiles = Array.from(filesList).filter(f => f.name.toLowerCase().endsWith('.json'));
+  if (jsonFiles.length === 0) return;
+
+  const ImportScript = z
+    .object({
+      type: z.string().optional(),
+      id: z.string().catch(() => uuidv4()),
+      name: z.string().catch(''),
+      content: z.string().catch(''),
+      info: z.string().catch(''),
+      enabled: z.boolean().catch(false),
+      buttons: z.object({
+        enabled: z.boolean(),
+        button: z.array(ScriptButton),
+      }),
+      data: z.record(z.string(), z.any()).catch({}),
+    })
+    .transform(v => ({
+      type: 'script' as const,
+      enabled: v.enabled ?? false,
+      id: v.id,
+      name: v.name,
+      content: v.content,
+      info: v.info,
+      buttons: v.buttons,
+      data: v.data,
+    }));
+
+  let store;
+  switch (target) {
+    case 'global':
+      store = useGlobalScriptsStore();
+      break;
+    case 'character':
+      store = useCharacterScriptsStore();
+      break;
+    case 'preset':
+      store = usePresetScriptsStore();
+      break;
+  }
+
+  for (const file of jsonFiles) {
+    try {
+      const text = await file.text();
+      const raw = JSON.parse(text);
+      const toArray = Array.isArray(raw) ? raw : [raw];
+      for (const item of toArray) {
+        const parsed = ImportScript.parse(item);
+        const strict = Script.parse(parsed);
+        store.script_trees.push(strict);
+      }
+    } catch (err) {
+      console.error(err);
+      toastr.error('导入脚本失败: ' + file.name);
+    }
+  }
+}
+
+function openImport() {
+  const target_selector = useModal({
+    component: TargetSelector,
+    attrs: {
+      onSubmit: async (value: 'global' | 'character' | 'preset') => {
+        const disposer = onChange(selected => {
+          handleImport(value, selected);
+          disposer.off();
+        });
+        open();
+      },
+    },
+  });
+  target_selector.open();
 }
 </script>
