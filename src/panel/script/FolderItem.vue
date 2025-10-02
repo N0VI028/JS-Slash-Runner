@@ -41,6 +41,7 @@
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
       direction="vertical"
+      :disabled="searchInput !== ''"
     >
       <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
         <ScriptItem

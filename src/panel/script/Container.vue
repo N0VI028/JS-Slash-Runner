@@ -26,6 +26,7 @@
       :fallback-on-body="true"
       :data-container-type="props.storeType"
       direction="vertical"
+      :disabled="searchInput !== ''"
     >
       <div v-for="(script, index) in script_trees" :key="script.id">
         <ScriptItem
@@ -58,18 +59,6 @@ const props = defineProps<{
 }>();
 
 const script_trees = toRef(store.value, 'script_trees');
-
-// const filtered_script_trees = computed(() => {
-//   if (props.searchInput === '') {
-//     return script_trees.value;
-//   }
-//   return script_trees.value.filter(script =>
-//     isScript(script)
-//       ? includesOrTest(script.name, props.searchInput)
-//       : includesOrTest(script.name, props.searchInput) &&
-//         script.scripts.some(script => includesOrTest(script.name, props.searchInput)),
-//   );
-// });
 
 const handleDelete = (id: string) => {
   _.remove(store.value.script_trees, script => script.id === id);

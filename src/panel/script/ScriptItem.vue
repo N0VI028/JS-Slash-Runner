@@ -30,7 +30,7 @@
       </DefineToolButton>
       <ToolButton name="查看作者备注" icon="fa-info-circle" @click="openScriptInfo" />
       <ToolButton name="编辑脚本" icon="fa-pencil" @click="openScriptEditor" />
-      <ToolButton name="导出脚本" icon="fa-file-export" />
+      <ToolButton name="导出脚本" icon="fa-file-export" @click="exportScript" />
       <ToolButton name="删除脚本" icon="fa-trash" @click="openDeleteConfirm" />
     </div>
   </div>
@@ -43,6 +43,7 @@ import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
 import { includesOrTest } from '@/util/search';
+import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
 import { marked } from 'marked';
 
@@ -115,4 +116,51 @@ const { open: openDeleteConfirm } = useModal({
     default: `<div>确定要删除脚本吗？此操作无法撤销。</div>`,
   },
 });
+
+async function doExport(payload?: Script) {
+  const exporting = payload ?? script.value;
+  const data = JSON.stringify(exporting, null, 2);
+  const filename = await getSanitizedFilename(script.value.name);
+  download(data, filename, 'application/json');
+}
+
+const exportScript = () => {
+  const hasData = Object.keys(script.value.data || {}).length > 0;
+  if (!hasData) {
+    doExport();
+    return;
+  }
+
+  const modal = useModal({
+    component: Popup,
+    attrs: {
+      buttons: [
+        {
+          name: '包含数据导出',
+          onClick: close => {
+            doExport();
+            close();
+          },
+        },
+        {
+          name: '清除数据导出',
+          shouldEmphasize: true,
+          onClick: close => {
+            const toExport: Script = {
+              ...script.value,
+              data: {},
+            } as Script;
+            doExport(toExport);
+            close();
+          },
+        },
+        { name: '取消', onClick: close => close() },
+      ],
+    },
+    slots: {
+      default: `<div>脚本包含数据，导出时如何处理？如有API-KEY等敏感数据，注意清除</div>`,
+    },
+  });
+  modal.open();
+};
 </script>
