@@ -1,6 +1,7 @@
 <template>
   <!-- prettier-ignore-attribute -->
   <div
+    v-show="isVisible"
     class="
       flex w-full flex-wrap items-center justify-between rounded-[10px] border border-(--SmartThemeBorderColor) p-[5px]
     "
@@ -41,6 +42,7 @@ import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
+import { includesOrTest } from '@/util/search';
 import { createReusableTemplate } from '@vueuse/core';
 
 const [DefineToolButton, ToolButton] = createReusableTemplate<{
@@ -50,9 +52,22 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
 
 const script = defineModel<Script>({ required: true });
 
+const props = withDefaults(
+  defineProps<{
+    searchInput?: string | RegExp;
+  }>(),
+  {
+    searchInput: '',
+  },
+);
+
 const emit = defineEmits<{
   delete: [id: string];
 }>();
+
+const isVisible = computed(() => {
+  return includesOrTest(script.value.name, props.searchInput);
+});
 
 const { open: openScriptEditor } = useModal({
   component: ScriptEditor,

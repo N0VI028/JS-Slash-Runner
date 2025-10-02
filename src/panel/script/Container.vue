@@ -28,7 +28,12 @@
       direction="vertical"
     >
       <div v-for="(script, index) in script_trees" :key="script.id">
-        <ScriptItem v-if="isScript(script_trees[index])" v-model="script_trees[index]" @delete="handleDelete" />
+        <ScriptItem
+          v-if="isScript(script_trees[index])"
+          v-model="script_trees[index]"
+          :search-input="props.searchInput"
+          @delete="handleDelete"
+        />
         <FolderItem v-else v-model="script_trees[index]" :search-input="props.searchInput" @delete="handleDelete" />
       </div>
       <div v-if="script_trees.length === 0" class="text-center opacity-50">暂无脚本</div>

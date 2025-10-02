@@ -1,5 +1,6 @@
 ﻿<template>
   <div
+    v-show="isVisible"
     class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)"
     data-type="folder"
     data-folder
@@ -42,7 +43,11 @@
       direction="vertical"
     >
       <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
-        <ScriptItem v-model="script_folder.scripts[index]" @delete="handleScriptDelete" />
+        <ScriptItem
+          v-model="script_folder.scripts[index]"
+          :search-input="props.searchInput"
+          @delete="handleScriptDelete"
+        />
       </div>
     </VueDraggable>
   </div>
@@ -54,6 +59,7 @@ import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
 import { ScriptFolder } from '@/type/scripts';
+import { includesOrTest } from '@/util/search';
 import { createReusableTemplate } from '@vueuse/core';
 import { VueDraggable } from 'vue-draggable-plus';
 
@@ -64,18 +70,26 @@ const [DefineScriptFolderButton, SCriptFolderButton] = createReusableTemplate<{
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
 
-const props = defineProps<{ searchInput: string | RegExp }>();
+const props = withDefaults(defineProps<{ searchInput?: string | RegExp }>(), {
+  searchInput: '',
+});
 
 const emit = defineEmits<{
   delete: [id: string];
 }>();
 
-// const filtered_scripts = computed(() => {
-//   if (props.searchInput === '') {
-//     return script_folder.value.scripts;
-//   }
-//   return script_folder.value.scripts.filter(script => includesOrTest(script.name, props.searchInput));
-// });
+/**
+ * 【搜索】判断文件夹是否可见
+ */
+const isVisible = computed(() => {
+  if (props.searchInput === '') {
+    return true;
+  }
+  if (includesOrTest(script_folder.value.name, props.searchInput)) {
+    return true;
+  }
+  return script_folder.value.scripts.some(script => includesOrTest(script.name, props.searchInput));
+});
 
 const { open: openFolderEditor } = useModal({
   component: FolderEditor,
