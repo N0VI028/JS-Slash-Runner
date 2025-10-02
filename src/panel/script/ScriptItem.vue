@@ -28,7 +28,7 @@
           <i class="fa-solid" :class="icon"></i>
         </div>
       </DefineToolButton>
-      <ToolButton name="查看脚本信息" icon="fa-info-circle" />
+      <ToolButton name="查看作者备注" icon="fa-info-circle" @click="openScriptInfo" />
       <ToolButton name="编辑脚本" icon="fa-pencil" @click="openScriptEditor" />
       <ToolButton name="导出脚本" icon="fa-file-export" />
       <ToolButton name="删除脚本" icon="fa-trash" @click="openDeleteConfirm" />
@@ -44,6 +44,7 @@ import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
 import { includesOrTest } from '@/util/search';
 import { createReusableTemplate } from '@vueuse/core';
+import { marked } from 'marked';
 
 const [DefineToolButton, ToolButton] = createReusableTemplate<{
   name: string;
@@ -84,6 +85,17 @@ const { open: openScriptEditor } = useModal({
   },
 });
 
+const openScriptInfo = () =>
+  useModal({
+    component: Popup,
+    attrs: {
+      buttons: [{ name: '关闭' }],
+    },
+    slots: {
+      default: `<div>${script.value.info ? marked.parse(script.value.info) : '未填写作者备注'}</div>`,
+    },
+  }).open();
+
 const { open: openDeleteConfirm } = useModal({
   component: Popup,
   attrs: {
@@ -104,28 +116,3 @@ const { open: openDeleteConfirm } = useModal({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@reference "tailwindcss";
-
-.TH-batch-mode.selected {
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
-  border-color: var(--SmartThemeQuoteColor);
-}
-
-:has(.TH-script-toggle:not(.enabled)) .TH-script-item-name {
-  text-decoration: line-through;
-  filter: grayscale(0.5);
-}
-
-/* 拖拽状态样式 */
-.dragging-source {
-  opacity: 0.6;
-}
-
-.ui-dragging {
-  opacity: 0.8;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-</style>
