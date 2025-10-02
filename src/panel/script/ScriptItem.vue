@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <!-- prettier-ignore-attribute -->
   <div
     v-show="isVisible"
@@ -46,6 +46,16 @@ import { includesOrTest } from '@/util/search';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
 import { marked } from 'marked';
+import { toRaw } from 'vue';
+
+type ScriptExportOptions = {
+  stripData?: boolean;
+};
+
+type ScriptExportPayload = {
+  filename: string;
+  data: string;
+};
 
 const [DefineToolButton, ToolButton] = createReusableTemplate<{
   name: string;
@@ -117,17 +127,29 @@ const { open: openDeleteConfirm } = useModal({
   },
 });
 
-async function doExport(payload?: Script) {
-  const exporting = payload ?? script.value;
+const createExportPayload = async ({ stripData = false }: ScriptExportOptions = {}): Promise<ScriptExportPayload> => {
+  const exporting = _.cloneDeep(toRaw(script.value)) as Script;
+  if (stripData) {
+    exporting.data = {};
+  }
+  delete (exporting as any).type;
+  delete (exporting as any).enabled;
+  const filename = await getSanitizedFilename(`${exporting.name}.json`);
   const data = JSON.stringify(exporting, null, 2);
-  const filename = await getSanitizedFilename(script.value.name);
+  return { filename, data };
+};
+
+const downloadExport = async (options?: ScriptExportOptions) => {
+  const { filename, data } = await createExportPayload(options);
   download(data, filename, 'application/json');
-}
+};
+
+defineExpose({ createExportPayload });
 
 const exportScript = () => {
   const hasData = Object.keys(script.value.data || {}).length > 0;
   if (!hasData) {
-    doExport();
+    void downloadExport();
     return;
   }
 
@@ -138,7 +160,7 @@ const exportScript = () => {
         {
           name: '包含数据导出',
           onClick: close => {
-            doExport();
+            void downloadExport();
             close();
           },
         },
@@ -146,11 +168,7 @@ const exportScript = () => {
           name: '清除数据导出',
           shouldEmphasize: true,
           onClick: close => {
-            const toExport: Script = {
-              ...script.value,
-              data: {},
-            } as Script;
-            doExport(toExport);
+            void downloadExport({ stripData: true });
             close();
           },
         },

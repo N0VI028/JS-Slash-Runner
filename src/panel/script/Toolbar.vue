@@ -29,6 +29,7 @@ import { make_TODO } from '@/todo';
 import { Script, ScriptButton, ScriptFolder } from '@/type/scripts';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useFileDialog } from '@vueuse/core';
+import JSZip from 'jszip';
 
 function openCreator(type: 'script' | 'folder') {
   let target: 'global' | 'character' | 'preset';
@@ -109,8 +110,8 @@ const { open, onChange } = useFileDialog({
 
 async function handleImport(target: 'global' | 'character' | 'preset', filesList: FileList | null) {
   if (!filesList) return;
-  const jsonFiles = Array.from(filesList).filter(f => f.name.toLowerCase().endsWith('.json'));
-  if (jsonFiles.length === 0) return;
+
+  const files = Array.from(filesList);
 
   const ImportScript = z
     .object({
@@ -150,19 +151,80 @@ async function handleImport(target: 'global' | 'character' | 'preset', filesList
       break;
   }
 
-  for (const file of jsonFiles) {
-    try {
-      const text = await file.text();
-      const raw = JSON.parse(text);
-      const toArray = Array.isArray(raw) ? raw : [raw];
-      for (const item of toArray) {
-        const parsed = ImportScript.parse(item);
-        const strict = Script.parse(parsed);
-        store.script_trees.push(strict);
+  // 处理文件
+  for (const file of files) {
+    const fileName = file.name.toLowerCase();
+
+    if (fileName.endsWith('.json')) {
+      // 处理 JSON 文件
+      try {
+        const text = await file.text();
+        const raw = JSON.parse(text);
+        const toArray = Array.isArray(raw) ? raw : [raw];
+        for (const item of toArray) {
+          const parsed = ImportScript.parse(item);
+          const strict = Script.parse(parsed);
+          store.script_trees.push(strict);
+        }
+      } catch (err) {
+        console.error(err);
+        toastr.error('导入脚本失败: ' + file.name);
       }
-    } catch (err) {
-      console.error(err);
-      toastr.error('导入脚本失败: ' + file.name);
+    } else if (fileName.endsWith('.zip')) {
+      // 处理 ZIP 文件
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
+
+        // 获取所有 JSON 文件
+        const jsonFileNames: string[] = [];
+        zip.forEach((relativePath, zipEntry) => {
+          if (!zipEntry.dir && relativePath.toLowerCase().endsWith('.json')) {
+            jsonFileNames.push(relativePath);
+          }
+        });
+
+        if (jsonFileNames.length === 0) {
+          toastr.error('ZIP 文件中没有找到 JSON 文件: ' + file.name);
+          continue;
+        }
+
+        // 解析所有 JSON 文件为脚本
+        const scripts: Script[] = [];
+        for (const jsonFileName of jsonFileNames) {
+          try {
+            const jsonContent = await zip.file(jsonFileName)!.async('string');
+            const raw = JSON.parse(jsonContent);
+            const toArray = Array.isArray(raw) ? raw : [raw];
+            for (const item of toArray) {
+              const parsed = ImportScript.parse(item);
+              const strict = Script.parse(parsed);
+              scripts.push(strict);
+            }
+          } catch (err) {
+            console.error(err);
+            toastr.error('导入 ZIP 中的脚本失败: ' + jsonFileName);
+          }
+        }
+
+        if (scripts.length > 0) {
+          // 创建文件夹，名称为 ZIP 文件名（去除扩展名）
+          const folderName = file.name.replace(/\.zip$/i, '');
+          const folder: ScriptFolder = {
+            type: 'folder',
+            enabled: false,
+            id: uuidv4(),
+            name: folderName,
+            icon: 'fa-solid fa-folder',
+            color: '#888888',
+            scripts: scripts,
+          };
+          store.script_trees.push(folder);
+        }
+      } catch (err) {
+        console.error(err);
+        toastr.error('导入 ZIP 文件失败: ' + file.name);
+      }
     }
   }
 }

@@ -27,6 +27,11 @@ export default defineConfig(({ mode }) => ({
         prodDevtools: process.env.CI !== 'true',
         prodHydrationMismatchDetails: false,
       },
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag === 'toolcool-color-picker',
+        },
+      },
     }),
     unpluginAutoImport({
       dts: true,
