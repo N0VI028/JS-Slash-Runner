@@ -121,9 +121,9 @@ async function handleImport(target: 'global' | 'character' | 'preset', filesList
       content: z.string().catch(''),
       info: z.string().catch(''),
       enabled: z.boolean().catch(false),
-      buttons: z.object({
+      button: z.object({
         enabled: z.boolean(),
-        button: z.array(ScriptButton),
+        buttons: z.array(ScriptButton),
       }),
       data: z.record(z.string(), z.any()).catch({}),
     })
@@ -134,7 +134,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', filesList
       name: v.name,
       content: v.content,
       info: v.info,
-      buttons: v.buttons,
+      button: v.button,
       data: v.data,
     }));
 

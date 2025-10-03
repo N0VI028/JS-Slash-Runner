@@ -12,14 +12,14 @@ export function _getButtonEvent(this: Window, button_name: string): string {
 }
 
 export function _getScriptButtons(this: Window): ScriptButton[] {
-  return _.cloneDeep(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.buttons.button);
+  return _.cloneDeep(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
 }
 
 export function _replaceScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, param1: string | ScriptButton[], param2?: ScriptButton[]): void {
   const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this))!;
-  script.buttons.button = typeof param1 === 'string' ? param2! : param1;
+  script.button.buttons = typeof param1 === 'string' ? param2! : param1;
 }
 
 export function _appendInexistentScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;

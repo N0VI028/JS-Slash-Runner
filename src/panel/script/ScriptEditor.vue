@@ -2,11 +2,11 @@
   <Popup :buttons="[{ name: '确认', shouldEmphasize: true, onClick: submit }, { name: '取消' }]">
     <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
       <div class="my-0.5 text-md font-bold">脚本编辑</div>
-      <div id="script-name" class="TH-script-editor-container">
+      <div class="TH-script-editor-container">
         <div>脚本名称</div>
         <input v-model="script.name" type="text" class="text_pole" />
       </div>
-      <div id="script-content" class="TH-script-editor-container">
+      <div class="TH-script-editor-container">
         <div>脚本内容</div>
         <textarea
           v-model="script.content"
@@ -15,17 +15,16 @@
           class="text_pole font-[family-name:var(--monoFontFamily)]!"
         />
       </div>
-      <div id="script-info" class="TH-script-editor-container">
+      <div class="TH-script-editor-container">
         <div>作者备注</div>
         <textarea
-          id="script-info-textarea"
           v-model="script.info"
           placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等，支持简单的markdown和html"
           rows="3"
           class="text_pole font-[family-name:var(--monoFontFamily)]!"
         />
       </div>
-      <div id="variable-editor" class="TH-script-editor-container">
+      <div class="TH-script-editor-container">
         <div class="flex flex-wrap items-center justify-center gap-[5px]">
           <div>变量列表</div>
           <div class="menu_button interactable" @click="addVariable">
@@ -33,24 +32,24 @@
           </div>
         </div>
         <small>绑定到脚本的变量，会随脚本一同导出</small>
-        <div id="variable-list" class="flex w-full flex-col flex-wrap gap-1"></div>
+        <div class="flex w-full flex-col flex-wrap gap-1"></div>
       </div>
-      <div id="script-button-content" class="TH-script-editor-container">
+      <div class="TH-script-editor-container">
         <div class="flex w-full items-center justify-between">
           <div class="flex flex-col">
             <div class="flex flex-wrap items-center gap-[5px]">
               <div>按钮触发</div>
-              <div id="add-button-trigger" class="menu_button interactable" @click="addButton">
+              <div class="menu_button interactable" @click="addButton">
                 <i class="fa-solid fa-plus"></i>
               </div>
             </div>
             <small>需配合getButtonEvent使用</small>
           </div>
-          <Toggle id="button-trigger-toggle" v-model="script.buttons.enabled" />
+          <Toggle id="TH-script-editor-button-enabled-toggle" v-model="script.button.enabled" />
         </div>
         <div class="button-list">
           <div
-            v-for="(button, index) in script.buttons.button"
+            v-for="(button, index) in script.button.buttons"
             :key="`button-${index}`"
             class="flex items-center justify-between gap-1"
           >
@@ -75,9 +74,9 @@ const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
     name: '',
     content: '',
     info: '',
-    buttons: {
+    button: {
       enabled: true,
-      button: [],
+      buttons: [],
     },
     data: {},
   }),
@@ -109,14 +108,14 @@ const addVariable = () => {
 };
 
 const addButton = () => {
-  script.value.buttons.button.push({
+  script.value.button.buttons.push({
     name: '',
     visible: true,
   });
 };
 
 const deleteButton = (index: number) => {
-  script.value.buttons.button.splice(index, 1);
+  script.value.button.buttons.splice(index, 1);
 };
 </script>
 

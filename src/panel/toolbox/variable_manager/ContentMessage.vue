@@ -21,7 +21,6 @@
         </div>
         <!-- prettier-ignore-attribute -->
         <button
-          id="floor-filter-btn"
           class="
             flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25 text-sm
             text-(--SmartThemeTextColor)
@@ -31,7 +30,7 @@
           <span>确认</span>
         </button>
       </div>
-      <div id="floor-filter-error" class="py-0.25 text-sm text-(--warning)">最大楼层不能小于最小楼层</div>
+      <div class="py-0.25 text-sm text-(--warning)">最大楼层不能小于最小楼层</div>
     </div>
   </div>
 

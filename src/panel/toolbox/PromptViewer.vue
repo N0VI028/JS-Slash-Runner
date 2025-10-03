@@ -56,16 +56,16 @@
         </div>
         <div class="flex flex-wrap gap-1 pt-1 pr-1 pb-0 pl-0.5" style="display: none">
           <div class="flex items-center gap-0.5">
-            <input id="filter-system" type="checkbox" data-role="system" checked />
-            <label for="filter-system">system</label>
+            <input id="TH-prompt-viewer-filter-system" type="checkbox" data-role="system" checked />
+            <label for="TH-prompt-viewer-filter-system">system</label>
           </div>
           <div class="flex items-center gap-0.5">
-            <input id="filter-user" type="checkbox" data-role="user" checked />
-            <label for="filter-user">user</label>
+            <input id="TH-prompt-viewer-filter-user" type="checkbox" data-role="user" checked />
+            <label for="TH-prompt-viewer-filter-user">user</label>
           </div>
           <div class="flex items-center gap-0.5">
-            <input id="filter-assistant" type="checkbox" data-role="assistant" checked />
-            <label for="filter-assistant">assistant</label>
+            <input id="TH-prompt-viewer-filter-assistant" type="checkbox" data-role="assistant" checked />
+            <label for="TH-prompt-viewer-filter-assistant">assistant</label>
           </div>
         </div>
       </div>

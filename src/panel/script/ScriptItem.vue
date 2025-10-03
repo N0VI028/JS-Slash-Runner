@@ -1,7 +1,7 @@
 ﻿<template>
   <!-- prettier-ignore-attribute -->
   <div
-    v-show="isVisible"
+    v-show="is_visible"
     class="
       flex w-full flex-wrap items-center justify-between rounded-[10px] border border-(--SmartThemeBorderColor) p-[5px]
     "
@@ -77,7 +77,7 @@ const emit = defineEmits<{
   delete: [id: string];
 }>();
 
-const isVisible = computed(() => {
+const is_visible = computed(() => {
   return includesOrTest(script.value.name, props.searchInput);
 });
 

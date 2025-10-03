@@ -2,12 +2,9 @@
   <Item type="box">
     <template #title>{{ t`实时监听` }}</template>
     <template #description>{{ t`连接编写模板，将代码修改实时同步到酒馆` }}</template>
-    <template #content
-      ><i
-        id="online_status_indicator"
-        class="fa-solid fa-wifi mr-0.5"
-        :style="{ color: enabled ? 'green' : 'rgb(170, 0, 0)' }"
-    /></template>
+    <template #content>
+      <i class="fa-solid fa-wifi mr-0.5" :style="{ color: enabled ? 'green' : 'rgb(170, 0, 0)' }" />
+    </template>
     <template #detail>
       <div class="flex flex-wrap items-center justify-between gap-0.5">
         <div class="flex-container">

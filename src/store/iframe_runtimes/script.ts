@@ -44,9 +44,9 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
 
   const buttons = computed(() => {
     return _(enabled_scripts.value)
-      .filter(script => script.buttons.enabled)
+      .filter(script => script.button.enabled)
       .flatMap(script =>
-        script.buttons.button
+        script.button.buttons
           .filter(button => button.visible)
           .map(button => ({
             button_id: getButtonId(script.id, button.name),

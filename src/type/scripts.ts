@@ -11,15 +11,15 @@ export const Script = z.object({
   id: z.string(),
   content: z.string(),
   info: z.string(),
-  buttons: z
+  button: z
     .object({
       enabled: z.boolean(),
-      button: z.array(ScriptButton),
+      buttons: z.array(ScriptButton),
     })
     // TODO: 开发时调整了数据结构, 发布时去掉 .catch
     .catch({
       enabled: true,
-      button: [],
+      buttons: [],
     }),
   data: z.record(z.string(), z.any()),
 });
