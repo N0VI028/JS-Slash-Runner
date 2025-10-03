@@ -27,7 +27,7 @@ export function get_variables_without_clone(option: VariableOption): Record<stri
         throw Error(`提供的消息楼层号 '${option.message_id}' 超出了范围 [${-chat.length}, ${chat.length})`);
       }
       const chat_message = chat.at(option.message_id);
-      return chat_message?.data?.variables?.[chat_message?.swipe_id ?? 0] ?? {};
+      return chat_message?.variables?.[chat_message?.swipe_id ?? 0] ?? {};
     }
     case 'chat': {
       return _.get(chat_metadata, 'variables', {});
@@ -89,11 +89,19 @@ export function replaceVariables(variables: Record<string, any>, option: Variabl
       if (!_.inRange(option.message_id, -chat.length, chat.length)) {
         throw Error(`提供的消息楼层号 '${option.message_id}' 超出了范围 (${-chat.length}, ${chat.length})`);
       }
-      const chat_message = chat.at(option.message_id);
-      if (!_.has(chat_message, ['data', 'variables'])) {
-        _.set(chat_message, ['data', 'variables'], _.times(chat_message.swipes?.length ?? 1, _.constant({})));
+      const chat_message = chat.at(option.message_id) as Record<string, any>;
+      if (!_.has(chat_message, 'variables')) {
+        _.set(chat_message, 'variables', _.times(chat_message.swipes?.length ?? 1, _.constant({})));
       }
-      _.set(chat_message, ['data', 'variables', _.get(chat_message, 'swipe_id', 0)], variables);
+      // 与提示词模板的兼容性
+      if (_.isPlainObject(_.get(chat_message, 'variables'))) {
+        _.set(
+          chat_message,
+          'variables',
+          _.range(0, chat_message.swipes?.length ?? 1).map(i => chat_message.variables[i] ?? {}),
+        );
+      }
+      _.set(chat_message, ['variables', _.get(chat_message, 'swipe_id', 0)], variables);
       saveChatConditionalDebounced();
       break;
     }
