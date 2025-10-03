@@ -44,17 +44,21 @@
 import Container from '@/panel/script/Container.vue';
 import Iframe from '@/panel/script/Iframe.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
+import { useResolveIdConflict } from '@/panel/script/use_resolve_id_conflict';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
-import { useCharacterSettingsStore, useGlobalSettingsStore } from '@/store/settings';
+import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 
 const search_input = ref<string | RegExp>('');
 
 const character_id = toRef(useCharacterSettingsStore(), 'id');
+const preset_id = toRef(usePresetSettingsStore(), 'id');
 
 const global_scripts = useGlobalScriptsStore();
 const character_scripts = useCharacterScriptsStore();
 const preset_scripts = usePresetScriptsStore();
+
+useResolveIdConflict(character_id, preset_id, global_scripts, character_scripts, preset_scripts);
 
 const runtimes = toRef(useScriptIframeRuntimesStore(), 'runtimes');
 const use_blob_url = toRef(useGlobalSettingsStore().settings.render, 'use_blob_url');

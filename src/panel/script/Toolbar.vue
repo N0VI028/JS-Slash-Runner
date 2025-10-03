@@ -26,9 +26,10 @@ import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
-import { Script, ScriptFolder, ScriptTree } from '@/type/scripts';
+import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts';
 import { validateInplace } from '@/util/zod';
 import { useFileDialog } from '@vueuse/core';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
 function openCreator(type: 'script' | 'folder') {
   let target: 'global' | 'character' | 'preset';
@@ -89,9 +90,15 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   await Promise.all(
     Array.from(files_list).map(async (file: File) => {
       try {
-        getStoreFormType(target).script_trees.push(
-          validateInplace(ScriptTree, { ...JSON.parse(await file.text()), enabled: false }),
-        );
+        const script_tree = validateInplace(ScriptTree, { ...JSON.parse(await file.text())});
+        script_tree.enabled = false;
+        script_tree.id = uuidv4();
+        if (isScriptFolder(script_tree)) {
+          script_tree.scripts.forEach(script => {
+            script.id = uuidv4();
+          });
+        }
+        getStoreFormType(target).script_trees.push(script_tree);
       } catch (err) {
         const error = err as Error;
         console.error(error);

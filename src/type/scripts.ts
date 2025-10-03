@@ -7,7 +7,7 @@ export const ScriptButton = z.object({
 export type ScriptButton = z.infer<typeof ScriptButton>;
 
 export const Script = z.object({
-  type: z.literal('script').default('script'),
+  type: z.literal('script'),
   enabled: z.boolean().default(false),
   name: z.string().default(''),
   id: z.string().default(() => uuidv4()),
