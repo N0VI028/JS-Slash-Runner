@@ -17,7 +17,11 @@ type VariableOptionScript = {
   type: 'script';
   script_id?: string;
 };
-type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript;
+type VariableOptionExtension = {
+  type: 'extension';
+  extension_id: string;
+};
+type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
 
 export function get_variables_without_clone(option: VariableOption): Record<string, any> {
   switch (option.type) {
@@ -46,6 +50,9 @@ export function get_variables_without_clone(option: VariableOption): Record<stri
         throw Error('获取变量失败, 未指定 script_id');
       }
       return useScriptIframeRuntimesStore().get(option.script_id)?.data ?? {};
+    }
+    case 'extension': {
+      return _.get(extension_settings, option.extension_id, {});
     }
   }
 }
@@ -137,6 +144,11 @@ export function replaceVariables(variables: Record<string, any>, option: Variabl
         throw Error(`保存变量失败, '${option.script_id}' 脚本不存在`);
       }
       script.data = variables;
+      break;
+    }
+    case 'extension': {
+      _.set(extension_settings, option.extension_id, variables);
+      saveSettingsDebounced();
       break;
     }
   }

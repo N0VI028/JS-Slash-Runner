@@ -14,7 +14,13 @@ type VariableOptionScript = {
   /** 指定要操作变量的脚本 ID; 如果在脚本内调用, 则无须指定, 当然你也可以用 `getScriptId()` 获取该脚本 ID */
   script_id: string;
 };
-type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript;
+type VariableOptionExtension = {
+  /** 对扩展变量 (`'extension'`) 进行操作 */
+  type: 'extension';
+  /** 指定要操作变量的扩展 ID */
+  extension_id: string;
+};
+type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
 
 /**
  * 获取变量表
@@ -42,7 +48,7 @@ type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOpt
  *
  * @example
  * // 在脚本内获取该脚本绑定的变量
- * const variables = getVariables({type: 'script', script_id: getScriptId()});
+ * const variables = getVariables({type: 'script'});
  */
 declare function getVariables(option: VariableOption): Record<string, any>;
 
@@ -68,7 +74,7 @@ declare function getVariables(option: VariableOption): Record<string, any>;
  *
  * @example
  * // 在脚本内替换该脚本绑定的变量
- * replaceVariables({神乐光: {好感度: 5, 认知度: 0}}, {type: 'script', script_id: getScriptId()});
+ * replaceVariables({神乐光: {好感度: 5, 认知度: 0}}, {type: 'script'});
  */
 declare function replaceVariables(variables: Record<string, any>, option: VariableOption): void;
 
