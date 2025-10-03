@@ -87,14 +87,6 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
         : [];
     });
 
-    // TODO: 是否需要用这个来做 getVariables 和 replaceVariables
-    // const getScript = (id: string): Script | undefined => {
-    //   return _(flattened_scripts.value).find(script => script.id === id);
-    // };
-    // const setScript = (id: string, script: Partial<Omit<Script, 'id'>>) => {
-    //   _.assign(getScript(id), script);
-    // };
-
     return { enabled, script_trees, enabled_scripts };
   });
 }
