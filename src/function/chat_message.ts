@@ -215,6 +215,15 @@ export async function setChatMessages(
       return;
     }
 
+    // 与提示词模板的兼容性
+    if (_.isPlainObject(data?.variables)) {
+      _.set(
+        data,
+        'variables',
+        _.range(0, data.swipes?.length ?? 1).map(i => data.variables[i] ?? {}),
+      );
+    }
+
     if (chat_message?.name !== undefined) {
       _.set(data, 'name', chat_message.name);
     }
