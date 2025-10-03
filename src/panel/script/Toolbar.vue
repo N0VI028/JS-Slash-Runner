@@ -89,7 +89,9 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   await Promise.all(
     Array.from(files_list).map(async (file: File) => {
       try {
-        getStoreFormType(target).script_trees.push(validateInplace(ScriptTree, JSON.parse(await file.text())));
+        getStoreFormType(target).script_trees.push(
+          validateInplace(ScriptTree, { ...JSON.parse(await file.text()), enabled: false }),
+        );
       } catch (err) {
         const error = err as Error;
         console.error(error);
