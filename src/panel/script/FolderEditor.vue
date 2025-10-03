@@ -14,8 +14,8 @@
           <div class="flex flex-wrap items-center">
             <span>选择颜色</span>
             <toolcool-color-picker
-              ref="colorPickerRef"
-              :color.attr="colorAttribute"
+              ref="color_picker_ref"
+              :color.attr="color_attribute"
               @change="onColorChange"
             >
             </toolcool-color-picker>
@@ -24,7 +24,7 @@
             <span>选择图标</span>
             <i
               class="fa-solid ml-[5px] cursor-pointer rounded-sm border border-(--SmartThemeBorderColor) p-[5px]"
-              :class="displayIcon"
+              :class="display_icon"
               title="点击选择图标"
               @click="selectIcon"
             ></i>
@@ -54,12 +54,12 @@ const emit = defineEmits<{
 }>();
 
 const script_folder = ref<ScriptFolderForm>(_.cloneDeep(props.scriptFolder));
-const colorPickerRef = useTemplateRef<HTMLElement>('colorPickerRef');
-const DEFAULT_COLOR = computed(() =>
-  getComputedStyle(document.documentElement).getPropertyValue('--SmartThemeQuoteColor').trim(),
-);
-const colorAttribute = computed(() => script_folder.value.color || DEFAULT_COLOR.value);
-const displayIcon = computed(() => script_folder.value.icon || 'fa-folder');
+
+const color_picker_ref = useTemplateRef<HTMLElement>('color_picker_ref');
+const DEFAULT_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--SmartThemeQuoteColor').trim();
+const color_attribute = computed(() => script_folder.value.color || DEFAULT_COLOR);
+
+const display_icon = computed(() => script_folder.value.icon || 'fa-folder');
 
 const onColorChange = (evt: any) => {
   if (evt.detail?.rgba) {
@@ -68,9 +68,9 @@ const onColorChange = (evt: any) => {
 };
 
 const selectIcon = async () => {
-  const selectedIcon = await showFontAwesomePicker();
-  if (selectedIcon) {
-    script_folder.value.icon = selectedIcon;
+  const selected_icon = await showFontAwesomePicker();
+  if (selected_icon) {
+    script_folder.value.icon = selected_icon;
   }
 };
 
