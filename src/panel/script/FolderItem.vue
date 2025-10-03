@@ -1,12 +1,15 @@
 <template>
   <div
-    v-show="isVisible"
+    v-show="is_visible"
     class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)"
     data-type="folder"
     data-folder
     :data-folder-id="script_folder.id"
   >
-    <div class="flex w-full cursor-pointer flex-wrap items-center justify-between p-0.5" @click="toggleFolderExpand">
+    <div
+      class="flex w-full cursor-pointer flex-wrap items-center justify-between p-0.5"
+      @click="is_expanded = !is_expanded"
+    >
       <!-- prettier-ignore-attribute -->
       <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true" @click.stop> ☰ </span>
       <i
@@ -19,11 +22,11 @@
         <!-- prettier-ignore-attribute -->
         <div
           class="mt-0! mr-0.5 mb-0! cursor-pointer"
-          :class="{ enabled: allScriptsEnabled }"
+          :class="{ enabled: script_folder.enabled }"
           title="批量开关文件夹内脚本"
-          @click.stop="toggleAllScripts"
+          @click="script_folder.enabled = !script_folder.enabled"
         >
-          <i v-if="allScriptsEnabled" class="fa-solid fa-toggle-on"></i>
+          <i v-if="script_folder.enabled" class="fa-solid fa-toggle-on"></i>
           <i v-else class="fa-solid fa-toggle-off"></i>
         </div>
         <DefineScriptFolderButton v-slot="{ name, icon }">
@@ -34,11 +37,11 @@
         <ScriptFolderButton name="编辑文件夹" icon="fa-pencil" @click.stop="openFolderEditor" />
         <ScriptFolderButton name="导出文件夹" icon="fa-file-export" @click.stop="exportFolder" />
         <ScriptFolderButton name="删除文件夹" icon="fa-trash" @click.stop="openDeleteConfirm" />
-        <ScriptFolderButton name="展开或折叠文件夹" :icon="isExpanded ? 'fa-chevron-down' : 'fa-chevron-up'" />
+        <ScriptFolderButton name="展开或折叠文件夹" :icon="is_expanded ? 'fa-chevron-down' : 'fa-chevron-up'" />
       </div>
     </div>
     <VueDraggable
-      v-show="isExpanded"
+      v-show="is_expanded"
       v-model="script_folder.scripts"
       group="scripts"
       handle=".TH-handle"
@@ -52,7 +55,6 @@
     >
       <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
         <ScriptItem
-          ref="scriptItemRefs"
           v-model="script_folder.scripts[index]"
           :search-input="props.searchInput"
           @delete="handleScriptDelete"
@@ -71,20 +73,7 @@ import { ScriptFolder } from '@/type/scripts';
 import { includesOrTest } from '@/util/search';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
-import JSZip from 'jszip';
-import type { ComponentPublicInstance } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
-
-type ScriptExportPayload = {
-  filename: string;
-  data: string;
-};
-
-type ScriptItemExpose = {
-  createExportPayload: () => Promise<ScriptExportPayload>;
-};
-
-type ScriptItemComponent = ComponentPublicInstance<Record<string, never>, ScriptItemExpose>;
 
 const [DefineScriptFolderButton, ScriptFolderButton] = createReusableTemplate<{
   name: string;
@@ -101,24 +90,9 @@ const emit = defineEmits<{
   delete: [id: string];
 }>();
 
-const scriptItemRefs = ref<Array<ScriptItemComponent | null>>([]);
+const is_expanded = ref(false);
 
-/**
- * 【展开/折叠】文件夹展开状态
- */
-const isExpanded = ref(false);
-
-/**
- * 【展开/折叠】切换文件夹展开状态
- */
-const toggleFolderExpand = () => {
-  isExpanded.value = !isExpanded.value;
-};
-
-/**
- * 【搜索】判断文件夹是否可见
- */
-const isVisible = computed(() => {
+const is_visible = computed(() => {
   if (props.searchInput === '') {
     return true;
   }
@@ -144,26 +118,6 @@ const handleScriptDelete = (id: string) => {
   _.remove(script_folder.value.scripts, script => script.id === id);
 };
 
-/**
- * 【批量开关】判断文件夹内所有脚本是否全部启用
- */
-const allScriptsEnabled = computed(() => {
-  if (script_folder.value.scripts.length === 0) {
-    return false;
-  }
-  return script_folder.value.scripts.every(script => script.enabled);
-});
-
-/**
- * 【批量开关】切换文件夹内所有脚本的开关状态
- */
-const toggleAllScripts = () => {
-  const shouldEnable = !allScriptsEnabled.value;
-  script_folder.value.scripts.forEach(script => {
-    script.enabled = shouldEnable;
-  });
-};
-
 const { open: openDeleteConfirm } = useModal({
   component: Popup,
   attrs: {
@@ -184,39 +138,65 @@ const { open: openDeleteConfirm } = useModal({
   },
 });
 
+type ScriptExportOptions = {
+  should_strip_data: boolean;
+};
+
+type ScriptFolderExportPayload = {
+  filename: string;
+  data: string;
+};
+
+const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptFolderExportPayload> => {
+  const to_export = _.cloneDeep(script_folder.value);
+  if (option.should_strip_data) {
+    to_export.scripts.forEach(script => {
+      _.set(script, 'data', {});
+    });
+  }
+  const filename = await getSanitizedFilename(`脚本文件夹-${to_export.name}.json`);
+  const data = JSON.stringify(to_export, null, 2);
+  return { filename, data };
+};
+
+const downloadExport = async (options: ScriptExportOptions) => {
+  const { filename, data } = await createExportPayload(options);
+  download(data, filename, 'application/json');
+};
+
 const exportFolder = async () => {
-  if (script_folder.value.scripts.length === 0) {
-    toastr.warning('文件夹内没有脚本可导出');
+  const has_data = script_folder.value.scripts.some(script => !_.isEmpty(script.data));
+  if (!has_data) {
+    downloadExport({ should_strip_data: false });
     return;
   }
 
-  try {
-    const zip = new JSZip();
-    let exportedCount = 0;
-
-    for (let index = 0; index < script_folder.value.scripts.length; index += 1) {
-      const instance = scriptItemRefs.value[index];
-      if (!instance?.createExportPayload) {
-        console.warn('脚本导出失败', script_folder.value.scripts[index]?.id);
-        continue;
-      }
-
-      const { filename, data } = await instance.createExportPayload();
-      zip.file(filename, data);
-      exportedCount += 1;
-    }
-
-    if (exportedCount === 0) {
-      toastr.warning('文件夹内没有可导出的脚本');
-      return;
-    }
-
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
-    const zipName = await getSanitizedFilename(`${script_folder.value.name}.zip`);
-    download(zipBlob, zipName, 'application/zip');
-  } catch (error) {
-    console.error(error);
-    toastr.error('导出文件夹失败');
-  }
+  useModal({
+    component: Popup,
+    attrs: {
+      buttons: [
+        {
+          name: '包含数据导出',
+          onClick: close => {
+            void downloadExport({ should_strip_data: true });
+            close();
+          },
+        },
+        {
+          name: '清除数据导出',
+          shouldEmphasize: true,
+          onClick: close => {
+            void downloadExport({ should_strip_data: true });
+            close();
+          },
+        },
+        { name: '取消', onClick: close => close() },
+      ],
+    },
+    slots: {
+      // TODO: 显示脚本变量有什么?
+      default: `<div>'${script_folder.value.name}' 文件夹中脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
+    },
+  }).open();
 };
 </script>

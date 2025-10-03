@@ -46,16 +46,6 @@ import { includesOrTest } from '@/util/search';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
 import { marked } from 'marked';
-import { toRaw } from 'vue';
-
-type ScriptExportOptions = {
-  stripData?: boolean;
-};
-
-type ScriptExportPayload = {
-  filename: string;
-  data: string;
-};
 
 const [DefineToolButton, ToolButton] = createReusableTemplate<{
   name: string;
@@ -127,40 +117,45 @@ const { open: openDeleteConfirm } = useModal({
   },
 });
 
-const createExportPayload = async ({ stripData = false }: ScriptExportOptions = {}): Promise<ScriptExportPayload> => {
-  const exporting = _.cloneDeep(toRaw(script.value)) as Script;
-  if (stripData) {
-    exporting.data = {};
+type ScriptExportOptions = {
+  should_strip_data: boolean;
+};
+
+type ScriptExportPayload = {
+  filename: string;
+  data: string;
+};
+
+const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptExportPayload> => {
+  const to_export = _.cloneDeep(script.value);
+  if (option.should_strip_data) {
+    _.set(to_export, 'data', {});
   }
-  delete (exporting as any).type;
-  delete (exporting as any).enabled;
-  const filename = await getSanitizedFilename(`${exporting.name}.json`);
-  const data = JSON.stringify(exporting, null, 2);
+  const filename = await getSanitizedFilename(`脚本-${to_export.name}.json`);
+  const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
 
-const downloadExport = async (options?: ScriptExportOptions) => {
+const downloadExport = async (options: ScriptExportOptions) => {
   const { filename, data } = await createExportPayload(options);
   download(data, filename, 'application/json');
 };
 
-defineExpose({ createExportPayload });
-
 const exportScript = () => {
-  const hasData = Object.keys(script.value.data || {}).length > 0;
-  if (!hasData) {
-    void downloadExport();
+  const has_data = !_.isEmpty(script.value.data);
+  if (!has_data) {
+    downloadExport({ should_strip_data: false });
     return;
   }
 
-  const modal = useModal({
+  useModal({
     component: Popup,
     attrs: {
       buttons: [
         {
           name: '包含数据导出',
           onClick: close => {
-            void downloadExport();
+            void downloadExport({ should_strip_data: true });
             close();
           },
         },
@@ -168,7 +163,7 @@ const exportScript = () => {
           name: '清除数据导出',
           shouldEmphasize: true,
           onClick: close => {
-            void downloadExport({ stripData: true });
+            void downloadExport({ should_strip_data: true });
             close();
           },
         },
@@ -176,9 +171,9 @@ const exportScript = () => {
       ],
     },
     slots: {
-      default: `<div>脚本包含数据，导出时如何处理？如有API-KEY等敏感数据，注意清除</div>`,
+      // TODO: 显示脚本变量有什么?
+      default: `<div>'${script.value.name}' 脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
     },
-  });
-  modal.open();
+  }).open();
 };
 </script>

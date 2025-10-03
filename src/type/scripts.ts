@@ -1,3 +1,5 @@
+import { uuidv4 } from '@sillytavern/scripts/utils';
+
 export const ScriptButton = z.object({
   name: z.string(),
   visible: z.boolean(),
@@ -5,34 +7,30 @@ export const ScriptButton = z.object({
 export type ScriptButton = z.infer<typeof ScriptButton>;
 
 export const Script = z.object({
-  type: z.literal('script'),
-  enabled: z.boolean(),
-  name: z.string(),
-  id: z.string(),
-  content: z.string(),
-  info: z.string(),
+  type: z.literal('script').default('script'),
+  enabled: z.boolean().default(false),
+  name: z.string().default(''),
+  id: z.string().default(() => uuidv4()),
+  content: z.string().default(''),
+  info: z.string().default(''),
   button: z
     .object({
-      enabled: z.boolean(),
-      buttons: z.array(ScriptButton),
+      enabled: z.boolean().default(true),
+      buttons: z.array(ScriptButton).default([]),
     })
-    // TODO: 开发时调整了数据结构, 发布时去掉 .catch
-    .catch({
-      enabled: true,
-      buttons: [],
-    }),
-  data: z.record(z.string(), z.any()),
+    .prefault({}),
+  data: z.record(z.string(), z.any()).default({}),
 });
 export type Script = z.infer<typeof Script>;
 
 export const ScriptFolder = z.object({
   type: z.literal('folder'),
-  enabled: z.boolean(),
-  name: z.string(),
-  id: z.string(),
-  icon: z.string(),
-  color: z.string(),
-  scripts: z.array(Script),
+  enabled: z.boolean().default(false),
+  name: z.string().default(''),
+  id: z.string().default(() => uuidv4()),
+  icon: z.string().default('fa-solid fa-folder'),
+  color: z.string().default('#888888'),
+  scripts: z.array(Script).default([]),
 });
 export type ScriptFolder = z.infer<typeof ScriptFolder>;
 
