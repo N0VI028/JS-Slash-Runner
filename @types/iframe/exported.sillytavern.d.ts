@@ -16,7 +16,7 @@ declare namespace SillyTavern {
     mes: string;
     swipe_id?: number;
     swipes?: string[];
-    variables?: Record<string, any>[];
+    variables?: Record<string, any>[] | { [swipe_id: number]: Record<string, any> };
     extra?: Record<string, any>;
   };
 
