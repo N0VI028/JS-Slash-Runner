@@ -24,7 +24,7 @@
           class="mt-0! mr-0.5 mb-0! cursor-pointer"
           :class="{ enabled: script_folder.enabled }"
           title="批量开关文件夹内脚本"
-          @click="script_folder.enabled = !script_folder.enabled"
+          @click.stop="script_folder.enabled = !script_folder.enabled"
         >
           <i v-if="script_folder.enabled" class="fa-solid fa-toggle-on"></i>
           <i v-else class="fa-solid fa-toggle-off"></i>
