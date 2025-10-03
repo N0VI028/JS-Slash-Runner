@@ -26,7 +26,7 @@ import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { make_TODO } from '@/todo';
-import { Script, ScriptFolder } from '@/type/scripts';
+import { Script, ScriptFolder, ScriptTree } from '@/type/scripts';
 import { validateInplace } from '@/util/zod';
 import { useFileDialog } from '@vueuse/core';
 
@@ -89,11 +89,11 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   await Promise.all(
     Array.from(files_list).map(async (file: File) => {
       try {
-        getStoreFormType(target).script_trees.push(validateInplace(Script, JSON.parse(await file.text())));
+        getStoreFormType(target).script_trees.push(validateInplace(ScriptTree, JSON.parse(await file.text())));
       } catch (err) {
         const error = err as Error;
         console.error(error);
-        toastr.error(error.message, `导入脚本 '${file.name}' 失败`);
+        toastr.error(error.message, `导入脚本文件 '${file.name}' 失败`);
       }
     }),
   );
