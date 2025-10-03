@@ -19,7 +19,7 @@
  * @example
  * // 创建一条用户输入到消息楼层末尾
  * await createChatMessages([{ role: 'user', content: '你好' }]);
- * // 请求 AI 生成
+ * // 触发 AI 回复
  * await triggerSlash('/trigger');
  */
 declare function triggerSlash(command: string): Promise<string>;
