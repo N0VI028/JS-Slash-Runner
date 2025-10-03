@@ -81,7 +81,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
         ? _(script_trees.value)
             .filter(item => item.enabled)
             .flatMap(item => {
-              return isScript(item) ? item : item.scripts;
+              return isScript(item) ? item : item.scripts.filter(script => script.enabled);
             })
             .value()
         : [];
