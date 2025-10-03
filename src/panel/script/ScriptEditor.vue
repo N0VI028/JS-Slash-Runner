@@ -1,7 +1,7 @@
 <template>
   <Popup :buttons="[{ name: '确认', shouldEmphasize: true, onClick: submit }, { name: '取消' }]">
     <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
-      <div class="my-0.5 text-md font-bold">脚本编辑</div>
+      <div class="my-0.5 text-md font-bold">{{ props.script !== undefined ? '编辑脚本' : '创建新脚本' }}</div>
       <div class="TH-script-editor-container">
         <div>脚本名称</div>
         <input v-model="script.name" type="text" class="text_pole" />
@@ -69,24 +69,26 @@
 <script setup lang="ts">
 import { ScriptForm } from '@/panel/script/type';
 
-const props = withDefaults(defineProps<{ script?: ScriptForm }>(), {
-  script: (): ScriptForm => ({
-    name: '',
-    content: '',
-    info: '',
-    button: {
-      enabled: true,
-      buttons: [],
-    },
-    data: {},
-  }),
-});
+const props = defineProps<{ script?: ScriptForm }>();
 
 const emit = defineEmits<{
   submit: [script: ScriptForm];
 }>();
 
-const script = ref<ScriptForm>(_.cloneDeep(props.script));
+const script = ref<ScriptForm>(
+  _.cloneDeep(
+    props.script ?? {
+      name: '',
+      content: '',
+      info: '',
+      button: {
+        enabled: true,
+        buttons: [],
+      },
+      data: {},
+    },
+  ),
+);
 
 const submit = (close: () => void) => {
   const result = ScriptForm.safeParse(script.value);

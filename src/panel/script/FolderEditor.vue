@@ -1,7 +1,6 @@
 <template>
-  <!--prettier-ignore-->
   <Popup :buttons="[{ name: '确认', shouldEmphasize: true, onClick: submit }, { name: '取消' }]">
-    <div class="my-0.5 text-md font-bold">{{ isEdit ? '编辑文件夹' : '创建新文件夹' }}</div>
+    <div class="my-0.5 text-md font-bold">{{ props.scriptFolder !== undefined ? '编辑文件夹' : '创建新文件夹' }}</div>
     <div class="flex w-full flex-col justify-center gap-0.5 p-1">
       <div class="flex flex-col items-start">
         <div class="font-bold">文件夹名称:</div>
@@ -13,18 +12,13 @@
         <div class="my-0.5 flex w-full gap-2">
           <div class="flex flex-wrap items-center">
             <span>选择颜色</span>
-            <toolcool-color-picker
-              ref="color_picker_ref"
-              :color.attr="color_attribute"
-              @change="onColorChange"
-            >
-            </toolcool-color-picker>
+            <toolcool-color-picker v-model="script_folder.color" />
           </div>
           <div class="flex flex-wrap items-center">
             <span>选择图标</span>
             <i
               class="fa-solid ml-[5px] cursor-pointer rounded-sm border border-(--SmartThemeBorderColor) p-[5px]"
-              :class="display_icon"
+              :class="script_folder.icon"
               title="点击选择图标"
               @click="selectIcon"
             ></i>
@@ -38,34 +32,24 @@
 
 <script setup lang="ts">
 import { ScriptFolderForm } from '@/panel/script/type';
+import { smart_theme_quote_color } from '@/util/css_variable';
 import { showFontAwesomePicker } from '@sillytavern/scripts/utils';
 
-const props = withDefaults(defineProps<{ scriptFolder?: ScriptFolderForm; isEdit?: boolean }>(), {
-  scriptFolder: (): ScriptFolderForm => ({
-    name: '',
-    icon: '',
-    color: '',
-  }),
-  isEdit: false,
-});
+const props = defineProps<{ scriptFolder?: ScriptFolderForm }>();
 
 const emit = defineEmits<{
   submit: [script: ScriptFolderForm];
 }>();
 
-const script_folder = ref<ScriptFolderForm>(_.cloneDeep(props.scriptFolder));
-
-const color_picker_ref = useTemplateRef<HTMLElement>('color_picker_ref');
-const DEFAULT_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--SmartThemeQuoteColor').trim();
-const color_attribute = computed(() => script_folder.value.color || DEFAULT_COLOR);
-
-const display_icon = computed(() => script_folder.value.icon || 'fa-folder');
-
-const onColorChange = (evt: any) => {
-  if (evt.detail?.rgba) {
-    script_folder.value.color = evt.detail.rgba;
-  }
-};
+const script_folder = ref<ScriptFolderForm>(
+  _.cloneDeep(
+    props.scriptFolder ?? {
+      name: '',
+      icon: '',
+      color: smart_theme_quote_color,
+    },
+  ),
+);
 
 const selectIcon = async () => {
   const selected_icon = await showFontAwesomePicker();

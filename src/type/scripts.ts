@@ -1,3 +1,4 @@
+import { smart_theme_quote_color } from '@/util/css_variable';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 export const ScriptButton = z.object({
@@ -29,7 +30,7 @@ export const ScriptFolder = z.object({
   name: z.string().default(''),
   id: z.string().default(() => uuidv4()),
   icon: z.string().default('fa-solid fa-folder'),
-  color: z.string().default('#888888'),
+  color: z.string().default(smart_theme_quote_color),
   scripts: z.array(Script).default([]),
 });
 export type ScriptFolder = z.infer<typeof ScriptFolder>;

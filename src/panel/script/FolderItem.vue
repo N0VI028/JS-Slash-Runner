@@ -106,10 +106,8 @@ const { open: openFolderEditor } = useModal({
   component: FolderEditor,
   attrs: {
     scriptFolder: script_folder.value,
-    isEdit: true,
     onSubmit: (result: ScriptFolderForm) => {
       _.assign(script_folder.value, result);
-      return true;
     },
   },
 });

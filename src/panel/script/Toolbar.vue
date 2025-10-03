@@ -28,8 +28,8 @@ import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore 
 import { make_TODO } from '@/todo';
 import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts';
 import { validateInplace } from '@/util/zod';
-import { useFileDialog } from '@vueuse/core';
 import { uuidv4 } from '@sillytavern/scripts/utils';
+import { useFileDialog } from '@vueuse/core';
 
 function openCreator(type: 'script' | 'folder') {
   let target: 'global' | 'character' | 'preset';
@@ -90,7 +90,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   await Promise.all(
     Array.from(files_list).map(async (file: File) => {
       try {
-        const script_tree = validateInplace(ScriptTree, { ...JSON.parse(await file.text())});
+        const script_tree = validateInplace(ScriptTree, { ...JSON.parse(await file.text()) });
         script_tree.enabled = false;
         script_tree.id = uuidv4();
         if (isScriptFolder(script_tree)) {
