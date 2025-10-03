@@ -131,7 +131,7 @@ const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptE
   if (option.should_strip_data) {
     _.set(to_export, 'data', {});
   }
-  const filename = await getSanitizedFilename(`脚本-${to_export.name}.json`);
+  const filename = await getSanitizedFilename(`酒馆助手脚本-${to_export.name}.json`);
   const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
