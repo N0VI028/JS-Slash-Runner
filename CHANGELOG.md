@@ -12,7 +12,7 @@
 ### ⏫功能
 
 - 现在预设也可以绑定酒馆助手脚本了
-- `getVariables`、`replaceVariables` 等变量相关函数现在支持处理预设变量
+- `getVariables`、`replaceVariables` 等变量相关函数现在支持处理预设变量 (`'preset'`) 和第三方插件常用的扩展变量 (`'extension'`)
 - `replaceVariables` 不再需要 `await`
 - 新增 `installExtension` 等安装酒馆插件相关接口, 现在你可以在酒馆助手中安装酒馆插件了 (虽然已经有[自动安装插件脚本](https://stagedog.github.io/青空莉/作品集/))
 - 新增 `getTavernVersion` 函数用于获取酒馆版本
