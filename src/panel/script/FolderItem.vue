@@ -17,7 +17,14 @@
         :class="script_folder.icon || 'fa-folder'"
         :style="{ color: script_folder.color || 'var(--SmartThemeQuoteColor)' }"
       ></i>
-      <span class="TH-folder-name ml-0.5 flex-grow overflow-hidden">{{ script_folder.name }}</span>
+      <span
+        class="TH-folder-name ml-0.5 flex-grow overflow-hidden"
+        :style="{
+          textDecoration: script_folder.enabled ? 'none' : 'line-through',
+          filter: script_folder.enabled ? 'none' : 'grayscale(0.5)',
+        }"
+        >{{ script_folder.name }}</span
+      >
       <div class="flex shrink-0 flex-wrap items-center gap-0.25">
         <!-- prettier-ignore-attribute -->
         <div

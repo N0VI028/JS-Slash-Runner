@@ -66,6 +66,7 @@
     </div>
   </Popup>
 </template>
+
 <script setup lang="ts">
 import { ScriptForm } from '@/panel/script/type';
 

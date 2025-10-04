@@ -12,7 +12,7 @@
       <i class="fa-solid fa-file-import" />
       <small>{{ t`导入` }}</small>
     </Button>
-    <Button type="tavern" @click="make_TODO('查看脚本库内置库')">
+    <Button type="tavern" @click="openBuiltin">
       <i class="fa-solid fa-archive" />
       <small>{{ t`内置库` }}</small>
     </Button>
@@ -20,12 +20,12 @@
 </template>
 
 <script setup lang="ts">
+import Builtin from '@/panel/script/Builtin.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
-import { make_TODO } from '@/todo';
 import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts';
 import { validateInplace } from '@/util/zod';
 import { uuidv4 } from '@sillytavern/scripts/utils';
@@ -119,5 +119,9 @@ const { open: openImport } = useModal({
       openFileDialog();
     },
   },
+});
+
+const { open: openBuiltin } = useModal({
+  component: Builtin,
 });
 </script>
