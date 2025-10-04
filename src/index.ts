@@ -8,6 +8,7 @@ import {
   unregisterMacroOnExtension,
 } from '@/component/macrolike';
 import { defaultIframeSettings, initIframePanel } from '@/component/message_iframe';
+import { initOvertokenNotifierPanel } from '@/component/overtoken_notifier';
 import { initPromptView } from '@/component/prompt_view';
 import { initReference } from '@/component/reference';
 import { buildScriptRepository } from '@/component/script_repository/index';
@@ -127,7 +128,14 @@ async function initExtensionPanel() {
     await renderExtensionTemplateAsync(`${templatePath}/prompt_view/public`, 'prompt_view_entry'),
   );
   const $audio_container = $(await renderExtensionTemplateAsync(`${templatePath}/audio`, 'index'));
-  $('#toolbox-settings-content').append($variables_container).append($prompt_view_container).append($audio_container);
+  const $overtoken_notifier_container = $(
+    await renderExtensionTemplateAsync(`${templatePath}/overtoken_notifier`, 'index'),
+  );
+  $('#toolbox-settings-content')
+    .append($variables_container)
+    .append($prompt_view_container)
+    .append($audio_container)
+    .append($overtoken_notifier_container);
   const $reference_container = $(await renderExtensionTemplateAsync(`${templatePath}/reference`, 'index'));
   $('#extension-reference').append($reference_container);
 }
@@ -247,6 +255,7 @@ jQuery(async () => {
     initExtensionMainPanel();
     await handleVersionUpdate();
     await initAudioComponents();
+    await initOvertokenNotifierPanel();
     initAudioSlashCommands();
     initSlashEventEmit();
     await buildScriptRepository();

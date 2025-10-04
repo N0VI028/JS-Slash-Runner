@@ -2,6 +2,7 @@
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'node:path';
 import url from 'node:url';
+import RemarkHTML from 'remark-html';
 import TerserPlugin from 'terser-webpack-plugin';
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin';
 import webpack from 'webpack';
@@ -84,6 +85,22 @@ const config = (_env: any, argv: any): webpack.Configuration => {
               test: /\.html?$/,
               use: 'html-loader',
               exclude: /node_modules/,
+            },
+            {
+              test: /\.md$/,
+              use: [
+                {
+                  loader: 'html-loader',
+                },
+                {
+                  loader: 'remark-loader',
+                  options: {
+                    remarkOptions: {
+                      plugins: [RemarkHTML],
+                    },
+                  },
+                },
+              ],
             },
             {
               test: /\.(sa|sc|c)ss$/,
