@@ -36,10 +36,7 @@ function isChatCompletion() {
  * 更新提示词查看器
  * @param data 聊天数据
  */
-export function onChatCompletionPromptReady(data: {
-  chat: { role: string; content: string }[];
-  dryRun: boolean;
-}) {
+export function onChatCompletionPromptReady(data: { chat: { role: string; content: string }[]; dryRun: boolean }) {
   if (data.dryRun) {
     return;
   }
@@ -103,7 +100,7 @@ export function refreshPromptView() {
 function isPostProcessing() {
   const $header = $('.prompt-view-header');
   if ($header.find('.prompt-view-process-warning').length > 0) {
-    $header.find('.prompt-view-process-warning').remove();
+    return;
   }
 
   const hasSquashMessages = oai_settings.squash_system_messages === true;
@@ -117,8 +114,12 @@ function isPostProcessing() {
   }
 
   if (hasCustomPostProcessing) {
-    insertMessageMergeWarning($header, '⚠️ 本次提示词发送经过了API中的“提示词后处理”合并处理');
+    insertMessageMergeWarning($header, '⚠️ 提示词发送出去时还会由API中的“提示词后处理”合并处理');
   }
+
+  setTimeout(() => {
+    $header.find('.prompt-view-process-warning').remove();
+  }, 5000);
 }
 
 /**
