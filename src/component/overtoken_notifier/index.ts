@@ -40,6 +40,7 @@ export async function initOvertokenNotifierPanel() {
           `<u>点击查看如何减少 token</u><br>如果不想被提醒，请通过 '酒馆助手-工具箱' 关闭此功能`,
           `token 数 (${total_tokens}) 超过建议 (${computed_threshold})`,
           {
+            showDuration: 1000,
             escapeHtml: false,
             onclick: () => {
               callGenericPopup(tip, POPUP_TYPE.TEXT, '', {
