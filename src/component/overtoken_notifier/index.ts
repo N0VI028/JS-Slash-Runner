@@ -1,7 +1,7 @@
 import tip from '@/component/overtoken_notifier/tip.md';
-import { tavern_events } from '@/function/event';
+import { ListenerType, tavern_events } from '@/function/event';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
-import { chat, eventSource } from '@sillytavern/script';
+import { eventSource } from '@sillytavern/script';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 
@@ -18,8 +18,11 @@ export async function initOvertokenNotifierPanel() {
       saveSettingValue('overtoken_notifier.threshold', threshold);
     });
 
-  const onChatCompletionPromptReady = () => {
-    if (threshold === 0) {
+  const onChatCompletionPromptReady = ({
+    chat,
+    dryRun,
+  }: Parameters<ListenerType['chat_completion_prompt_ready']>[0]) => {
+    if (dryRun || threshold === 0) {
       return;
     }
     const computed_threshold = threshold * 1000;
