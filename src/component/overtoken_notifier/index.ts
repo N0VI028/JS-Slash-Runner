@@ -1,7 +1,7 @@
 import tip from '@/component/overtoken_notifier/tip.md';
-import { ListenerType, tavern_events } from '@/function/event';
+import { tavern_events } from '@/function/event';
 import { getSettingValue, saveSettingValue } from '@/util/extension_variables';
-import { eventSource } from '@sillytavern/script';
+import { chat, eventSource } from '@sillytavern/script';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 
@@ -18,14 +18,13 @@ export async function initOvertokenNotifierPanel() {
       saveSettingValue('overtoken_notifier.threshold', threshold);
     });
 
-  eventSource.on(
-    tavern_events.CHAT_COMPLETION_PROMPT_READY,
-    async ({ chat }: Parameters<ListenerType['chat_completion_prompt_ready']>[0]) => {
-      if (threshold === 0) {
-        return;
-      }
-      const computed_threshold = threshold * 1000;
+  const onChatCompletionPromptReady = () => {
+    if (threshold === 0) {
+      return;
+    }
+    const computed_threshold = threshold * 1000;
 
+    setTimeout(async () => {
       // 依次计算 toekn 从而利用酒馆对 token 的缓存
       const tokens = await Promise.all(
         chat.map(async message => {
@@ -48,6 +47,8 @@ export async function initOvertokenNotifierPanel() {
           },
         );
       }
-    },
-  );
+    });
+  };
+
+  eventSource.on(tavern_events.CHAT_COMPLETION_PROMPT_READY, _.debounce(onChatCompletionPromptReady, 1000));
 }
