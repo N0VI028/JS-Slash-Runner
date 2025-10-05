@@ -53,5 +53,8 @@ export async function initOvertokenNotifierPanel() {
     });
   };
 
-  eventSource.on(tavern_events.CHAT_COMPLETION_PROMPT_READY, _.debounce(onChatCompletionPromptReady, 1000));
+  eventSource.on(
+    tavern_events.CHAT_COMPLETION_PROMPT_READY,
+    _.debounce(onChatCompletionPromptReady, 1000, { leading: true, trailing: false }),
+  );
 }
