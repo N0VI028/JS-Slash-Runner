@@ -2,6 +2,9 @@ import { ScriptTree } from '@/type/scripts';
 
 export const setting_field = 'tavern_helper';
 
+export const AudioMode = z.enum(['repeat_one', 'repeat_all', 'shuffle', 'play_one_and_stop']);
+export type AudioMode = z.infer<typeof AudioMode>;
+
 export const GlobalSettings = z
   .object({
     audio: z
@@ -9,14 +12,14 @@ export const GlobalSettings = z
         enabled: z.boolean().default(true),
         bgm: z
           .object({
-            mode: z.string().default('repeat'),
+            mode: AudioMode.default('repeat_all'),
             muted: z.boolean().default(false),
             volume: z.number().default(100),
           })
           .prefault({}),
         ambient: z
           .object({
-            mode: z.string().default('stop'),
+            mode: AudioMode.default('play_one_and_stop'),
             muted: z.boolean().default(false),
             volume: z.number().default(100),
           })

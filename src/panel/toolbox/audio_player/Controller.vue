@@ -40,7 +40,7 @@
     </div>
     <div>
       <div class="menu_button relative h-[1.8rem] w-[1.8rem]">
-        <i class="fa-solid fa-repeat"></i>
+        <i class="fa-solid" :class="mode_icon"></i>
       </div>
     </div>
   </div>
@@ -64,6 +64,15 @@ const props = defineProps<{
 }>();
 
 const controls = useMediaControls(useTemplateRef('audio'), { src: () => model.value.src });
+
+const mode_icon = computed(() => {
+  return {
+    repeat_one: 'fa-redo-alt',
+    repeat_all: 'fa-repeat',
+    shuffle: 'fa-random',
+    play_one_and_stop: 'fa-cancel',
+  }[model.value.mode];
+});
 
 const percent = computed({
   get: () => (controls.currentTime.value / controls.duration.value) * 100,
