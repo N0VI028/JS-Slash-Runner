@@ -156,7 +156,7 @@ import {
   replaceWorldbook,
   updateWorldbookWith,
 } from '@/function/worldbook';
-// import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
+import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
 
 function getTavernHelper() {
   return {
@@ -201,12 +201,12 @@ function getTavernHelper() {
       _getCurrentMessageId,
     },
 
-    // // audio
-    // audioEnable,
-    // audioImport,
-    // audioMode,
-    // audioPlay,
-    // audioSelect,
+    // audio
+    audioEnable,
+    audioImport,
+    audioMode,
+    audioPlay,
+    audioSelect,
 
     // builtin
     builtin,
