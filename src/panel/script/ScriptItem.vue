@@ -20,8 +20,7 @@
     <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
       <div class="cursor-pointer" :class="{ enabled: script.enabled }" @click="script.enabled = !script.enabled">
-        <i v-if="script.enabled" class="fa-solid fa-toggle-on"></i>
-        <i v-else class="fa-solid fa-toggle-off"></i>
+        <i class="fa-solid" :class="{ 'fa-toggle-on': script.enabled, 'fa-toggle-off': !script.enabled }" />
       </div>
       <DefineToolButton v-slot="{ name, icon }">
         <div class="menu_button interactable mt-0! mr-0.5 mb-0! p-[5px]!" :title="name">
