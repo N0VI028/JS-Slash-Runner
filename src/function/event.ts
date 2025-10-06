@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
-// TODO: uncomment
-// import { _getButtonEvent } from '@/function/script';
+import { _getButtonEvent } from '@/function/script';
 import { _getIframeName } from '@/function/util';
 import { get_or_set } from '@/util/map';
 import { eventSource } from '@sillytavern/script';
@@ -28,9 +27,9 @@ export function _eventOn<T extends EventType>(this: Window, event_type: T, liste
 }
 
 /** @deprecated */
-// export function _eventOnButton<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
-//   _eventOn.call(this, _getButtonEvent.call(this, event_type), listener);
-// }
+export function _eventOnButton<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+  _eventOn.call(this, _getButtonEvent.call(this, event_type), listener);
+}
 
 export function _eventMakeLast<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
   register_listener.call(this, event_type, listener);

@@ -17,7 +17,7 @@ import {
   _eventMakeFirst,
   _eventMakeLast,
   _eventOn,
-  // _eventOnButton,
+  _eventOnButton,
   _eventOnce,
   _eventRemoveListener,
   iframe_events,
@@ -163,7 +163,7 @@ function getTavernHelper() {
     _bind: {
       // event
       _eventOn,
-      // _eventOnButton,
+      _eventOnButton,
       _eventMakeLast,
       _eventMakeFirst,
       _eventOnce,
