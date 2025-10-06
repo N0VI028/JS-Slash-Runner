@@ -2,7 +2,8 @@ import { ScriptTree } from '@/type/scripts';
 
 export const setting_field = 'tavern_helper';
 
-export const AudioMode = z.enum(['repeat_one', 'repeat_all', 'shuffle', 'play_one_and_stop']);
+export const audio_mode_enum = ['repeat_one', 'repeat_all', 'shuffle', 'play_one_and_stop'] as const;
+export const AudioMode = z.enum(audio_mode_enum);
 export type AudioMode = z.infer<typeof AudioMode>;
 
 export const GlobalSettings = z

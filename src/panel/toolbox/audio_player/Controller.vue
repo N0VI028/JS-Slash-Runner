@@ -39,8 +39,21 @@
       <select class="m-0! h-full"></select>
     </div>
     <div>
-      <div class="menu_button relative h-[1.8rem] w-[1.8rem]">
-        <i class="fa-solid" :class="mode_icon"></i>
+      <div
+        class="menu_button relative h-[1.8rem] w-[1.8rem]"
+        @click="model.mode = audio_mode_enum[(audio_mode_enum.indexOf(model.mode) + 1) % audio_mode_enum.length]"
+      >
+        <i
+          class="fa-solid"
+          :class="[
+            {
+              repeat_one: 'fa-redo-alt',
+              repeat_all: 'fa-repeat',
+              shuffle: 'fa-random',
+              play_one_and_stop: 'fa-cancel',
+            }[model.mode],
+          ]"
+        />
       </div>
     </div>
   </div>
@@ -48,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { AudioMode } from '@/type/settings';
+import { audio_mode_enum, AudioMode } from '@/type/settings';
 
 const model = defineModel<{
   src: string;
@@ -65,15 +78,6 @@ const props = defineProps<{
 }>();
 
 const controls = useMediaControls(useTemplateRef('audio'), { src: () => model.value.src });
-
-const mode_icon = computed(() => {
-  return {
-    repeat_one: 'fa-redo-alt',
-    repeat_all: 'fa-repeat',
-    shuffle: 'fa-random',
-    play_one_and_stop: 'fa-cancel',
-  }[model.value.mode];
-});
 
 {
   const controls_progress = computed({
