@@ -15,6 +15,8 @@
         <Button @click="enable_variable_manager = true">{{ t`打开` }}</Button>
       </template>
     </Item>
+
+    <AudioPlayer />
   </div>
 
   <Teleport defer to="#extensionsMenu">
@@ -63,6 +65,7 @@
 <script setup lang="ts">
 import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
 import VariableManager from '@/panel/toolbox/VariableManager.vue';
+import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);

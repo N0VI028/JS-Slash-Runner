@@ -4,6 +4,27 @@ export const setting_field = 'tavern_helper';
 
 export const GlobalSettings = z
   .object({
+    audio: z
+      .object({
+        enabled: z.boolean().default(true),
+        bgm: z
+          .object({
+            enabled: z.boolean().default(true),
+            mode: z.string().default('repeat'),
+            muted: z.boolean().default(false),
+            volume: z.number().default(50),
+          })
+          .prefault({}),
+        ambient: z
+          .object({
+            enabled: z.boolean().default(true),
+            mode: z.string().default('stop'),
+            muted: z.boolean().default(false),
+            volume: z.number().default(50),
+          })
+          .prefault({}),
+      })
+      .prefault({}),
     listener: z
       .object({
         enabled: z.boolean().default(false),
