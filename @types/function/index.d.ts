@@ -28,6 +28,16 @@ interface Window {
     readonly formatAsDisplayedMessage: typeof formatAsDisplayedMessage;
     readonly retrieveDisplayedMessage: typeof retrieveDisplayedMessage;
 
+    // extension
+    readonly isAdmin: typeof isAdmin;
+    readonly getExtensionType: typeof getExtensionType;
+    readonly getExtensionStatus: typeof getExtensionInstallationInfo;
+    readonly isInstalledExtension: typeof isInstalledExtension;
+    readonly installExtension: typeof installExtension;
+    readonly uninstallExtension: typeof uninstallExtension;
+    readonly reinstallExtension: typeof reinstallExtension;
+    readonly updateExtension: typeof updateExtension;
+
     // import_raw
     readonly importRawCharacter: typeof importRawCharacter;
     readonly importRawChat: typeof importRawChat;
@@ -118,7 +128,8 @@ interface Window {
 
     // version
     readonly getTavernHelperVersion: typeof getTavernHelperVersion;
-    readonly updateTavernHelper: typeof updateTavernHelper;
+    readonly getTavernHelperExtensionId: typeof getTavernHelperExtensionId;
+    readonly getTavernVersion: typeof getTavernVersion;
 
     // worldbook
     readonly getWorldbookNames: typeof getWorldbookNames;
