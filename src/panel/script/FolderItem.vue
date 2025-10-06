@@ -33,10 +33,7 @@
           title="批量开关文件夹内脚本"
           @click.stop="script_folder.enabled = !script_folder.enabled"
         >
-          <i
-            class="fa-solid"
-            :class="{ 'fa-toggle-on': script_folder.enabled, 'fa-toggle-off': !script_folder.enabled }"
-          />
+          <i class="fa-solid" :class="[script_folder.enabled ? 'fa-toggle-on' : 'fa-toggle-off']" />
         </div>
         <DefineScriptFolderButton v-slot="{ name, icon }">
           <div class="mt-0! mr-0.5 mb-0! cursor-pointer" :title="name">

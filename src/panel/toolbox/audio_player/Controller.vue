@@ -1,16 +1,6 @@
 <template>
   <div class="flex flex-row items-center justify-between">
     <label>音乐</label>
-    <label class="flex-container cursor-pointer" @click="settings.enabled = !settings.enabled">
-      <span
-        class="fa-solid"
-        :class="{
-          'fa-toggle-on': settings.enabled,
-          'fa-toggle-off opacity-50 grayscale-50 transition-opacity duration-200 ease-in-out hover:opacity-100 hover:filter-none':
-            !settings.enabled,
-        }"
-      />
-    </label>
     <div class="menu_button menu_button_icon">
       <i class="fa-solid fa-list-ol"></i>
     </div>
@@ -25,7 +15,7 @@
       <div class="vol">
         <!-- prettier-ignore-attribute -->
         <input
-          v-model="settings.volume"
+          v-model="model.volume"
           type="range"
           class="
             absolute bottom-[calc(200%)] left-[50%] h-[5px]! w-[100px]! -translate-x-[50%] -rotate-[90deg]
@@ -36,8 +26,8 @@
       </div>
     </div>
     <div>
-      <div class="menu_button relative h-[2rem] w-[2rem]" @click="play_status.playing = !play_status.playing">
-        <i class="fa-solid" :class="{ 'fa-play': !play_status.playing, 'fa-pause': play_status.playing }"></i>
+      <div class="menu_button relative h-[2rem] w-[2rem]" @click="model.playing = !model.playing">
+        <i class="fa-solid" :class="[model.playing && props.enabled ? 'fa-pause' : 'fa-play']"></i>
       </div>
     </div>
     <div class="flex grow items-center">
@@ -60,19 +50,20 @@
 <script setup lang="ts">
 import { useChatSettingsStore } from '@/store/settings';
 
-const settings = defineModel<{
-  enabled: boolean;
+const model = defineModel<{
+  playing: boolean;
   mode: string; // TODO: 播放模式: 单曲循环、列表循环、随机播放、播完停止
   muted: boolean;
   volume: number;
-}>('settings', { required: true });
-const play_status = defineModel<{
-  playing: boolean;
   src: string;
   playlist: string[]; // TODO: 播放列表
-}>('play_status', { required: true });
+}>({ required: true });
 
-const controls = useMediaControls(useTemplateRef('audio'), { src: () => play_status.value.src });
+const props = defineProps<{
+  enabled: boolean;
+}>();
+
+const controls = useMediaControls(useTemplateRef('audio'), { src: () => model.value.src });
 
 const percent = computed({
   get: () => (controls.currentTime.value / controls.duration.value) * 100,
@@ -81,18 +72,29 @@ const percent = computed({
   },
 });
 {
-  const { playing } = toRefs(play_status.value);
-  const { muted, volume } = toRefs(settings.value);
-  syncRef(controls.playing, playing);
+  watch(
+    () => [props.enabled, model.value.playing],
+    ([new_enabled, new_playing]) => {
+      controls.playing.value = new_enabled && new_playing;
+    },
+  );
+  watch(controls.playing, new_playing => {
+    if (props.enabled) {
+      model.value.playing = new_playing;
+    }
+  });
+}
+{
+  const { muted, volume } = toRefs(model.value);
   syncRef(controls.muted, muted);
   syncRef(controls.volume, volume);
 }
 
 const chat_id = toRef(useChatSettingsStore(), 'id');
 watch(chat_id, () => {
-  play_status.value.playing = false;
-  play_status.value.src = '';
-  play_status.value.playlist = [];
+  model.value.playing = false;
+  model.value.src = '';
+  model.value.playlist = [];
   percent.value = 0;
 });
 </script>
