@@ -31,7 +31,7 @@
       </div>
     </div>
     <div class="flex grow items-center">
-      <input v-model="percent" type="range" value="0" maxlength="1" />
+      <input v-model="model.progress" type="range" value="0" min="0" max="100" />
     </div>
   </div>
   <div class="flex grow items-center gap-[10px] py-[10px]">
@@ -48,15 +48,16 @@
 </template>
 
 <script setup lang="ts">
-import { useChatSettingsStore } from '@/store/settings';
+import { AudioMode } from '@/type/settings';
 
 const model = defineModel<{
+  src: string;
   playing: boolean;
-  mode: string; // TODO: 播放模式: 单曲循环、列表循环、随机播放、播完停止
+  progress: number;
+  mode: AudioMode;
   muted: boolean;
   volume: number;
-  src: string;
-  playlist: string[]; // TODO: 播放列表
+  playlist: string[];
 }>({ required: true });
 
 const props = defineProps<{
@@ -74,37 +75,52 @@ const mode_icon = computed(() => {
   }[model.value.mode];
 });
 
-const percent = computed({
-  get: () => (controls.currentTime.value / controls.duration.value) * 100,
-  set: value => {
-    controls.currentTime.value = (value / 100) * controls.duration.value;
-  },
-});
 {
-  watch(
-    () => [props.enabled, model.value.playing],
-    ([new_enabled, new_playing]) => {
-      controls.playing.value = new_enabled && new_playing;
+  const controls_progress = computed({
+    get: () => (controls.currentTime.value / controls.duration.value) * 100,
+    set: value => {
+      controls.currentTime.value = (value / 100) * controls.duration.value;
     },
-  );
-  watch(controls.playing, new_playing => {
-    if (props.enabled) {
-      model.value.playing = new_playing;
-    }
   });
-}
-{
-  const { muted, volume } = toRefs(model.value);
-  syncRef(controls.muted, muted);
-  syncRef(controls.volume, volume);
+
+  const { progress, muted, volume } = toRefs(model.value);
+  const model_playing = computed({
+    get: () => props.enabled && model.value.playing,
+    set: value => {
+      model.value.playing = value;
+    },
+  });
+
+  syncRef(model_playing, controls.playing);
+  syncRef(progress, controls_progress);
+  syncRef(muted, controls.muted);
+  syncRef(volume, controls.volume);
 }
 
-const chat_id = toRef(useChatSettingsStore(), 'id');
-watch(chat_id, () => {
-  model.value.playing = false;
-  model.value.src = '';
-  model.value.playlist = [];
-  percent.value = 0;
+watch(controls.ended, value => {
+  if (!value) {
+    return;
+  }
+  controls.ended.value = false;
+  model.value.progress = 0;
+
+  switch (model.value.mode) {
+    case 'repeat_one':
+      model.value.playing = true;
+      break;
+    case 'repeat_all':
+      model.value.src =
+        model.value.playlist[(model.value.playlist.indexOf(model.value.src) + 1) % model.value.playlist.length];
+      model.value.playing = true;
+      break;
+    case 'shuffle':
+      model.value.src = _.sample(model.value.playlist) as string;
+      model.value.playing = true;
+      break;
+    case 'play_one_and_stop':
+      model.value.playing = false;
+      break;
+  }
 });
 </script>
 

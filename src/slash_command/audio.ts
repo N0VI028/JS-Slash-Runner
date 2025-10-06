@@ -73,6 +73,7 @@ export async function audioImport(args: { type: string; play?: string }, url: st
   store.playlist.push(...urls);
   if (play) {
     store.src = urls[0];
+    store.progress = 0;
     store.playing = play;
   }
 }
@@ -89,6 +90,7 @@ export async function audioSelect(args: { type: string }, url: string): Promise<
     store.playlist.push(url);
   }
   store.src = url;
+  store.progress = 0;
   store.playing = true;
 }
 
