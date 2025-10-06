@@ -46,10 +46,11 @@ import Main from '@/panel/Main.vue';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
 import Toolbox from '@/panel/Toolbox.vue';
-import { initThirdPartyObject } from '@/panel/third_party_object';
 import { disableIncompatibleOption } from '@/panel/incompatible_option';
 import { registerMacros } from '@/panel/macro';
 import { hasUpdate } from '@/panel/main/update';
+import { initThirdPartyObject } from '@/panel/third_party_object';
+import { initSlashCommands } from '@/slash_command/index';
 import { ModalsContainer } from 'vue-final-modal';
 
 z.config(z.locales.zhCN());
@@ -57,6 +58,7 @@ disableIncompatibleOption();
 registerMacros();
 initTavernHelperObject();
 initThirdPartyObject();
+initSlashCommands();
 
 const tabs = [
   { name: t`主设置`, icon: 'fa-solid fa-gear', component: Main },
