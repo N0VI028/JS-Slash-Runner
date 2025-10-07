@@ -19,8 +19,6 @@ import { oai_settings, sendOpenAIRequest } from '@sillytavern/scripts/openai';
 import { power_user } from '@sillytavern/scripts/power-user';
 import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
 
-const type = 'quiet';
-
 /**
  * 流式处理器类
  * 处理流式生成的响应数据
@@ -210,7 +208,7 @@ export async function generateResponse(
         saveSettingsDebounced();
       }
     } else {
-      const response = await sendOpenAIRequest(type, generate_data.prompt, abortController.signal);
+      const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
       result = await handleResponse(response, generationId);
     }
   } catch (error) {
