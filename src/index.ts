@@ -2,6 +2,7 @@ import '@/global.css';
 import Panel from '@/Panel.vue';
 import { App } from 'vue';
 import { createVfm } from 'vue-final-modal';
+import VueTippy from 'vue-tippy';
 import 'vue-final-modal/style.css';
 
 const app = createApp(Panel);
@@ -11,6 +12,8 @@ app.use(pinia);
 
 const vfm = createVfm();
 app.use(vfm);
+
+app.use(VueTippy);
 
 declare module 'vue' {
   interface ComponentCustomProperties {

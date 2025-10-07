@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
-    <div class="z-1 flex-shrink-0">
+    <div class="z-1 flex-shrink-0 text-wrap">
       <Transition>
         <template v-if="!is_tips_hide">
           <div class="TH-prompt-view-tips">💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况</div>
@@ -23,15 +23,25 @@
           @click="handleRefresh"
         ></div>
       </div>
-      <div class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
+      <div ref="filterContainer" class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
         <div class="flex items-center justify-between gap-0.5">
           <!-- prettier-ignore-attribute -->
-          <div
-            class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
-            title="筛选消息类型"
-          >
-            <i class="fa-solid fa-filter"></i>
-          </div>
+          <Filter title="筛选消息类型" :to="filterContainer">
+            <div class="mx-0.5 mt-0.5 flex gap-1">
+              <div class="flex items-center gap-0.5">
+                <input type="checkbox" data-role="system" checked />
+                system
+              </div>
+              <div class="flex items-center gap-0.5">
+                <input type="checkbox" data-role="user" checked />
+                user
+              </div>
+              <div class="flex items-center gap-0.5">
+                <input type="checkbox" data-role="assistant" checked />
+                assistant
+              </div>
+            </div>
+          </Filter>
           <div class="relative mr-1 flex-grow">
             <!-- prettier-ignore-attribute -->
             <input
@@ -52,20 +62,6 @@
               <input type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
               <label for="prompt-search-compact-mode">仅显示匹配</label>
             </div>
-          </div>
-        </div>
-        <div class="flex flex-wrap gap-1 pt-1 pr-1 pb-0 pl-0.5" style="display: none">
-          <div class="flex items-center gap-0.5">
-            <input id="TH-prompt-viewer-filter-system" type="checkbox" data-role="system" checked />
-            <label for="TH-prompt-viewer-filter-system">system</label>
-          </div>
-          <div class="flex items-center gap-0.5">
-            <input id="TH-prompt-viewer-filter-user" type="checkbox" data-role="user" checked />
-            <label for="TH-prompt-viewer-filter-user">user</label>
-          </div>
-          <div class="flex items-center gap-0.5">
-            <input id="TH-prompt-viewer-filter-assistant" type="checkbox" data-role="assistant" checked />
-            <label for="TH-prompt-viewer-filter-assistant">assistant</label>
           </div>
         </div>
       </div>
@@ -124,6 +120,8 @@ const is_tips_hide = useTimeout(5000);
 
 const min_height = useTemplateRef('min-height');
 const { height } = useElementSize(min_height);
+
+const filterContainer = useTemplateRef('filterContainer');
 
 const filtered_prompts = computed(() => {
   // TODO: 处理身份筛选和搜索

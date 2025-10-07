@@ -69,6 +69,7 @@
     "vue-draggable-plus": "^0.6.0",
     "vue-final-modal": "^4.5.5",
     "vue-router": "^4.5.1",
+    "vue-tippy": "^6.7.1",
     "vue-virt-list": "^1.6.1",
     "zod": "^4.1.12"
   }
