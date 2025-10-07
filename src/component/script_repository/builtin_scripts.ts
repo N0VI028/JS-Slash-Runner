@@ -47,6 +47,11 @@ export const DEFAULT_SCRIPT_CONFIGS: Record<string, ScriptConfig> = {
     content: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/自动开启角色卡局部正则/index.js',
     info: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/自动开启角色卡局部正则/README.md',
   },
+  token数过多提醒: {
+    name: 'token数过多提醒: 防止玩傻子AI',
+    content: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/token数过多提醒/index.js',
+    info: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/token数过多提醒/README.md',
+  },
 };
 
 function loadScriptContent(content: string): string {
