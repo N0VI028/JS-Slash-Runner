@@ -82,7 +82,7 @@
       ],
     },
     {
-      "name": "仅调试酒馆网页 (Edge)",
+      "name": "仅调试酒馆网页 (Firefox)",
       "type": "firefox",
       "request": "launch",
       "url": "http://localhost:8000",
