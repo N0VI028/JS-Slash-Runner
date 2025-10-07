@@ -102,7 +102,7 @@ export async function prepareAndOverrideData(
   oaiMessageExamples = setOpenAIMessageExamples(mesExamplesArray);
 
   // 5. 获取偏置字符串
-  const { promptBias } = getBiasStrings(processedUserInput, 'quiet');
+  const { promptBias } = getBiasStrings(processedUserInput, 'normal');
 
   // 6. 处理自定义注入的提示词
   if (config.inject) {
