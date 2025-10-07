@@ -1,14 +1,6 @@
 <template>
   <div class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
     <div class="z-1 flex-shrink-0 text-wrap">
-      <Transition>
-        <template v-if="!is_tips_hide">
-          <div class="TH-prompt-view-tips">💡 这个窗口打开时, 你也可以自己发送消息来刷新提示词发送情况</div>
-          <div v-if="oai_settings.squash_system_messages === true" class="TH-prompt-view-tips">
-            ⚠️ 本次提示词发送经过了预设中的“系统消息压缩”合并处理
-          </div>
-        </template>
-      </Transition>
       <div class="mb-0.75 flex items-center justify-between p-0.5">
         <div class="flex flex-col gap-0.25">
           <div class="text-base font-bold text-(--SmartThemeQuoteColor)">
@@ -23,25 +15,14 @@
           @click="handleRefresh"
         ></div>
       </div>
-      <div ref="filterContainer" class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
+      <div ref="filter_container" class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
         <div class="flex items-center justify-between gap-0.5">
-          <!-- prettier-ignore-attribute -->
-          <Filter title="筛选消息类型" :to="filterContainer">
-            <div class="mx-0.5 mt-0.5 flex gap-1">
-              <div class="flex items-center gap-0.5">
-                <input type="checkbox" data-role="system" checked />
-                system
-              </div>
-              <div class="flex items-center gap-0.5">
-                <input type="checkbox" data-role="user" checked />
-                user
-              </div>
-              <div class="flex items-center gap-0.5">
-                <input type="checkbox" data-role="assistant" checked />
-                assistant
-              </div>
-            </div>
-          </Filter>
+          <div
+            class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
+            @click="is_filter_opened = !is_filter_opened"
+          >
+            <i class="fa-solid fa-filter" />
+          </div>
           <div class="relative mr-1 flex-grow">
             <!-- prettier-ignore-attribute -->
             <input
@@ -64,24 +45,37 @@
             </div>
           </div>
         </div>
+        <template v-if="is_filter_opened">
+          <div class="mx-0.5 mt-0.5 flex gap-1">
+            <div class="flex items-center gap-0.5">
+              <input v-model="roles_to_show" type="checkbox" value="system" />
+              system
+            </div>
+            <div class="flex items-center gap-0.5">
+              <input v-model="roles_to_show" type="checkbox" value="user" />
+              user
+            </div>
+            <div class="flex items-center gap-0.5">
+              <input v-model="roles_to_show" type="checkbox" value="assistant" />
+              assistant
+            </div>
+          </div>
+        </template>
       </div>
     </div>
-    <VirtList item-key="id" :list="filtered_prompts" :min-size="height" :item-gap="7">
-      <template #default="{ itemData }">
-        <div
-          ref="min-height"
-          class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)"
-        >
+    <VirtList item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
+      <template #default="{ itemData: item_data }">
+        <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
           <div
             class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
-            @click="is_expanded[itemData.id] = !is_expanded[itemData.id]"
+            @click="is_expanded[item_data.id] = !is_expanded[item_data.id]"
           >
             <span>
-              Role: <span>{{ itemData.role }}</span> | Token: <span>{{ itemData.token }}</span>
+              Role: <span>{{ item_data.role }}</span> | Token: <span>{{ item_data.token }}</span>
             </span>
             <div class="fa-solid fa-circle-chevron-down"></div>
           </div>
-          <template v-if="is_expanded[itemData.id]">
+          <template v-if="is_expanded[item_data.id]">
             <Divider />
             <!-- prettier-ignore-attribute -->
             <div
@@ -90,7 +84,7 @@
                 whitespace-pre-wrap text-(--mainFontSize)
               "
             >
-              <span>{{ itemData.content }}</span>
+              <span>{{ item_data.content }}</span>
             </div>
           </template>
         </div>
@@ -101,9 +95,10 @@
 
 <script setup lang="ts">
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
-import { oai_settings } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { VirtList } from 'vue-virt-list';
+
+const is_filter_opened = ref<boolean>(false);
 
 export interface PromptData {
   id: number;
@@ -112,20 +107,14 @@ export interface PromptData {
   token: number;
 }
 
+const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
+
 const prompts = shallowRef<PromptData[]>([]);
 const is_expanded = ref<boolean[]>([]);
 const is_refreshing = ref<boolean>(false);
 
-const is_tips_hide = useTimeout(5000);
-
-const min_height = useTemplateRef('min-height');
-const { height } = useElementSize(min_height);
-
-const filterContainer = useTemplateRef('filterContainer');
-
 const filtered_prompts = computed(() => {
-  // TODO: 处理身份筛选和搜索
-  return prompts.value;
+  return prompts.value.filter(prompt => roles_to_show.value.includes(prompt.role));
 });
 
 function handleRefresh(): void {
@@ -177,19 +166,4 @@ useEventSourceOn(
 );
 </script>
 
-<style scoped>
-@reference 'tailwindcss';
-
-.TH-prompt-view-tips {
-  background-color: rgba(248, 211, 0, 0.5);
-  @apply text-(--black90a) text-xs mb-0.25 rounded-sm p-0.25;
-}
-
-.v-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.v-leave-to {
-  opacity: 0;
-}
-</style>
+<style lang="scss" scoped></style>
