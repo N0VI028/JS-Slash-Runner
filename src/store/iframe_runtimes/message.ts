@@ -1,6 +1,6 @@
 import { useGlobalSettingsStore } from '@/store/settings';
 import { toMessageDepth } from '@/util/message';
-import { reloadAndRenderChatWithoutEvents } from '@/util/reload_chat';
+import { reloadAndRenderChatWithoutEvents } from '@/util/tavern';
 import { event_types, eventSource } from '@sillytavern/script';
 
 function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRuntime {

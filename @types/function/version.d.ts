@@ -11,4 +11,4 @@ declare function getTavernHelperExtensionId(): string;
 /**
  * 获取酒馆版本号
  */
-declare function getTavernVersion(): Promise<string>;
+declare function getTavernVersion(): string;

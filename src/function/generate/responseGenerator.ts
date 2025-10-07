@@ -5,7 +5,7 @@ import {
   setupImageArrayProcessing,
   unblockGeneration,
 } from '@/function/generate/utils';
-import { saveChatConditionalDebounced } from '@/util/save';
+import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
   cleanUpMessage,
   countOccurrences,

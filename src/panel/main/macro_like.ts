@@ -1,6 +1,5 @@
 import { macros } from '@/function/macro_like';
-import { highlight_code } from '@/util/highlight_code';
-import { reloadAndRenderChatWithoutEvents } from '@/util/reload_chat';
+import { highlight_code, reloadAndRenderChatWithoutEvents } from '@/util/tavern';
 import { event_types, eventSource, GenerateOptions } from '@sillytavern/script';
 
 let is_dry_run = false;

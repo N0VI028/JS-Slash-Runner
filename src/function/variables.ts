@@ -1,7 +1,7 @@
 import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterSettingsStore, usePresetSettingsStore } from '@/store/settings';
-import { saveChatConditionalDebounced } from '@/util/save';
+import { saveChatConditionalDebounced } from '@/util/tavern';
 import { chat, chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 import isPromise from 'is-promise';

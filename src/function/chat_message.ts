@@ -1,6 +1,5 @@
-import { highlight_code } from '@/util/highlight_code';
 import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
-import { saveChatConditionalDebounced } from '@/util/save';
+import { highlight_code, saveChatConditionalDebounced } from '@/util/tavern';
 import {
   addOneMessage,
   chat,

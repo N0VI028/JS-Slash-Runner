@@ -1,5 +1,5 @@
 import { PresetSettings, setting_field } from '@/type/settings';
-import { preset_manager } from '@/util/preset_manager';
+import { preset_manager } from '@/util/tavern';
 import { validateInplace } from '@/util/zod';
 import { eventSource, event_types, saveSettingsDebounced } from '@sillytavern/script';
 

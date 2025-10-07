@@ -1,10 +1,9 @@
-import { saveChatConditionalDebounced } from '@/util/save';
+import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
   activateSendButtons,
   eventSource,
   extension_prompt_roles,
   extension_prompt_types,
-  saveChatConditional,
   setExtensionPrompt,
   setGenerationProgress,
   showSwipeButtons,
