@@ -58,3 +58,11 @@ export async function reloadAndRenderChatWithoutEvents() {
   await reloadChatWithoutEvents();
   invokeMessageRenders();
 }
+
+export let during_dry_run = false;
+eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, (_type: any, _data: any, dry_run: boolean) => {
+  during_dry_run = dry_run;
+});
+eventSource.on(event_types.GENERATION_ENDED, () => {
+  during_dry_run = false;
+});
