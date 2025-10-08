@@ -63,8 +63,9 @@ class StreamingProcessor {
 
     if (isFinal) {
       // @ts-expect-error 兼容酒馆旧版本
-      const fullText = cleanUpMessage(text, false, false, false, this.stoppingStrings);
-      eventSource.emit('js_generation_ended', fullText, this.generationId);
+      const message = cleanUpMessage(text, false, false, false, this.stoppingStrings);
+      eventSource.emit('js_generation_before_end', { message }, this.generationId);
+      eventSource.emit('js_generation_ended', message, this.generationId);
     }
   }
 
@@ -133,6 +134,7 @@ async function handleResponse(response: any, generationId: string) {
     throw Error(response?.response);
   }
   const message: string = extractMessageFromData(response);
+  eventSource.emit('js_generation_before_end', { message }, generationId);
   eventSource.emit('js_generation_ended', message, generationId);
   return message;
 }
