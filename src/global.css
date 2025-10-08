@@ -1,4 +1,6 @@
-@import 'tailwindcss';
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
 :root {
   --spacing: var(--mainFontSize);
 }
@@ -10,32 +12,4 @@
   --text-lg: calc(var(--mainFontSize) * 1.5);
   --text-xl: calc(var(--mainFontSize) * 2);
   --text-2xl: calc(var(--mainFontSize) * 2.5);
-}
-
-@layer base {
-  /* 重置dialog的样式，防止popup位置偏移 */
-  dialog {
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-  }
-
-  h1 {
-    @apply text-xl font-bold;
-  }
-  h2 {
-    @apply text-lg font-bold;
-  }
-  h3 {
-    @apply text-md font-bold;
-  }
-  h4 {
-    @apply text-base font-bold;
-  }
-  h5 {
-    @apply text-sm font-bold;
-  }
-  h6 {
-    @apply text-xs font-bold;
-  }
 }
