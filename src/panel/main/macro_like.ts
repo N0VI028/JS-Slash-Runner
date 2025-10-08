@@ -1,9 +1,10 @@
 import { macros } from '@/function/macro_like';
-import { during_dry_run, highlight_code, reloadAndRenderChatWithoutEvents } from '@/util/tavern';
+import { highlight_code, reloadAndRenderChatWithoutEvents } from '@/util/tavern';
 import { event_types, eventSource } from '@sillytavern/script';
 
 function demacroOnPrompt(event_data: { prompt: { role: string; content: string }[] }, dry_run?: boolean) {
-  if ((dry_run === undefined && during_dry_run) || dry_run === true) {
+  // 1.13.5 之前 GENERATE_AFTER_DATA 没有 dry_run 参数
+  if (dry_run === true) {
     return;
   }
 

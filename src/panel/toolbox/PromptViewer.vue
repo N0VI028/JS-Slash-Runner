@@ -12,7 +12,7 @@
           class="fa-solid fa-rotate-right cursor-pointer text-base duration-200"
           :class="{ 'animate-spin': is_refreshing }"
           title="刷新"
-          @click="handleRefresh"
+          @click="triggerRefresh"
         ></div>
       </div>
       <div class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
@@ -94,9 +94,11 @@
 </template>
 
 <script setup lang="ts">
-import { during_dry_run } from '@/util/tavern';
+import { version } from '@/util/tavern';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
+import { compare } from 'compare-versions';
+import _ from 'lodash';
 import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
@@ -119,8 +121,8 @@ const filtered_prompts = computed(() => {
 });
 
 const is_refreshing = ref<boolean>(false);
-handleRefresh();
-function handleRefresh(): void {
+triggerRefresh();
+function triggerRefresh(): void {
   if (is_refreshing.value) {
     return;
   }
@@ -138,34 +140,47 @@ function handleRefresh(): void {
   is_refreshing.value = true;
   Generate('normal');
 }
-useEventSourceOn(
-  event_types.GENERATE_AFTER_DATA,
-  (data: { prompt: { role: string; content: string }[] }, dry_run: boolean) => {
-    if ((dry_run === undefined && during_dry_run) || dry_run === true) {
-      return;
-    }
+function collectPrompts(data: { role: string; content: string }[], dry_run: boolean) {
+  if (dry_run) {
+    return;
+  }
 
-    if (is_refreshing.value) {
-      stopGeneration();
-      is_refreshing.value = false;
-    }
+  if (is_refreshing.value) {
+    stopGeneration();
+    is_refreshing.value = false;
+  }
 
-    setTimeout(async () => {
-      prompts.value = await Promise.all(
-        data.prompt.map(async ({ role, content }, index) => {
-          return {
-            id: index,
-            role,
-            content: content,
-            token: await getTokenCountAsync(content),
-          };
-        }),
-      );
-      is_expanded.value = _.times(data.prompt.length, _.constant(false));
-      virt_list_ref.value?.forceUpdate();
-    });
-  },
-);
+  setTimeout(async () => {
+    prompts.value = await Promise.all(
+      data.map(async ({ role, content }, index) => {
+        return {
+          id: index,
+          role,
+          content: content,
+          token: await getTokenCountAsync(content),
+        };
+      }),
+    );
+    is_expanded.value = _.times(data.length, _.constant(false));
+    virt_list_ref.value?.forceUpdate();
+  });
+}
+
+if (compare(version, '1.13.5', '>=')) {
+  useEventSourceOn(
+    event_types.CHAT_COMPLETION_PROMPT_READY,
+    (data: { chat: { role: string; content: string }[]; dryRun: boolean }) => {
+      collectPrompts(data.chat, data.dryRun);
+    },
+  );
+} else {
+  useEventSourceOn(
+    event_types.GENERATE_AFTER_DATA,
+    (data: { prompt: { role: string; content: string }[] }, dry_run: boolean) => {
+      collectPrompts(data.prompt, dry_run);
+    },
+  );
+}
 </script>
 
 <style lang="scss" scoped></style>
