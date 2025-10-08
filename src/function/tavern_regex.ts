@@ -3,6 +3,9 @@ import { reloadChatWithoutEventsButRender } from '@/util/reload_chat_without_eve
 import {
   characters,
   chat,
+  event_types,
+  eventSource,
+  getCurrentChatId,
   saveChatConditional,
   saveSettings,
   substituteParams,
@@ -210,6 +213,7 @@ export async function render_tavern_regexes() {
     await saveChatConditional();
   }
   await reloadChatWithoutEventsButRender();
+  await eventSource.emit(event_types.CHAT_CHANGED, getCurrentChatId());
 }
 export const render_tavern_regexes_debounced = _.debounce(render_tavern_regexes, 1000);
 
