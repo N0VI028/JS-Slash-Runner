@@ -12,10 +12,10 @@
           class="fa-solid fa-rotate-right cursor-pointer text-base duration-200"
           :class="{ 'animate-spin': is_refreshing }"
           title="刷新"
-          @click="handleRefresh"
+          @click="triggerRefresh"
         ></div>
       </div>
-      <div ref="filter_container" class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
+      <div class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
         <div class="flex items-center justify-between gap-0.5">
           <div
             class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
@@ -63,7 +63,7 @@
         </template>
       </div>
     </div>
-    <VirtList item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
+    <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
       <template #default="{ itemData: item_data }">
         <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
           <div
@@ -94,8 +94,11 @@
 </template>
 
 <script setup lang="ts">
+import { version } from '@/util/tavern';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
+import { compare } from 'compare-versions';
+import _ from 'lodash';
 import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
@@ -107,17 +110,19 @@ export interface PromptData {
   token: number;
 }
 
-const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
-
+const virt_list_ref = useTemplateRef('virt_list');
 const prompts = shallowRef<PromptData[]>([]);
+
+const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
 const is_expanded = ref<boolean[]>([]);
-const is_refreshing = ref<boolean>(false);
 
 const filtered_prompts = computed(() => {
   return prompts.value.filter(prompt => roles_to_show.value.includes(prompt.role));
 });
 
-function handleRefresh(): void {
+const is_refreshing = ref<boolean>(false);
+triggerRefresh();
+function triggerRefresh(): void {
   if (is_refreshing.value) {
     return;
   }
@@ -135,35 +140,47 @@ function handleRefresh(): void {
   is_refreshing.value = true;
   Generate('normal');
 }
-handleRefresh();
+function collectPrompts(data: { role: string; content: string }[], dry_run: boolean) {
+  if (dry_run) {
+    return;
+  }
 
-useEventSourceOn(
-  event_types.CHAT_COMPLETION_PROMPT_READY,
-  (data: { chat: { role: string; content: string }[]; dryRun: boolean }) => {
-    if (data.dryRun) {
-      return;
-    }
+  if (is_refreshing.value) {
+    stopGeneration();
+    is_refreshing.value = false;
+  }
 
-    if (is_refreshing.value) {
-      stopGeneration();
-      is_refreshing.value = false;
-    }
+  setTimeout(async () => {
+    prompts.value = await Promise.all(
+      data.map(async ({ role, content }, index) => {
+        return {
+          id: index,
+          role,
+          content: content,
+          token: await getTokenCountAsync(content),
+        };
+      }),
+    );
+    is_expanded.value = _.times(data.length, _.constant(false));
+    virt_list_ref.value?.forceUpdate();
+  });
+}
 
-    setTimeout(async () => {
-      prompts.value = await Promise.all(
-        data.chat.map(async ({ role, content }, index) => {
-          return {
-            id: index,
-            role,
-            content: content,
-            token: await getTokenCountAsync(content),
-          };
-        }),
-      );
-      is_expanded.value = _.times(data.chat.length, _.constant(false));
-    });
-  },
-);
+if (compare(version, '1.13.5', '>=')) {
+  useEventSourceOn(
+    event_types.CHAT_COMPLETION_PROMPT_READY,
+    (data: { chat: { role: string; content: string }[]; dryRun: boolean }) => {
+      collectPrompts(data.chat, data.dryRun);
+    },
+  );
+} else {
+  useEventSourceOn(
+    event_types.GENERATE_AFTER_DATA,
+    (data: { prompt: { role: string; content: string }[] }, dry_run: boolean) => {
+      collectPrompts(data.prompt, dry_run);
+    },
+  );
+}
 </script>
 
 <style lang="scss" scoped></style>

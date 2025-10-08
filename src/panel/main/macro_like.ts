@@ -1,14 +1,10 @@
 import { macros } from '@/function/macro_like';
 import { highlight_code, reloadAndRenderChatWithoutEvents } from '@/util/tavern';
-import { event_types, eventSource, GenerateOptions } from '@sillytavern/script';
+import { event_types, eventSource } from '@sillytavern/script';
 
-let is_dry_run = false;
-function checkDryRun(_type: string, _data: GenerateOptions, dry_run: boolean) {
-  is_dry_run = dry_run;
-}
-
-function demacroOnPrompt(event_data: any) {
-  if (is_dry_run) {
+function demacroOnPrompt(event_data: { prompt: { role: string; content: string }[] }, dry_run?: boolean) {
+  // 1.13.5 之前 GENERATE_AFTER_DATA 没有 dry_run 参数
+  if (dry_run === true) {
     return;
   }
 
@@ -74,10 +70,9 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
       demacroOnRenderAll();
     }
   });
-  eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
-  eventSource.on(event_types.GENERATE_AFTER_DATA, (event_data: any) => {
+  eventSource.on(event_types.GENERATE_AFTER_DATA, (event_data: any, dry_run?: boolean) => {
     if (enabled.value) {
-      demacroOnPrompt(event_data);
+      demacroOnPrompt(event_data, dry_run);
     }
   });
   [
