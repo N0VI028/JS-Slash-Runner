@@ -1,10 +1,15 @@
 <template>
-  <Editor v-model="variables" />
+  <Editor v-model="variables" :filters="props.filters" />
 </template>
 
 <script setup lang="ts">
 import { get_variables_without_clone, replaceVariables } from '@/function/variables';
 import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
+
+const props = defineProps<{
+  filters: FiltersState;
+}>();
 
 const variables = shallowRef<Record<string, any>>(get_variables_without_clone({ type: 'chat' }));
 useIntervalFn(() => {

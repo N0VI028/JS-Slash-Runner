@@ -1,59 +1,154 @@
 <template>
-  <div class="flex-container justify-between px-1">
-    <div class="flex items-center gap-1">
-      <div
-        class="flex h-2 w-2 cursor-pointer items-center justify-center rounded-sm transition-all duration-300"
-        title="筛选变量类型"
-      >
-        <i class="fa-solid fa-filter"></i>
+  <DefineIconButton v-slot="{ title, icon, onClick }">
+    <button type="button" class="flex cursor-pointer items-center justify-center" :title="title" @click="onClick">
+      <i :class="icon"></i>
+    </button>
+  </DefineIconButton>
+  <!-- prettier-ignore -->
+  <div class="mx-0.75 flex flex-col flex-wrap rounded-sm bg-(--SmartThemeQuoteColor)/50 p-0.5 text-xs">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1">
+        <div class="inline-flex overflow-hidden rounded border border-white">
+          <button
+            v-for="option in viewOptions"
+            :key="option.value"
+            type="button"
+            class="
+              min-w-3 border-r px-0.5 py-[3px] text-sm! tracking-wide uppercase transition-colors duration-200
+              last:border-r-0
+            "
+            :style="
+              option.value === currentView
+                ? 'background-color: white; color: var(--SmartThemeQuoteColor);'
+                : 'background-color: transparent; color: white;'
+            "
+            @click="setView(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+        <div class="h-1 w-px bg-(--SmartThemeBodyColor)"></div>
+        <div class="flex items-center gap-0.75">
+          <IconButton title="全部收起" icon="fa-solid fa-angles-up" />
+          <IconButton title="全部展开" icon="fa-solid fa-angles-down" />
+          <IconButton title="筛选变量" icon="fa-solid fa-filter" :on-click="showFilter" />
+          <IconButton title="搜索变量" icon="fa-solid fa-magnifying-glass" :on-click="showSearch" />
+        </div>
+      </div>
+      <div class="flex items-center gap-0.75">
+        <IconButton title="撤销" icon="fa-solid fa-rotate-left" />
+        <IconButton title="重做" icon="fa-solid fa-rotate-right" />
       </div>
     </div>
-    <SearchBar v-model="search_input" :placeholder="t`搜索变量...`" :clearable="true" class="w-full flex-1" />
-    <div class="flex gap-0.5 whitespace-nowrap">
-      <div class="menu_button_icon menu_button interactable">
-        <i class="fa-solid fa-plus"></i>
-        <span>{{ t`新建` }}</span>
-      </div>
-      <div class="menu_button_icon menu_button interactable">
-        <i class="fa-solid fa-trash"></i>
-        <span>{{ t`清空` }}</span>
-      </div>
-    </div>
+    <div ref="teleportTarget"></div>
   </div>
-
-  <!-- TODO: 完成显示, 取消 v-if="false" -->
-  <div v-if="false" class="mb-1 flex flex-wrap gap-1 rounded-sm bg-(--SmartThemeQuoteColor) p-1">
-    <DefineFilter v-slot="{ type, checked, name }">
-      <div class="TH-filter-option">
-        <input :id="`filter-${type}`" type="checkbox" class="TH-filter-checkbox" :data-type="type" :checked="checked" />
-        <label :for="`filter-${type}`">{{ name }}</label>
+  <!-- 搜索显示 -->
+  <Teleport :to="teleportTarget">
+    <transition name="vm-toolbar-teleport">
+      <SearchBar
+        v-if="isSearchVisible"
+        v-model="search_input"
+        :placeholder="t`搜索变量(支持正则表达式)`"
+        :clearable="true"
+        class="w-full"
+      />
+    </transition>
+  </Teleport>
+  <!-- 筛选显示 -->
+  <Teleport :to="teleportTarget">
+    <transition name="vm-toolbar-teleport">
+      <div v-if="isFilterVisible" class="flex flex-wrap gap-1 rounded-sm p-1 text-(--SmartThemeBodyColor)">
+        <template v-for="filter in filterDefinitions" :key="filter.type">
+          <div class="flex items-center gap-0.5">
+            <input
+              :id="`filter-${filter.type}`"
+              type="checkbox"
+              class="m-0"
+              :data-type="filter.type"
+              :checked="filters[filter.type]"
+              @change="onFilterChange(filter.type, $event)"
+            />
+            <label :for="`filter-${filter.type}`">{{ filter.name }}</label>
+          </div>
+        </template>
       </div>
-    </DefineFilter>
-    <Filter type="string" :checked="true" :name="t`字符串`" />
-    <Filter type="object" :checked="true" :name="t`对象`" />
-    <Filter type="array" :checked="true" :name="t`数组`" />
-    <Filter type="number" :checked="true" :name="t`数字`" />
-    <Filter type="boolean" :checked="true" :name="t`布尔值`" />
-  </div>
+    </transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core';
+import { ref } from 'vue';
+
+const [DefineIconButton, IconButton] = createReusableTemplate<{
+  title: string;
+  icon: string;
+  onClick?: () => void;
+}>();
+
 const search_input = defineModel<string | RegExp>('search_input', { required: true });
 
-const [DefineFilter, Filter] = createReusableTemplate<{
-  type: string;
-  checked?: boolean;
-  name?: string;
-}>();
+type ViewMode = 'tree' | 'card';
+type FilterType = 'string' | 'number' | 'array' | 'boolean' | 'object';
+
+const viewOptions: { label: string; value: ViewMode }[] = [
+  { label: '树', value: 'tree' },
+  { label: '卡片', value: 'card' },
+];
+
+const filterDefinitions: { type: FilterType; name: string }[] = [
+  { type: 'string', name: t`字符串` },
+  { type: 'number', name: t`数字` },
+  { type: 'array', name: t`数组` },
+  { type: 'boolean', name: t`布尔值` },
+  { type: 'object', name: t`对象` },
+];
+
+const filters = defineModel<Record<FilterType, boolean>>('filters', {
+  default: () => ({
+    string: true,
+    number: true,
+    array: true,
+    boolean: true,
+    object: true,
+  }),
+});
+
+const currentView = ref<ViewMode>('tree');
+const isSearchVisible = ref(false);
+const isFilterVisible = ref(false);
+const teleportTarget = ref<HTMLElement | null>(null);
+
+const setView = (mode: ViewMode) => {
+  currentView.value = mode;
+};
+
+const showSearch = () => {
+  isSearchVisible.value = !isSearchVisible.value;
+};
+
+const showFilter = () => {
+  isFilterVisible.value = !isFilterVisible.value;
+};
+
+const onFilterChange = (filterType: FilterType, event: Event) => {
+  const target = event.target as HTMLInputElement;
+  filters.value = {
+    ...filters.value,
+    [filterType]: target.checked,
+  };
+};
 </script>
 
-<style lang="scss" scoped>
-@reference "tailwindcss";
-.TH-filter-option {
-  @apply flex items-center gap-0.5;
+<style scoped>
+.vm-toolbar-teleport-enter-active,
+.vm-toolbar-teleport-leave-active {
+  transition: all 200ms ease;
 }
 
-.TH-filter-checkbox {
-  @apply m-0;
+.vm-toolbar-search-enter-from,
+.vm-toolbar-search-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
