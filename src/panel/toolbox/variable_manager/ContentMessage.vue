@@ -35,7 +35,7 @@
   </div>
 
   <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
-    <Editor v-model="variables_map[message_id]" />
+    <Editor v-model="variables_map[message_id]" :filters="props.filters" />
   </template>
 </template>
 
@@ -44,6 +44,11 @@ import { get_variables_without_clone, replaceVariables } from '@/function/variab
 import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
 import { fromBackwardMessageId, toBackwardMessageId } from '@/util/message';
 import { chat } from '@sillytavern/script';
+import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
+
+const props = defineProps<{
+  filters: FiltersState;
+}>();
 
 const from = ref(-1);
 const to = ref(-1);

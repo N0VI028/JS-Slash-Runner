@@ -13,10 +13,9 @@
 
 <script setup lang="ts">
 import { useRefHistory } from '@vueuse/core';
-import { computed, inject, onBeforeUnmount, onMounted } from 'vue';
+import { computed } from 'vue';
 
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { variableHistoryKey } from '@/panel/toolbox/variable_manager/historyControl';
 import TreeMode from './TreeMode.vue';
 
 const props = defineProps<{
@@ -25,46 +24,31 @@ const props = defineProps<{
 
 const variables = defineModel<Record<string, any>>({ required: true });
 
+/**
+ * 为变量创建历史记录管理
+ * 配置深度监听、容量限制和克隆选项
+ */
+const { history, commit, undo, redo, canUndo, canRedo } = useRefHistory(variables, {
+  deep: true,
+  clone: true,
+  capacity: 20,
+  flush: 'post',
+});
+
+watchDebounced(variables, () => commit(), { debounce: 300, deep: true });
+
+defineExpose({
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+  history,
+});
+
 const writable_variables = computed({
   get: () => Object.entries(variables.value),
   set: entries => {
     variables.value = Object.fromEntries(entries);
   },
-});
-
-const { undo, redo, canUndo, canRedo, clear, commit } = useRefHistory(variables, {
-  deep: true,
-  clone: true,
-  capacity: 10,
-});
-
-const historyContext = inject(variableHistoryKey, null);
-
-const registerController = () => {
-  if (!historyContext) return;
-  historyContext.setController({
-    canUndo,
-    canRedo,
-    undo: () => {
-      if (canUndo.value) {
-        undo();
-      }
-    },
-    redo: () => {
-      if (canRedo.value) {
-        redo();
-      }
-    },
-    clear,
-    commit,
-  });
-};
-
-onMounted(() => {
-  registerController();
-});
-
-onBeforeUnmount(() => {
-  historyContext?.setController(null);
 });
 </script>

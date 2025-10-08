@@ -1,11 +1,18 @@
 <template>
-  <Editor v-model="variables" />
+  <Editor ref="editorRef" v-model="variables" :filters="props.filters" />
 </template>
 
 <script setup lang="ts">
 import { get_variables_without_clone, replaceVariables } from '@/function/variables';
 import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { event_types } from '@sillytavern/script';
+
+const editorRef = ref<InstanceType<typeof Editor> | null>(null);
+
+const props = defineProps<{
+  filters: FiltersState;
+}>();
 
 const variables = shallowRef<Record<string, any>>(get_variables_without_clone({ type: 'global' }));
 useEventSourceOn(
@@ -25,4 +32,16 @@ watchDebounced(
   },
   { debounce: 1000, deep: true },
 );
+
+const undo = () => editorRef.value?.undo();
+const redo = () => editorRef.value?.redo();
+const canUndo = computed(() => editorRef.value?.canUndo ?? false);
+const canRedo = computed(() => editorRef.value?.canRedo ?? false);
+
+defineExpose({
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+});
 </script>
