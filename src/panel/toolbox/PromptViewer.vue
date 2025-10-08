@@ -166,7 +166,7 @@ function collectPrompts(data: { role: string; content: string }[], dry_run: bool
   });
 }
 
-if (compare(version, '1.13.5', '>=')) {
+if (compare(version, '1.13.4', '<=')) {
   useEventSourceOn(
     event_types.CHAT_COMPLETION_PROMPT_READY,
     (data: { chat: { role: string; content: string }[]; dryRun: boolean }) => {
