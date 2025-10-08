@@ -51,30 +51,31 @@ class StreamingProcessor {
     this.generationId = generationId;
   }
 
-  onProgressStreaming(text: string, isFinal: boolean) {
+  onProgressStreaming(data: { text: string; isFinal: boolean }) {
     // 计算增量文本
-    const newText = text.slice(this.messageBuffer.length);
-    this.messageBuffer = text;
+    const newText = data.text.slice(this.messageBuffer.length);
+    this.messageBuffer = data.text;
     // 兼容旧版本
     // @ts-ignore
-    let processedText = cleanUpMessage(newText, false, false, !isFinal, this.stoppingStrings);
+    let processedText = cleanUpMessage(newText, false, false, !data.isFinal, this.stoppingStrings);
 
     const charsToBalance = ['*', '"', '```'];
     for (const char of charsToBalance) {
-      if (!isFinal && isOdd(countOccurrences(processedText, char))) {
+      if (!data.isFinal && isOdd(countOccurrences(processedText, char))) {
         const separator = char.length > 1 ? '\n' : '';
         processedText = processedText.trimEnd() + separator + char;
       }
     }
 
-    eventSource.emit('js_stream_token_received_fully', text, this.generationId);
+    eventSource.emit('js_stream_token_received_fully', data.text, this.generationId);
     eventSource.emit('js_stream_token_received_incrementally', processedText, this.generationId);
 
-    if (isFinal) {
-      // @ts-expect-error 兼容旧版本
-      const message = cleanUpMessage(text, false, false, false, this.stoppingStrings);
-      eventSource.emit('js_generation_before_end', { message }, this.generationId);
-      eventSource.emit('js_generation_ended', message, this.generationId);
+    if (data.isFinal) {
+      // @ts-expect-error 兼容酒馆旧版本
+      const result = { message: cleanUpMessage(data.text, false, false, false, this.stoppingStrings) };
+      eventSource.emit('js_generation_before_end', result, this.generationId);
+      eventSource.emit('js_generation_ended', result.message, this.generationId);
+      data.text = result.message;
     }
   }
 
@@ -105,11 +106,11 @@ class StreamingProcessor {
         }
 
         this.result = text;
-        await sw.tick(() => this.onProgressStreaming(text, false));
+        await sw.tick(() => this.onProgressStreaming({ text: this.result, isFinal: false }));
       }
 
       if (!this.isStopped) {
-        this.onProgressStreaming(this.result, true);
+        this.onProgressStreaming({ text: this.result, isFinal: true });
       } else {
         this.messageBuffer = '';
       }
@@ -151,10 +152,10 @@ async function handleResponse(response: any, generationId: string) {
     }
     throw Error(response?.response);
   }
-  const message: string = extractMessageFromData(response);
-  eventSource.emit('js_generation_before_end', { message }, generationId);
-  eventSource.emit('js_generation_ended', message, generationId);
-  return message;
+  const result = { message: extractMessageFromData(response) };
+  eventSource.emit('js_generation_before_end', result, generationId);
+  eventSource.emit('js_generation_ended', result.message, generationId);
+  return result.message;
 }
 
 /**
