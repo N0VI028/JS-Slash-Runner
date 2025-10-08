@@ -71,10 +71,10 @@ class StreamingProcessor {
     eventSource.emit('js_stream_token_received_incrementally', processedText, this.generationId);
 
     if (isFinal) {
-      // 兼容旧版本
-      // @ts-ignore
-      const fullText = cleanUpMessage(text, false, false, false, this.stoppingStrings);
-      eventSource.emit('js_generation_ended', fullText, this.generationId);
+      // @ts-expect-error 兼容旧版本
+      const message = cleanUpMessage(text, false, false, false, this.stoppingStrings);
+      eventSource.emit('js_generation_before_end', { message }, this.generationId);
+      eventSource.emit('js_generation_ended', message, this.generationId);
     }
   }
 
@@ -152,6 +152,7 @@ async function handleResponse(response: any, generationId: string) {
     throw Error(response?.response);
   }
   const message: string = extractMessageFromData(response);
+  eventSource.emit('js_generation_before_end', { message }, generationId);
   eventSource.emit('js_generation_ended', message, generationId);
   return message;
 }

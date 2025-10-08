@@ -114,6 +114,7 @@ export const iframe_events = {
   GENERATION_STARTED: 'js_generation_started',
   STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully',
   STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally',
+  GENERATION_BEFORE_END: 'js_generation_before_end',
   GENERATION_ENDED: 'js_generation_ended',
 } as const;
 
@@ -192,6 +193,7 @@ export type ListenerType = {
   [iframe_events.GENERATION_STARTED]: (generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string, generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string, generation_id: string) => void;
+  [iframe_events.GENERATION_BEFORE_END]: (data: { message: string }, generation_id: string) => void;
   [iframe_events.GENERATION_ENDED]: (text: string, generation_id: string) => void;
 
   [tavern_events.APP_READY]: () => void;
