@@ -1,5 +1,5 @@
 <template>
-  <Editor ref="editorRef" v-model="variables" :filters="props.filters" />
+  <Editor ref="editorRef" v-model="variables" :filters="props.filters" :current-view="props.currentView" />
 </template>
 
 <script setup lang="ts">
@@ -12,6 +12,7 @@ const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 
 const props = defineProps<{
   filters: FiltersState;
+  currentView: 'tree' | 'card' | 'text';
 }>();
 
 const variables = shallowRef<Record<string, any>>(get_variables_without_clone({ type: 'global' }));

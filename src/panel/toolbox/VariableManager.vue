@@ -12,6 +12,7 @@
       <Toolbar
         v-model:search_input="search_input"
         v-model:filters="filters"
+        v-model:current-view="currentView"
         :can-undo="canUndo"
         :can-redo="canRedo"
         @collapse-all="collapseAllTree"
@@ -29,6 +30,7 @@
           :ref="el => setTabRef(index, el as HistoryController | null)"
           class="h-full"
           :filters="filters"
+          :current-view="currentView"
         />
       </template>
     </div>
@@ -80,6 +82,7 @@ const tabs = [
 const search_input = ref<string | RegExp>('');
 // TODO: 将 search_input 等 Toolbar 数据传入 tabs.component
 const filters = ref(createDefaultFilters());
+const currentView = ref<'tree' | 'card' | 'text'>('tree');
 
 const collapseAllTree = () => {
   collapseAllSignal.value += 1;

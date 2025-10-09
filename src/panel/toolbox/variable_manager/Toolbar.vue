@@ -1,7 +1,6 @@
 <template>
   <DefineIconButton v-slot="{ title, icon, onClick, active, disabled }">
-    <button
-      type="button"
+    <div
       :class="[
         'flex items-center justify-center rounded-sm transition-colors duration-200',
         disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
@@ -16,18 +15,17 @@
       "
     >
       <i :class="[icon, active ? 'text-(--SmartThemeQuoteColor)' : '']"></i>
-    </button>
+    </div>
   </DefineIconButton>
   <!-- prettier-ignore -->
-  <div class="mx-0.75 flex flex-col flex-wrap rounded-sm bg-(--SmartThemeQuoteColor)/50 p-0.5 pr-0.75 text-xs">
+  <div class="mx-0.75 flex flex-col flex-wrap rounded-sm bg-(--SmartThemeQuoteColor)/50 p-0.5 pr-0.75 text-sm">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-1">
         <div class="inline-flex overflow-hidden rounded border border-white">
-          <button
+          <div
             v-for="option in viewOptions"
             :key="option.value"
-            type="button"
-            class="min-w-3 px-0.5 py-[3px] text-sm! transition-colors duration-200"
+            class="min-w-3 px-0.5 py-[3px] text-center text-sm! transition-colors duration-200"
             :style="
               option.value === currentView
                 ? 'background-color: white; color: var(--SmartThemeQuoteColor);'
@@ -36,13 +34,29 @@
             @click="setView(option.value)"
           >
             {{ option.label }}
-          </button>
+          </div>
         </div>
         <div class="h-1 w-px bg-(--SmartThemeBodyColor)"></div>
         <div class="flex items-center gap-0.75">
-          <IconButton title="全部收起" icon="fa-solid fa-angles-up" :on-click="collapseAll" />
-          <IconButton title="全部展开" icon="fa-solid fa-angles-down" :on-click="expandAll" />
-          <IconButton title="筛选变量" icon="fa-solid fa-filter" :on-click="showFilter" :active="isFilterActive" />
+          <IconButton
+            title="全部收起"
+            icon="fa-solid fa-angles-up"
+            :on-click="collapseAll"
+            :disabled="currentView === 'text'"
+          />
+          <IconButton
+            title="全部展开"
+            icon="fa-solid fa-angles-down"
+            :on-click="expandAll"
+            :disabled="currentView === 'text'"
+          />
+          <IconButton
+            title="筛选变量"
+            icon="fa-solid fa-filter"
+            :on-click="showFilter"
+            :active="isFilterActive"
+            :disabled="currentView === 'text'"
+          />
           <IconButton title="搜索变量" icon="fa-solid fa-magnifying-glass" :on-click="showSearch" />
         </div>
       </div>
@@ -124,25 +138,26 @@ const emit = defineEmits<{
   (e: 'redo'): void;
 }>();
 
-type ViewMode = 'tree' | 'card';
+type ViewMode = 'tree' | 'card' | 'text';
 const viewOptions: { label: string; value: ViewMode }[] = [
-  { label: '树', value: 'tree' },
+  { label: '树状', value: 'tree' },
   { label: '卡片', value: 'card' },
+  { label: '文本', value: 'text' },
 ];
 
 const filterDefinitions: { type: FilterType; name: string }[] = [
-  { type: 'string', name: t`字符串` },
-  { type: 'number', name: t`数字` },
-  { type: 'array', name: t`数组` },
-  { type: 'boolean', name: t`布尔值` },
-  { type: 'object', name: t`对象` },
+  { type: 'string', name: t`String` },
+  { type: 'number', name: t`Number` },
+  { type: 'array', name: t`Array` },
+  { type: 'boolean', name: t`Boolean` },
+  { type: 'object', name: t`Object` },
 ];
 
 const filters = defineModel<FiltersState>('filters', {
   default: createDefaultFilters,
 });
 
-const currentView = ref<ViewMode>('tree');
+const currentView = defineModel<ViewMode>('currentView', { default: 'tree' });
 const [isSearchVisible, toggleSearchVisible] = useToggle(false);
 const [isFilterVisible, toggleFilterVisible] = useToggle(false);
 const teleportTarget = ref<HTMLElement | null>(null);

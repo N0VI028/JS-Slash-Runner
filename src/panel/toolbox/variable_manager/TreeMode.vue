@@ -19,9 +19,9 @@
       </template>
       <span v-else class="text-(--SmartThemeBodyColor)/70">单击任意键名以查看路径</span>
     </div>
-    <button
+    <div
       class="
-        inline-flex shrink-0 items-center gap-0.25 px-0.5 py-0.25 text-xs text-(--SmartThemeQuoteColor)
+        inline-flex shrink-0 items-center gap-0.25 px-0.5 py-0.25 text-sm text-(--SmartThemeQuoteColor)
         transition-colors
         hover:bg-(--SmartThemeQuoteColor)/15
         disabled:cursor-not-allowed disabled:opacity-60
@@ -32,7 +32,7 @@
       @click="copySelectedPath"
     >
       <i class="fa-solid fa-copy"></i>
-    </button>
+    </div>
   </div>
   <div v-if="shouldRender" class="text-sm select-text">
     <div :class="nodeRowClass" :style="indentStyle">
