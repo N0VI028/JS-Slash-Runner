@@ -52,8 +52,9 @@ import { hasUpdate } from '@/panel/main/update';
 import { initThirdPartyObject } from '@/panel/third_party_object';
 import { initSlashCommands } from '@/slash_command/index';
 import { ModalsContainer } from 'vue-final-modal';
+import { getCurrentLocale } from '../../../../i18n';
 
-z.config(z.locales.zhCN());
+z.config(getCurrentLocale().includes('zh') ? z.locales.zhCN() : z.locales.en());
 disableIncompatibleOption();
 registerMacros();
 initTavernHelperObject();

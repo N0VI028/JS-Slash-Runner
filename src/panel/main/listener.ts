@@ -39,13 +39,13 @@ export function useListener(
 
     socket.on('connect_error', (error: Error) => {
       if (enabled_echo.value) {
-        toastr.error(`连接酒馆助手实时监听功能出错, 尝试重连...\n${error.name}: ${error.message}`);
+        toastr.error(t`${error.name}: ${error.message}`, t`[酒馆助手]连接实时监听器出错, 尝试重连...`);
       }
       console.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
     });
     socket.on('disconnect', (reason, details) => {
       if (enabled_echo.value) {
-        toastr.warning(`酒馆助手实时监听器断开连接: ${reason}`);
+        toastr.warning(t`${reason}`, t`[酒馆助手]实时监听器断开连接`);
       }
       console.info(`[Listener] 与服务器断开连接: ${reason}\n${details}`);
     });

@@ -1,25 +1,24 @@
 <template>
-  <Popup :buttons="[{ name: '确认', shouldEmphasize: true, onClick: submit }, { name: '取消' }]">
-    <div class="my-0.5 text-md font-bold">{{ props.scriptFolder !== undefined ? '编辑文件夹' : '创建新文件夹' }}</div>
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]">
+    <div class="my-0.5 text-md font-bold">{{ props.scriptFolder !== undefined ? t`编辑文件夹` : t`创建新文件夹` }}</div>
     <div class="flex w-full flex-col justify-center gap-0.5 p-1">
       <div class="flex flex-col items-start">
-        <div class="font-bold">文件夹名称:</div>
-        <input v-model="script_folder.name" type="text" class="text_pole w-full" placeholder="请输入文件夹名称" />
+        <div class="font-bold">{{ t`文件夹名称:` }}</div>
+        <input v-model="script_folder.name" type="text" class="text_pole w-full" :placeholder="t`请输入文件夹名称`" />
       </div>
 
       <div class="flex flex-col items-start">
-        <div class="font-bold">文件夹图标:</div>
+        <div class="font-bold">{{ t`文件夹图标:` }}</div>
         <div class="my-0.5 flex w-full gap-2">
           <div class="flex flex-wrap items-center">
-            <span>选择颜色</span>
+            <span>{{ t`选择颜色` }}</span>
             <toolcool-color-picker v-model="script_folder.color" />
           </div>
           <div class="flex flex-wrap items-center">
-            <span>选择图标</span>
+            <span>{{ t`选择图标` }}</span>
             <i
               class="fa-solid ml-[5px] cursor-pointer rounded-sm border border-(--SmartThemeBorderColor) p-[5px]"
               :class="script_folder.icon"
-              title="点击选择图标"
               @click="selectIcon"
             ></i>
             <input v-model="script_folder.icon" type="hidden" value="fa-folder" />

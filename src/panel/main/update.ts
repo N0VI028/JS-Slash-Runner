@@ -42,8 +42,9 @@ async function getChangelogBetween(min_version: string, max_version: string): Pr
   if (compare(min_version, max_version, '>=')) {
     const max_version_match = matches.find(match => match[1] === max_version);
     if (!max_version_match) {
-      toastr.error('获取更新日志失败');
-      throw new Error('获取更新日志失败');
+      const info = t`获取更新日志失败`;
+      toastr.error(info, t`酒馆助手`);
+      throw new Error(info);
     }
     start_index = max_version_match.index;
 
@@ -52,15 +53,17 @@ async function getChangelogBetween(min_version: string, max_version: string): Pr
   } else {
     const min_version_match = matches.find(match => match[1] === min_version);
     if (!min_version_match) {
-      toastr.error(`无法找到版本 '${min_version}' 的日志。`);
-      throw new Error(`无法找到版本 '${min_version}' 的日志。`);
+      const info = t`无法找到版本 '${min_version}' 的日志`;
+      toastr.error(info, t`酒馆助手`);
+      throw new Error(info);
     }
     start_index = min_version_match.index;
 
     const max_version_match = matches.find(match => match[1] === max_version);
     if (!max_version_match) {
-      toastr.error(`无法找到版本 '${max_version}' 的日志。`);
-      throw new Error(`无法找到版本 '${max_version}' 的日志。`);
+      const info = t`无法找到版本 '${max_version}' 的日志`;
+      toastr.error(info, t`酒馆助手`);
+      throw new Error(info);
     }
     end_index = max_version_match.index;
   }
@@ -74,7 +77,7 @@ export async function getChangelogHtml(): Promise<string> {
 
 export async function update() {
   const reload = () => {
-    toastr.success(`成功更新酒馆助手, 准备刷新页面以生效...`);
+    toastr.success(t`酒馆助手更新成功, 准备刷新页面以生效...`, t`酒馆助手`);
     setTimeout(() => location.reload(), 3000);
   };
 
@@ -83,17 +86,16 @@ export async function update() {
   const update_response = await updateExtension(extension_id);
   if (update_response.ok) {
     if ((await update_response.json()).isUpToDate) {
-      toastr.success(`酒馆助手已是最新版本, 无需更新`);
+      toastr.success(t`酒馆助手已是最新版本, 无需更新`, t`酒馆助手`);
     } else {
       reload();
     }
     return true;
   }
   const comfirm_reinstall = await callGenericPopup(
-    `更新失败: ${(await update_response.text()) || update_response.statusText}
-  是否尝试通过卸载重装来更新?
-  (可能因为网络问题而只卸载了没能重装, 请先复制 \`https://gitlab.com/novi028/JS-Slash-Runner\`)
-  `,
+    t`更新失败: ${(await update_response.text()) || update_response.statusText}` +
+      '\n' +
+      t`是否尝试通过卸载重装来更新? (以防由于网络问题重装没能成功, 请先复制 \`https://gitlab.com/novi028/JS-Slash-Runner\`)`,
     POPUP_TYPE.CONFIRM,
   );
   if (!comfirm_reinstall) {

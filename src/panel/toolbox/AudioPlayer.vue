@@ -6,8 +6,8 @@
       <Toggle id="TH-toolbox-audio-player-enabled" v-model="enabled" @click.stop />
     </template>
     <template #detail>
-      <Controller v-model="bgm" :enabled="enabled" />
-      <Controller v-model="ambient" :enabled="enabled" />
+      <Controller v-model="bgm" :title="t`音乐`" :enabled="enabled" />
+      <Controller v-model="ambient" :title="t`音效`" :enabled="enabled" />
     </template>
   </Item>
 </template>

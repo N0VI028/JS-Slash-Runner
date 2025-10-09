@@ -1,49 +1,49 @@
 <template>
-  <Popup :buttons="[{ name: '确认', shouldEmphasize: true, onClick: submit }, { name: '取消' }]">
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]">
     <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
-      <div class="my-0.5 text-md font-bold">{{ props.script !== undefined ? '编辑脚本' : '创建新脚本' }}</div>
+      <div class="my-0.5 text-md font-bold">{{ props.script !== undefined ? t`编辑脚本` : t`创建新脚本` }}</div>
       <div class="TH-script-editor-container">
-        <div>脚本名称</div>
+        <div>{{ t`脚本名称` }}</div>
         <input v-model="script.name" type="text" class="text_pole" />
       </div>
       <div class="TH-script-editor-container">
-        <div>脚本内容</div>
+        <div>{{ t`脚本内容` }}</div>
         <textarea
           v-model="script.content"
-          placeholder="脚本的JavaScript代码"
+          :placeholder="t`JavaScript 代码`"
           rows="6"
           class="text_pole font-[family-name:var(--monoFontFamily)]!"
         />
       </div>
       <div class="TH-script-editor-container">
-        <div>作者备注</div>
+        <div>{{ t`作者备注` }}</div>
         <textarea
           v-model="script.info"
-          placeholder="此处填写作者想要在脚本信息中展示的内容，例如作者名、版本和注意事项等，支持简单的markdown和html"
+          placeholder="脚本备注, 例如作者名、版本和注意事项等, 支持简单的 markdown 和 html"
           rows="3"
           class="text_pole font-[family-name:var(--monoFontFamily)]!"
         />
       </div>
       <div class="TH-script-editor-container">
         <div class="flex flex-wrap items-center justify-center gap-[5px]">
-          <div>变量列表</div>
+          <div>{{ t`变量列表` }}</div>
           <div class="menu_button interactable" @click="addVariable">
             <i class="fa-solid fa-plus"></i>
           </div>
         </div>
-        <small>绑定到脚本的变量，会随脚本一同导出</small>
+        <small>{{ t`绑定到脚本的变量, 会随脚本一同导出` }}</small>
         <div class="flex w-full flex-col flex-wrap gap-1"></div>
       </div>
       <div class="TH-script-editor-container">
         <div class="flex w-full items-center justify-between">
           <div class="flex flex-col">
             <div class="flex flex-wrap items-center gap-[5px]">
-              <div>按钮触发</div>
+              <div>{{ t`按钮` }}</div>
               <div class="menu_button interactable" @click="addButton">
                 <i class="fa-solid fa-plus"></i>
               </div>
             </div>
-            <small>需配合getButtonEvent使用</small>
+            <small>{{ t`需配合代码里的 getButtonEvent 使用` }}</small>
           </div>
           <Toggle id="TH-script-editor-button-enabled-toggle" v-model="script.button.enabled" />
         </div>
@@ -56,7 +56,7 @@
             <!-- TODO: 拖拽功能 -->
             <span class="">☰</span>
             <input v-model="button.visible" type="checkbox" />
-            <input v-model="button.name" class="text_pole" type="text" placeholder="按钮名称" />
+            <input v-model="button.name" class="text_pole" type="text" :placeholder="t`按钮名称`" />
             <div class="menu_button interactable" :data-index="index" @click="deleteButton(index)">
               <i class="fa-solid fa-trash"></i>
             </div>

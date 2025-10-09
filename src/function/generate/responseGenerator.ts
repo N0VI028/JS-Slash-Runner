@@ -128,7 +128,7 @@ async function handleResponse(response: any, generationId: string) {
   }
   if (response.error) {
     if (response?.response) {
-      toastr.error(response.response, 'API 错误', {
+      toastr.error(response.response, t`API 错误`, {
         preventDuplicates: true,
       });
     }

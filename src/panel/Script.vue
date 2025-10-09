@@ -3,14 +3,14 @@
   <SearchBar
     v-model="search_input"
     class="flex w-full flex-wrap items-center gap-0.5"
-    :placeholder="t`搜索（支持普通和正则）`"
+    :placeholder="t`搜索（支持普通和/正则/）`"
     clearable
   />
 
   <Container
     v-model="global_scripts"
-    title="全局脚本"
-    description="酒馆全局可用"
+    :title="t`全局脚本`"
+    :description="t`酒馆全局可用`"
     :search-input="search_input"
     store-type="global"
   />
@@ -19,8 +19,8 @@
     <Divider />
     <Container
       v-model="character_scripts"
-      title="角色脚本"
-      description="绑定到当前角色卡"
+      :title="t`角色脚本`"
+      :description="t`绑定到当前角色卡`"
       :search-input="search_input"
       store-type="character"
     />
@@ -29,8 +29,8 @@
   <Divider />
   <Container
     v-model="preset_scripts"
-    title="预设脚本"
-    description="绑定到当前预设"
+    :title="t`预设脚本`"
+    :description="t`绑定到当前预设`"
     :search-input="search_input"
     store-type="preset"
   />

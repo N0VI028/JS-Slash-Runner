@@ -3,7 +3,7 @@
     <div class="flex flex-col">
       <div class="flex items-center">
         <div class="font-bold">{{ props.title }}</div>
-        <div class="ml-0.5 flex cursor-pointer items-center justify-center" title="批量操作">
+        <div class="ml-0.5 flex cursor-pointer items-center justify-center">
           <i class="fa-solid fa-cog"></i>
         </div>
       </div>
@@ -37,7 +37,7 @@
         />
         <FolderItem v-else v-model="script_trees[index]" :search-input="props.searchInput" @delete="handleDelete" />
       </div>
-      <div v-if="script_trees.length === 0" class="text-center opacity-50">暂无脚本</div>
+      <div v-if="script_trees.length === 0" class="text-center opacity-50">{{ t`暂无脚本` }}</div>
     </VueDraggable>
   </div>
 </template>

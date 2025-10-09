@@ -293,13 +293,13 @@ const copySelectedPath = async () => {
     } else {
       copyUsingFallback(text);
     }
-    toastr.success('路径已复制');
+    toastr.success(t`路径已复制`);
   } catch {
     try {
       copyUsingFallback(text);
-      toastr.success('路径已复制');
+      toastr.success(t`路径已复制`);
     } catch {
-      toastr.error('无法复制路径，请手动复制');
+      toastr.error(t`无法复制路径，请手动复制`);
     }
   }
 };
@@ -480,7 +480,7 @@ const finishKeyEditing = () => {
     stopKeyOutside = null;
   }
   keyInputSize.value = null;
-  toastr.success('编辑键名保存完成');
+  toastr.success(t`成功编辑键名`);
 };
 
 /**
@@ -583,7 +583,7 @@ const finishValueEditing = () => {
     stopValueOutside = null;
   }
   valueInputSize.value = null;
-  toastr.success('编辑值保存完成');
+  toastr.success(t`成功编辑值`);
 };
 
 /**

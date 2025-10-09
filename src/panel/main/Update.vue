@@ -9,7 +9,7 @@
 import { getChangelogHtml } from '@/panel/main/update';
 import { make_TODO } from '@/todo';
 
-const changelog = ref<string>('<div>更新日志加载中...</div>');
+const changelog = ref<string>(t`<div>更新日志加载中...</div>`);
 onMounted(async () => {
   changelog.value = await getChangelogHtml();
 });

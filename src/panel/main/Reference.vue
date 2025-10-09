@@ -10,19 +10,13 @@
             <a
               href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
               style="cursor: pointer"
-              :title="t`查看酒馆助手文档`"
             >
               {{ t`查看教程及文档` }}
             </a>
             <i class="fa-solid fa-external-link"></i>
           </div>
           <div ref="tavern_helper_types_button" class="TH-reference-button">
-            <a
-              style="cursor: pointer"
-              :title="
-                t`下载提供给 VSCode/Cursor 的 TypeScript 类型声明文件, 既让 VSCode/Cursor 能提供代码提示, 也可以发给 ai 让它了解`
-              "
-            >
+            <a style="cursor: pointer">
               {{ t`下载参考文件` }}
             </a>
             <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -45,21 +39,13 @@
         <Divider margin-y="0">{{ t`酒馆 /STScript` }}</Divider>
         <div class="mb-0.5 flex items-center justify-center gap-0.5">
           <div class="TH-reference-button">
-            <a
-              href="https://rentry.org/sillytavern-script-book"
-              style="cursor: pointer"
-              :title="t`查看酒馆 /STScript 命令手册`"
-            >
+            <a href="https://rentry.org/sillytavern-script-book" style="cursor: pointer">
               {{ t`查看手册` }}
             </a>
             <i class="fa-solid fa-external-link"></i>
           </div>
           <div class="TH-reference-button">
-            <a
-              target="_blank"
-              :title="t`下载你所用酒馆版本及扩展所提供的酒馆 STScript 命令列表, 可发给 ai 参考了解`"
-              @click="downloadSlashCommands"
-            >
+            <a target="_blank" @click="downloadSlashCommands">
               {{ t`下载参考文件` }}
             </a>
           </div>

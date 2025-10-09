@@ -30,7 +30,7 @@ export function highlight_code(element: HTMLElement) {
       })
       .on('pointerup', async function () {
         navigator.clipboard.writeText($(element).text());
-        toastr.info(`已复制!`, '', { timeOut: 2000 });
+        toastr.info(t`已复制!`, '', { timeOut: 2000 });
       }),
   );
 }

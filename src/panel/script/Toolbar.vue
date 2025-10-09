@@ -102,7 +102,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
       } catch (err) {
         const error = err as Error;
         console.error(error);
-        toastr.error(error.message, `导入脚本文件 '${file.name}' 失败`);
+        toastr.error(error.message, t`导入脚本文件 '${file.name}' 失败`);
       }
     }),
   );

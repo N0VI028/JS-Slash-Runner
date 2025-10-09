@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-row items-center justify-between">
-    <label>音乐</label>
+    <label>{{ props.title }}</label>
     <div class="menu_button menu_button_icon">
       <i class="fa-solid fa-list-ol"></i>
     </div>
@@ -74,6 +74,7 @@ const model = defineModel<{
 }>({ required: true });
 
 const props = defineProps<{
+  title: string;
   enabled: boolean;
 }>();
 

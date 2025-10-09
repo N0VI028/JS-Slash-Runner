@@ -35,8 +35,8 @@
         >
           <i class="fa-solid" :class="[script_folder.enabled ? 'fa-toggle-on' : 'fa-toggle-off']" />
         </div>
-        <DefineScriptFolderButton v-slot="{ name, icon }">
-          <div class="mt-0! mr-0.5 mb-0! cursor-pointer" :title="name">
+        <DefineScriptFolderButton v-slot="{ icon }">
+          <div class="mt-0! mr-0.5 mb-0! cursor-pointer">
             <i class="fa-solid" :class="icon"></i>
           </div>
         </DefineScriptFolderButton>
@@ -127,18 +127,18 @@ const { open: openDeleteConfirm } = useModal({
   attrs: {
     buttons: [
       {
-        name: '确定',
+        name: t`确定`,
         shouldEmphasize: true,
         onClick: close => {
           emit('delete', script_folder.value.id);
           close();
         },
       },
-      { name: '取消' },
+      { name: t`取消` },
     ],
   },
   slots: {
-    default: `<div>确定要删除文件夹及其中所有脚本吗？此操作无法撤销。</div>`,
+    default: t`<div>确定要删除文件夹及其中所有脚本吗？此操作无法撤销</div>`,
   },
 });
 
@@ -158,7 +158,7 @@ const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptF
       _.set(script, 'data', {});
     });
   }
-  const filename = await getSanitizedFilename(`酒馆助手脚本-${to_export.name}.json`);
+  const filename = await getSanitizedFilename(t`酒馆助手脚本-${to_export.name}.json`);
   const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
@@ -180,26 +180,26 @@ const exportFolder = async () => {
     attrs: {
       buttons: [
         {
-          name: '包含数据导出',
+          name: t`包含数据导出`,
           onClick: close => {
             void downloadExport({ should_strip_data: true });
             close();
           },
         },
         {
-          name: '清除数据导出',
+          name: t`清除数据导出`,
           shouldEmphasize: true,
           onClick: close => {
             void downloadExport({ should_strip_data: true });
             close();
           },
         },
-        { name: '取消', onClick: close => close() },
+        { name: t`取消`, onClick: close => close() },
       ],
     },
     slots: {
       // TODO: 显示脚本变量有什么?
-      default: `<div>'${script_folder.value.name}' 文件夹中脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
+      default: t`<div>'${script_folder.value.name}' 文件夹中脚本包含脚本变量, 是否要清除? 如有 API Key 等敏感数据，注意清除</div>`,
     },
   }).open();
 };

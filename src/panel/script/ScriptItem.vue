@@ -89,10 +89,10 @@ const openScriptInfo = () =>
   useModal({
     component: Popup,
     attrs: {
-      buttons: [{ name: '关闭' }],
+      buttons: [{ name: t`关闭` }],
     },
     slots: {
-      default: `<div>${script.value.info ? marked.parse(script.value.info) : '未填写作者备注'}</div>`,
+      default: `<div>${script.value.info ? marked.parse(script.value.info) : t`未填写作者备注`}</div>`,
     },
   }).open();
 
@@ -101,18 +101,18 @@ const { open: openDeleteConfirm } = useModal({
   attrs: {
     buttons: [
       {
-        name: '确定',
+        name: t`确定`,
         shouldEmphasize: true,
         onClick: close => {
           emit('delete', script.value.id);
           close();
         },
       },
-      { name: '取消' },
+      { name: t`取消` },
     ],
   },
   slots: {
-    default: `<div>确定要删除脚本吗？此操作无法撤销。</div>`,
+    default: t`<div>确定要删除脚本吗? 此操作无法撤销</div>`,
   },
 });
 
@@ -130,7 +130,7 @@ const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptE
   if (option.should_strip_data) {
     _.set(to_export, 'data', {});
   }
-  const filename = await getSanitizedFilename(`酒馆助手脚本-${to_export.name}.json`);
+  const filename = await getSanitizedFilename(t`酒馆助手脚本-${to_export.name}.json`);
   const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
@@ -152,26 +152,26 @@ const exportScript = () => {
     attrs: {
       buttons: [
         {
-          name: '包含数据导出',
+          name: t`包含数据导出`,
           onClick: close => {
             void downloadExport({ should_strip_data: true });
             close();
           },
         },
         {
-          name: '清除数据导出',
+          name: t`清除数据导出`,
           shouldEmphasize: true,
           onClick: close => {
             void downloadExport({ should_strip_data: true });
             close();
           },
         },
-        { name: '取消', onClick: close => close() },
+        { name: t`取消`, onClick: close => close() },
       ],
     },
     slots: {
       // TODO: 显示脚本变量有什么?
-      default: `<div>'${script.value.name}' 脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
+      default: t`<div>'${script.value.name}' 脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
     },
   }).open();
 };

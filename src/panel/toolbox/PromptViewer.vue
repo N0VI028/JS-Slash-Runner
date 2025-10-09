@@ -4,9 +4,11 @@
       <div class="mb-0.75 flex items-center justify-between p-0.5">
         <div class="flex flex-col gap-0.25">
           <div class="text-base font-bold text-(--SmartThemeQuoteColor)">
-            总token数: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
+            {{ t`总token数` }}: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
           </div>
-          <div class="text-sm text-(--SmartThemeQuoteColor)">共 {{ filtered_prompts.length }} 条消息</div>
+          <div class="text-sm text-(--SmartThemeQuoteColor)">
+            {{ t`${filtered_prompts.length}/${prompts.length} 条消息` }}
+          </div>
         </div>
         <div
           class="fa-solid fa-rotate-right cursor-pointer text-base duration-200"
@@ -31,7 +33,7 @@
                 h-2 w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8 pl-1 text-base
                 text-(--mainTextColor)
               "
-              placeholder="搜索消息内容..."
+              :placeholder="t`搜索消息内容...`"
             />
             <!-- prettier-ignore-attribute -->
             <div
@@ -41,7 +43,7 @@
               "
             >
               <input type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
-              <label for="prompt-search-compact-mode">仅显示匹配</label>
+              <label for="prompt-search-compact-mode">{{ t`仅显示匹配` }}</label>
             </div>
           </div>
         </div>
@@ -128,12 +130,12 @@ function triggerRefresh(): void {
   }
 
   if (main_api !== 'openai') {
-    toastr.error('当前 API 不是聊天补全类型, 无法使用提示词查看器功能', '不支持的 API 类型');
+    toastr.error(t`当前 API 不是聊天补全, 无法使用提示词查看器功能`);
     return;
   }
 
   if (online_status === 'no_connection') {
-    toastr.error('未连接到 API, 提示词查看器将无法获取数据', '未连接到 API');
+    toastr.error(t`未连接到 API, 提示词查看器将无法获取数据`);
     return;
   }
 

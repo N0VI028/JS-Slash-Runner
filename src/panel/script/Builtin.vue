@@ -1,15 +1,15 @@
 <template>
-  <Popup :buttons="[{ name: '关闭' }]">
+  <Popup :buttons="[{ name: t`关闭` }]">
     <div class="my-1.25 flex flex-col flex-wrap gap-1.25">
       <!-- TODO: 调整这两句提示的样式 -->
-      <div>内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问类脑、旅程的工具区</div>
+      <div>{{ t`内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区` }}</div>
       <div>
-        如果需要制作脚本, 建议查看
+        {{ t`如果需要制作脚本, 建议查看` }}
         <a
           href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
           target="_blank"
         >
-          官方编写模板配置教程
+          {{ t`官方编写模板配置教程` }}
         </a>
       </div>
       <!-- TODO: 要不要复用 ScriptItem 的样式 -->
@@ -79,67 +79,67 @@ async function toScript(script: BuiltinScript): Promise<Script> {
 
 const builtins: BuiltinScript[] = [
   {
-    name: '标签化: 随世界书、预设或链接配置自动开关正则、提示词条目',
+    name: t`标签化: 随世界书、预设或链接配置自动开关正则、提示词条目`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/标签化/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/标签化/README.md',
   },
   {
-    name: '预设防误触',
+    name: t`预设防误触`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设防误触/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设防误触/README.md',
   },
   {
-    name: '世界书强制自定义排序',
+    name: t`世界书强制自定义排序`,
     content_url:
       'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制自定义排序/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制自定义排序/README.md',
   },
   {
-    name: '世界书强制用推荐的全局设置',
+    name: t`世界书强制用推荐的全局设置`,
     content_url:
       'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制用推荐的全局设置/index.js',
     info_url:
       'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制用推荐的全局设置/README.md',
   },
   {
-    name: '保存预设条目时直接保存预设',
+    name: t`保存预设条目时直接保存预设`,
     content_url:
       'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/保存提示词时保存预设/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/保存提示词时保存预设/README.md',
   },
   {
-    name: '预设条目更多按钮: 一键新增预设条目',
+    name: t`预设条目更多按钮: 一键新增预设条目`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设条目更多按钮/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设条目更多按钮/README.md',
   },
   {
-    name: '输入助手',
+    name: t`输入助手`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/输入助手/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/输入助手/README.md',
   },
   {
-    name: '压缩系统消息: 让 AI 对内容理解更连贯',
+    name: t`压缩系统消息: 让 AI 对内容理解更连贯`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/自动添加提示词/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/自动添加提示词/README.md',
   },
   {
-    name: 'token数过多提醒: 防止玩傻子AI',
+    name: t`token数过多提醒: 防止玩傻子AI`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/token数过多提醒/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/token数过多提醒/README.md',
   },
   {
-    name: '取消代码块高亮',
+    name: t`取消代码块高亮`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/取消代码块高亮/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/取消代码块高亮/README.md',
   },
 ];
 
 async function openInfo(builtin: BuiltinScript) {
-  toastr.info('正在加载作者备注...');
+  toastr.info(t`正在加载作者备注...`);
   useModal({
     component: Popup,
     attrs: {
-      buttons: [{ name: '关闭' }],
+      buttons: [{ name: t`关闭` }],
       onOpened: () => {
         toastr.clear();
       },
@@ -151,10 +151,10 @@ async function openInfo(builtin: BuiltinScript) {
 }
 
 async function importScript(builtin: BuiltinScript) {
-  toastr.info('正在加载脚本...');
+  toastr.info(t`正在加载脚本...`);
   const script = await toScript(builtin);
   toastr.clear();
   useGlobalScriptsStore().script_trees.push(script);
-  toastr.success(`成功导入脚本: '${script.name}'`);
+  toastr.success(t`成功导入脚本: '${script.name}'`);
 }
 </script>
