@@ -25,7 +25,7 @@ declare namespace Mvu {
     delta_data: Record<string, any>;
   };
 
-  type CommandInfo = SetCommandInfo | AssignCommandInfo | RemoveCommandInfo | AddCommandInfo;
+  type CommandInfo = SetCommandInfo | InsertCommandInfo | DeleteCommandInfo | AddCommandInfo;
   type SetCommandInfo = {
     type: 'set';
     full_match: string;
@@ -34,16 +34,16 @@ declare namespace Mvu {
       | [path: string, expected_old_value_literal: string, new_value_literal: string];
     reason: string;
   };
-  type AssignCommandInfo = {
-    type: 'assign';
+  type InsertCommandInfo = {
+    type: 'insert';
     full_match: string;
     args:
       | [path: string, value_literal: string] // 在尾部追加值
       | [path: string, index_or_key_literal: string, value_literal: string]; // 在指定索引/键处插入值
     reason: string;
   };
-  type RemoveCommandInfo = {
-    type: 'remove';
+  type DeleteCommandInfo = {
+    type: 'delete';
     full_match: string;
     args: [path: string] | [path: string, index_or_key_or_value_literal: string];
     reason: string;
