@@ -24,6 +24,36 @@ declare namespace Mvu {
      */
     delta_data: Record<string, any>;
   };
+
+  type CommandInfo = SetCommandInfo | AssignCommandInfo | RemoveCommandInfo | AddCommandInfo;
+  type SetCommandInfo = {
+    type: 'set';
+    full_match: string;
+    args:
+      | [path: string, new_value_literal: string]
+      | [path: string, expected_old_value_literal: string, new_value_literal: string];
+    reason: string;
+  };
+  type AssignCommandInfo = {
+    type: 'assign';
+    full_match: string;
+    args:
+      | [path: string, value_literal: string] // 在尾部追加值
+      | [path: string, index_or_key_literal: string, value_literal: string]; // 在指定索引/键处插入值
+    reason: string;
+  };
+  type RemoveCommandInfo = {
+    type: 'remove';
+    full_match: string;
+    args: [path: string] | [path: string, index_or_key_or_value_literal: string];
+    reason: string;
+  };
+  type AddCommandInfo = {
+    type: 'remove';
+    full_match: string;
+    args: [path: string, delta_or_toggle_literal: string];
+    reason: string;
+  };
 }
 
 /**
@@ -35,6 +65,9 @@ declare const Mvu: {
   events: {
     /** 某轮变量更新开始时触发的事件 */
     VARIABLE_UPDATE_STARTED: 'mag_variable_update_started';
+
+    /** 从文本解析到了命令时触发的事件 */
+    COMMAND_PARSED: 'mag_command_parsed';
 
     /**
      * 某轮变量更新过程中, 某个变量更新时触发的事件
@@ -189,6 +222,8 @@ declare const Mvu: {
 
 interface ListenerType {
   [Mvu.events.VARIABLE_UPDATE_STARTED]: (variables: Mvu.MvuData) => void;
+
+  [Mvu.events.COMMAND_PARSED]: (variables: Mvu.MvuData, commands: Mvu.CommandInfo[]) => void;
 
   [Mvu.events.SINGLE_VARIABLE_UPDATED]: (
     stat_data: Mvu.MvuData['stat_data'],
