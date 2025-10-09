@@ -1,5 +1,5 @@
 <template>
-  <Teleport :if="visible" to="body">
+  <Teleport v-if="visible" to="body">
     <!-- prettier-ignore-attribute -->
     <dialog ref="dialog_ref" class="popup pt-0.75!">
       <slot></slot>
@@ -67,3 +67,4 @@ onBeforeUnmount(() => {
   dialog_ref.value?.close();
 });
 </script>
+

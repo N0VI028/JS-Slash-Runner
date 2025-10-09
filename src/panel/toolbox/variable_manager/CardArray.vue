@@ -1,4 +1,5 @@
 <template>
+  <!-- prettier-ignore -->
   <CardBase
     v-model:name="name"
     v-model:content="content"
@@ -10,32 +11,46 @@
   >
     <VueDraggable
       v-model="content"
-      class="vm-card-array__items"
+      class="mt-0.5 flex min-w-0 flex-col gap-0.5 p-0"
       direction="vertical"
       handle=".vm-card-array__handle"
       :animation="150"
       :force-fallback="true"
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
-      :ghost-class="'vm-card-array__ghost'"
-      :chosen-class="'vm-card-array__chosen'"
+      :ghost-class="'opacity-60'"
+      :chosen-class="'outline outline-1 outline-dashed outline-[var(--SmartThemeQuoteColor)]'"
     >
       <div
         v-for="(_item, index) in content"
+        v-show="itemVisibility[index]"
         :key="itemKeys[index]"
-        class="vm-card-array__row"
+        class="flex min-w-0 items-stretch gap-0.5 p-0"
         :data-id="itemKeys[index]"
       >
-        <div class="vm-card-array__handle text-sm" title="拖拽调整顺序">☰</div>
+        <div
+          class="
+            inline-flex flex-shrink-0 cursor-grab items-center justify-center rounded text-sm
+            text-[var(--SmartThemeBodyColor)] transition-colors duration-200 ease-in-out select-none
+            hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)]
+            hover:text-[var(--SmartThemeQuoteColor)]
+          "
+          title="拖拽调整顺序"
+        >
+          ☰
+        </div>
         <CardMode
           v-model:content="content[index]"
           :name="index"
           :depth="nextDepth"
+          :filters="props.filters"
           :as-child="true"
           @delete="removeItem(index)"
         />
       </div>
-      <div v-if="content.length === 0" class="vm-card-array__empty">暂无元素</div>
+      <div v-if="content.length === 0" class="px-0 py-2 text-center text-[var(--SmartThemeBodyColor)] opacity-60">
+        暂无元素
+      </div>
     </VueDraggable>
   </CardBase>
 </template>
@@ -46,6 +61,8 @@ import { VueDraggable } from 'vue-draggable-plus';
 
 import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
 import CardMode from '@/panel/toolbox/variable_manager/CardMode.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
+import { matchesFilters } from '@/panel/toolbox/variable_manager/filter';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any[]>('content', { required: true });
@@ -58,6 +75,7 @@ const props = withDefaults(
   defineProps<{
     collapsed?: boolean;
     depth?: number;
+    filters: FiltersState;
   }>(),
   {
     collapsed: true,
@@ -126,59 +144,9 @@ const itemKeys = computed(() => {
   });
 });
 
+const itemVisibility = computed(() => content.value.map(item => matchesFilters(item, props.filters, nextDepth.value)));
+
 const removeItem = (index: number) => {
   content.value.splice(index, 1);
 };
 </script>
-
-<style scoped>
-.vm-card-array__items {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-}
-
-.vm-card-array__row {
-  display: flex;
-  align-items: stretch;
-  gap: 6px;
-  /* 确保行本身也左对齐 */
-  margin: 0;
-  padding: 0;
-}
-
-.vm-card-array__handle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-radius: 4px;
-  color: var(--SmartThemeBodyColor);
-  cursor: grab;
-  user-select: none;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.vm-card-array__handle:hover {
-  color: var(--SmartThemeQuoteColor);
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 15%, transparent);
-}
-
-.vm-card-array__ghost {
-  opacity: 0.6;
-}
-
-.vm-card-array__chosen {
-  outline: 1px dashed var(--SmartThemeQuoteColor);
-}
-
-.vm-card-array__empty {
-  text-align: center;
-  color: var(--SmartThemeBodyColor);
-  opacity: 0.6;
-  padding: 8px 0;
-}
-</style>

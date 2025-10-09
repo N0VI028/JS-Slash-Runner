@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <DefineIconButton v-slot="{ title, icon, onClick, active, disabled }">
     <div
       :class="[
@@ -39,19 +39,25 @@
         <div class="h-1 w-px bg-(--SmartThemeBodyColor)"></div>
         <div class="flex items-center gap-0.75">
           <IconButton
-            title="全部收起"
+            title="在顶层对象新建变量"
+            icon="fa-solid fa-plus"
+            :on-click="createRootObject"
+            :disabled="currentView === 'text'"
+          />
+          <IconButton
+            title="收起全部"
             icon="fa-solid fa-angles-up"
             :on-click="collapseAll"
             :disabled="currentView === 'text'"
           />
           <IconButton
-            title="全部展开"
+            title="展开全部"
             icon="fa-solid fa-angles-down"
             :on-click="expandAll"
             :disabled="currentView === 'text'"
           />
           <IconButton
-            title="筛选变量"
+            title="筛选"
             icon="fa-solid fa-filter"
             :on-click="showFilter"
             :active="isFilterActive"
@@ -77,24 +83,24 @@
     </div>
     <div ref="teleportTarget"></div>
   </div>
-  <!-- 搜索显示 -->
+  <!-- 搜索变量 -->
   <Teleport :to="teleportTarget" :disabled="!teleportTarget">
     <transition name="vm-toolbar-teleport">
       <SearchBar
         v-if="isSearchVisible"
         v-model="search_input"
-        :placeholder="t`搜索变量(支持正则表达式)`"
+        :placeholder="t`搜索变量(支持正则表达式 )`"
         :clearable="true"
         class="mt-0.5 w-full"
       />
     </transition>
   </Teleport>
-  <!-- 筛选显示 -->
+  <!-- 筛选 -->
   <Teleport :to="teleportTarget" :disabled="!teleportTarget">
     <transition name="vm-toolbar-teleport">
-      <div v-if="isFilterVisible" class="mt-0.5 flex flex-wrap gap-1 rounded-sm text-(--SmartThemeBodyColor)">
+      <div v-if="isFilterVisible" class="mt-0.5 flex flex-wrap gap-0.5 rounded-sm text-(--SmartThemeBodyColor)">
         <template v-for="filter in filterDefinitions" :key="filter.type">
-          <div class="flex items-center gap-0.5">
+          <div class="flex items-center gap-0.25">
             <input
               :id="`filter-${filter.type}`"
               type="checkbox"
@@ -112,15 +118,20 @@
 </template>
 
 <script setup lang="ts">
+import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
 import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { createDefaultFilters } from '@/panel/toolbox/variable_manager/filter';
+import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
 import { createReusableTemplate, useToggle } from '@vueuse/core';
-import { computed, ref } from 'vue';
+import { computed, ref, toRefs } from 'vue';
+import { useModal } from 'vue-final-modal';
 
-defineProps<{
+const props = defineProps<{
   canUndo?: boolean;
   canRedo?: boolean;
+  onCreateRoot?: (payload: RootVariablePayload) => boolean | Promise<boolean>;
 }>();
+const { canUndo, canRedo, onCreateRoot } = toRefs(props);
 
 const [DefineIconButton, IconButton] = createReusableTemplate<{
   title: string;
@@ -163,28 +174,59 @@ const [isFilterVisible, toggleFilterVisible] = useToggle(false);
 const teleportTarget = ref<HTMLElement | null>(null);
 const isFilterActive = computed(() => Object.values(filters.value).some(value => !value));
 
+const { open: openRootCreator } = useModal({
+  component: RootVariableCreator,
+  attrs: {
+    onSubmit: async (payload: RootVariablePayload) => {
+      if (!onCreateRoot.value) {
+        return true;
+      }
+      return await onCreateRoot.value(payload);
+    },
+  },
+});
+
+/**
+ * 设置变量管理器的显示视图模式
+ * @param {ViewMode} mode - 视图模式 ('tree' | 'card' | 'text')
+ */
 const setView = (mode: ViewMode) => {
   currentView.value = mode;
 };
 
-const showSearch = () => {
-  const nextValue = toggleSearchVisible();
-  console.log('showSearch', nextValue);
+/**
+ * 打开根变量创建对话框，在顶层对象中新建变量
+ * 文本视图模式下禁用此功能
+ */
+const createRootObject = () => {
+  if (currentView.value === 'text') return;
+  openRootCreator();
 };
 
-const showFilter = () => {
-  const nextValue = toggleFilterVisible();
-  console.log('showFilter', nextValue);
-};
+const showSearch = () => toggleSearchVisible();
+const showFilter = () => toggleFilterVisible();
 
+/**
+ * 收起所有已展开的变量节点
+ * 触发collapse-all事件给父组件处理
+ */
 const collapseAll = () => {
   emit('collapse-all');
 };
 
+/**
+ * 展开所有可展开的变量节点
+ * 触发expand-all事件给父组件处理
+ */
 const expandAll = () => {
   emit('expand-all');
 };
 
+/**
+ * 处理筛选器复选框状态变更
+ * @param {FilterType} filterType - 筛选器类型 ('string' | 'number' | 'array' | 'boolean' | 'object')
+ * @param {Event} event - 复选框change事件
+ */
 const onFilterChange = (filterType: FilterType, event: Event) => {
   const target = event.target as HTMLInputElement;
   filters.value = {

@@ -1,4 +1,5 @@
 <template>
+  <!-- prettier-ignore -->
   <CardBase
     v-model:name="name"
     v-model:content="content"
@@ -25,7 +26,14 @@
     collapsible
     @delete="emitDelete"
   >
-    <div v-show="!isCollapsed" class="vm-card-value__value mt-0.25 break-all text-(--SmartThemeBodyColor)">
+    <div
+      v-show="!isCollapsed"
+      class="
+        mt-0.25 text-xs leading-snug break-words break-all whitespace-normal text-(--SmartThemeBodyColor)
+        sm:text-sm sm:leading-relaxed
+        md:text-base md:leading-normal
+      "
+    >
       {{ formattedValue }}
     </div>
   </CardBase>
@@ -33,6 +41,7 @@
 
 <script setup lang="ts">
 import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { computed, ref, watch } from 'vue';
 
 const name = defineModel<number | string>('name', { required: true });
@@ -46,6 +55,7 @@ const props = withDefaults(
   defineProps<{
     collapsed?: boolean;
     depth?: number;
+    filters: FiltersState;
   }>(),
   {
     collapsed: false,
@@ -67,6 +77,10 @@ watch(
 
 type ContentType = 'string' | 'number' | 'boolean' | 'nil';
 
+/**
+ * 发射删除事件
+ * 向父组件发送删除当前变量的信号，包含变量名和内容
+ */
 const emitDelete = () => {
   emit('delete', {
     name: name.value,
@@ -74,6 +88,11 @@ const emitDelete = () => {
   });
 };
 
+/**
+ * 计算内容类型
+ * 根据变量的实际值确定其数据类型，用于UI显示和格式化
+ * @returns {'string'|'number'|'boolean'|'nil'} 内容的数据类型
+ */
 const contentType = computed<ContentType>(() => {
   const v = content.value;
   if (v === null || v === undefined) return 'nil';
@@ -83,6 +102,11 @@ const contentType = computed<ContentType>(() => {
   return 'string';
 });
 
+/**
+ * 格式化显示值
+ * 将变量的原始值转换为适合UI显示的字符串格式
+ * @returns {string} 格式化后的显示字符串
+ */
 const formattedValue = computed(() => {
   const v = content.value;
   switch (contentType.value) {
@@ -99,26 +123,3 @@ const formattedValue = computed(() => {
   }
 });
 </script>
-
-<style scoped>
-.vm-card-value__value {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-}
-
-/* 移动端优化 */
-@media (max-width: 768px) {
-  .vm-card-value__value {
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
-}
-
-@media (max-width: 480px) {
-  .vm-card-value__value {
-    font-size: 0.8rem;
-    line-height: 1.35;
-  }
-}
-</style>

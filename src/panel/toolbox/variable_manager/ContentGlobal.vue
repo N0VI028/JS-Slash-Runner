@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import { get_variables_without_clone, replaceVariables } from '@/function/variables';
 import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
+import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { event_types } from '@sillytavern/script';
 
@@ -38,11 +39,13 @@ const undo = () => editorRef.value?.undo();
 const redo = () => editorRef.value?.redo();
 const canUndo = computed(() => editorRef.value?.canUndo ?? false);
 const canRedo = computed(() => editorRef.value?.canRedo ?? false);
+const createRootVariable = (payload: RootVariablePayload) => editorRef.value?.createRootVariable(payload) ?? false;
 
 defineExpose({
   undo,
   redo,
   canUndo,
   canRedo,
+  createRootVariable,
 });
 </script>

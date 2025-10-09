@@ -1,6 +1,7 @@
 ﻿<template>
   <component
     :is="resolvedComponent"
+    v-show="isVisible"
     v-model:name="name"
     v-model:content="content"
     v-bind="componentProps"
@@ -15,6 +16,8 @@ import { computed } from 'vue';
 import CardArray from '@/panel/toolbox/variable_manager/CardArray.vue';
 import CardObject from '@/panel/toolbox/variable_manager/CardObject.vue';
 import CardValue from '@/panel/toolbox/variable_manager/CardValue.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
+import { matchesFilters } from '@/panel/toolbox/variable_manager/filter';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any>('content', { required: true });
@@ -23,6 +26,7 @@ const props = withDefaults(
   defineProps<{
     depth?: number;
     asChild?: boolean;
+    filters: FiltersState;
   }>(),
   {
     depth: 0,
@@ -49,8 +53,13 @@ const resolvedComponent = computed(() => {
   return CardValue;
 });
 
+const filterDepth = computed(() => (props.asChild ? (props.depth ?? 0) : (props.depth ?? 0) + 1));
+
+const isVisible = computed(() => matchesFilters(content.value, props.filters, filterDepth.value));
+
 const componentProps = computed(() => ({
   depth: props.depth ?? 0,
+  filters: props.filters,
 }));
 
 const handleSave = () => {

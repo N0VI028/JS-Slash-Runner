@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="flex h-full w-full flex-col overflow-hidden py-0.5">
     <div class="relative flex h-4 flex-shrink-0 justify-start py-0.5">
       <template v-for="({ name }, index) in tabs" :key="index">
@@ -15,6 +15,7 @@
         v-model:current-view="currentView"
         :can-undo="canUndo"
         :can-redo="canRedo"
+        :on-create-root="handleCreateRootVariable"
         @collapse-all="collapseAllTree"
         @expand-all="expandAllTree"
         @undo="handleUndo"
@@ -43,12 +44,18 @@ import Chat from '@/panel/toolbox/variable_manager/ContentChat.vue';
 import Global from '@/panel/toolbox/variable_manager/ContentGlobal.vue';
 import Message from '@/panel/toolbox/variable_manager/ContentMessage.vue';
 import Preset from '@/panel/toolbox/variable_manager/ContentPreset.vue';
-import type Editor from '@/panel/toolbox/variable_manager/Editor.vue';
-import Toolbar from '@/panel/toolbox/variable_manager/Toolbar.vue';
+// 与各 Content 组件通过 defineExpose 暴露的公共接口保持一致
+type HistoryController = {
+  undo?: () => void;
+  redo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  createRootVariable?: (payload: import('./variable_manager/types').RootVariablePayload) => boolean | Promise<boolean>;
+} | null;
 import { createDefaultFilters } from '@/panel/toolbox/variable_manager/filter';
-import { treeControlKey } from '@/panel/toolbox/variable_manager/treeControl';
-
-type HistoryController = InstanceType<typeof Editor>;
+import Toolbar from '@/panel/toolbox/variable_manager/Toolbar.vue';
+import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
+import { treeControlKey } from '@/panel/toolbox/variable_manager/types';
 
 const collapseAllSignal = ref(0);
 const expandAllSignal = ref(0);
@@ -64,6 +71,15 @@ const canRedo = computed(() => !!activeHistory.value?.canRedo);
 const handleUndo = () => activeHistory.value?.undo?.();
 const handleRedo = () => activeHistory.value?.redo?.();
 
+const handleCreateRootVariable = async (payload: RootVariablePayload) => {
+  const editor = activeHistory.value;
+  if (!editor || typeof editor.createRootVariable !== 'function') {
+    toastr.error('当前标签页不支持新增变量', '操作失败');
+    return false;
+  }
+  return editor.createRootVariable(payload);
+};
+
 provide(treeControlKey, {
   collapseAllSignal,
   expandAllSignal,
@@ -76,11 +92,11 @@ const tabs = [
   { name: t`预设`, component: Preset },
   { name: t`角色`, component: Character },
   { name: t`聊天`, component: Chat },
-  { name: t`消息楼层`, component: Message },
+  { name: t`消息`, component: Message },
 ];
 
 const search_input = ref<string | RegExp>('');
-// TODO: 将 search_input 等 Toolbar 数据传入 tabs.component
+// TODO: search_input 接入Toolbar，tabs.component
 const filters = ref(createDefaultFilters());
 const currentView = ref<'tree' | 'card' | 'text'>('tree');
 

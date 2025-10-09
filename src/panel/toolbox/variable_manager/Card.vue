@@ -1,14 +1,28 @@
 <template>
-  <div class="vm-card" :class="depthClass">
-    <!-- 左侧层级指示�?-->
-    <div class="vm-card__depth-indicator" :style="depthIndicatorStyle"></div>
+  <!-- prettier-ignore -->
+  <div
+    class="
+      relative flex w-full rounded border border-solid
+      border-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_25%,transparent)] transition-all duration-200 ease-in-out
+      hover:border-[var(--SmartThemeQuoteColor)]
+      hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_5%,transparent)]
+      hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--SmartThemeQuoteColor)_45%,transparent)]
+    "
+    :class="depthClass"
+  >
+    <div class="flex-shrink-0 transition-all duration-200 ease-in-out" :style="depthIndicatorStyle"></div>
 
-    <div class="vm-card__content">
-      <div class="vm-card__header" :class="{ 'vm-card__header--clickable': collapsible }">
-        <div class="vm-card__title" @click="handleTitleClick">
+    <div class="min-w-0 flex-1 p-0.5">
+      <div class="flex items-center justify-between gap-2 select-none" :class="{ 'cursor-pointer': collapsible }">
+        <div class="flex min-w-0 items-center gap-0.5" @click="handleTitleClick">
           <div
             v-if="collapsible"
-            class="vm-card__toggle text-xs"
+            class="
+              inline-flex flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-none text-xs
+              text-[var(--SmartThemeBodyColor)] transition-all duration-200 ease-in-out
+              hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)]
+              hover:text-[var(--SmartThemeQuoteColor)]
+            "
             type="button"
             :title="isCollapsed ? t`展开` : t`折叠`"
             @click.stop="toggleCollapse"
@@ -18,14 +32,35 @@
               :style="{ transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)' }"
             ></i>
           </div>
-          <span class="vm-card__name" :title="displayName">{{ displayName }}</span>
+          <span
+            class="overflow-hidden font-semibold text-ellipsis whitespace-nowrap text-[var(--SmartThemeQuoteColor)]"
+            :title="displayName"
+            >{{ displayName }}</span
+          >
           <slot name="tag">
-            <span v-if="typeLabel" class="vm-card__tag">{{ typeLabel }}</span>
+            <span
+              v-if="typeLabel"
+              class="
+                inline-flex items-center rounded-full
+                bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)] px-0.25
+                text-[length:8px]
+                text-[var(--SmartThemeQuoteColor)]
+              "
+              >{{ typeLabel }}</span
+            >
           </slot>
         </div>
-        <div class="vm-card__actions">
-          <Tippy ref="menuRef" trigger="click" :interactive="true" :z-index="99999" :append-to="appendToElement">
-            <div class="vm-card__action" :title="t`菜单`">
+        <div class="flex items-center gap-1">
+          <Tippy ref="menuRef" trigger="click" :offset="[0, 4]" :interactive="true" :z-index="99999" :append-to="appendToElement">
+            <div
+              class="
+                inline-flex cursor-pointer items-center justify-center rounded border-none bg-none
+                text-[var(--SmartThemeBodyColor)] transition-all duration-200 ease-in-out
+                hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)]
+                hover:text-[var(--SmartThemeQuoteColor)]
+              "
+              :title="t`菜单`"
+            >
               <i class="fa-regular fa-ellipsis"></i>
             </div>
             <template #content>
@@ -41,8 +76,17 @@
           </Tippy>
         </div>
       </div>
-      <transition name="vm-card-collapse">
-        <div v-show="!isCollapsed" class="vm-card__body">
+      <transition
+        name="vm-card-collapse"
+        @enter="onEnter"
+        @after-enter="onAfterEnter"
+        @leave="onLeave"
+        @after-leave="onAfterLeave"
+      >
+        <div
+          v-show="!isCollapsed"
+          class="overflow-visible text-[var(--SmartThemeBodyColor)]"
+        >
           <slot />
         </div>
       </transition>
@@ -54,8 +98,8 @@
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { Tippy, TippyComponent } from 'vue-tippy';
 
+import { treeControlKey } from '@/panel/toolbox/variable_manager/types';
 import { whenever } from '@vueuse/core';
-import { treeControlKey } from '@/panel/toolbox/variable_manager/treeControl';
 
 const nameModel = defineModel<number | string | undefined>('name');
 
@@ -70,6 +114,8 @@ const props = withDefaults(
   }>(),
   {
     depth: 0,
+    typeLabel: undefined,
+    icon: undefined,
     collapsible: true,
     defaultCollapsed: false,
   },
@@ -82,6 +128,11 @@ const emit = defineEmits<{
   (e: 'delete'): void;
 }>();
 
+/**
+ * 计算显示名称
+ * 如果nameModel为空或空白，则显示默认的"未命名变量"
+ * 否则将值转换为字符串显示
+ */
 const displayName = computed(() => {
   const value = nameModel.value;
   if (value === undefined || value === null || `${value}`.trim() === '') {
@@ -92,6 +143,10 @@ const displayName = computed(() => {
 
 const isCollapsed = ref(props.collapsed ?? props.defaultCollapsed ?? false);
 
+/**
+ * 监听外部传入的collapsed属性变化
+ * 当父组件主动控制折叠状态时，同步更新内部状态
+ */
 watch(
   () => props.collapsed,
   value => {
@@ -102,6 +157,10 @@ watch(
   },
 );
 
+/**
+ * 监听内部折叠状态变化
+ * 向父组件发出update:collapsed事件，保持双向绑定
+ */
 watch(
   () => isCollapsed.value,
   value => {
@@ -109,6 +168,11 @@ watch(
   },
 );
 
+/**
+ * 切换卡片的折叠/展开状态
+ * 只有在collapsible为true时才会执行切换
+ * 更新内部状态并发出toggle-collapse事件
+ */
 const toggleCollapse = () => {
   if (!props.collapsible) return;
   const nextValue = !isCollapsed.value;
@@ -128,9 +192,17 @@ const handleDeleteClick = () => {
   menuRef.value?.hide?.();
 };
 
+/**
+ * 注入树形结构全局控制对象
+ * 用于响应全局的展开/折叠全部操作
+ */
 const treeControl = inject(treeControlKey, null);
 
 if (treeControl) {
+  /**
+   * 组件挂载时根据全局最后操作状态初始化折叠状态
+   * 如果最后操作为展开，则展开卡片；如果为折叠，则折叠卡片
+   */
   onMounted(() => {
     if (!props.collapsible) return;
     if (treeControl.lastAction.value === 'expand') {
@@ -140,6 +212,10 @@ if (treeControl) {
     }
   });
 
+  /**
+   * 监听全局折叠全部信号
+   * 当接收到折叠全部信号时，将卡片折叠
+   */
   whenever(
     () => treeControl.collapseAllSignal.value,
     () => {
@@ -148,6 +224,10 @@ if (treeControl) {
     },
   );
 
+  /**
+   * 监听全局展开全部信号
+   * 当接收到展开全部信号时，将卡片展开
+   */
   whenever(
     () => treeControl.expandAllSignal.value,
     () => {
@@ -171,10 +251,21 @@ const getDepthColor = (depth: number): string => {
   return depthColors[depth % depthColors.length];
 };
 
+/**
+ * 计算层级样式类名
+ * 根据depth属性生成对应的CSS类名，用于控制视觉层级
+ * 最大层级限制为5级
+ * TODO：考虑层级大于5级的情况
+ */
 const depthClass = computed(() => {
   return `vm-card--depth-${Math.min(props.depth ?? 0, 5)}`;
 });
 
+/**
+ * 计算层级指示器的内联样式
+ * 生成左侧彩色条带的样式，包括宽度、背景色和透明度
+ * 透明度会随着层级深度逐渐增加，增强视觉层次感
+ */
 const depthIndicatorStyle = computed(() => {
   const depth = props.depth ?? 0;
   const color = getDepthColor(depth);
@@ -187,142 +278,56 @@ const depthIndicatorStyle = computed(() => {
 });
 
 const appendToElement = computed(() => document.body);
+
+/**
+ * 展开动画：进入时
+ * 设置初始高度为0
+ */
+const onEnter = (el: Element) => {
+  const element = el as HTMLElement;
+  element.style.height = '0';
+  element.style.overflow = 'hidden';
+  element.style.transition = 'height 0.2s ease-in-out';
+  // 强制浏览器重排
+  requestAnimationFrame(() => {
+    element.style.height = `${element.scrollHeight}px`;
+  });
+};
+
+/**
+ * 展开动画：进入后
+ * 清理内联样式，让内容自然显示
+ */
+const onAfterEnter = (el: Element) => {
+  const element = el as HTMLElement;
+  element.style.height = '';
+  element.style.overflow = '';
+  element.style.transition = '';
+};
+
+/**
+ * 折叠动画：离开时
+ * 从当前高度过渡到0
+ */
+const onLeave = (el: Element) => {
+  const element = el as HTMLElement;
+  element.style.height = `${element.scrollHeight}px`;
+  element.style.overflow = 'hidden';
+  element.style.transition = 'height 0.2s ease-in-out';
+  // 强制浏览器重排
+  requestAnimationFrame(() => {
+    element.style.height = '0';
+  });
+};
+
+/**
+ * 折叠动画：离开后
+ * 清理样式
+ */
+const onAfterLeave = (el: Element) => {
+  const element = el as HTMLElement;
+  element.style.height = '';
+  element.style.overflow = '';
+  element.style.transition = '';
+};
 </script>
-
-<style scoped>
-.vm-card {
-  position: relative;
-  display: flex;
-  margin-bottom: 6px;
-  border: 1px solid color-mix(in srgb, var(--SmartThemeQuoteColor) 25%, transparent);
-  border-radius: 4px;
-  font-size: 0.875rem;
-  overflow: hidden;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
-  width: 100%;
-}
-
-.vm-card:hover {
-  border-color: var(--SmartThemeQuoteColor);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--SmartThemeQuoteColor) 45%, transparent);
-}
-
-/* 左侧层级指示�?*/
-.vm-card__depth-indicator {
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-/* 卡片主内容区 */
-.vm-card__content {
-  flex: 1;
-  min-width: 0;
-  padding: 10px;
-}
-
-.vm-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  user-select: none;
-}
-
-.vm-card__header--clickable {
-  cursor: pointer;
-}
-
-.vm-card__title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.vm-card__icon {
-  flex-shrink: 0;
-}
-
-.vm-card__name {
-  font-weight: 600;
-  color: var(--SmartThemeQuoteColor);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vm-card__tag,
-::v-deep(.vm-card__tag) {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 15%, transparent);
-  padding: 1px 6px;
-  font-size: 0.75rem;
-  color: var(--SmartThemeQuoteColor);
-}
-
-.tippy-box[data-theme~='vm-card-menu'] {
-  background-color: color-mix(in srgb, var(--SmartThemeBackgroundColor, #111827) 92%, #000 8%);
-  color: inherit;
-  border-radius: 8px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-  padding: 0;
-}
-
-.tippy-box[data-theme~='vm-card-menu'] .tippy-content {
-  padding: 6px;
-}
-
-.vm-card__actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.vm-card__action,
-.vm-card__toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  color: var(--SmartThemeBodyColor);
-  cursor: pointer;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
-  border-radius: 4px;
-}
-
-.vm-card__action:hover,
-.vm-card__toggle:hover {
-  color: var(--SmartThemeQuoteColor);
-  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 15%, transparent);
-}
-
-.vm-card__toggle {
-  flex-shrink: 0;
-}
-
-.vm-card__body {
-  margin-top: 6px;
-  color: var(--SmartThemeBodyColor);
-}
-
-.vm-card-collapse-enter-active,
-.vm-card-collapse-leave-active {
-  transition: all 0.15s ease;
-}
-
-.vm-card-collapse-enter-from,
-.vm-card-collapse-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-</style>
-
-

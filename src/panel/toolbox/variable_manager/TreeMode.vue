@@ -3,7 +3,7 @@
   <div
     v-if="isRoot"
     class="
-      mb-0.5 flex flex-wrap items-center justify-between gap-0.5 rounded border border-(--SmartThemeQuoteColor)/40
+      flex flex-wrap items-center justify-between gap-0.5 rounded border border-(--SmartThemeQuoteColor)/40
       bg-(--SmartThemeBGColor)/60 px-0.5 py-0.25 text-sm
     "
   >
@@ -143,8 +143,7 @@
 
 <script setup lang="ts">
 import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { treeControlKey } from '@/panel/toolbox/variable_manager/treeControl';
-import { treeSelectionKey } from '@/panel/toolbox/variable_manager/treeSelection';
+import { treeControlKey, treeSelectionKey } from '@/panel/toolbox/variable_manager/types';
 import { onClickOutside, useToggle, whenever } from '@vueuse/core';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, toRef, watch } from 'vue';
 
