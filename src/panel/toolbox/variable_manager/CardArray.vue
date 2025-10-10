@@ -8,7 +8,9 @@
     :type-label="`${t`Array`} · ${content.length}`"
     icon="fa-solid fa-list"
     :search-input="props.searchInput"
+    :allow-add-child="true"
     @delete="emitDelete"
+    @add-child="openAddChild"
   >
     <VueDraggable
       v-model="content"
@@ -41,12 +43,13 @@
           ☰
         </div>
         <CardMode
-          v-model:content="content[index]"
+          :content="content[index]"
           :name="index"
           :depth="nextDepth"
           :filters="props.filters"
           :search-input="props.searchInput"
           :as-child="true"
+          @update:content="updateItem(index, $event)"
           @delete="removeItem(index)"
         />
       </div>
@@ -63,9 +66,11 @@ import { VueDraggable } from 'vue-draggable-plus';
 
 import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
 import CardMode from '@/panel/toolbox/variable_manager/CardMode.vue';
+import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { matchesFilters } from '@/panel/toolbox/variable_manager/filter';
 import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
+import { useModal } from 'vue-final-modal';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any[]>('content', { required: true });
@@ -162,6 +167,29 @@ const itemVisibility = computed(() =>
 
 const removeItem = (index: number) => {
   content.value.splice(index, 1);
+};
+
+const updateItem = (index: number, newValue: unknown) => {
+  const next = Array.isArray(content.value) ? [...content.value] : [];
+  next[index] = newValue;
+  content.value = next;
+};
+
+const openAddChild = () => {
+  const { open: openCreatorModal } = useModal({
+    component: RootVariableCreator,
+    attrs: {
+      onSubmit: async (payload: { value: unknown }) => {
+        const next = [...(Array.isArray(content.value) ? content.value : []), payload.value];
+        content.value = next;
+        isCollapsed.value = false;
+        toastr.success(t`已添加到数组`);
+        return true;
+      },
+    },
+  });
+
+  openCreatorModal();
 };
 
 // 搜索命中时自动展开

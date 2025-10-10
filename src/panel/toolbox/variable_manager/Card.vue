@@ -20,8 +20,6 @@
             class="
               inline-flex flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-none text-xs
               text-[var(--SmartThemeBodyColor)] transition-all duration-200 ease-in-out
-              hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)]
-              hover:text-[var(--SmartThemeQuoteColor)]
             "
             type="button"
             :title="isCollapsed ? t`展开` : t`折叠`"
@@ -32,17 +30,37 @@
               :style="{ transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)' }"
             ></i>
           </div>
-          <span
-            class="overflow-hidden font-semibold text-ellipsis whitespace-nowrap text-[var(--SmartThemeQuoteColor)]"
-            :title="displayNameFixed"
-          >
-            <template v-if="isSearching">
-              <SearchHighlighter :query="props.searchInput" :text-to-highlight="displayNameFixed" />
-            </template>
-            <template v-else>
-              {{ displayNameFixed }}
-            </template>
-          </span>
+          <template v-if="!isEditingName">
+            <span
+              ref="nameDisplayRef"
+              :class="nameDisplayClass"
+              :title="displayNameFixed"
+              @click.stop="handleNameClick"
+              @dblclick.stop.prevent="handleNameDoubleClick"
+              @touchend="handleNameTouchEnd"
+            >
+              <template v-if="isSearching">
+                <SearchHighlighter :query="props.searchInput" :text-to-highlight="displayNameFixed" />
+              </template>
+              <template v-else>
+                {{ displayNameFixed }}
+              </template>
+            </span>
+          </template>
+          <template v-else>
+            <!-- prettier-ignore -->
+            <input
+              ref="nameInputRef"
+              v-model="nameDraft"
+              :style="nameInputInlineStyle"
+              class="
+                inline-flex min-w-0 rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 text-sm
+                text-[var(--SmartThemeQuoteColor)]
+                focus:border-(--SmartThemeQuoteColor) focus:outline-none
+              "
+              @keydown="handleNameInputKeydown"
+            />
+          </template>
           <slot name="tag">
             <span
               v-if="typeLabel"
@@ -60,10 +78,8 @@
           <Tippy ref="menuRef" trigger="click" :offset="[0, 4]" :interactive="true" :z-index="99999" :append-to="appendToElement">
             <div
               class="
-                inline-flex cursor-pointer items-center justify-center rounded border-none bg-none
-                text-[var(--SmartThemeBodyColor)] transition-all duration-200 ease-in-out
-                hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)]
-                hover:text-[var(--SmartThemeQuoteColor)]
+                inline-flex cursor-pointer items-center justify-center border-none bg-none
+                text-[var(--SmartThemeBodyColor)]
               "
               :title="t`菜单`"
             >
@@ -73,6 +89,14 @@
               <div
                 class="flex flex-col items-start justify-center gap-0.5 rounded-sm bg-(--grey30) px-1 py-0.5 text-sm"
               >
+                <div
+                  v-if="allowAddChild"
+                  class="flex cursor-pointer items-center gap-0.5 text-white"
+                  @click="handleAddChildClick"
+                >
+                  <i class="fa-solid fa-plus"></i>
+                  <span>{{ t`新增变量` }}</span>
+                </div>
                 <div class="flex cursor-pointer items-center gap-0.5 text-(--warning)" @click="handleDeleteClick">
                   <i class="fa-regular fa-trash-can"></i>
                   <span>{{ t`删除` }}</span>
@@ -101,12 +125,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch } from 'vue';
-import { Tippy, TippyComponent } from 'vue-tippy';
 import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { Tippy, TippyComponent } from 'vue-tippy';
 
 import { treeControlKey } from '@/panel/toolbox/variable_manager/types';
-import { whenever } from '@vueuse/core';
+import { onClickOutside, whenever } from '@vueuse/core';
 
 const nameModel = defineModel<number | string | undefined>('name');
 
@@ -120,6 +144,8 @@ const props = withDefaults(
     defaultCollapsed?: boolean;
     /** 搜索输入，空字符串或未定义表示未搜索 */
     searchInput?: string | RegExp;
+    /** 是否允许通过菜单新增子变量 */
+    allowAddChild?: boolean;
   }>(),
   {
     depth: 0,
@@ -128,6 +154,7 @@ const props = withDefaults(
     collapsible: true,
     defaultCollapsed: false,
     searchInput: '',
+    allowAddChild: false,
   },
 );
 
@@ -136,6 +163,7 @@ const emit = defineEmits<{
   (e: 'toggle-collapse', value: boolean): void;
   (e: 'update:collapsed', value: boolean): void;
   (e: 'delete'): void;
+  (e: 'add-child'): void;
 }>();
 
 /**
@@ -195,10 +223,181 @@ const handleTitleClick = () => {
 
 const menuRef = ref<TippyComponent | null>(null);
 
+const handleAddChildClick = () => {
+  if (!props.allowAddChild) return;
+  emit('add-child');
+  menuRef.value?.hide?.();
+};
+
 const handleDeleteClick = () => {
   emit('delete');
   menuRef.value?.hide?.();
 };
+
+const nameDisplayRef = ref<HTMLElement | null>(null);
+const nameInputRef = ref<HTMLInputElement | null>(null);
+const isEditingName = ref(false);
+const nameDraft = ref('');
+const nameInputSize = ref<{ width: string; height: string } | null>(null);
+let stopNameOutside: (() => void) | null = null;
+
+const MIN_INPUT_WIDTH = 40;
+const MIN_INPUT_HEIGHT = 24;
+const SINGLE_CLICK_DELAY = 250;
+const DOUBLE_TAP_THRESHOLD = 300;
+
+const computeInputSize = (el: HTMLElement | null) => {
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  const width = Math.max(rect.width || el.offsetWidth || MIN_INPUT_WIDTH, MIN_INPUT_WIDTH);
+  const height = Math.max(rect.height || el.offsetHeight || MIN_INPUT_HEIGHT, MIN_INPUT_HEIGHT);
+  return {
+    width: `${width}px`,
+    height: `${height}px`,
+  };
+};
+
+const canEditName = computed(() => typeof nameModel.value === 'string');
+
+const nameInputInlineStyle = computed(() => {
+  if (!nameInputSize.value) return undefined;
+  return {
+    width: nameInputSize.value.width,
+    height: nameInputSize.value.height,
+  };
+});
+
+const nameDisplayClass = computed(() => {
+  const classes = ['overflow-hidden font-semibold text-ellipsis whitespace-nowrap text-[var(--SmartThemeQuoteColor)]'];
+  if (canEditName.value) {
+    classes.push('cursor-text select-text');
+  } else if (props.collapsible) {
+    classes.push('cursor-pointer select-none');
+  } else {
+    classes.push('select-none');
+  }
+  return classes;
+});
+
+let nameClickTimer: number | null = null;
+let lastNameTapTime = 0;
+
+const clearNameClickTimer = () => {
+  if (nameClickTimer !== null) {
+    clearTimeout(nameClickTimer);
+    nameClickTimer = null;
+  }
+};
+
+const startNameEditing = () => {
+  if (!canEditName.value) return;
+  clearNameClickTimer();
+  nameDraft.value = typeof nameModel.value === 'string' ? nameModel.value : '';
+  nameInputSize.value = computeInputSize(nameDisplayRef.value);
+  isEditingName.value = true;
+  nextTick(() => {
+    if (nameInputRef.value) {
+      nameInputRef.value.focus();
+      nameInputRef.value.select();
+    }
+  });
+  if (stopNameOutside) {
+    stopNameOutside();
+  }
+  stopNameOutside = onClickOutside(nameInputRef, () => {
+    saveNameEditing();
+  });
+};
+
+const finishNameEditing = () => {
+  isEditingName.value = false;
+  if (stopNameOutside) {
+    stopNameOutside();
+    stopNameOutside = null;
+  }
+  nameInputSize.value = null;
+};
+
+const saveNameEditing = () => {
+  if (!isEditingName.value) return;
+  if (!canEditName.value) {
+    finishNameEditing();
+    return;
+  }
+  const previous = typeof nameModel.value === 'string' ? nameModel.value : '';
+  const nextName = nameDraft.value.trim();
+  if (!nextName.length) {
+    toastr.error(t`键名不能为空`, t`编辑失败`);
+    return;
+  }
+  finishNameEditing();
+  if (nextName === previous) return;
+  nameModel.value = nextName;
+  toastr.success(t`已更新键名`, t`编辑成功`);
+};
+
+const cancelNameEditing = () => {
+  if (!isEditingName.value) return;
+  nameDraft.value = typeof nameModel.value === 'string' ? nameModel.value : '';
+  finishNameEditing();
+};
+
+const handleNameInputKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    saveNameEditing();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    cancelNameEditing();
+  }
+};
+
+const handleNameClick = (event: MouseEvent) => {
+  if (isEditingName.value || !props.collapsible) return;
+  if (event.detail > 1) {
+    clearNameClickTimer();
+    return;
+  }
+  clearNameClickTimer();
+  nameClickTimer = window.setTimeout(() => {
+    nameClickTimer = null;
+    handleTitleClick();
+  }, SINGLE_CLICK_DELAY);
+};
+
+const handleNameDoubleClick = () => {
+  clearNameClickTimer();
+  if (isEditingName.value || !canEditName.value) return;
+  startNameEditing();
+};
+
+const handleNameTouchEnd = (event: TouchEvent) => {
+  if (isEditingName.value) return;
+  const now = event.timeStamp;
+  if (now - lastNameTapTime <= DOUBLE_TAP_THRESHOLD) {
+    event.preventDefault();
+    event.stopPropagation();
+    clearNameClickTimer();
+    if (canEditName.value) {
+      startNameEditing();
+    }
+  } else if (props.collapsible) {
+    clearNameClickTimer();
+    nameClickTimer = window.setTimeout(() => {
+      nameClickTimer = null;
+      handleTitleClick();
+    }, SINGLE_CLICK_DELAY);
+  }
+  lastNameTapTime = now;
+};
+
+watch(
+  () => nameModel.value,
+  newValue => {
+    if (!isEditingName.value) return;
+    nameDraft.value = typeof newValue === 'string' ? newValue : '';
+  },
+);
 
 /**
  * 注入树形结构全局控制对象
@@ -247,7 +446,7 @@ if (treeControl) {
 
 // 层级视觉样式计算
 const depthColors = [
-  '#3b82f6', // 蓝色 - level 0
+  getComputedStyle(document.documentElement).getPropertyValue('--SmartThemeQuoteColor'), // 主题色 - level 0
   '#8b5cf6', // 紫色 - level 1
   '#ec4899', // 粉色 - level 2
   '#f59e0b', // 橙色 - level 3
@@ -342,4 +541,12 @@ const onAfterLeave = (el: Element) => {
   element.style.overflow = '';
   element.style.transition = '';
 };
+
+onBeforeUnmount(() => {
+  clearNameClickTimer();
+  if (stopNameOutside) {
+    stopNameOutside();
+    stopNameOutside = null;
+  }
+});
 </script>

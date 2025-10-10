@@ -35,11 +35,35 @@
         md:text-base md:leading-normal
       "
     >
-      <template v-if="isSearching">
-        <SearchHighlighter :query="props.searchInput" :text-to-highlight="formattedValue" />
+      <template v-if="!isEditingValue">
+        <div
+          ref="valueDisplayRef"
+          class="cursor-text break-words break-all whitespace-pre-wrap"
+          @dblclick.stop.prevent="startValueEditing"
+          @touchend="handleValueTouchEnd"
+        >
+          <template v-if="isSearching">
+            <SearchHighlighter :query="props.searchInput" :text-to-highlight="formattedValue" />
+          </template>
+          <template v-else>
+            {{ formattedValue }}
+          </template>
+        </div>
       </template>
       <template v-else>
-        {{ formattedValue }}
+        <textarea
+          ref="valueInputRef"
+          v-model="valueDraft"
+          :style="valueInputInlineStyle"
+          class="
+            w-full resize-none rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.5 py-0.25 text-xs
+            text-(--SmartThemeQuoteColor)
+            focus:border-(--SmartThemeQuoteColor) focus:outline-none
+            sm:text-sm
+            md:text-base
+          "
+          @keydown="handleValueInputKeydown"
+        ></textarea>
       </template>
     </div>
   </CardBase>
@@ -49,8 +73,9 @@
 import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { computed, ref, watch } from 'vue';
 import { isSearching as isSearchingUtil, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
+import { onClickOutside } from '@vueuse/core';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any>('content', { required: true });
@@ -86,7 +111,30 @@ watch(
   },
 );
 
+const valueDisplayRef = ref<HTMLElement | null>(null);
+const valueInputRef = ref<HTMLTextAreaElement | null>(null);
+const isEditingValue = ref(false);
+const valueDraft = ref('');
+const valueInputSize = ref<{ width: string; height: string } | null>(null);
+let stopValueOutside: (() => void) | null = null;
+
+const MIN_INPUT_WIDTH = 40;
+const MIN_INPUT_HEIGHT = 24;
+const DOUBLE_TAP_THRESHOLD = 300;
+
+const computeInputSize = (el: HTMLElement | null) => {
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  const width = Math.max(rect.width || el.offsetWidth || MIN_INPUT_WIDTH, MIN_INPUT_WIDTH);
+  const height = Math.max(rect.height || el.offsetHeight || MIN_INPUT_HEIGHT, MIN_INPUT_HEIGHT);
+  return {
+    width: `${width}px`,
+    height: `${height}px`,
+  };
+};
+
 type ContentType = 'string' | 'number' | 'boolean' | 'nil';
+type Primitive = string | number | boolean | null | undefined;
 
 /**
  * 发射删除事件
@@ -134,7 +182,9 @@ const formattedValue = computed(() => {
   }
 });
 
-const isSearching = computed(() => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null);
+const isSearching = computed(
+  () => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null,
+);
 
 // 搜索命中时自动展开
 const searchMatched = computed(() => {
@@ -152,4 +202,188 @@ watch(
   },
   { immediate: true },
 );
+
+/**
+ * 计算输入框的内联样式
+ */
+const valueInputInlineStyle = computed(() => {
+  if (!valueInputSize.value) return {};
+  return {
+    width: valueInputSize.value.width,
+    height: valueInputSize.value.height,
+  };
+});
+
+/**
+ * 将原始值格式化为编辑时显示的字符串
+ */
+const formatValueForEdit = (value: Primitive): string => {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  return String(value);
+};
+
+/**
+ * 松散地解析字符串值为对应的JavaScript值
+ */
+const parseLooseValue = (raw: string): unknown => {
+  const trimmed = raw.trim();
+  if (trimmed === 'null') return null;
+  if (trimmed === 'undefined') return undefined;
+  if (trimmed === 'true') return true;
+  if (trimmed === 'false') return false;
+  if (trimmed !== '' && /^-?\d+(\.\d+)?$/.test(trimmed)) {
+    return Number(trimmed);
+  }
+  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return raw;
+    }
+  }
+  return raw;
+};
+
+/**
+ * 根据当前值的类型强制转换输入的字符串值
+ */
+const coerceValue = (raw: string): { value: unknown; success: boolean } => {
+  const currentType = contentType.value;
+  const trimmed = raw.trim();
+
+  if (currentType === 'string') {
+    return { value: raw, success: true };
+  }
+
+  if (currentType === 'number') {
+    if (!trimmed.length) {
+      return { value: content.value, success: false };
+    }
+    const num = Number(trimmed);
+    if (!Number.isNaN(num)) {
+      return { value: num, success: true };
+    }
+    return { value: parseLooseValue(raw), success: true };
+  }
+
+  if (currentType === 'boolean') {
+    if (/^(true|false)$/i.test(trimmed)) {
+      return { value: trimmed.toLowerCase() === 'true', success: true };
+    }
+    if (!trimmed.length) {
+      return { value: content.value, success: false };
+    }
+    return { value: parseLooseValue(raw), success: true };
+  }
+
+  return { value: parseLooseValue(raw), success: true };
+};
+
+/**
+ * 完成值编辑状态，清理相关资源
+ */
+const finishValueEditing = () => {
+  isEditingValue.value = false;
+  if (stopValueOutside) {
+    stopValueOutside();
+    stopValueOutside = null;
+  }
+  valueInputSize.value = null;
+  toastr.success(t`成功编辑值`);
+};
+
+/**
+ * 开始编辑值，初始化编辑状态和事件监听
+ */
+const startValueEditing = () => {
+  if (isEditingValue.value) return;
+  valueDraft.value = formatValueForEdit(content.value as Primitive);
+  valueInputSize.value = computeInputSize(valueDisplayRef.value);
+  isEditingValue.value = true;
+  nextTick(() => {
+    if (valueInputRef.value) {
+      valueInputRef.value.focus();
+      valueInputRef.value.select();
+    }
+  });
+  if (stopValueOutside) {
+    stopValueOutside();
+  }
+  stopValueOutside = onClickOutside(valueInputRef, () => {
+    saveValueEditing();
+  });
+};
+
+/**
+ * 保存值编辑结果，如果值有变化则触发更新
+ */
+const saveValueEditing = () => {
+  if (!isEditingValue.value) return;
+  const original = content.value;
+  const { value: parsedValue, success } = coerceValue(valueDraft.value);
+  finishValueEditing();
+  if (!success) {
+    valueDraft.value = formatValueForEdit(original as Primitive);
+    return;
+  }
+  if (!Object.is(parsedValue, original)) {
+    content.value = parsedValue;
+  }
+};
+
+/**
+ * 取消值编辑，恢复原始值
+ */
+const cancelValueEditing = () => {
+  if (!isEditingValue.value) return;
+  valueDraft.value = formatValueForEdit(content.value as Primitive);
+  finishValueEditing();
+};
+
+/**
+ * 处理值输入框的键盘事件
+ */
+const handleValueInputKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    saveValueEditing();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    cancelValueEditing();
+  }
+};
+
+let lastValueTapTime = 0;
+
+/**
+ * 处理值区域的触摸事件，双击触发编辑
+ */
+const handleValueTouchEnd = (event: TouchEvent) => {
+  const now = event.timeStamp;
+  if (now - lastValueTapTime <= DOUBLE_TAP_THRESHOLD) {
+    event.preventDefault();
+    event.stopPropagation();
+    startValueEditing();
+  }
+  lastValueTapTime = now;
+};
+
+// 监听值变化，自动更新编辑草稿
+watch(
+  () => content.value,
+  newValue => {
+    if (isEditingValue.value) {
+      valueDraft.value = formatValueForEdit(newValue as Primitive);
+    }
+  },
+);
+
+// 组件卸载前清理资源
+onBeforeUnmount(() => {
+  if (stopValueOutside) {
+    stopValueOutside();
+    stopValueOutside = null;
+  }
+});
 </script>

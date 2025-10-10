@@ -39,12 +39,6 @@
         <div class="h-1 w-px bg-(--SmartThemeBodyColor)"></div>
         <div class="flex items-center gap-0.75">
           <IconButton
-            title="在顶层对象新建变量"
-            icon="fa-solid fa-plus"
-            :on-click="createRootObject"
-            :disabled="currentView === 'text'"
-          />
-          <IconButton
             title="展开全部"
             icon="fa-solid fa-expand"
             :on-click="expandAll"
@@ -118,20 +112,17 @@
 </template>
 
 <script setup lang="ts">
-import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
 import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { createDefaultFilters } from '@/panel/toolbox/variable_manager/filter';
-import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
 import { createReusableTemplate, useToggle } from '@vueuse/core';
 import { computed, ref, toRefs } from 'vue';
-import { useModal } from 'vue-final-modal';
 
 const props = defineProps<{
   canUndo?: boolean;
   canRedo?: boolean;
-  onCreateRoot?: (payload: RootVariablePayload) => boolean | Promise<boolean>;
+  // 移除顶层新增入口，改由根节点行承载
 }>();
-const { canUndo, canRedo, onCreateRoot } = toRefs(props);
+const { canUndo, canRedo } = toRefs(props);
 
 const [DefineIconButton, IconButton] = createReusableTemplate<{
   title: string;
@@ -174,33 +165,12 @@ const [isFilterVisible, toggleFilterVisible] = useToggle(false);
 const teleportTarget = ref<HTMLElement | null>(null);
 const isFilterActive = computed(() => Object.values(filters.value).some(value => !value));
 
-const { open: openRootCreator } = useModal({
-  component: RootVariableCreator,
-  attrs: {
-    onSubmit: async (payload: RootVariablePayload) => {
-      if (!onCreateRoot.value) {
-        return true;
-      }
-      return await onCreateRoot.value(payload);
-    },
-  },
-});
-
 /**
  * 设置变量管理器的显示视图模式
  * @param {ViewMode} mode - 视图模式 ('tree' | 'card' | 'text')
  */
 const setView = (mode: ViewMode) => {
   currentView.value = mode;
-};
-
-/**
- * 打开根变量创建对话框，在顶层对象中新建变量
- * 文本视图模式下禁用此功能
- */
-const createRootObject = () => {
-  if (currentView.value === 'text') return;
-  openRootCreator();
 };
 
 const showSearch = () => toggleSearchVisible();

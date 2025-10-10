@@ -1,4 +1,22 @@
 <template>
+  <DefineActionButton v-slot="{ icon, title, colorClass, onClick, disabled }">
+    <div
+      :class="[
+        'inline-flex items-center justify-center px-0.25',
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+        colorClass,
+      ]"
+      :title="title"
+      :disabled="disabled"
+      @click.stop="
+        () => {
+          if (!disabled) onClick?.();
+        }
+      "
+    >
+      <i :class="icon"></i>
+    </div>
+  </DefineActionButton>
   <!-- prettier-ignore -->
   <div
     v-if="isRoot"
@@ -19,19 +37,22 @@
       </template>
       <span v-else class="text-(--SmartThemeBodyColor)/70">单击任意键名以查看路径</span>
     </div>
-    <div
-      class="
-        inline-flex shrink-0 items-center gap-0.25 px-0.5 py-0.25 text-sm text-(--SmartThemeQuoteColor)
-        transition-colors
-        hover:bg-(--SmartThemeQuoteColor)/15
-        disabled:cursor-not-allowed disabled:opacity-60
-      "
-      type="button"
-      :disabled="!canCopySelectedPath"
-      title="复制路径"
-      @click="copySelectedPath"
-    >
-      <i class="fa-solid fa-copy"></i>
+    <div class="inline-flex items-center gap-0.25">
+      <div
+        class="
+          inline-flex shrink-0 items-center gap-0.25 py-0.25 text-sm text-(--SmartThemeQuoteColor) transition-colors
+          hover:bg-(--SmartThemeQuoteColor)/15
+          disabled:cursor-not-allowed disabled:opacity-60
+        "
+        type="button"
+        :disabled="!canCopySelectedPath"
+        title="复制路径"
+        @click="copySelectedPath"
+      >
+        <i class="fa-solid fa-copy"></i>
+      </div>
+
+      
     </div>
   </div>
   <div v-if="shouldRender" class="text-sm select-text">
@@ -140,6 +161,40 @@
         <span v-if="collapsed" class="text-gray-500 italic">{{ valuePreview }}</span>
         <span v-if="collapsed" class="font-bold text-gray-500">{{ isArray ? ']' : '}' }}</span>
       </span>
+
+      <span v-if="isSelected" class="ml-auto inline-flex items-center gap-0.25">
+        <ActionButton
+          v-if="!isPrimitive"
+          icon="fa-solid fa-plus"
+          title="新增变量"
+          color-class="text-(--SmartThemeQuoteColor)"
+          :on-click="openAddChild"
+        />
+        <ActionButton
+          v-if="nodeKey !== null && parentType !== null"
+          icon="fa-solid fa-trash"
+          :title="isArray ? '删除变量' : '删除键'"
+          color-class="text-(--warning)"
+          :on-click="confirmAndDeleteSelf"
+        />
+      </span>
+      <!-- 顶层常驻：新增 与 清空 -->
+      <div v-if="!isSelected" class="ml-auto inline-flex items-center gap-0.25">
+        <ActionButton
+          v-if="isRoot && !isPrimitive"
+          icon="fa-solid fa-plus"
+          title="新增变量"
+          color-class="text-(--SmartThemeQuoteColor)"
+          :on-click="openAddChild"
+        />
+        <ActionButton
+          v-if="isRoot"
+          icon="fa-solid fa-trash"
+          title="删除变量"
+          color-class="text-(--warning)"
+          :on-click="clearRoot"
+        />
+      </div>
     </div>
 
     <template v-if="!isPrimitive && !collapsed">
@@ -155,6 +210,7 @@
         :parent-type="isArray ? 'array' : isObject ? 'object' : null"
         @update:data="childValue => updateChildValue(key, childValue)"
         @rename-key="newKey => renameChildKey(key, newKey)"
+        @delete-self="() => deleteChild(key)"
       />
       <div class="flex items-center gap-0.5" :style="indentStyle">
         <span class="font-bold text-gray-500">{{ isArray ? ']' : '}' }}</span>
@@ -164,11 +220,14 @@
 </template>
 
 <script setup lang="ts">
+import Popup from '@/panel/component/Popup.vue';
 import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
+import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
 import { treeControlKey, treeSelectionKey } from '@/panel/toolbox/variable_manager/types';
-import { onClickOutside, useToggle, whenever } from '@vueuse/core';
+import { createReusableTemplate, onClickOutside, useToggle, whenever } from '@vueuse/core';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, toRef, watch } from 'vue';
+import { useModal } from 'vue-final-modal';
 
 defineOptions({ name: 'TreeMode' });
 
@@ -177,6 +236,7 @@ type Primitive = string | number | boolean | null | undefined;
 const emit = defineEmits<{
   (event: 'update:data', value: Record<string, unknown> | unknown[] | Primitive): void;
   (event: 'rename-key', value: string | number): void;
+  (event: 'delete-self'): void;
 }>();
 
 const props = withDefaults(
@@ -203,6 +263,15 @@ const keyDisplayRef = ref<HTMLElement | null>(null);
 const keyInputRef = ref<HTMLInputElement | null>(null);
 const valueDisplayRef = ref<HTMLElement | null>(null);
 const valueInputRef = ref<HTMLTextAreaElement | null>(null);
+
+// 可复用的操作按钮（添加/删除等）
+const [DefineActionButton, ActionButton] = createReusableTemplate<{
+  icon: string;
+  title: string;
+  colorClass?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}>();
 
 const isEditingKey = ref(false);
 const isEditingValue = ref(false);
@@ -427,9 +496,7 @@ const isSearching = computed(
   () => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null,
 );
 const isStringValue = computed(() => valueType.value === 'string');
-const stringValueWithQuotes = computed(() =>
-  typeof props.data === 'string' ? `"${props.data}"` : '',
-);
+const stringValueWithQuotes = computed(() => (typeof props.data === 'string' ? `"${props.data}"` : ''));
 
 /**
  * 判断文本是否命中查询条件（字符串大小写不敏感，或正则）
@@ -760,6 +827,32 @@ const updateChildValue = (childKey: string | number, newValue: unknown) => {
 };
 
 /**
+ * 删除子节点（对象键或数组元素）
+ * @param {string|number} childKey - 子节点的键名或索引
+ */
+const deleteChild = (childKey: string | number) => {
+  if (isObject.value) {
+    const source = (props.data || {}) as Record<string, unknown>;
+    const targetKey = String(childKey);
+    if (!Object.prototype.hasOwnProperty.call(source, targetKey)) return;
+    const entries = Object.entries(source).filter(([key]) => key !== targetKey);
+    emit('update:data', Object.fromEntries(entries) as Record<string, unknown>);
+    toastr.success(t`已删除变量`);
+    return;
+  }
+  if (isArray.value) {
+    const source = Array.isArray(props.data) ? (props.data as unknown[]) : [];
+    const index = Number(childKey);
+    if (Number.isNaN(index) || index < 0 || index >= source.length) return;
+    const cloned = source.slice();
+    cloned.splice(index, 1);
+    emit('update:data', cloned as unknown[]);
+    toastr.success(t`已删除变量`);
+    return;
+  }
+};
+
+/**
  * 重命名对象的子键
  * @param {string|number} oldKey - 原始键名
  * @param {string|number} newKey - 新键名
@@ -955,5 +1048,93 @@ const handleValueTouchEnd = (event: TouchEvent) => {
     startValueEditing();
   }
   lastValueTapTime = now;
+};
+
+/**
+ * 打开“添加子变量/元素”对话框，并在当前对象/数组下新增一项
+ */
+const openAddChild = () => {
+  if (isPrimitive.value) return;
+  const { open: openCreatorModal } = useModal({
+    component: RootVariableCreator,
+    attrs: {
+      onSubmit: async (payload: { key: string; value: unknown }) => {
+        if (isObject.value) {
+          const source = (props.data || {}) as Record<string, unknown>;
+          const key = String(payload.key || '').trim();
+          if (!key) {
+            toastr.error(t`键名不能为空`, t`新增变量失败`);
+            return false;
+          }
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            toastr.error(t`键名已存在`, t`新增变量失败`);
+            return false;
+          }
+          const updated = { ...source, [key]: payload.value } as Record<string, unknown>;
+          emit('update:data', updated);
+          toastr.success(t`已添加到对象`);
+          return true;
+        }
+        if (isArray.value) {
+          const source = Array.isArray(props.data) ? (props.data as unknown[]) : [];
+          const updated = source.slice();
+          updated.push(payload.value);
+          emit('update:data', updated);
+          toastr.success(t`已添加到数组`);
+          return true;
+        }
+        return false;
+      },
+    },
+  });
+  openCreatorModal();
+};
+
+/**
+ * 清空顶层内容：对象 -> {}，数组 -> []，原始值 -> {}
+ */
+const clearRoot = () => {
+  if (!isRoot.value) return;
+  if (isObject.value) {
+    emit('update:data', {} as Record<string, unknown>);
+    toastr.success(t`已清空对象`);
+    return;
+  }
+  if (isArray.value) {
+    emit('update:data', [] as unknown[]);
+    toastr.success(t`已清空数组`);
+    return;
+  }
+  emit('update:data', {} as Record<string, unknown>);
+  toastr.success(t`已重置为对象`);
+};
+
+/**
+ * 删除当前行（请求父级删除），带二次确认
+ */
+const confirmAndDeleteSelf = () => {
+  if (props.nodeKey === null || props.parentType === null) return;
+  const msg = t`确定要删除此变量吗？此操作不可撤销`;
+
+  const { open: openDeleteConfirm } = useModal({
+    component: Popup,
+    attrs: {
+      buttons: [
+        {
+          name: t`确定`,
+          shouldEmphasize: true,
+          onClick: close => {
+            emit('delete-self');
+            close();
+          },
+        },
+        { name: t`取消` },
+      ],
+    },
+    slots: {
+      default: `<div>${msg}</div>`,
+    },
+  });
+  openDeleteConfirm();
 };
 </script>
