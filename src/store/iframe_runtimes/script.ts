@@ -42,17 +42,19 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
       .value();
   });
 
-  const buttons = computed(() => {
+  const button_map = computed<{ [script_id: string]: { button_id: string; button_name: string }[] }>(() => {
     return _(enabled_scripts.value)
-      .filter(script => script.button.enabled)
-      .flatMap(script =>
+      .filter(script => script.button.enabled && script.button.buttons.some(button => button.visible))
+      .map(script => [
+        script.id,
         script.button.buttons
           .filter(button => button.visible)
           .map(button => ({
             button_id: getButtonId(script.id, button.name),
             button_name: button.name,
           })),
-      )
+      ])
+      .fromPairs()
       .value();
   });
 
@@ -60,5 +62,13 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
     return enabled_scripts.value.find(script => script.id === script_id);
   };
 
-  return { reload_memos: readonly(reload_memos), enabled_scripts, runtimes, buttons, get, reload, reloadAll };
+  return {
+    reload_memos: readonly(reload_memos),
+    enabled_scripts,
+    runtimes,
+    button_map,
+    get,
+    reload,
+    reloadAll,
+  };
 });
