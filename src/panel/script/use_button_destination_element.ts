@@ -6,6 +6,7 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
   eventSource.on(event_types.CHAT_CHANGED, () => {
     force_key.value = Symbol();
   });
+
   const qr_settings = shallowRef(
     _.cloneDeep(_.get(extension_settings, 'quickReplyV2') as unknown as Record<string, any>),
   );
@@ -19,7 +20,7 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
     force_key.value = Symbol();
   });
 
-  const element = ref<HTMLElement | null>(null);
+  const element = shallowRef<HTMLElement | null>(null);
   watch([qr_settings, force_key], ([qr_settings]) => {
     const $send_form = $('#send_form');
     const $possible_qr_bar = $send_form.children('#qr--bar');

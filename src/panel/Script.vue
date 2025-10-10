@@ -54,10 +54,10 @@
 </template>
 
 <script setup lang="ts">
-import { useButtonDestinationElement } from '@/panel/render/use_button_destination_element';
 import Container from '@/panel/script/Container.vue';
 import Iframe from '@/panel/script/Iframe.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
+import { useButtonDestinationElement } from '@/panel/script/use_button_destination_element';
 import { useResolveIdConflict } from '@/panel/script/use_resolve_id_conflict';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
