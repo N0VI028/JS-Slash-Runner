@@ -15,7 +15,11 @@
         filter: script.enabled ? 'none' : 'grayscale(0.5)',
       }"
     >
-      {{ script.name }}
+      <SearchHighlighter
+        :query="props.searchInput"
+        :text-to-highlight="script.name"
+        highlight-class="th-highlight-mark"
+      />
     </div>
     <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
@@ -37,6 +41,7 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
+import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';

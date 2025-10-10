@@ -34,9 +34,15 @@
           </div>
           <span
             class="overflow-hidden font-semibold text-ellipsis whitespace-nowrap text-[var(--SmartThemeQuoteColor)]"
-            :title="displayName"
-            >{{ displayName }}</span
+            :title="displayNameFixed"
           >
+            <template v-if="isSearching">
+              <SearchHighlighter :query="props.searchInput" :text-to-highlight="displayNameFixed" />
+            </template>
+            <template v-else>
+              {{ displayNameFixed }}
+            </template>
+          </span>
           <slot name="tag">
             <span
               v-if="typeLabel"
@@ -97,6 +103,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { Tippy, TippyComponent } from 'vue-tippy';
+import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 
 import { treeControlKey } from '@/panel/toolbox/variable_manager/types';
 import { whenever } from '@vueuse/core';
@@ -111,6 +118,8 @@ const props = withDefaults(
     collapsible?: boolean;
     collapsed?: boolean;
     defaultCollapsed?: boolean;
+    /** 搜索输入，空字符串或未定义表示未搜索 */
+    searchInput?: string | RegExp;
   }>(),
   {
     depth: 0,
@@ -118,6 +127,7 @@ const props = withDefaults(
     icon: undefined,
     collapsible: true,
     defaultCollapsed: false,
+    searchInput: '',
   },
 );
 
@@ -129,11 +139,9 @@ const emit = defineEmits<{
 }>();
 
 /**
- * 计算显示名称
- * 如果nameModel为空或空白，则显示默认的"未命名变量"
- * 否则将值转换为字符串显示
+ * 计算显示名称（修复编码异常场景下的显示问题）
  */
-const displayName = computed(() => {
+const displayNameFixed = computed(() => {
   const value = nameModel.value;
   if (value === undefined || value === null || `${value}`.trim() === '') {
     return '未命名变量';
@@ -278,6 +286,10 @@ const depthIndicatorStyle = computed(() => {
 });
 
 const appendToElement = computed(() => document.body);
+
+const isSearching = computed(
+  () => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null,
+);
 
 /**
  * 展开动画：进入时

@@ -23,7 +23,13 @@
           textDecoration: script_folder.enabled ? 'none' : 'line-through',
           filter: script_folder.enabled ? 'none' : 'grayscale(0.5)',
         }"
-        >{{ script_folder.name }}</span
+      >
+        <SearchHighlighter
+          :query="props.searchInput"
+          :text-to-highlight="script_folder.name"
+          highlight-class="th-highlight-mark"
+        />
+      </span
       >
       <div class="flex shrink-0 flex-wrap items-center gap-0.25">
         <!-- prettier-ignore-attribute -->
@@ -72,6 +78,7 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
+import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { ScriptFolderForm } from '@/panel/script/type';

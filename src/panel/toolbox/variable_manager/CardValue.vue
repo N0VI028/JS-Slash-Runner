@@ -24,6 +24,7 @@
             : 'fa-regular fa-circle-dot'
     "
     collapsible
+    :search-input="props.searchInput"
     @delete="emitDelete"
   >
     <div
@@ -34,15 +35,22 @@
         md:text-base md:leading-normal
       "
     >
-      {{ formattedValue }}
+      <template v-if="isSearching">
+        <SearchHighlighter :query="props.searchInput" :text-to-highlight="formattedValue" />
+      </template>
+      <template v-else>
+        {{ formattedValue }}
+      </template>
     </div>
   </CardBase>
 </template>
 
 <script setup lang="ts">
+import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { computed, ref, watch } from 'vue';
+import { isSearching as isSearchingUtil, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any>('content', { required: true });
@@ -56,10 +64,13 @@ const props = withDefaults(
     collapsed?: boolean;
     depth?: number;
     filters: FiltersState;
+    /** 搜索输入，空字符串或未定义表示未搜索 */
+    searchInput?: string | RegExp;
   }>(),
   {
     collapsed: false,
     depth: 0,
+    searchInput: '',
   },
 );
 
@@ -113,7 +124,7 @@ const formattedValue = computed(() => {
     case 'string':
       return v === '' ? '""' : String(v);
     case 'number':
-      return v;
+      return String(v);
     case 'boolean':
       return v ? 'true' : 'false';
     case 'nil':
@@ -122,4 +133,23 @@ const formattedValue = computed(() => {
       return String(v);
   }
 });
+
+const isSearching = computed(() => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null);
+
+// 搜索命中时自动展开
+const searchMatched = computed(() => {
+  if (!isSearchingUtil(props.searchInput)) return false;
+  const q = props.searchInput as string | RegExp;
+  return nodeMatchesSearch(name.value as any, content.value, q);
+});
+
+watch(
+  () => searchMatched.value,
+  matched => {
+    if (matched && isCollapsed.value) {
+      isCollapsed.value = false;
+    }
+  },
+  { immediate: true },
+);
 </script>

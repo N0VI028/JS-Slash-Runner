@@ -35,7 +35,12 @@
   </div>
 
   <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
-    <Editor v-model="variables_map[message_id]" :filters="props.filters" :current-view="props.currentView" />
+    <Editor
+      v-model="variables_map[message_id]"
+      :filters="props.filters"
+      :current-view="props.currentView"
+      :search-input="props.searchInput"
+    />
   </template>
 </template>
 
@@ -49,6 +54,7 @@ import { chat } from '@sillytavern/script';
 const props = defineProps<{
   filters: FiltersState;
   currentView: 'tree' | 'card' | 'text';
+  searchInput?: string | RegExp;
 }>();
 
 const from = ref(-1);

@@ -18,6 +18,7 @@ import CardObject from '@/panel/toolbox/variable_manager/CardObject.vue';
 import CardValue from '@/panel/toolbox/variable_manager/CardValue.vue';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { matchesFilters } from '@/panel/toolbox/variable_manager/filter';
+import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any>('content', { required: true });
@@ -27,10 +28,13 @@ const props = withDefaults(
     depth?: number;
     asChild?: boolean;
     filters: FiltersState;
+    /** 搜索输入，空字符串或未定义表示未搜索 */
+    searchInput?: string | RegExp;
   }>(),
   {
     depth: 0,
     asChild: false,
+    searchInput: '',
   },
 );
 
@@ -55,11 +59,19 @@ const resolvedComponent = computed(() => {
 
 const filterDepth = computed(() => (props.asChild ? (props.depth ?? 0) : (props.depth ?? 0) + 1));
 
-const isVisible = computed(() => matchesFilters(content.value, props.filters, filterDepth.value));
+const filterMatched = computed(() => matchesFilters(content.value, props.filters, filterDepth.value));
+const searchMatched = computed(() => {
+  if (!isSearching(props.searchInput)) return true;
+  const q = props.searchInput as string | RegExp;
+  return nodeMatchesSearch(name.value as any, content.value, q);
+});
+
+const isVisible = computed(() => filterMatched.value && searchMatched.value);
 
 const componentProps = computed(() => ({
   depth: props.depth ?? 0,
   filters: props.filters,
+  searchInput: props.searchInput,
 }));
 
 const handleSave = () => {

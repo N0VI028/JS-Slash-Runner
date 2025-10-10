@@ -32,6 +32,7 @@
           class="h-full"
           :filters="filters"
           :current-view="currentView"
+          :search-input="search_input"
         />
       </template>
     </div>

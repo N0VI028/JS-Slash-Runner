@@ -7,6 +7,7 @@
     :depth="props.depth"
     :type-label="`${t`Array`} · ${content.length}`"
     icon="fa-solid fa-list"
+    :search-input="props.searchInput"
     @delete="emitDelete"
   >
     <VueDraggable
@@ -44,6 +45,7 @@
           :name="index"
           :depth="nextDepth"
           :filters="props.filters"
+          :search-input="props.searchInput"
           :as-child="true"
           @delete="removeItem(index)"
         />
@@ -63,6 +65,7 @@ import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
 import CardMode from '@/panel/toolbox/variable_manager/CardMode.vue';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { matchesFilters } from '@/panel/toolbox/variable_manager/filter';
+import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any[]>('content', { required: true });
@@ -76,10 +79,13 @@ const props = withDefaults(
     collapsed?: boolean;
     depth?: number;
     filters: FiltersState;
+    /** 搜索输入，空字符串或未定义表示未搜索 */
+    searchInput?: string | RegExp;
   }>(),
   {
     collapsed: true,
     depth: 0,
+    searchInput: '',
   },
 );
 
@@ -144,9 +150,34 @@ const itemKeys = computed(() => {
   });
 });
 
-const itemVisibility = computed(() => content.value.map(item => matchesFilters(item, props.filters, nextDepth.value)));
+const itemVisibility = computed(() =>
+  content.value.map((item, index) => {
+    const filterOk = matchesFilters(item, props.filters, nextDepth.value);
+    if (!filterOk) return false;
+    if (!isSearching(props.searchInput)) return true;
+    const q = props.searchInput as string | RegExp;
+    return nodeMatchesSearch(index as any, item, q);
+  }),
+);
 
 const removeItem = (index: number) => {
   content.value.splice(index, 1);
 };
+
+// 搜索命中时自动展开
+const searchMatched = computed(() => {
+  if (!isSearching(props.searchInput)) return false;
+  const q = props.searchInput as string | RegExp;
+  return nodeMatchesSearch(name.value as any, content.value, q);
+});
+
+watch(
+  () => searchMatched.value,
+  matched => {
+    if (matched && isCollapsed.value) {
+      isCollapsed.value = false;
+    }
+  },
+  { immediate: true },
+);
 </script>

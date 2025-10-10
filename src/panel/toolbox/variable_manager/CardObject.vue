@@ -6,6 +6,7 @@
     :depth="props.depth"
     :type-label="t`Object`"
     icon="fa-regular fa-folder-open"
+    :search-input="props.searchInput"
     @delete="emitDelete"
   >
     <div class="mt-0.5 flex min-w-0 flex-col gap-0.5 p-0">
@@ -15,6 +16,7 @@
           v-model:content="data[1]"
           :depth="nextDepth"
           :filters="props.filters"
+          :search-input="props.searchInput"
           :as-child="true"
           @delete="removeField(data[0])"
         />
@@ -29,6 +31,7 @@ import { computed, ref, watch } from 'vue';
 import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
 import CardMode from '@/panel/toolbox/variable_manager/CardMode.vue';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
+import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<Record<string, any>>('content', { required: true });
@@ -42,10 +45,13 @@ const props = withDefaults(
     collapsed?: boolean;
     depth?: number;
     filters: FiltersState;
+    /** 搜索输入，空字符串或未定义表示未搜索 */
+    searchInput?: string | RegExp;
   }>(),
   {
     collapsed: true,
     depth: 0,
+    searchInput: '',
   },
 );
 
@@ -81,4 +87,21 @@ const removeField = (fieldKey: string) => {
   const entries = Object.entries(content.value).filter(([key]) => key !== fieldKey);
   content.value = Object.fromEntries(entries);
 };
+
+// 搜索命中时自动展开
+const searchMatched = computed(() => {
+  if (!isSearching(props.searchInput)) return false;
+  const q = props.searchInput as string | RegExp;
+  return nodeMatchesSearch(name.value as any, content.value, q);
+});
+
+watch(
+  () => searchMatched.value,
+  matched => {
+    if (matched && isCollapsed.value) {
+      isCollapsed.value = false;
+    }
+  },
+  { immediate: true },
+);
 </script>

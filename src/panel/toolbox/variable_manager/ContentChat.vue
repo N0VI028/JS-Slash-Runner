@@ -1,5 +1,11 @@
 <template>
-  <Editor ref="editorRef" v-model="variables" :filters="props.filters" :current-view="props.currentView" />
+  <Editor
+    ref="editorRef"
+    v-model="variables"
+    :filters="props.filters"
+    :current-view="props.currentView"
+    :search-input="props.searchInput"
+  />
 </template>
 
 <script setup lang="ts">
@@ -11,6 +17,7 @@ import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 const props = defineProps<{
   filters: FiltersState;
   currentView: 'tree' | 'card' | 'text';
+  searchInput?: string | RegExp;
 }>();
 
 const variables = shallowRef<Record<string, any>>(get_variables_without_clone({ type: 'chat' }));

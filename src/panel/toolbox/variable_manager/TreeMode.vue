@@ -69,7 +69,18 @@
             @dblclick.stop.prevent="handleKeyAreaDoubleActivate"
             @touchend="handleKeyAreaTouchEnd"
           >
-            {{ nodeKey }}
+            <template v-if="isSearching">
+              <SearchHighlighter
+                :query="props.searchInput"
+                :text-to-highlight="String(nodeKey)"
+                wrapper-tag="span"
+                wrapper-class="th-highlight-wrapper"
+                highlight-class="th-highlight-mark"
+              />
+            </template>
+            <template v-else>
+              {{ nodeKey }}
+            </template>
           </span>
         </template>
         <template v-else>
@@ -97,7 +108,17 @@
           @dblclick.stop.prevent="startValueEditing"
           @touchend="handleValueTouchEnd"
         >
-          {{ valuePreview }}
+          <!-- 搜索时为字符串值高亮匹配片段，否则沿用原展示 -->
+          <template v-if="isSearching && isStringValue">
+            <SearchHighlighter
+              :query="props.searchInput"
+              :text-to-highlight="stringValueWithQuotes"
+              wrapper-tag="span"
+            />
+          </template>
+          <template v-else>
+            {{ valuePreview }}
+          </template>
         </span>
         <!-- prettier-ignore -->
         <textarea
@@ -130,6 +151,7 @@
         :depth="depth + 1"
         :node-key="key"
         :filters="filters"
+        :search-input="props.searchInput"
         :parent-type="isArray ? 'array' : isObject ? 'object' : null"
         @update:data="childValue => updateChildValue(key, childValue)"
         @rename-key="newKey => renameChildKey(key, newKey)"
@@ -142,6 +164,7 @@
 </template>
 
 <script setup lang="ts">
+import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { treeControlKey, treeSelectionKey } from '@/panel/toolbox/variable_manager/types';
 import { onClickOutside, useToggle, whenever } from '@vueuse/core';
@@ -160,6 +183,8 @@ const props = withDefaults(
   defineProps<{
     data: Record<string, unknown> | unknown[] | Primitive;
     filters: FiltersState;
+    /** 搜索输入，空字符串或未定义表示未搜索 */
+    searchInput?: string | RegExp;
     path?: (string | number)[];
     depth?: number;
     nodeKey?: string | number | null;
@@ -167,6 +192,7 @@ const props = withDefaults(
   }>(),
   {
     path: () => [],
+    searchInput: '',
     depth: 0,
     nodeKey: null,
     parentType: null,
@@ -395,6 +421,58 @@ const valueType = computed(() => {
   if (Array.isArray(props.data)) return 'array';
   return typeof props.data;
 });
+
+// 搜索、高亮与自动展开相关逻辑
+const isSearching = computed(
+  () => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null,
+);
+const isStringValue = computed(() => valueType.value === 'string');
+const stringValueWithQuotes = computed(() =>
+  typeof props.data === 'string' ? `"${props.data}"` : '',
+);
+
+/**
+ * 判断文本是否命中查询条件（字符串大小写不敏感，或正则）
+ */
+const testQuery = (text: string): boolean => {
+  const q = props.searchInput as string | RegExp | undefined;
+  if (!q || q === '') return false;
+  try {
+    if (q instanceof RegExp) return q.test(text);
+  } catch {
+    return false;
+  }
+  const s = String(q).toLowerCase();
+  return text.toLowerCase().includes(s);
+};
+
+/**
+ * 递归检查当前节点（及子孙）是否存在命中的字符串字段
+ */
+const hasSearchHit = (value: unknown, visited: WeakSet<object> = new WeakSet<object>()): boolean => {
+  if (typeof value === 'string') return testQuery(value);
+  if (value && typeof value === 'object') {
+    if (visited.has(value as object)) return false;
+    visited.add(value as object);
+    if (Array.isArray(value)) return (value as unknown[]).some(v => hasSearchHit(v, visited));
+    const obj = value as Record<string, unknown>;
+    return Object.values(obj).some(v => hasSearchHit(v, visited));
+  }
+  return false;
+};
+
+const hasMatchInSubtree = computed(() => (isSearching.value ? hasSearchHit(props.data) : false));
+
+// 搜索时，命中则自动展开（不强制回收折叠状态，只做展开）
+watch(
+  () => hasMatchInSubtree.value,
+  val => {
+    if (!isPrimitive.value && val) {
+      collapsed.value = false;
+    }
+  },
+  { immediate: true },
+);
 
 /**
  * 将原始值格式化为编辑时显示的字符串

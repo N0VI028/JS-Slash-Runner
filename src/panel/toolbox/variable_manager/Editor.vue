@@ -2,18 +2,28 @@
   <div class="flex-1 overflow-y-auto p-1">
     <div class="flex h-full w-full flex-col gap-0.5">
       <template v-if="writable_variables.length > 0 || props.currentView === 'text'">
-        <TreeMode v-if="props.currentView === 'tree'" v-model:data="variables" :filters="props.filters" />
+        <TreeMode
+          v-if="props.currentView === 'tree'"
+          v-model:data="variables"
+          :filters="props.filters"
+          :search-input="props.searchInput"
+        />
         <template v-else-if="props.currentView === 'card'">
           <template v-for="data in writable_variables" :key="data[0]">
             <CardMode
               v-model:name="data[0]"
               v-model:content="data[1]"
               :filters="props.filters"
+              :search-input="props.searchInput"
               @delete="removeVariable($event.name)"
             />
           </template>
         </template>
-        <TextMode v-else-if="props.currentView === 'text'" v-model:data="variables" />
+        <TextMode
+          v-else-if="props.currentView === 'text'"
+          v-model:data="variables"
+          :search-input="props.searchInput"
+        />
       </template>
     </div>
   </div>
@@ -33,6 +43,7 @@ import { rootVariableKeySchema } from '@/panel/toolbox/variable_manager/types';
 const props = defineProps<{
   filters: FiltersState;
   currentView: 'tree' | 'card' | 'text';
+  searchInput?: string | RegExp;
 }>();
 
 const variables = defineModel<Record<string, any>>({ required: true });

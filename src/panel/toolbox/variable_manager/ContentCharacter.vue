@@ -1,5 +1,11 @@
 <template>
-  <Editor ref="editorRef" v-model="settings.variables" :filters="props.filters" :current-view="props.currentView" />
+  <Editor
+    ref="editorRef"
+    v-model="settings.variables"
+    :filters="props.filters"
+    :current-view="props.currentView"
+    :search-input="props.searchInput"
+  />
 </template>
 
 <script setup lang="ts">
@@ -11,6 +17,7 @@ import { useCharacterSettingsStore } from '@/store/settings';
 const props = defineProps<{
   filters: FiltersState;
   currentView: 'tree' | 'card' | 'text';
+  searchInput?: string | RegExp;
 }>();
 
 const settings = toRef(useCharacterSettingsStore(), 'settings');

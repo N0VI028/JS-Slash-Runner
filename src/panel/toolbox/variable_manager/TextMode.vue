@@ -1,32 +1,56 @@
 <template>
   <!-- prettier-ignore -->
   <div class="relative h-full w-full overflow-hidden">
+    <!-- 文本编辑：正常模式显示 textarea -->
     <textarea
+      v-show="!isSearching"
       ref="textareaRef"
       v-model="textContent"
-      class="h-full w-full resize-none! text-sm!"
+      class="absolute inset-0 h-full w-full resize-none! text-sm!"
       spellcheck="false"
       @blur="handleSave"
     ></textarea>
+
+    <!-- 搜索模式：隐藏 textarea，显示高亮 div（样式复制自 textarea） -->
+    <div
+      v-show="isSearching"
+      ref="highlightRef"
+      class="absolute inset-0 overflow-auto whitespace-pre-wrap"
+    >
+      <SearchHighlighter
+        :query="props.searchInput"
+        :text-to-highlight="textContent"
+        wrapper-tag="div"
+        highlight-class="th-highlight-mark"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import { onClickOutside } from '@vueuse/core';
-import { onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-const props = defineProps<{
-  data: Record<string, unknown> | unknown[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    data: Record<string, unknown> | unknown[];
+    /** 搜索输入，空字符串表示未搜索 */
+    searchInput?: string | RegExp;
+  }>(),
+  { searchInput: '' },
+);
 
 const emit = defineEmits<{
   (event: 'update:data', value: Record<string, unknown> | unknown[]): void;
 }>();
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const highlightRef = ref<HTMLDivElement | null>(null);
 const textContent = ref('');
 const isDirty = ref(false);
 const isInitialized = ref(false);
+const isSearching = computed(() => props.searchInput !== '');
 
 /**
  * 格式化对象为可读的JSON文本
@@ -106,7 +130,6 @@ watch(
   { immediate: true, deep: true },
 );
 
-// 监听文本变化，标记为已修改
 watch(textContent, () => {
   if (isInitialized.value) {
     isDirty.value = true;
@@ -123,16 +146,61 @@ onBeforeUnmount(() => {
     stopClickOutside();
   }
 });
+
+/**
+ * 复制 textarea 的关键样式到高亮容器，确保无感切换
+ */
+function copyTextareaStyles() {
+  const ta = textareaRef.value;
+  const hi = highlightRef.value;
+  if (!ta || !hi) return;
+  const cs = window.getComputedStyle(ta);
+  const keys: Array<string> = [
+    'font-size',
+    'line-height',
+    'padding-top',
+    'padding-right',
+    'padding-bottom',
+    'padding-left',
+    'border-top-width',
+    'border-right-width',
+    'border-bottom-width',
+    'border-left-width',
+    'border-top-style',
+    'border-right-style',
+    'border-bottom-style',
+    'border-left-style',
+    'border-top-color',
+    'border-right-color',
+    'border-bottom-color',
+    'border-left-color',
+    'border-radius',
+    'background-color',
+  ];
+  for (const prop of keys) {
+    const v = cs.getPropertyValue(prop);
+    if (v) hi.style.setProperty(prop, v);
+  }
+  hi.style.whiteSpace = 'pre-wrap';
+  hi.style.overflow = 'auto';
+}
+
+// 切换搜索视图时，同步滚动位置并复制样式
+watch(isSearching, async val => {
+  await nextTick();
+  if (val) {
+    copyTextareaStyles();
+    if (textareaRef.value && highlightRef.value) {
+      highlightRef.value.scrollTop = textareaRef.value.scrollTop;
+      highlightRef.value.scrollLeft = textareaRef.value.scrollLeft;
+    }
+  } else if (textareaRef.value && highlightRef.value) {
+    textareaRef.value.scrollTop = highlightRef.value.scrollTop;
+    textareaRef.value.scrollLeft = highlightRef.value.scrollLeft;
+  }
+});
+
+onMounted(() => {
+  if (isSearching.value) nextTick(copyTextareaStyles);
+});
 </script>
-
-<style scoped>
-textarea {
-  tab-size: 2;
-  -moz-tab-size: 2;
-}
-
-textarea::selection {
-  background-color: var(--SmartThemeQuoteColor);
-  color: var(--SmartThemeBGColor);
-}
-</style>
