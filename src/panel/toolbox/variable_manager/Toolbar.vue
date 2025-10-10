@@ -45,15 +45,15 @@
             :disabled="currentView === 'text'"
           />
           <IconButton
-            title="收起全部"
-            icon="fa-solid fa-angles-up"
-            :on-click="collapseAll"
+            title="展开全部"
+            icon="fa-solid fa-expand"
+            :on-click="expandAll"
             :disabled="currentView === 'text'"
           />
           <IconButton
-            title="展开全部"
-            icon="fa-solid fa-angles-down"
-            :on-click="expandAll"
+            title="收起全部"
+            icon="fa-solid fa-compress"
+            :on-click="collapseAll"
             :disabled="currentView === 'text'"
           />
           <IconButton
