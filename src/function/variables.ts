@@ -57,11 +57,11 @@ export function get_variables_without_clone(option: VariableOption): Record<stri
   }
 }
 
-export function getVariables(option: VariableOption = { type: 'message' }): Record<string, any> {
+export function getVariables(option: VariableOption = { type: 'chat' }): Record<string, any> {
   return _.cloneDeep(get_variables_without_clone(option));
 }
 
-export function _getVariables(this: Window, option: VariableOption = { type: 'message' }): Record<string, any> {
+export function _getVariables(this: Window, option: VariableOption = { type: 'chat' }): Record<string, any> {
   return option.type === 'script'
     ? getVariables({ type: 'script', script_id: _getScriptId.call(this) })
     : getVariables(option);
@@ -89,7 +89,7 @@ export function _getAllVariables(this: Window): Record<string, any> {
   return structuredClone(result.value());
 }
 
-export function replaceVariables(variables: Record<string, any>, option: VariableOption = { type: 'message' }): void {
+export function replaceVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): void {
   switch (option.type) {
     case 'message': {
       option.message_id = option.message_id === undefined || option.message_id === 'latest' ? -1 : option.message_id;
@@ -157,7 +157,7 @@ export function replaceVariables(variables: Record<string, any>, option: Variabl
 export function _replaceVariables(
   this: Window,
   variables: Record<string, any>,
-  option: VariableOption = { type: 'message' },
+  option: VariableOption = { type: 'chat' },
 ): void {
   return option.type === 'script'
     ? replaceVariables(variables, { type: 'script', script_id: _getScriptId.call(this) })
