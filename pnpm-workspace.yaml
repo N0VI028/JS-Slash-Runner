@@ -2,6 +2,5 @@ onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@tailwindcss/oxide'
   - esbuild
-  - json-editor-vue
   - unrs-resolver
   - vue-demi

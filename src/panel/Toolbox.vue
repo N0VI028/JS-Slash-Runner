@@ -39,15 +39,6 @@
         <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
         <span>{{ t`变量管理器` }}</span>
       </div>
-      <div
-        class="list-group-item flex-container flexGap5 interactable"
-        tabindex="0"
-        role="listitem"
-        @click="enable_variable_manager2 = true"
-      >
-        <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
-        <span>{{ t`变量管理器2` }}</span>
-      </div>
     </div>
   </Teleport>
 
@@ -68,24 +59,14 @@
     >
       <VariableManager />
     </Dialog>
-    <Dialog
-      v-if="enable_variable_manager2"
-      storage-id="variable-manager2"
-      :title="t`变量管理器2`"
-      @close="enable_variable_manager2 = false"
-    >
-      <VariableManager2 />
-    </Dialog>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
 import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
 import VariableManager from '@/panel/toolbox/VariableManager.vue';
-import VariableManager2 from '@/panel/toolbox/VariableManager2.vue';
+import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
-const enable_variable_manager2 = ref<boolean>(false);
 </script>
