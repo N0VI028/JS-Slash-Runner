@@ -3,8 +3,8 @@
   <Popup v-model="isVisible" :buttons="popupButtons">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
-        <strong>列表编辑</strong>
-        <div title="导入音频链接" class="menu_button menu_button_icon">
+        <h3>列表编辑</h3>
+        <div title="导入音频链接" class="menu_button menu_button_icon" @click="openImporter">
           <i class="fa-solid fa-file-import"></i>
         </div>
       </div>
@@ -15,18 +15,21 @@
           direction="vertical"
           item-key="id"
         >
-          <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center justify-between gap-0.5">
-            <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
+          <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center gap-0.5">
+            <span class="TH-handle flex-shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
             <div
               class="
-                flex grow items-center gap-0.5 rounded border border-[var(--SmartThemeBorderColor)] px-0.5 py-[1px]
+                flex min-w-0 grow items-center gap-0.5 rounded border border-[var(--SmartThemeBorderColor)] px-0.5
+                py-[1px]
               "
             >
-              <span>{{ index + 1 }}. {{ item.title ? item.title : item.url }}</span>
+              <span class="overflow-hidden break-all text-ellipsis whitespace-nowrap hover:whitespace-normal">{{ item.title ? item.title : item.url }}</span>
             </div>
-            <button class="menu_button interactable self-end" @click="editItem(index)"><i class="fa-solid fa-pencil"></i></button>
-            <button class="menu_button interactable self-end bg-(--crimson70a)!" @click="openDeleteConfirm(index)"><i
+            <div class="flex flex-shrink-0 items-center gap-0.5">
+              <button class="menu_button interactable" @click="editItem(index)"><i class="fa-solid fa-pencil"></i></button>
+              <button class="menu_button interactable bg-(--crimson70a)!" @click="openDeleteConfirm(index)"><i
 class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         </VueDraggable>
       </div>
@@ -34,7 +37,9 @@ class="fa-solid fa-trash"></i></button>
 </template>
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
+import PlayListImporter from '@/panel/toolbox/audio_player/PlayListImporter.vue';
 import PlayListItemEditor from '@/panel/toolbox/audio_player/PlayListItemEditor.vue';
+
 const props = defineProps<{
   playlist: { url: string; title?: string }[];
   onSubmit?: (playlist: { url: string; title?: string }[]) => void;
@@ -55,6 +60,19 @@ const isVisible = ref(true);
 const submit = (close: () => void) => {
   props.onSubmit?.(playlist.value);
   close();
+};
+
+const openImporter = () => {
+  const { open: openImporterModal } = useModal({
+    component: PlayListImporter,
+    attrs: {
+      onSubmit: (items: { url: string; title?: string }[]) => {
+        // 将导入的项目添加到播放列表末尾
+        playlist.value.push(...items);
+      },
+    },
+  });
+  openImporterModal();
 };
 
 const openDeleteConfirm = (index: number) => {

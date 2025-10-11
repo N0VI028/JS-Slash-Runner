@@ -38,7 +38,7 @@
       </div>
     </div>
     <div
-class='flex items-center gap-0.5 rounded-sm border border-[var(--SmartThemeBorderColor)] bg-[var(--black30a)] p-0.5'>
+class='flex items-center rounded-sm border border-[var(--SmartThemeBorderColor)] bg-[var(--black30a)] px-0.75 py-0.25'>
       <!-- 播放 -->
       <div>
         <button class="menu_button min-h-2 min-w-2" :disabled="!props.enabled || !model.enabled"  @click="togglePlay()">
@@ -57,8 +57,8 @@ class='flex items-center gap-0.5 rounded-sm border border-[var(--SmartThemeBorde
           <option v-for="item in model.playlist" :key="item.title?item.title:item.url" :value="item.url">{{ item.title?item.title:item.url }}</option>
         </select>
       </div>
-      <div class="flex items-center gap-0.25" @click="openPlaylist()">
-        <div class="menu_button interactable" title="{{ t`播放列表` }}">
+      <div class="flex items-center gap-0.25">
+        <div class="menu_button interactable" title="{{ t`播放列表` }}" @click="openPlaylist()">
           <i class="fa-solid fa-list-ol"></i>
         </div>
         <div
@@ -69,12 +69,18 @@ class='flex items-center gap-0.5 rounded-sm border border-[var(--SmartThemeBorde
             class="fa-solid"
             :class="[
               {
-                repeat_one: 'fa-redo-alt',
-                repeat_all: 'fa-repeat',
-                shuffle: 'fa-random',
-                play_one_and_stop: 'fa-cancel',
+                repeat: 'fa-repeat',
+                single: 'fa-redo-alt',
+                random: 'fa-random',
+                stop: 'fa-cancel',
               }[model.mode],
             ]"
+            :title="{
+              repeat: t`循环播放`,
+              single: t`单曲循环`,
+              random: t`随机播放`,
+              stop: t`播完停止`,
+            }[model.mode]"
           />
         </div>
       </div>
@@ -100,20 +106,9 @@ const model = defineModel<{
   playlist: { url: string; title?: string }[];
 }>({ required: true });
 
-/**
- * 处理播放列表，给没有title的url添加默认title
- */
-const handlePlaylist = () => {
-  model.value.playlist.forEach(item => {
-    if (!item.title) {
-      item.title = handleUrlToTitle(item.url);
-    }
-  });
-};
-
-onMounted(() => {
-  handlePlaylist();
-  // 如果没有选择任何曲目，默认选中第一个
+// 监听 playlist 变化，自动选择第一个曲目
+watchEffect(() => {
+  // 如果没有选择任何曲目，且播放列表不为空，默认选中第一个
   if (!model.value.src && model.value.playlist.length > 0) {
     model.value.src = model.value.playlist[0].url;
   }
@@ -208,18 +203,18 @@ const onEnded = () => {
   const nextIndex = (currentIndex + 1) % model.value.playlist.length;
 
   switch (model.value.mode) {
-    case 'repeat_one':
+    case 'single':
       play({ currentTime: 0 });
       break;
-    case 'repeat_all':
+    case 'repeat':
       model.value.src = model.value.playlist[nextIndex].url;
       play();
       break;
-    case 'shuffle':
+    case 'random':
       model.value.src = (_.sample(model.value.playlist) as { url: string; title?: string }).url;
       play();
       break;
-    case 'play_one_and_stop':
+    case 'stop':
       model.value.playing = false;
       break;
   }
@@ -268,14 +263,5 @@ const openPlaylist = () => {
   });
 
   openCreatorModal();
-};
-
-/**
- * 处理url，取最后的文件名称为默认tit
- * @param url
- * @returns
- */
-const handleUrlToTitle = (url: string) => {
-  return url.split('/').pop()?.split('.').shift();
 };
 </script>

@@ -22,17 +22,4 @@ import { useGlobalSettingsStore } from '@/store/settings';
 const { enabled } = toRefs(useGlobalSettingsStore().settings.audio);
 const bgm = useBgmAudioStore();
 const ambient = useAmbientAudioStore();
-
-const tempBgmPlaylist = ref([
-  { url: 'https://ontama-m.com/midi/data/mp3_file/original/ontama_kawaii_youseisankonnichiha.mp3', title: 'title1' },
-  { url: 'https://ontama-m.com/midi/data/mp3_file/original/raina_p.mp3' },
-  { url: 'https://ontama-m.com/midi/data/mp3_file/original/kuturogi.mp3' },
-]);
-const tempAmbientPlaylist = ref([
-  { url: 'https://www.soundjay.com/Human/human-laugh-2.wav' },
-  { url: 'https://www.soundjay.com/Human/human-laugh-3.wav' },
-]);
-
-bgm.playlist = tempBgmPlaylist.value;
-ambient.playlist = tempAmbientPlaylist.value;
 </script>
