@@ -11,6 +11,8 @@ const externals = {
   hljs: 'hljs',
   lodash: '_',
   toastr: 'toastr',
+  // TODO: cdn -> testingcf
+  'vanilla-jsoneditor': 'https://cdn.jsdelivr.net/gh/StageDog/svelte-jsoneditor-for-tavern-helper/package-vanilla/standalone.js',
   '@popperjs/core': 'Popper',
 } as const;
 
@@ -29,7 +31,7 @@ export default defineConfig(({ mode }) => ({
       },
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag === 'toolcool-color-picker',
+          isCustomElement: tag => tag === 'toolcool-color-picker',
         },
       },
     }),
