@@ -14,8 +14,8 @@ function createAudioStore(type: 'bgm' | 'ambient') {
         global_settings.settings.audio[type] = value;
       },
     });
-    const { mode, muted, volume } = toRefs(settings.value);
-    const playlist = ref([] as string[]);
+    const { enabled, mode, muted, volume } = toRefs(settings.value);
+    const playlist = ref([] as { url: string; title?: string }[]);
 
     const chat_settings = useChatSettingsStore();
     watch(
@@ -28,7 +28,7 @@ function createAudioStore(type: 'bgm' | 'ambient') {
       },
     );
 
-    return { src, playing, progress, mode, muted, volume, playlist };
+    return { src, playing, progress, enabled, mode, muted, volume, playlist };
   });
 }
 

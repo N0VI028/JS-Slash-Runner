@@ -13,6 +13,7 @@ export const GlobalSettings = z
         enabled: z.boolean().default(true),
         bgm: z
           .object({
+            enabled: z.boolean().default(true),
             mode: AudioMode.default('repeat_all'),
             muted: z.boolean().default(false),
             volume: z.number().default(100),
@@ -20,6 +21,7 @@ export const GlobalSettings = z
           .prefault({}),
         ambient: z
           .object({
+            enabled: z.boolean().default(true),
             mode: AudioMode.default('play_one_and_stop'),
             muted: z.boolean().default(false),
             volume: z.number().default(100),
