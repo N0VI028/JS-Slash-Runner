@@ -38,8 +38,10 @@
       </div>
     </div>
     <div
-class='flex items-center rounded-sm border border-[var(--SmartThemeBorderColor)] bg-[var(--black30a)] px-0.75 py-0.25'>
-      <!-- 播放 -->
+class='
+  flex items-center rounded-sm border border-[var(--SmartThemeBorderColor)] bg-(--SmartThemeQuoteColor)/10 px-0.75
+  py-0.25
+'>      <!-- 播放 -->
       <div>
         <button class="menu_button min-h-2 min-w-2" :disabled="!props.enabled || !model.enabled"  @click="togglePlay()">
           <i class="fa-solid" :class="[model.playing && props.enabled && model.enabled ? 'fa-pause' : 'fa-play']"></i>
@@ -86,7 +88,7 @@ class='flex items-center rounded-sm border border-[var(--SmartThemeBorderColor)]
       </div>
     </div>
   </div>
-  <audio ref="audio" controls :src="model.src" @ended="onEnded"></audio>
+  <audio v-show="false" ref="audio" controls :src="model.src" @ended="onEnded"></audio>
 </template>
 
 <script setup lang="ts">
@@ -177,9 +179,6 @@ const play = (opts: { currentTime?: number } = {}) => {
               }
 
               model.value.playing = true;
-
-              // 这里可以发射事件，如果需要的话
-              // emit('play');
 
               resolve(audioEl);
             });
