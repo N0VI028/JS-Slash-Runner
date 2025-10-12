@@ -3,11 +3,22 @@
   <div
     v-show="is_visible"
     class="
-      flex w-full flex-wrap items-center justify-between rounded-[10px] border border-(--SmartThemeBorderColor) p-[5px]
+      flex w-full items-center justify-between rounded-[10px] border border-(--SmartThemeBorderColor)
+      bg-(--SmartThemeBlurTintColor) p-[5px]
     "
     data-type="script"
   >
-    <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
+    <!-- 批量模式下显示复选框，正常模式显示拖拽手柄 -->
+    <div v-if="props.isBatchMode" class="flex items-center">
+      <input
+        type="checkbox"
+        :checked="props.isSelected"
+        class="cursor-pointer"
+        @change="emit('toggle-selection', script.id)"
+      />
+    </div>
+    <span v-else class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
+
     <div
       class="ml-0.5 flex-grow overflow-hidden"
       :style="{
@@ -21,7 +32,7 @@
         highlight-class="th-highlight-mark"
       />
     </div>
-    <div class="flex flex-nowrap items-center gap-[5px]">
+    <div v-show="!props.isBatchMode" class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
       <div class="cursor-pointer" :class="{ enabled: script.enabled }" @click="script.enabled = !script.enabled">
         <i class="fa-solid" :class="[script.enabled ? 'fa-toggle-on' : 'fa-toggle-off']" />
@@ -61,14 +72,19 @@ const script = defineModel<Script>({ required: true });
 const props = withDefaults(
   defineProps<{
     searchInput?: string | RegExp;
+    isBatchMode?: boolean;
+    isSelected?: boolean;
   }>(),
   {
     searchInput: '',
+    isBatchMode: false,
+    isSelected: false,
   },
 );
 
 const emit = defineEmits<{
   delete: [id: string];
+  'toggle-selection': [id: string];
 }>();
 
 const is_visible = computed(() => {
@@ -97,7 +113,7 @@ const openScriptInfo = () =>
       buttons: [{ name: t`关闭` }],
     },
     slots: {
-      default: `<div>${script.value.info ? marked.parse(script.value.info) : t`未填写作者备注`}</div>`,
+      default: `<div class='text-left'>${script.value.info ? marked.parse(script.value.info) : t`未填写作者备注`}</div>`,
     },
   }).open();
 

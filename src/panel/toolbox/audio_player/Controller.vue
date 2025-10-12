@@ -41,8 +41,8 @@
     <!-- prettier-ignore-attribute -->
     <div
       class="
-        flex items-center rounded-sm border border-[var(--SmartThemeBorderColor)] bg-(--SmartThemeQuoteColor)/10 px-0.75
-        py-0.25
+        flex items-center gap-0.5 rounded-sm border border-[var(--SmartThemeBorderColor)] bg-(--SmartThemeQuoteColor)/10
+        px-0.75 py-0.25
       "
       :disabled="!props.enabled || !model.enabled"
     >

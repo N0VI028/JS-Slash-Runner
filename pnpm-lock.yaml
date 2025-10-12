@@ -53,6 +53,9 @@ importers:
       vue-final-modal:
         specifier: ^4.5.5
         version: 4.5.5(@vueuse/core@13.9.0(vue@3.5.22(typescript@6.0.0-dev.20250807)))(@vueuse/integrations@13.9.0(focus-trap@7.6.5)(sortablejs@1.15.6)(vue@3.5.22(typescript@6.0.0-dev.20250807)))(focus-trap@7.6.5)(vue@3.5.22(typescript@6.0.0-dev.20250807))
+      vue-pick-colors:
+        specifier: ^1.8.0
+        version: 1.8.0(@popperjs/core@2.11.8)(vue@3.5.22(typescript@6.0.0-dev.20250807))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.22(typescript@6.0.0-dev.20250807))
@@ -2626,6 +2629,12 @@ packages:
       focus-trap: '>=7.2.0'
       vue: '>=3.2.0'
 
+  vue-pick-colors@1.8.0:
+    resolution: {integrity: sha512-lIP28A1BZEPp0v0Y6m9lNbsC6jNM2LP+Dc2tJbUXiNRvDgXqBMe/msX3svqjspV4B+SZdPAjx75JY2zem0hA2Q==}
+    peerDependencies:
+      '@popperjs/core': ^2.11.2
+      vue: ^3.2.26
+
   vue-router@4.5.1:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
     peerDependencies:
@@ -4971,6 +4980,11 @@ snapshots:
       '@vueuse/core': 13.9.0(vue@3.5.22(typescript@6.0.0-dev.20250807))
       '@vueuse/integrations': 13.9.0(focus-trap@7.6.5)(sortablejs@1.15.6)(vue@3.5.22(typescript@6.0.0-dev.20250807))
       focus-trap: 7.6.5
+      vue: 3.5.22(typescript@6.0.0-dev.20250807)
+
+  vue-pick-colors@1.8.0(@popperjs/core@2.11.8)(vue@3.5.22(typescript@6.0.0-dev.20250807)):
+    dependencies:
+      '@popperjs/core': 2.11.8
       vue: 3.5.22(typescript@6.0.0-dev.20250807)
 
   vue-router@4.5.1(vue@3.5.22(typescript@6.0.0-dev.20250807)):

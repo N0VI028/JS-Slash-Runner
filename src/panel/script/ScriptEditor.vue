@@ -1,5 +1,8 @@
 <template>
-  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]">
+  <Popup
+    :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]"
+    width="500px"
+  >
     <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
       <div class="my-0.5 text-md font-bold">{{ props.script !== undefined ? t`编辑脚本` : t`创建新脚本` }}</div>
       <div class="TH-script-editor-container">

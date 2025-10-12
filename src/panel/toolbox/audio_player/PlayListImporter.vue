@@ -1,6 +1,6 @@
 <template>
   <!-- prettier-ignore -->
-  <Popup v-model="isVisible" :buttons="popupButtons">
+  <Popup v-model="isVisible" :buttons="popupButtons" width="500px">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
         <h3>导入音频链接</h3>
@@ -31,7 +31,7 @@
             <input
               v-model="item.title"
               type="text"
-              placeholder="标题 (可以不填写)"
+              placeholder="标题（可选）"
               class="text_pole flex-1"
             />
             <input

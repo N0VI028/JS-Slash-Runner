@@ -1,5 +1,5 @@
 <template>
-  <Popup v-model="isVisible" :buttons="popupButtons">
+  <Popup v-model="isVisible" :buttons="popupButtons" width="500px">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
         <h3>列表编辑</h3>
@@ -7,6 +7,7 @@
           <i class="fa-solid fa-file-import" />
         </div>
       </div>
+        <div v-if="playlist.length===0" class="text-center opacity-50">暂无音频</div>
       <VueDraggable v-model="playlist" handle=".TH-handle" class="flex flex-col" direction="vertical" item-key="id">
         <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center gap-0.5">
           <span class="TH-handle flex-shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>

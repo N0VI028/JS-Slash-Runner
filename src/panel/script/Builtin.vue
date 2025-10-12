@@ -1,9 +1,9 @@
 <template>
   <Popup :buttons="[{ name: t`关闭` }]">
-    <div class="my-1.25 flex flex-col flex-wrap gap-1.25">
+    <div class="my-1.25 flex flex-col flex-wrap gap-0.5">
       <!-- TODO: 调整这两句提示的样式 -->
-      <div>{{ t`内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区` }}</div>
       <div>
+        {{ t`内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区` }}<br />
         {{ t`如果需要制作脚本, 建议查看` }}
         <a
           href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
@@ -17,15 +17,14 @@
       <div
         v-for="builtin in builtins"
         :key="builtin.name"
-        class="
-          flex w-full flex-wrap items-center justify-between rounded-[10px] border border-(--SmartThemeBorderColor)
-          p-[5px]
-        "
+        class="flex w-full items-center justify-between rounded-sm border border-(--SmartThemeBorderColor) p-0.25"
       >
-        <div class="ml-0.5 flex-grow overflow-hidden">{{ builtin.name }}</div>
-        <div class="flex flex-nowrap items-center gap-[5px]">
+        <div class="ml-0.5 flex-grow overflow-hidden text-left! text-ellipsis! whitespace-nowrap!">
+          {{ builtin.name }}
+        </div>
+        <div class="flex flex-shrink-0! flex-nowrap! items-center gap-0.5">
           <DefineToolButton v-slot="{ name, icon }">
-            <div class="menu_button interactable mt-0! mr-0.5 mb-0! p-[5px]!" :title="name">
+            <div class="menu_button interactable my-0! mr-0.5" :title="name">
               <i class="fa-solid" :class="icon"></i>
             </div>
           </DefineToolButton>

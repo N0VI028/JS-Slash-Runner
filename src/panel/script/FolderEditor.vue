@@ -12,13 +12,13 @@
         <div class="my-0.5 flex w-full gap-2">
           <div class="flex flex-wrap items-center">
             <span>{{ t`选择颜色` }}</span>
-            <toolcool-color-picker v-model="script_folder.color" />
+            <pick-colors v-model:value="script_folder.color" :z-index="10000" />
           </div>
           <div class="flex flex-wrap items-center">
             <span>{{ t`选择图标` }}</span>
             <i
               class="fa-solid ml-[5px] cursor-pointer rounded-sm border border-(--SmartThemeBorderColor) p-[5px]"
-              :class="script_folder.icon"
+              :class="script_folder.icon ? script_folder.icon : 'fa-folder'"
               @click="selectIcon"
             ></i>
             <input v-model="script_folder.icon" type="hidden" value="fa-folder" />
@@ -33,6 +33,7 @@
 import { ScriptFolderForm } from '@/panel/script/type';
 import { smart_theme_quote_color } from '@/util/css_variable';
 import { showFontAwesomePicker } from '@sillytavern/scripts/utils';
+import PickColors from 'vue-pick-colors';
 
 const props = defineProps<{ scriptFolder?: ScriptFolderForm }>();
 

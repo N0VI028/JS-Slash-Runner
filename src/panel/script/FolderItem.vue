@@ -6,12 +6,21 @@
     data-folder
     :data-folder-id="script_folder.id"
   >
-    <div
-      class="flex w-full cursor-pointer flex-wrap items-center justify-between p-0.5"
-      @click="is_expanded = !is_expanded"
-    >
+    <div class="flex w-full cursor-pointer items-center justify-between p-0.5" @click="is_expanded = !is_expanded">
+      <!-- 批量模式下显示复选框，正常模式显示拖拽手柄 -->
+      <div v-if="props.isBatchMode" class="flex items-center" @click.stop>
+        <input
+          type="checkbox"
+          :checked="props.isSelected"
+          class="cursor-pointer"
+          @change="emit('toggle-selection', script_folder.id)"
+        />
+      </div>
       <!-- prettier-ignore-attribute -->
-      <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true" @click.stop> ☰ </span>
+      <span v-else class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true" @click.stop>
+        ☰
+      </span>
+
       <i
         class="fa-solid ml-0.5"
         :class="script_folder.icon || 'fa-folder'"
@@ -29,9 +38,8 @@
           :text-to-highlight="script_folder.name"
           highlight-class="th-highlight-mark"
         />
-      </span
-      >
-      <div class="flex shrink-0 flex-wrap items-center gap-0.25">
+      </span>
+      <div v-show="!props.isBatchMode" class="flex shrink-0 flex-wrap items-center gap-0.25">
         <!-- prettier-ignore-attribute -->
         <div
           class="mt-0! mr-0.5 mb-0! cursor-pointer"
@@ -50,6 +58,10 @@
         <ScriptFolderButton name="导出文件夹" icon="fa-file-export" @click.stop="exportFolder" />
         <ScriptFolderButton name="删除文件夹" icon="fa-trash" @click.stop="openDeleteConfirm" />
         <ScriptFolderButton name="展开或折叠文件夹" :icon="is_expanded ? 'fa-chevron-down' : 'fa-chevron-up'" />
+      </div>
+      <!-- 批量模式下显示展开/折叠按钮 -->
+      <div v-if="props.isBatchMode" class="mr-0.5 cursor-pointer" @click.stop>
+        <i class="fa-solid" :class="is_expanded ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
       </div>
     </div>
     <VueDraggable
@@ -95,15 +107,33 @@ const [DefineScriptFolderButton, ScriptFolderButton] = createReusableTemplate<{
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
 
-const props = withDefaults(defineProps<{ searchInput?: string | RegExp }>(), {
-  searchInput: '',
-});
+const props = withDefaults(
+  defineProps<{
+    searchInput?: string | RegExp;
+    isBatchMode?: boolean;
+    isSelected?: boolean;
+    isExpanded?: boolean;
+  }>(),
+  {
+    searchInput: '',
+    isBatchMode: false,
+    isSelected: false,
+    isExpanded: false,
+  },
+);
 
 const emit = defineEmits<{
   delete: [id: string];
+  'toggle-selection': [id: string];
+  'update:is-expanded': [expanded: boolean];
 }>();
 
-const is_expanded = ref(false);
+const is_expanded = computed({
+  get: () => props.isExpanded,
+  set: (value: boolean) => {
+    emit('update:is-expanded', value);
+  },
+});
 
 const is_visible = computed(() => {
   if (props.searchInput === '') {
