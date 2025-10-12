@@ -75,11 +75,11 @@ import { handle_url_to_title } from '@/function/audio';
 import Popup from '@/panel/component/Popup.vue';
 
 const props = defineProps<{
-  onSubmit?: (items: { url: string; title: string }[]) => void;
+  onSubmit?: (items: { title: string; url: string }[]) => void;
 }>();
 
 const activeTab = ref<'single' | 'batch'>('single');
-const items = ref<{ url: string; title: string }[]>([{ url: '', title: '' }]);
+const items = ref<{ title: string; url: string }[]>([{ url: '', title: '' }]);
 const batchText = ref('');
 
 const popupButtons = computed(() => [
@@ -94,7 +94,7 @@ const popupButtons = computed(() => [
 const isVisible = ref(true);
 
 const submit = (close: () => void) => {
-  let validItems: { url: string; title: string }[] = [];
+  let validItems: { title: string; url: string }[] = [];
 
   if (activeTab.value === 'single') {
     // 单个添加模式：过滤出有效的项（至少有 URL）

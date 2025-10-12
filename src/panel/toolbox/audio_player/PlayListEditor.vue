@@ -40,8 +40,8 @@ import PlayListImporter from '@/panel/toolbox/audio_player/PlayListImporter.vue'
 import PlayListItemEditor from '@/panel/toolbox/audio_player/PlayListItemEditor.vue';
 
 const props = defineProps<{
-  playlist: { url: string; title: string }[];
-  onSubmit?: (playlist: { url: string; title: string }[]) => void;
+  playlist: { title: string; url: string }[];
+  onSubmit?: (playlist: { title: string; url: string }[]) => void;
 }>();
 
 const playlist = ref([...props.playlist]);
@@ -65,7 +65,7 @@ const openImporter = () => {
   const { open: openImporterModal } = useModal({
     component: PlayListImporter,
     attrs: {
-      onSubmit: (items: { url: string; title: string }[]) => {
+      onSubmit: (items: { title: string; url: string }[]) => {
         // 将导入的项目添加到播放列表末尾
         playlist.value.push(...items);
       },
@@ -102,7 +102,7 @@ const editItem = (index: number) => {
     component: PlayListItemEditor,
     attrs: {
       item: playlist.value[index],
-      onSubmit: (value: { url: string; title: string }) => {
+      onSubmit: (value: { title: string; url: string }) => {
         playlist.value[index] = value;
       },
     },

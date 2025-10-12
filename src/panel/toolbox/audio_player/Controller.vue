@@ -104,7 +104,7 @@ const model = defineModel<{
   mode: AudioMode;
   muted: boolean;
   volume: number;
-  playlist: { url: string; title: string }[];
+  playlist: { title: string; url: string }[];
 }>({ required: true });
 
 const props = defineProps<{
@@ -197,7 +197,7 @@ const { open: openPlayList } = useModal({
   component: PlayListEditor,
   attrs: {
     playlist: model.value.playlist,
-    onSubmit: (value: { url: string; title: string }[]) => {
+    onSubmit: (value: { title: string; url: string }[]) => {
       model.value.playlist = value;
     },
   },

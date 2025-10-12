@@ -16,7 +16,7 @@ function createAudioStore(type: 'bgm' | 'ambient') {
     const { enabled, mode, muted, volume } = toRefs(settings.value);
 
     const chat_settings = useChatSettingsStore();
-    const playlist = ref<{ url: string; title: string }[]>(chat_settings.settings[type]);
+    const playlist = ref<{ title: string; url: string }[]>(chat_settings.settings[type]);
     watch(
       () => chat_settings.id,
       () => {

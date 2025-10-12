@@ -20,8 +20,8 @@
 import { handle_url_to_title } from '@/function/audio';
 
 const props = defineProps<{
-  item: { url: string; title: string };
-  onSubmit?: (item: { url: string; title: string }) => void;
+  item: { title: string; url: string };
+  onSubmit?: (item: { title: string; url: string }) => void;
 }>();
 
 const url = ref(props.item.url);
