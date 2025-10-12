@@ -16,18 +16,18 @@ function createAudioStore(type: 'bgm' | 'ambient') {
     const { enabled, mode, muted, volume } = toRefs(settings.value);
 
     const chat_settings = useChatSettingsStore();
-    const playlist = ref<{ url: string; title: string }[]>(chat_settings.settings.playlist);
+    const playlist = ref<{ url: string; title: string }[]>(chat_settings.settings[type]);
     watch(
       () => chat_settings.id,
       () => {
         src.value = '';
         playing.value = false;
         progress.value = 0;
-        playlist.value = [];
+        playlist.value = chat_settings.settings[type];
       },
     );
     watch(playlist, () => {
-      chat_settings.settings.playlist = playlist.value;
+      chat_settings.settings[type] = playlist.value;
     });
 
     return { src, playing, progress, enabled, mode, muted, volume, playlist };

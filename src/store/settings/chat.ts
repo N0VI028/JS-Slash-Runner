@@ -25,7 +25,7 @@ export const useChatSettingsStore = defineStore('chat_settings', () => {
       if (new_id !== previous_id) {
         return;
       }
-      if (id.value !== undefined) {
+      if (new_id !== undefined) {
         _.set(chat_metadata, setting_field, toRaw(new_settings));
         saveMetadataDebounced();
       }

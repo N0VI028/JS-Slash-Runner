@@ -33,8 +33,8 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
       if (new_id !== previous_id) {
         return;
       }
-      if (id.value !== undefined) {
-        saveSettingsDebounced(id.value, toRaw(new_settings));
+      if (new_id !== undefined) {
+        saveSettingsDebounced(new_id, toRaw(new_settings));
       }
     },
     { deep: true },

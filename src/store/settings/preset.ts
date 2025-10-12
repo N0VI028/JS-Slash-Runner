@@ -43,7 +43,7 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
       if (new_id !== previous_id) {
         return;
       }
-      if (id.value === preset_manager.getSelectedPreset()) {
+      if (new_id === preset_manager.getSelectedPreset()) {
         saveSettingsToMemoryDebounced(id.value, toRaw(new_settings));
       }
       saveSettingsToFileDebounced(id.value, toRaw(new_settings));
