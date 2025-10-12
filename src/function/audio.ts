@@ -10,3 +10,7 @@ export function get_store_by_type(type: 'bgm' | 'ambient') {
     }
   }
 }
+
+export function handle_url_to_title(url: string) {
+  return url.split('/').at(-1)?.split('.').at(0) || url;
+}
