@@ -106,6 +106,13 @@ export type GlobalSettings = z.infer<typeof GlobalSettings>;
 //   }),
 // });
 
+export const ChatSettings = z
+  .object({
+    playlist: z.array(z.object({ url: z.string(), title: z.string() })).default([]),
+  })
+  .prefault({});
+export type ChatSettings = z.infer<typeof ChatSettings>;
+
 export const CharacterSettings = z
   .object({
     scripts: z.array(ScriptTree).default([]),

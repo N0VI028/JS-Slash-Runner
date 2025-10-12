@@ -26,15 +26,12 @@
 
       <!-- 单个添加模式 -->
       <div v-if="activeTab === 'single'" class="flex flex-col gap-0.5">
-        <small>
-          标题可以留空，留空将自动从链接中提取文件名
-        </small>
         <div v-for="(item, index) in items" :key="index" class="flex items-center gap-0.25">
           <div class="flex w-full gap-0.25">
             <input
               v-model="item.title"
               type="text"
-              placeholder="标题"
+              placeholder="标题 (可以不填写)"
               class="text_pole flex-1"
             />
             <input
@@ -74,11 +71,11 @@
 </template>
 
 <script setup lang="ts">
+import { handle_url_to_title } from '@/function/audio';
 import Popup from '@/panel/component/Popup.vue';
-import { handleUrlToTitle } from '@/store/audio';
 
 const props = defineProps<{
-  onSubmit?: (items: { url: string; title?: string }[]) => void;
+  onSubmit?: (items: { url: string; title: string }[]) => void;
 }>();
 
 const activeTab = ref<'single' | 'batch'>('single');
@@ -108,7 +105,7 @@ const submit = (close: () => void) => {
         const title = item.title.trim();
 
         // 如果标题为空，自动从 URL 中提取标题
-        const finalTitle = title || handleUrlToTitle(url);
+        const finalTitle = title || handle_url_to_title(url);
 
         return {
           url,
@@ -125,7 +122,7 @@ const submit = (close: () => void) => {
         // 使用英文逗号分隔 URL 和标题
         const parts = line.split(',').map(part => part.trim());
         const url = parts[0];
-        const title = parts[1] || handleUrlToTitle(url);
+        const title = parts[1] || handle_url_to_title(url);
 
         return {
           url,

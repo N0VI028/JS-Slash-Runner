@@ -1,38 +1,37 @@
 <template>
-  <!-- prettier-ignore -->
   <Popup v-model="isVisible" :buttons="popupButtons">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
         <h3>列表编辑</h3>
         <div title="导入音频链接" class="menu_button menu_button_icon" @click="openImporter">
-          <i class="fa-solid fa-file-import"></i>
+          <i class="fa-solid fa-file-import" />
         </div>
       </div>
-        <VueDraggable
-          v-model="playlist"
-          handle=".TH-handle"
-          class="flex flex-col"
-          direction="vertical"
-          item-key="id"
-        >
-          <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center gap-0.5">
-            <span class="TH-handle flex-shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
-            <div
-              class="
-                flex min-w-0 grow items-center gap-0.5 rounded border border-[var(--SmartThemeBorderColor)] px-0.5
-                py-[1px]
-              "
-            >
-              <span class="overflow-hidden break-all text-ellipsis whitespace-nowrap hover:whitespace-normal">{{ item.title ? item.title : item.url }}</span>
-            </div>
-            <div class="flex flex-shrink-0 items-center gap-0.5">
-              <button class="menu_button interactable" @click="editItem(index)"><i class="fa-solid fa-pencil"></i></button>
-              <button class="menu_button interactable bg-(--crimson70a)!" @click="openDeleteConfirm(index)"><i
-class="fa-solid fa-trash"></i></button>
-            </div>
+      <VueDraggable v-model="playlist" handle=".TH-handle" class="flex flex-col" direction="vertical" item-key="id">
+        <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center gap-0.5">
+          <span class="TH-handle flex-shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
+          <!-- prettier-ignore-attribute -->
+          <div
+            class="
+              flex min-w-0 grow items-center gap-0.5 rounded border border-[var(--SmartThemeBorderColor)] px-0.5
+              py-[1px]
+            "
+          >
+            <span class="overflow-hidden break-all text-ellipsis whitespace-nowrap hover:whitespace-normal">
+              {{ item.title }}
+            </span>
           </div>
-        </VueDraggable>
-      </div>
+          <div class="flex flex-shrink-0 items-center gap-0.5">
+            <button class="menu_button interactable" @click="editItem(index)">
+              <i class="fa-solid fa-pencil" />
+            </button>
+            <button class="menu_button interactable bg-(--crimson70a)!" @click="openDeleteConfirm(index)">
+              <i class="fa-solid fa-trash" />
+            </button>
+          </div>
+        </div>
+      </VueDraggable>
+    </div>
   </Popup>
 </template>
 <script setup lang="ts">
@@ -41,8 +40,8 @@ import PlayListImporter from '@/panel/toolbox/audio_player/PlayListImporter.vue'
 import PlayListItemEditor from '@/panel/toolbox/audio_player/PlayListItemEditor.vue';
 
 const props = defineProps<{
-  playlist: { url: string; title?: string }[];
-  onSubmit?: (playlist: { url: string; title?: string }[]) => void;
+  playlist: { url: string; title: string }[];
+  onSubmit?: (playlist: { url: string; title: string }[]) => void;
 }>();
 
 const playlist = ref([...props.playlist]);
@@ -66,7 +65,7 @@ const openImporter = () => {
   const { open: openImporterModal } = useModal({
     component: PlayListImporter,
     attrs: {
-      onSubmit: (items: { url: string; title?: string }[]) => {
+      onSubmit: (items: { url: string; title: string }[]) => {
         // 将导入的项目添加到播放列表末尾
         playlist.value.push(...items);
       },
@@ -103,7 +102,7 @@ const editItem = (index: number) => {
     component: PlayListItemEditor,
     attrs: {
       item: playlist.value[index],
-      onSubmit: (value: { url: string; title?: string }) => {
+      onSubmit: (value: { url: string; title: string }) => {
         playlist.value[index] = value;
       },
     },

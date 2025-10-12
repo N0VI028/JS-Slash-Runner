@@ -17,11 +17,11 @@
 </template>
 
 <script setup lang="ts">
-import { handleUrlToTitle } from '@/store/audio';
+import { handle_url_to_title } from '@/function/audio';
 
 const props = defineProps<{
-  item: { url: string; title?: string };
-  onSubmit?: (item: { url: string; title?: string }) => void;
+  item: { url: string; title: string };
+  onSubmit?: (item: { url: string; title: string }) => void;
 }>();
 
 const url = ref(props.item.url);
@@ -44,7 +44,7 @@ const submit = (close: () => void) => {
   }
 
   // 如果标题为空，自动从 URL 中提取标题
-  const finalTitle = title.value.trim() || handleUrlToTitle(url.value);
+  const finalTitle = title.value.trim() || handle_url_to_title(url.value);
 
   props.onSubmit?.({
     url: url.value,

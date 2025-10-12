@@ -58,14 +58,14 @@
     <div class="flex grow items-center gap-0.25">
       <div class="grow">
         <select v-model="model.src" class="m-0! h-full">
-          <option v-for="item in model.playlist" :key="item.title ?? item.url" :value="item.url">
-            {{ item.title ?? item.url }}
+          <option v-for="item in model.playlist" :key="item.url" :value="item.url">
+            {{ item.title }}
           </option>
         </select>
       </div>
       <div class="flex items-center gap-0.25">
         <div class="menu_button interactable" title="播放列表" @click="openPlayList">
-          <i class="fa-solid fa-list-ol"></i>
+          <i class="fa-solid fa-list-ol" />
         </div>
         <div
           class="menu_button interactable"
@@ -104,7 +104,7 @@ const model = defineModel<{
   mode: AudioMode;
   muted: boolean;
   volume: number;
-  playlist: { url: string; title?: string }[];
+  playlist: { url: string; title: string }[];
 }>({ required: true });
 
 const props = defineProps<{
@@ -197,7 +197,7 @@ const { open: openPlayList } = useModal({
   component: PlayListEditor,
   attrs: {
     playlist: model.value.playlist,
-    onSubmit: (value: { url: string; title?: string }[]) => {
+    onSubmit: (value: { url: string; title: string }[]) => {
       model.value.playlist = value;
     },
   },

@@ -4,7 +4,6 @@ function createAudioStore(type: 'bgm' | 'ambient') {
   return defineStore(`${type}_audio`, () => {
     const global_settings = useGlobalSettingsStore();
 
-    // TODO: 应该用 src 还是 index?
     const src = ref('');
     const playing = ref(false);
     const progress = ref(0);
@@ -15,9 +14,9 @@ function createAudioStore(type: 'bgm' | 'ambient') {
       },
     });
     const { enabled, mode, muted, volume } = toRefs(settings.value);
-    const playlist = ref<{ url: string; title?: string }[]>([]);
 
     const chat_settings = useChatSettingsStore();
+    const playlist = ref<{ url: string; title: string }[]>(chat_settings.settings.playlist);
     watch(
       () => chat_settings.id,
       () => {
@@ -27,6 +26,9 @@ function createAudioStore(type: 'bgm' | 'ambient') {
         playlist.value = [];
       },
     );
+    watch(playlist, () => {
+      chat_settings.settings.playlist = playlist.value;
+    });
 
     return { src, playing, progress, enabled, mode, muted, volume, playlist };
   });
