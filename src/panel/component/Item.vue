@@ -37,7 +37,7 @@
       >
         <NonDetailPart />
       </div>
-      <div ref="content_ref" class="TH-collapsible-content flex w-full flex-col flex-wrap gap-0.5">
+      <div ref="content_ref" class="TH-collapsible--content flex w-full flex-col flex-wrap gap-0.5">
         <Divider type="major" margin-y="my-0.25" weight="h-[0.75px]" />
         <slot name="detail" />
       </div>
@@ -85,7 +85,7 @@ function shouldIgnoreClick(event: MouseEvent): boolean {
   const $closest = (selector: string) => target.closest(selector);
 
   // 忽略内容区域中的所有点击
-  if ($closest('.TH-collapsible-content')) {
+  if ($closest('.TH-collapsible--content')) {
     return true;
   }
 
@@ -193,7 +193,7 @@ function collapse() {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 /* 可折叠组件样式 */
 .TH-collapsible > div:first-child {
   cursor: pointer;
@@ -224,17 +224,17 @@ function collapse() {
   transform: translateY(-50%) rotate(90deg);
 }
 
-.TH-collapsible-content {
+.TH-collapsible--content {
   display: none;
   transform-origin: top;
   overflow: hidden;
 }
 
-.TH-collapsible.expanded .TH-collapsible-content {
+.TH-collapsible.expanded .TH-collapsible--content {
   display: flex;
 }
 
-.TH-collapsible-content.animating {
+.TH-collapsible--content.animating {
   display: flex;
 }
 

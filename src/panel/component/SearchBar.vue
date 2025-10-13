@@ -25,7 +25,7 @@
         title="清除"
         @click="onClear"
       >
-        <i class="fa-solid fa-xmark"></i>
+        <i class="fa-solid fa-xmark TH-SearchBar--clear-icon" />
       </button>
     </div>
   </div>
@@ -69,8 +69,8 @@ function onClear() {
 }
 </script>
 
-<style lang="scss" scoped>
-.fa-xmark:before {
+<style lang="scss">
+.TH-SearchBar--clear-icon:before {
   vertical-align: sub;
 }
 </style>
