@@ -138,7 +138,7 @@ const props = withDefaults(
     edgeSnap: true,
     snapDistance: 100,
     aspectRatio: false,
-    handles: () => ['tl', 'tm', 'mr', 'br', 'bm', 'bl'],
+    handles: () => ['tl', 'tm', 'tr', 'mr', 'br', 'bm', 'bl', 'ml'],
     showHandles: false,
     initialX: '10%',
     initialY: () => Math.max(50, window.innerHeight * 0.15),
@@ -639,7 +639,7 @@ const startDrag = (event: PointerEvent) => {
 /**
  * 边缘吸附 - 基于鼠标位置判断
  */
-const checkEdgeSnap = (mouseX: number, mouseY: number, left: number, top: number, width: number, height: number) => {
+const checkEdgeSnap = (mouseX: number, _mouseY: number, left: number, top: number, width: number, height: number) => {
   if (!props.edgeSnap || is_mobile) {
     return { left, top, width, height, snapped: false };
   }
@@ -764,18 +764,6 @@ const enabled_handles = computed(() => {
     bottom_handle.style.left = `${inset}px`;
     bottom_handle.style.right = `${inset}px`;
     delete (bottom_handle.style as any).width;
-  }
-
-  const top_right_corner = cloned.find(h => h.name === 'top-right');
-  if (top_right_corner) {
-    top_right_corner.style.top = `0px`;
-    (top_right_corner.style as any).right = `${inset}px`;
-  }
-
-  const top_left_corner = cloned.find(h => h.name === 'top-left');
-  if (top_left_corner) {
-    top_left_corner.style.top = `0px`;
-    (top_left_corner.style as any).left = `${inset}px`;
   }
 
   return cloned;
