@@ -21,7 +21,10 @@ watch(
   () => {
     nextTick(() => {
       marker.unmark();
-        marker.markRegExp(props.searchInput);
+      if (typeof props.searchInput === 'string') {
+        marker.mark(props.searchInput, { separateWordSearch: false });
+      } else {
+        marker.markRegExp(props.searchInput,);
       }
     });
   },
