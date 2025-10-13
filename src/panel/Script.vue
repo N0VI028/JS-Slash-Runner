@@ -64,7 +64,7 @@ import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore 
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { eventSource } from '@sillytavern/script';
 
-const search_input = ref<string | RegExp>('');
+const search_input = ref<RegExp | null>(null);
 
 const character_id = toRef(useCharacterSettingsStore(), 'id');
 const preset_id = toRef(usePresetSettingsStore(), 'id');

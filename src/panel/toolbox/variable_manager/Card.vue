@@ -142,8 +142,7 @@ const props = withDefaults(
     collapsible?: boolean;
     collapsed?: boolean;
     defaultCollapsed?: boolean;
-    /** 搜索输入，空字符串或未定义表示未搜索 */
-    searchInput?: string | RegExp;
+    searchInput: RegExp | null;
     /** 是否允许通过菜单新增子变量 */
     allowAddChild?: boolean;
   }>(),
@@ -153,7 +152,6 @@ const props = withDefaults(
     icon: undefined,
     collapsible: true,
     defaultCollapsed: false,
-    searchInput: '',
     allowAddChild: false,
   },
 );
@@ -486,9 +484,7 @@ const depthIndicatorStyle = computed(() => {
 
 const appendToElement = computed(() => document.body);
 
-const isSearching = computed(
-  () => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null,
-);
+const isSearching = computed(() => props.searchInput !== null);
 
 /**
  * 展开动画：进入时

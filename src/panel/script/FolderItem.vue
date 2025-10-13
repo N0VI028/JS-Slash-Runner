@@ -36,7 +36,7 @@
         <SearchHighlighter
           :query="props.searchInput"
           :text-to-highlight="script_folder.name"
-          highlight-class="th-highlight-mark"
+          highlight-class="TH-highlight-mark"
         />
       </span>
       <div v-show="!props.isBatchMode" class="flex shrink-0 flex-wrap items-center gap-0.25">
@@ -75,7 +75,7 @@
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
       direction="vertical"
-      :disabled="searchInput !== ''"
+      :disabled="searchInput !== null"
     >
       <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
         <ScriptItem
@@ -95,7 +95,6 @@ import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
 import { ScriptFolder } from '@/type/scripts';
-import { includesOrTest } from '@/util/search';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
 import { VueDraggable } from 'vue-draggable-plus';
@@ -109,13 +108,13 @@ const script_folder = defineModel<ScriptFolder>({ required: true });
 
 const props = withDefaults(
   defineProps<{
-    searchInput?: string | RegExp;
+    searchInput?: RegExp | null;
     isBatchMode?: boolean;
     isSelected?: boolean;
     isExpanded?: boolean;
   }>(),
   {
-    searchInput: '',
+    searchInput: null,
     isBatchMode: false,
     isSelected: false,
     isExpanded: false,
@@ -136,13 +135,13 @@ const is_expanded = computed({
 });
 
 const is_visible = computed(() => {
-  if (props.searchInput === '') {
+  if (props.searchInput === null) {
     return true;
   }
-  if (includesOrTest(script_folder.value.name, props.searchInput)) {
+  if (props.searchInput.test(script_folder.value.name)) {
     return true;
   }
-  return script_folder.value.scripts.some(script => includesOrTest(script.name, props.searchInput));
+  return script_folder.value.scripts.some(script => props.searchInput!.test(script.name));
 });
 
 const { open: openFolderEditor } = useModal({

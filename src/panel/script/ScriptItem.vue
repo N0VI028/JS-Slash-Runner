@@ -29,7 +29,7 @@
       <SearchHighlighter
         :query="props.searchInput"
         :text-to-highlight="script.name"
-        highlight-class="th-highlight-mark"
+        highlight-class="TH-highlight-mark"
       />
     </div>
     <div v-show="!props.isBatchMode" class="flex flex-nowrap items-center gap-[5px]">
@@ -57,7 +57,6 @@ import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
-import { includesOrTest } from '@/util/search';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
 import { marked } from 'marked';
@@ -71,12 +70,11 @@ const script = defineModel<Script>({ required: true });
 
 const props = withDefaults(
   defineProps<{
-    searchInput?: string | RegExp;
+    searchInput: RegExp | null;
     isBatchMode?: boolean;
     isSelected?: boolean;
   }>(),
   {
-    searchInput: '',
     isBatchMode: false,
     isSelected: false,
   },
@@ -88,7 +86,7 @@ const emit = defineEmits<{
 }>();
 
 const is_visible = computed(() => {
-  return includesOrTest(script.value.name, props.searchInput);
+  return props.searchInput === null || props.searchInput.test(script.value.name);
 });
 
 const { open: openScriptEditor } = useModal({

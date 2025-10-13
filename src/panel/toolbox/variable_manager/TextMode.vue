@@ -21,7 +21,7 @@
         :query="props.searchInput"
         :text-to-highlight="textContent"
         wrapper-tag="div"
-        highlight-class="th-highlight-mark"
+        highlight-class="TH-highlight-mark"
       />
     </div>
   </div>
@@ -32,14 +32,10 @@ import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import { onClickOutside } from '@vueuse/core';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-const props = withDefaults(
-  defineProps<{
-    data: Record<string, unknown> | unknown[];
-    /** 搜索输入，空字符串表示未搜索 */
-    searchInput?: string | RegExp;
-  }>(),
-  { searchInput: '' },
-);
+const props = defineProps<{
+  data: Record<string, unknown> | unknown[];
+  searchInput: RegExp | null;
+}>();
 
 const emit = defineEmits<{
   (event: 'update:data', value: Record<string, unknown> | unknown[]): void;
@@ -50,7 +46,7 @@ const highlightRef = ref<HTMLDivElement | null>(null);
 const textContent = ref('');
 const isDirty = ref(false);
 const isInitialized = ref(false);
-const isSearching = computed(() => props.searchInput !== '');
+const isSearching = computed(() => props.searchInput !== null);
 
 /**
  * 格式化对象为可读的JSON文本

@@ -52,7 +52,7 @@
         <i class="fa-solid fa-copy"></i>
       </div>
 
-      
+
     </div>
   </div>
   <div v-if="shouldRender" class="text-sm select-text">
@@ -95,8 +95,8 @@
                 :query="props.searchInput"
                 :text-to-highlight="String(nodeKey)"
                 wrapper-tag="span"
-                wrapper-class="th-highlight-wrapper"
-                highlight-class="th-highlight-mark"
+                wrapper-class="TH-highlight-wrapper"
+                highlight-class="TH-highlight-mark"
               />
             </template>
             <template v-else>
@@ -243,8 +243,7 @@ const props = withDefaults(
   defineProps<{
     data: Record<string, unknown> | unknown[] | Primitive;
     filters: FiltersState;
-    /** 搜索输入，空字符串或未定义表示未搜索 */
-    searchInput?: string | RegExp;
+    searchInput: RegExp | null;
     path?: (string | number)[];
     depth?: number;
     nodeKey?: string | number | null;
@@ -252,7 +251,6 @@ const props = withDefaults(
   }>(),
   {
     path: () => [],
-    searchInput: '',
     depth: 0,
     nodeKey: null,
     parentType: null,
@@ -492,9 +490,7 @@ const valueType = computed(() => {
 });
 
 // 搜索、高亮与自动展开相关逻辑
-const isSearching = computed(
-  () => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null,
-);
+const isSearching = computed(() => props.searchInput !== null);
 const isStringValue = computed(() => valueType.value === 'string');
 const stringValueWithQuotes = computed(() => (typeof props.data === 'string' ? `"${props.data}"` : ''));
 

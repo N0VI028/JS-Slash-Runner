@@ -71,7 +71,7 @@
       :fallback-on-body="true"
       :data-container-type="props.storeType"
       direction="vertical"
-      :disabled="searchInput !== '' || isBatchMode"
+      :disabled="searchInput !== null || isBatchMode"
       @start="onStart"
     >
       <div v-for="(script, index) in script_trees" :key="script.id">
@@ -116,7 +116,7 @@ const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: 
 const props = defineProps<{
   title: string;
   description: string;
-  searchInput: string | RegExp;
+  searchInput: RegExp | null;
   storeType: 'global' | 'character' | 'preset';
 }>();
 

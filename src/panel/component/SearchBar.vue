@@ -17,7 +17,7 @@
       ></i>
       <!-- prettier-ignore-attribute -->
       <button
-        v-if="clearable && input !== ''"
+        v-if="clearable && input !== null"
         class="
           absolute top-1/2 right-0.5 z-2 flex h-1.5 w-1.5 -translate-y-[50%] cursor-pointer border-none bg-transparent
           text-(--SmartThemeBodyColor) opacity-80
@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { regexFromString } from '@sillytavern/scripts/utils';
 
-const input = defineModel<string | RegExp>({ required: true });
+const input = defineModel<RegExp | null>({ required: true });
 const props = withDefaults(
   defineProps<{
     placeholder?: string;
@@ -52,13 +52,20 @@ const internal = useTemplateRef<HTMLInputElement>('internal');
 const onInput = useDebounceFn(
   () => {
     const result = internal.value!.value;
-    input.value = result.startsWith('/') ? (regexFromString(result) ?? result) : result;
+    if (result === '') {
+      input.value = null;
+      return;
+    }
+    if (result.startsWith('/')) {
+      input.value = regexFromString(result) ?? new RegExp(_.escapeRegExp(result), 'gi');
+    }
+    input.value = new RegExp(_.escapeRegExp(result), 'gi');
   },
   () => props.debounce,
 );
 function onClear() {
   internal.value!.value = '';
-  input.value = '';
+  input.value = null;
 }
 </script>
 

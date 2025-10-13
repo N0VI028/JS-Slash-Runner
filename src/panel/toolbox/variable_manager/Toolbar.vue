@@ -132,7 +132,7 @@ const [DefineIconButton, IconButton] = createReusableTemplate<{
   disabled?: boolean;
 }>();
 
-const search_input = defineModel<string | RegExp>('search_input', { required: true });
+const search_input = defineModel<RegExp | null>('search_input', { required: true });
 const emit = defineEmits<{
   (e: 'collapse-all'): void;
   (e: 'expand-all'): void;

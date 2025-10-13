@@ -89,13 +89,11 @@ const props = withDefaults(
     collapsed?: boolean;
     depth?: number;
     filters: FiltersState;
-    /** 搜索输入，空字符串或未定义表示未搜索 */
-    searchInput?: string | RegExp;
+    searchInput: RegExp | null;
   }>(),
   {
     collapsed: false,
     depth: 0,
-    searchInput: '',
   },
 );
 
@@ -182,9 +180,7 @@ const formattedValue = computed(() => {
   }
 });
 
-const isSearching = computed(
-  () => props.searchInput !== '' && props.searchInput !== undefined && props.searchInput !== null,
-);
+const isSearching = computed(() => props.searchInput !== null);
 
 // 搜索命中时自动展开
 const searchMatched = computed(() => {

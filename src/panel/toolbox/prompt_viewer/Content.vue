@@ -7,7 +7,7 @@ import Mark from 'mark.js';
 
 const props = defineProps<{
   content: string;
-  searchInput: string | RegExp;
+  searchInput: RegExp | null;
 }>();
 
 const content_ref = useTemplateRef<HTMLSpanElement>('content');
@@ -21,10 +21,8 @@ watch(
   () => {
     nextTick(() => {
       marker.unmark();
-      if (typeof props.searchInput === 'string') {
-        marker.mark(props.searchInput, { separateWordSearch: false });
-      } else {
-        marker.markRegExp(props.searchInput,);
+      if (props.searchInput !== null) {
+        marker.markRegExp(props.searchInput);
       }
     });
   },

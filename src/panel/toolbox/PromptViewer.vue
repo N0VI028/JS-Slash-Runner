@@ -98,7 +98,6 @@
 
 <script setup lang="ts">
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
-import { includesOrTest } from '@/util/search';
 import { version } from '@/util/tavern';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
@@ -118,13 +117,13 @@ const virt_list_ref = useTemplateRef('virt_list');
 const prompts = shallowRef<PromptData[]>([]);
 
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
-const search_input = ref<string | RegExp>('');
+const search_input = ref<RegExp | null>(null);
 const is_expanded = ref<boolean[]>([]);
 
 const filtered_prompts = computed(() => {
   return _(prompts.value)
     .filter(prompt => roles_to_show.value.includes(prompt.role))
-    .filter(prompt => includesOrTest(prompt.content, search_input.value))
+    .filter(prompt => search_input.value === null || search_input.value.test(prompt.content))
     .value();
 });
 
