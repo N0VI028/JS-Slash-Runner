@@ -15,7 +15,8 @@
           :class="{ 'animate-spin': is_refreshing }"
           title="刷新"
           @click="triggerRefresh"
-        ></div>
+        />
+        <div class="fa-solid fa-question" title="使用说明" @click="showHelp" />
       </div>
       <div class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
         <div class="flex items-center justify-between gap-0.5">
@@ -63,44 +64,58 @@
             </div>
           </div>
         </template>
+        <!-- TODO: 调整位置和样式 -->
+        <div class="fa-solid fa-expand" title="展开全部" @click="toggleAll(true)" />
+        <div class="fa-solid fa-compress" title="收起全部" @click="toggleAll(false)" />
       </div>
     </div>
-    <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
-      <template #default="{ itemData: item_data }">
-        <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
-          <div
-            class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
-            @click="is_expanded[item_data.id] = !is_expanded[item_data.id]"
-          >
-            <span>
-              Role: <span>{{ item_data.role }}</span> | Token: <span>{{ item_data.token }}</span>
-            </span>
-            <div class="fa-solid fa-circle-chevron-down"></div>
-          </div>
-          <template v-if="is_expanded[item_data.id]">
-            <Divider />
-            <!-- prettier-ignore-attribute -->
+    <template v-if="is_refreshing">
+      <!-- TODO: 调整样式 -->
+      正在发送虚假生成请求, 从而获取最新提示词...
+    </template>
+    <template v-else>
+      <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
+        <template #default="{ itemData: item_data }">
+          <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
             <div
-              class="
-                mt-0.5 max-h-[40%] overflow-x-hidden overflow-y-auto rounded-b-md leading-[1.4] break-words
-                whitespace-pre-wrap text-(--mainFontSize)
-              "
+              class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
+              @click="is_expanded[item_data.id] = !is_expanded[item_data.id]"
             >
-              <Content :content="item_data.content" :search-input="search_input" />
+              <span>
+                Role: <span>{{ item_data.role }}</span> | Token: <span>{{ item_data.token }}</span>
+              </span>
+              <div class="fa-solid fa-circle-chevron-down"></div>
             </div>
-          </template>
-        </div>
-      </template>
-    </VirtList>
+            <template v-if="is_expanded[item_data.id]">
+              <Divider />
+              <!-- prettier-ignore-attribute -->
+              <div
+                class="
+                  mt-0.5 max-h-[40%] overflow-x-hidden overflow-y-auto rounded-b-md leading-[1.4] break-words
+                  whitespace-pre-wrap text-(--mainFontSize)
+                "
+              >
+                <Content :content="item_data.content" :search-input="search_input" />
+              </div>
+            </template>
+          </div>
+        </template>
+      </VirtList>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
+import Popup from '@/panel/component/Popup.vue';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
+import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
+import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
 import { version } from '@/util/tavern';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
+import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
+import { marked } from 'marked';
 import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
@@ -113,18 +128,23 @@ export interface PromptData {
 }
 
 const virt_list_ref = useTemplateRef('virt_list');
-const prompts = shallowRef<PromptData[]>([]);
 
+const prompts = shallowRef<PromptData[]>([]);
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
 const search_input = ref<RegExp | null>(null);
-const is_expanded = ref<boolean[]>([]);
-
 const filtered_prompts = computed(() => {
   return _(prompts.value)
     .filter(prompt => roles_to_show.value.includes(prompt.role))
     .filter(prompt => search_input.value === null || search_input.value.test(prompt.content))
     .value();
 });
+
+const should_expand_by_default = useLocalStorage<boolean>('TH-PromptViewer:should_expand_by_default', false);
+const is_expanded = ref<boolean[]>([]);
+function toggleAll(should_expand: boolean) {
+  is_expanded.value = _.times(prompts.value.length, _.constant(should_expand));
+  should_expand_by_default.value = should_expand;
+}
 
 const is_refreshing = ref<boolean>(false);
 triggerRefresh();
@@ -167,7 +187,7 @@ function collectPrompts(data: { role: string; content: string }[], dry_run: bool
         };
       }),
     );
-    is_expanded.value = _.times(data.length, _.constant(false));
+    is_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
     virt_list_ref.value?.forceUpdate();
   });
 }
@@ -187,6 +207,11 @@ if (compare(version, '1.13.4', '<=')) {
     },
   );
 }
-</script>
 
-<style lang="scss" scoped></style>
+const { open: showHelp } = useModal({
+  component: Popup,
+  slots: {
+    default: marked.parse(getCurrentLocale().includes('zh') ? help_zh : help_en),
+  },
+});
+</script>
