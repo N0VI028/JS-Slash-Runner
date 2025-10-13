@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-0.5">
+  <div class="flex flex-col gap-0.5" :class="{ 'opacity-50': !model.enabled }">
     <div class="flex flex-row items-center justify-between">
       <div class="flex items-center gap-0.5">
         <label>{{ props.title }}</label>
@@ -34,6 +34,7 @@
             max="1"
             step="0.01"
             class="absolute top-0 left-0 h-full w-full cursor-pointer opacity-0"
+            :disabled="!props.enabled || !model.enabled"
           />
         </div>
       </div>
@@ -41,8 +42,8 @@
     <!-- prettier-ignore-attribute -->
     <div
       class="
-        flex items-center gap-0.5 rounded-sm border border-[var(--SmartThemeBorderColor)] bg-(--SmartThemeQuoteColor)/10
-        px-0.75 py-0.25
+        flex items-center gap-[10px] rounded-sm border border-(--SmartThemeBorderColor)/50 bg-neutral-900/15 px-0.75
+        py-0.25
       "
       :disabled="!props.enabled || !model.enabled"
     >
@@ -52,12 +53,19 @@
         </button>
       </div>
       <div class="flex grow items-center">
-        <input v-model="model.progress" type="range" value="0" min="0" max="100" />
+        <input
+          v-model="model.progress"
+          type="range"
+          value="0"
+          min="0"
+          max="100"
+          :disabled="!props.enabled || !model.enabled"
+        />
       </div>
     </div>
     <div class="flex grow items-center gap-0.25">
       <div class="grow">
-        <select v-model="model.src" class="m-0! h-full">
+        <select v-model="model.src" class="m-0! h-full" :disabled="!props.enabled || !model.enabled">
           <option v-for="item in model.playlist" :key="item.url" :value="item.url">
             {{ item.title }}
           </option>
