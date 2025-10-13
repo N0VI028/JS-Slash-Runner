@@ -32,8 +32,6 @@
 </template>
 
 <script setup lang="ts">
-import { regexFromString } from '@sillytavern/scripts/utils';
-
 const input = defineModel<RegExp | null>({ required: true });
 const props = withDefaults(
   defineProps<{
@@ -56,13 +54,27 @@ const onInput = useDebounceFn(
       input.value = null;
       return;
     }
-    if (result.startsWith('/')) {
-      input.value = regexFromString(result) ?? new RegExp(_.escapeRegExp(result), 'gi');
-    }
-    input.value = new RegExp(_.escapeRegExp(result), 'gi');
+    // 确保 'g' 标志
+    input.value = regexFromString(result) ?? new RegExp(_.escapeRegExp(result), 'gi');
   },
   () => props.debounce,
 );
+
+function regexFromString(input: string): RegExp | null {
+  try {
+    const match = input.match(/(\/?)(.+)\1([a-z]*)/i);
+    if (!match) {
+      return null;
+    }
+    if (match[3] && !/^(?!.*?(.).*?\1)[gmixXsuUAJ]+$/.test(match[3])) {
+      return RegExp(input, 'gi');
+    }
+    return new RegExp(match[2], match[3].indexOf('g') === -1 ? match[3] + 'g' : match[3]);
+  } catch {
+    return null;
+  }
+}
+
 function onClear() {
   internal.value!.value = '';
   input.value = null;

@@ -43,7 +43,7 @@
                 text-(--SmartThemeBodyColor)
               "
             >
-              <input type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
+              <input v-model="matched_only" type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
               <label for="prompt-search-compact-mode">{{ t`仅显示匹配` }}</label>
             </div>
           </div>
@@ -95,7 +95,7 @@
                   whitespace-pre-wrap text-(--mainFontSize)
                 "
               >
-                <Content :content="item_data.content" :search-input="search_input" />
+                <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
               </div>
             </template>
           </div>
@@ -132,6 +132,7 @@ const virt_list_ref = useTemplateRef('virt_list');
 const prompts = shallowRef<PromptData[]>([]);
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
 const search_input = ref<RegExp | null>(null);
+const matched_only = useLocalStorage<boolean>('TH-PromptViewer:matched_only', false);
 const filtered_prompts = computed(() => {
   return _(prompts.value)
     .filter(prompt => roles_to_show.value.includes(prompt.role))

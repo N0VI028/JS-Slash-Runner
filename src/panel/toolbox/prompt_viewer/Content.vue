@@ -1,10 +1,100 @@
 <template>
-  <Highlighter :query="searchInput">{{ content }}</Highlighter>
+  <Highlighter :query="searchInput">
+    <template v-if="props.searchInput !== null && props.matchedOnly">
+      <template v-for="(item, index) in parsed_content" :key="index">
+        <div v-if="is_expanded[index]">{{ item }}</div>
+        <div v-else @click="is_expanded[index] = true">展开 {{ (item.match(/\n/g)?.length ?? 0) + 1 }} 行隐藏内容</div>
+      </template>
+    </template>
+    <template v-else>{{ content }}</template>
+  </Highlighter>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { chunkBy } from '@/util/algorithm';
+
+const props = defineProps<{
   content: string;
   searchInput: RegExp | null;
+  matchedOnly: boolean;
 }>();
+
+/** 除了匹配到文本的那一行外, 上下要额外显示几行 */
+const NEARBY_LINE_COUNT = 2;
+
+const is_expanded = ref<boolean[]>([]);
+const parsed_content = shallowRef<string[]>([]);
+watch(
+  () => [props.searchInput, props.matchedOnly] as const,
+  ([search_input, matched_only]) => {
+    if (search_input === null || !matched_only) {
+      return;
+    }
+
+    const line_starts = _.concat(0, [...props.content.matchAll(/\n/g)].map(match => match.index) ?? []);
+    const line_count = line_starts.length;
+
+    const offsetToLine = (offset: number): number => {
+      let low = 0;
+      let high = line_starts.length - 1;
+      while (low <= high) {
+        const mid = (low + high) >>> 1;
+        const value = line_starts[mid];
+        if (value === offset) {
+          return mid;
+        }
+        if (value < offset) {
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+      return Math.max(0, low - 1);
+    };
+
+    const matches = [...props.content.matchAll(search_input)];
+    if (matches.length === 0) {
+      is_expanded.value = [];
+      parsed_content.value = [props.content];
+      return;
+    }
+
+    const matched_ranges: { start: number; end: number }[] = _(matches)
+      .map(match => ({
+        start: Math.max(0, offsetToLine(match.index) - NEARBY_LINE_COUNT),
+        end: Math.min(line_count - 1, offsetToLine(match.index + match.length - 1) + NEARBY_LINE_COUNT),
+      }))
+      .sortBy('start')
+      .thru(matches => chunkBy(matches, (lhs, rhs) => lhs.start <= rhs.end + 1))
+      .map(chunks => {
+        return {
+          start: chunks[0].start,
+          end: chunks[chunks.length - 1].end,
+        };
+      })
+      .value();
+
+    const lines = props.content.split('\n');
+
+    const result: { is_expanded: boolean; content: string }[] = [];
+    let previous_end = -1;
+    for (const { start, end } of matched_ranges) {
+      if (start > previous_end + 1) {
+        const unmatched_start = previous_end + 1;
+        const unmatched_end = start - 1;
+        result.push({ is_expanded: false, content: lines.slice(unmatched_start, unmatched_end + 1).join('\n') });
+      }
+      result.push({ is_expanded: true, content: lines.slice(start, end + 1).join('\n') });
+      previous_end = end;
+    }
+    if (previous_end < line_count - 1) {
+      const unmatched_start = previous_end + 1;
+      const unmatched_end = line_count - 1;
+      result.push({ is_expanded: false, content: lines.slice(unmatched_start, unmatched_end + 1).join('\n') });
+    }
+
+    parsed_content.value = result.map(item => item.content);
+    is_expanded.value = result.map(item => item.is_expanded);
+  },
+);
 </script>

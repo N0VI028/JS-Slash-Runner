@@ -1,24 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 import { _getButtonEvent } from '@/function/script';
 import { _getIframeName } from '@/function/util';
-import { get_or_set } from '@/util/map';
+import { getOrSet } from '@/util/algorithm';
 import { eventSource } from '@sillytavern/script';
 
 const iframe_event_listeners_map: Map<string, Map<string, Set<Function>>> = new Map();
 
 function register_listener(this: Window, event: string, listener: Function): void {
-  const event_listeners_map = get_or_set(
+  const event_listeners_map = getOrSet(
     iframe_event_listeners_map,
     _getIframeName.call(this),
     () => new Map<string, Set<Function>>(),
   );
-  const listeners = get_or_set(event_listeners_map, event, () => new Set());
+  const listeners = getOrSet(event_listeners_map, event, () => new Set());
 
   listeners.add(listener);
 }
 
 function get_map(this: Window): Map<string, Set<Function>> {
-  return get_or_set(iframe_event_listeners_map, _getIframeName.call(this), () => new Map<string, Set<Function>>());
+  return getOrSet(iframe_event_listeners_map, _getIframeName.call(this), () => new Map<string, Set<Function>>());
 }
 
 export function _eventOn<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
@@ -280,7 +280,10 @@ export type ListenerType = {
   [tavern_events.GENERATE_BEFORE_COMBINE_PROMPTS]: () => void;
   [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
   /** dry_run 只在 SillyTavern 1.13.15 及以后有 */
-  [tavern_events.GENERATE_AFTER_DATA]: (generate_data: { prompt: { role: string; content: string }[] }, dry_run: boolean) => void;
+  [tavern_events.GENERATE_AFTER_DATA]: (
+    generate_data: { prompt: { role: string; content: string }[] },
+    dry_run: boolean,
+  ) => void;
   [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
   [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
