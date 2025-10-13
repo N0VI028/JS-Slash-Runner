@@ -9,14 +9,26 @@
       <div
         ref="header_ref"
         class="
-          flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1
-          text-[rgb(from_var(--SmartThemeChatTintColor)_r_g_b_/_1)] select-none
+          flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1 select-none
         "
       >
-        <div class="flex-1 cursor-move font-bold" style="touch-action: none" @pointerdown="startDrag">
+        <div
+          class="flex-1 cursor-move font-bold"
+          style="touch-action: none;"
+          :style="{ color: getSmartThemeQuoteTextColor() ?? 'inherit' }"
+          @pointerdown="startDrag"
+        >
           {{ title }}
         </div>
-        <div class="flex flex-shrink-0 gap-1">
+        <div class="flex flex-shrink-0 gap-1" :style="{ color: getSmartThemeQuoteTextColor() ?? 'inherit' }">
+          <!-- prettier-ignore-attribute -->
+          <div
+            v-if="showGuide"
+            class="flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-base!"
+            @click="openGuidePopup"
+          >
+            <i class="fa-solid fa-question"></i>
+          </div>
           <!-- prettier-ignore-attribute -->
           <div
             class="
@@ -66,6 +78,7 @@
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
 import { useEventListener, useLocalStorage, useResizeObserver, useThrottleFn, useWindowSize } from '@vueuse/core';
 import { computed, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
+import {getSmartThemeQuoteTextColor} from '@/util/color';
 
 interface ResizeHandle {
   name: string;
@@ -89,6 +102,8 @@ const props = withDefaults(
     mobileHeight?: string | number;
     /** 标题文本，由外部传入 */
     title?: string;
+    /** 是否显示使用指南 */
+    showGuide?: boolean;
     /** 是否可拖拽 */
     draggable?: boolean;
     /** 是否可调整大小 */
@@ -126,6 +141,7 @@ const props = withDefaults(
     mobileWidth: '90vw',
     mobileHeight: '70vh',
     title: '未命名浮窗',
+    showGuide: false,
     draggable: true,
     resizable: true,
     minWidth: 300,
@@ -153,6 +169,7 @@ const emit = defineEmits<{
   (e: 'resizestop', payload: { left: number; top: number; width: number; height: number }): void;
   (e: 'activated'): void;
   (e: 'deactivated'): void;
+  (e: 'openGuidePopup'): void;
 }>();
 
 const { width: window_width } = useWindowSize();
@@ -208,6 +225,10 @@ function toggleCollapse() {
   setTimeout(() => {
     checkAndAdjustBounds();
   }, 10);
+}
+
+function openGuidePopup() {
+  emit('openGuidePopup');
 }
 
 /**

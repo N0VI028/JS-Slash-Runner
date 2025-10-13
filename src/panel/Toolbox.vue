@@ -56,7 +56,9 @@
       v-if="enable_prompt_viewer"
       storage-id="prompt-viewer"
       :title="t`提示词查看器`"
+      :show-guide="true"
       @close="enable_prompt_viewer = false"
+      @open-guide-popup="showPromptViewerHelp"
     >
       <PromptViewer />
     </Dialog>
@@ -80,12 +82,27 @@
 </template>
 
 <script setup lang="ts">
+import Popup from '@/panel/component/Popup.vue';
 import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
 import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
 import VariableManager from '@/panel/toolbox/VariableManager.vue';
 import VariableManager2 from '@/panel/toolbox/VariableManager2.vue';
+import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
+import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
+import { getCurrentLocale } from '@sillytavern/scripts/i18n';
+import { marked } from 'marked';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
 const enable_variable_manager2 = ref<boolean>(false);
+
+/**
+ * 显示提示词查看器帮助信息
+ */
+const { open: showPromptViewerHelp } = useModal({
+  component: Popup,
+  slots: {
+    default: `<div class="text-left p-1.5">${marked.parse(getCurrentLocale().includes('zh') ? help_zh : help_en)}</div>`,
+  },
+});
 </script>

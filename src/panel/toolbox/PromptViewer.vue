@@ -10,46 +10,48 @@
             {{ t`${filtered_prompts.length}/${prompts.length} 条消息` }}
           </div>
         </div>
-        <div
-          class="fa-solid fa-rotate-right cursor-pointer text-base duration-200"
-          :class="{ 'animate-spin': is_refreshing }"
-          title="刷新"
-          @click="triggerRefresh"
-        />
-        <div class="fa-solid fa-question" title="使用说明" @click="showHelp" />
+        <!-- TODO: 调整位置和样式 -->
+        <div class="flex items-center gap-1">
+          <div class="fa-solid fa-expand cursor-pointer" title="展开全部" @click="toggleAll(true)" />
+          <div class="fa-solid fa-compress cursor-pointer" title="收起全部" @click="toggleAll(false)" />
+          <div
+            class="fa-solid fa-rotate-right cursor-pointer text-base duration-200"
+            :class="{ 'animate-spin': is_refreshing }"
+            title="刷新"
+            @click="triggerRefresh"
+          />
+        </div>
       </div>
-      <div class="my-0.75 flex flex-col bg-(--grey5020a) p-0.5">
-        <div class="flex items-center justify-between gap-0.5">
+      <div class="my-0.75 flex flex-col gap-0.5 bg-(--grey5020a) p-0.5">
+        <div class="flex items-center gap-0.5">
           <div
             class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
             @click="is_filter_opened = !is_filter_opened"
           >
             <i class="fa-solid fa-filter" />
           </div>
-          <div class="relative mr-1 flex-grow">
-            <!-- prettier-ignore-attribute -->
-            <SearchBar
-              v-model="search_input"
-              class="
-                h-2 w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8 pl-1 text-base
-                text-(--mainTextColor)
-              "
-              :placeholder="t`搜索消息内容...`"
-            />
-            <!-- prettier-ignore-attribute -->
-            <div
-              class="
-                pointer-events-auto absolute top-[25%] right-1 flex items-center rounded-sm text-sm whitespace-nowrap
-                text-(--SmartThemeBodyColor)
-              "
-            >
-              <input v-model="matched_only" type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
-              <label for="prompt-search-compact-mode">{{ t`仅显示匹配` }}</label>
-            </div>
+          <!-- prettier-ignore-attribute -->
+          <SearchBar
+            v-model="search_input"
+            class="
+              grow rounded-sm border border-(--SmartThemeBorderColor) bg-transparent text-base text-(--mainTextColor)
+            "
+            :placeholder="t`搜索消息内容...`"
+          />
+          <!-- prettier-ignore-attribute -->
+          <div
+            class="
+              pointer-events-auto mr-0.5 flex flex-shrink-0 items-center rounded-sm text-sm whitespace-nowrap
+              text-(--SmartThemeBodyColor)
+            "
+          >
+            <input v-model="matched_only" type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
+            <label for="prompt-search-compact-mode">{{ t`仅显示匹配` }}</label>
           </div>
         </div>
-        <template v-if="is_filter_opened">
-          <div class="mx-0.5 mt-0.5 flex gap-1">
+        <div v-if="is_filter_opened" ref="teleportTarget" class="flex items-center gap-0.5"></div>
+        <Teleport v-if="teleportTarget" :to="teleportTarget">
+          <div class="flex gap-1">
             <div class="flex items-center gap-0.5">
               <input v-model="roles_to_show" type="checkbox" value="system" />
               system
@@ -63,15 +65,11 @@
               assistant
             </div>
           </div>
-        </template>
-        <!-- TODO: 调整位置和样式 -->
-        <div class="fa-solid fa-expand" title="展开全部" @click="toggleAll(true)" />
-        <div class="fa-solid fa-compress" title="收起全部" @click="toggleAll(false)" />
+        </Teleport>
       </div>
     </div>
     <template v-if="is_refreshing">
-      <!-- TODO: 调整样式 -->
-      正在发送虚假生成请求, 从而获取最新提示词...
+      <div class="mt-1 text-center opacity-70">正在发送虚假生成请求, 从而获取最新提示词...</div>
     </template>
     <template v-else>
       <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
@@ -106,19 +104,16 @@
 </template>
 
 <script setup lang="ts">
-import Popup from '@/panel/component/Popup.vue';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
-import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
-import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
 import { version } from '@/util/tavern';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
-import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
-import { marked } from 'marked';
+import { Teleport } from 'vue';
 import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
+const teleportTarget = useTemplateRef<HTMLElement>('teleportTarget');
 
 export interface PromptData {
   id: number;
@@ -208,11 +203,4 @@ if (compare(version, '1.13.4', '<=')) {
     },
   );
 }
-
-const { open: showHelp } = useModal({
-  component: Popup,
-  slots: {
-    default: marked.parse(getCurrentLocale().includes('zh') ? help_zh : help_en),
-  },
-});
 </script>

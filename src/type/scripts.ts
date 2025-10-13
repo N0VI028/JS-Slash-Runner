@@ -1,4 +1,4 @@
-import { smart_theme_quote_color } from '@/util/css_variable';
+import { smart_theme_quote_color } from '@/util/color';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 export const ScriptButton = z.object({

@@ -4,7 +4,7 @@
       <input
         ref="internal"
         :placeholder="placeholder"
-        class="text_pole w-full pr-2! pl-2!"
+        class="text_pole m-0! w-full pr-2! pl-2!"
         type="text"
         @input="onInput"
       />

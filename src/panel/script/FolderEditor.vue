@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { ScriptFolderForm } from '@/panel/script/type';
-import { smart_theme_quote_color } from '@/util/css_variable';
+import { smart_theme_quote_color } from '@/util/color';
 import { showFontAwesomePicker } from '@sillytavern/scripts/utils';
 import PickColors from 'vue-pick-colors';
 

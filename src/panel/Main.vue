@@ -3,7 +3,11 @@
     <template #title>
       <div class="flex items-center gap-0.5">
         <span>{{ t`版本更新` }}</span>
-        <div v-if="has_update" class="rounded-full bg-(--SmartThemeQuoteColor) px-0.5 text-xs font-medium">
+        <div
+          v-if="has_update"
+          class="rounded-full bg-(--SmartThemeQuoteColor) px-0.5 text-xs font-medium"
+          :style="{ color: getSmartThemeQuoteTextColor() ?? 'inherit' }"
+        >
           {{ t`最新：Ver ${latest_version}` }}
         </div>
       </div>
@@ -37,6 +41,7 @@ import MacroLike from '@/panel/main/MacroLike.vue';
 import Reference from '@/panel/main/Reference.vue';
 import { getLatestVersion, hasUpdate } from '@/panel/main/update';
 import Update from '@/panel/main/Update.vue';
+import { getSmartThemeQuoteTextColor } from '@/util/color';
 
 const current_version = getTavernHelperVersion();
 const has_update = ref(false);

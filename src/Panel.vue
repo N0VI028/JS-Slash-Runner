@@ -21,7 +21,7 @@
             <div
               class="flex flex-wrap items-center justify-center gap-0.25"
               :style="{
-                'mix-blend-mode': active_tab === index ? 'color-dodge' : 'normal',
+                color: active_tab === index ? getSmartThemeQuoteTextColor() ?? 'inherit' : 'inherit',
               }"
             >
               <i class="flex-shrink-0 text-[80%]" :class="icon"></i>
@@ -53,6 +53,7 @@ import { initThirdPartyObject } from '@/panel/third_party_object';
 import { initSlashCommands } from '@/slash_command/index';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { ModalsContainer } from 'vue-final-modal';
+import { getSmartThemeQuoteTextColor } from './util/color';
 
 z.config(getCurrentLocale().includes('zh') ? z.locales.zhCN() : z.locales.en());
 disableIncompatibleOption();
