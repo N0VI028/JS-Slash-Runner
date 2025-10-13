@@ -28,6 +28,7 @@
           <div class="relative mr-1 flex-grow">
             <!-- prettier-ignore-attribute -->
             <input
+              v-model="search_input"
               type="text"
               class="
                 h-2 w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8 pl-1 text-base
@@ -86,7 +87,7 @@
                 whitespace-pre-wrap text-(--mainFontSize)
               "
             >
-              <span>{{ item_data.content }}</span>
+              <Content :content="item_data.content" :search-input="search_input" />
             </div>
           </template>
         </div>
@@ -96,11 +97,12 @@
 </template>
 
 <script setup lang="ts">
+import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
+import { includesOrTest } from '@/util/search';
 import { version } from '@/util/tavern';
 import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
-import _ from 'lodash';
 import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
@@ -116,10 +118,14 @@ const virt_list_ref = useTemplateRef('virt_list');
 const prompts = shallowRef<PromptData[]>([]);
 
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
+const search_input = ref<string | RegExp>('');
 const is_expanded = ref<boolean[]>([]);
 
 const filtered_prompts = computed(() => {
-  return prompts.value.filter(prompt => roles_to_show.value.includes(prompt.role));
+  return _(prompts.value)
+    .filter(prompt => roles_to_show.value.includes(prompt.role))
+    .filter(prompt => includesOrTest(prompt.content, search_input.value))
+    .value();
 });
 
 const is_refreshing = ref<boolean>(false);

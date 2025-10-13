@@ -3,7 +3,7 @@ export function includesOrTest(text: string, search_input: string | RegExp): boo
     return true;
   }
   if (typeof search_input === 'string') {
-    return text.includes(search_input);
+    search_input = new RegExp(_.escapeRegExp(search_input), 'i');
   }
   return search_input.test(text);
 }
