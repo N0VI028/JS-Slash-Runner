@@ -37,11 +37,11 @@ export function chunkBy<T>(array: T[], predicate: (lhs: T, rhs: T) => boolean): 
   }
 
   const chunks: T[][] = [[array[0]]];
-  for (const [lhs, rhs] of _.zip(_.drop(array), _.dropRight(array))) {
+  for (const [lhs, rhs] of _.zip(_.dropRight(array), _.drop(array))) {
     if (predicate(lhs!, rhs!)) {
-      chunks[chunks.length - 1].push(lhs!);
+      chunks[chunks.length - 1].push(rhs!);
     } else {
-      chunks.push([lhs!]);
+      chunks.push([rhs!]);
     }
   }
   return chunks;

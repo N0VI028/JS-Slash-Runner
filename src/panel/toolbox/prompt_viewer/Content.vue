@@ -65,7 +65,7 @@ watch(
         end: Math.min(line_count - 1, offsetToLine(match.index + match.length - 1) + NEARBY_LINE_COUNT),
       }))
       .sortBy('start')
-      .thru(matches => chunkBy(matches, (lhs, rhs) => lhs.start <= rhs.end + 1))
+      .thru(matches => chunkBy(matches, (lhs, rhs) => lhs.end >= rhs.start))
       .map(chunks => {
         return {
           start: chunks[0].start,
