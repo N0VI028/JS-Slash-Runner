@@ -86,7 +86,7 @@ import { useModal } from 'vue-final-modal';
 const props = defineProps<{
   filters: FiltersState;
   currentView: 'tree' | 'card' | 'text';
-  searchInput?: string | RegExp;
+  searchInput: RegExp | null;
 }>();
 
 const variables = defineModel<Record<string, any>>({ required: true });

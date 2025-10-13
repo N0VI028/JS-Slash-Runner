@@ -45,6 +45,10 @@ import Chat from '@/panel/toolbox/variable_manager/ContentChat.vue';
 import Global from '@/panel/toolbox/variable_manager/ContentGlobal.vue';
 import Message from '@/panel/toolbox/variable_manager/ContentMessage.vue';
 import Preset from '@/panel/toolbox/variable_manager/ContentPreset.vue';
+import { createDefaultFilters } from '@/panel/toolbox/variable_manager/filter';
+import Toolbar from '@/panel/toolbox/variable_manager/Toolbar.vue';
+import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
+import { treeControlKey } from '@/panel/toolbox/variable_manager/types';
 // 与各 Content 组件通过 defineExpose 暴露的公共接口保持一致
 type HistoryController = {
   undo?: () => void;
@@ -53,10 +57,6 @@ type HistoryController = {
   canRedo?: boolean;
   createRootVariable?: (payload: import('./variable_manager/types').RootVariablePayload) => boolean | Promise<boolean>;
 } | null;
-import { createDefaultFilters } from '@/panel/toolbox/variable_manager/filter';
-import Toolbar from '@/panel/toolbox/variable_manager/Toolbar.vue';
-import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
-import { treeControlKey } from '@/panel/toolbox/variable_manager/types';
 
 const collapseAllSignal = ref(0);
 const expandAllSignal = ref(0);
@@ -96,7 +96,7 @@ const tabs = [
   { name: t`消息`, component: Message },
 ];
 
-const search_input = ref<string | RegExp>('');
+const search_input = ref<RegExp | null>(null);
 // TODO: search_input 接入Toolbar，tabs.component
 const filters = ref(createDefaultFilters());
 const currentView = ref<'tree' | 'card' | 'text'>('tree');

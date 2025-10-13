@@ -20,7 +20,7 @@ const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 const props = defineProps<{
   filters: FiltersState;
   currentView: 'tree' | 'card' | 'text';
-  searchInput?: string | RegExp;
+  searchInput: RegExp | null;
 }>();
 
 const variables = shallowRef<Record<string, any>>(get_variables_without_clone({ type: 'global' }));

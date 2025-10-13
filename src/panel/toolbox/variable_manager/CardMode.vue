@@ -28,13 +28,11 @@ const props = withDefaults(
     depth?: number;
     asChild?: boolean;
     filters: FiltersState;
-    /** 搜索输入，空字符串或未定义表示未搜索 */
-    searchInput?: string | RegExp;
+    searchInput: RegExp | null;
   }>(),
   {
     depth: 0,
     asChild: false,
-    searchInput: '',
   },
 );
 
