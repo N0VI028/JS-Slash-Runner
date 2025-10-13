@@ -54,8 +54,7 @@ const onInput = useDebounceFn(
       input.value = null;
       return;
     }
-    // 确保 'g' 标志
-    input.value = regexFromString(result) ?? new RegExp(_.escapeRegExp(result), 'gi');
+    input.value = regexFromString(result);
   },
   () => props.debounce,
 );
@@ -67,9 +66,16 @@ function regexFromString(input: string): RegExp | null {
       return null;
     }
     if (match[3] && !/^(?!.*?(.).*?\1)[gmixXsuUAJ]+$/.test(match[3])) {
-      return RegExp(input, 'gi');
+      return new RegExp(input, 'gi');
     }
-    return new RegExp(match[2], match[3].indexOf('g') === -1 ? match[3] + 'g' : match[3]);
+    let flags = match[3];
+    if (flags.indexOf('g') === -1) {
+      flags = flags + 'g';
+    }
+    if (flags.indexOf('i') === -1) {
+      flags = flags + 'i';
+    }
+    return new RegExp(match[2], flags);
   } catch {
     return null;
   }

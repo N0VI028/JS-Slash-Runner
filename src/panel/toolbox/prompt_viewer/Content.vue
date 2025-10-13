@@ -96,5 +96,6 @@ watch(
     parsed_content.value = result.map(item => item.content);
     is_expanded.value = result.map(item => item.is_expanded);
   },
+  { immediate: true },
 );
 </script>
