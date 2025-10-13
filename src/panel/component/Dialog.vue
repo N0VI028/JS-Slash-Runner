@@ -9,37 +9,34 @@
       <div
         ref="header_ref"
         class="
-          flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1 select-none
+          flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1
+          text-[rgb(from_var(--SmartThemeChatTintColor)_r_g_b_/_1)] select-none
         "
       >
-        <div
-          class="flex-1 cursor-move font-bold text-(--SmartThemeBodyColor)"
-          style="touch-action: none"
-          @pointerdown="startDrag"
-        >
+        <div class="flex-1 cursor-move font-bold" style="touch-action: none" @pointerdown="startDrag">
           {{ title }}
         </div>
         <div class="flex flex-shrink-0 gap-1">
           <!-- prettier-ignore-attribute -->
-          <button
+          <div
             class="
               relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
-              text-base! text-(--SmartThemeBodyColor)
+              text-base!
             "
             :title="is_collapsed ? t`展开` : t`折叠`"
             @click="toggleCollapse"
           >
             <i :class="is_collapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up'"></i>
-          </button>
+          </div>
           <!-- prettier-ignore-attribute -->
-          <button
+          <div
             class="
               fa-solid fa-close relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none
-              bg-transparent text-base! text-(--SmartThemeBodyColor)
+              bg-transparent text-base!
             "
             :title="t`关闭`"
             @click="emit('close')"
-          ></button>
+          ></div>
         </div>
       </div>
       <div v-if="!is_collapsed" class="flex flex-1 flex-col overflow-hidden">

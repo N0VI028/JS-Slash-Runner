@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-full w-full flex-col overflow-hidden py-0.5">
+  <div class="flex h-full w-full flex-col overflow-hidden">
     <div class="relative flex h-4 flex-shrink-0 justify-start py-0.5">
       <template v-for="({ name }, index) in tabs" :key="index">
         <div :class="['TH-tab-item', { 'TH-tab-active': active_tab === index }]" @click="active_tab = index">
