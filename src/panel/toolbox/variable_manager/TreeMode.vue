@@ -90,18 +90,9 @@
             @dblclick.stop.prevent="handleKeyAreaDoubleActivate"
             @touchend="handleKeyAreaTouchEnd"
           >
-            <template v-if="isSearching">
-              <SearchHighlighter
-                :query="props.searchInput"
-                :text-to-highlight="String(nodeKey)"
-                wrapper-tag="span"
-                wrapper-class="TH-highlight-wrapper"
-                highlight-class="TH-highlight-mark"
-              />
-            </template>
-            <template v-else>
+            <Highlighter :query="props.searchInput">
               {{ nodeKey }}
-            </template>
+            </Highlighter>
           </span>
         </template>
         <template v-else>
@@ -131,11 +122,9 @@
         >
           <!-- 搜索时为字符串值高亮匹配片段，否则沿用原展示 -->
           <template v-if="isSearching && isStringValue">
-            <SearchHighlighter
-              :query="props.searchInput"
-              :text-to-highlight="stringValueWithQuotes"
-              wrapper-tag="span"
-            />
+            <Highlighter :query="props.searchInput">
+              {{ stringValueWithQuotes }}
+            </Highlighter>
           </template>
           <template v-else>
             {{ valuePreview }}
@@ -221,7 +210,6 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
 import { treeControlKey, treeSelectionKey } from '@/panel/toolbox/variable_manager/types';

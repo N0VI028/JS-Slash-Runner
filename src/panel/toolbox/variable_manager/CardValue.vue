@@ -42,12 +42,7 @@
           @dblclick.stop.prevent="startValueEditing"
           @touchend="handleValueTouchEnd"
         >
-          <template v-if="isSearching">
-            <SearchHighlighter :query="props.searchInput" :text-to-highlight="formattedValue" />
-          </template>
-          <template v-else>
-            {{ formattedValue }}
-          </template>
+          <Highlighter :query="props.searchInput">{{ formattedValue }}</Highlighter>
         </div>
       </template>
       <template v-else>
@@ -70,7 +65,6 @@
 </template>
 
 <script setup lang="ts">
-import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
 import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
 import { isSearching as isSearchingUtil, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';

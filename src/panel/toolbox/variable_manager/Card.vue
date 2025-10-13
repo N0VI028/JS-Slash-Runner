@@ -39,12 +39,7 @@
               @dblclick.stop.prevent="handleNameDoubleClick"
               @touchend="handleNameTouchEnd"
             >
-              <template v-if="isSearching">
-                <SearchHighlighter :query="props.searchInput" :text-to-highlight="displayNameFixed" />
-              </template>
-              <template v-else>
-                {{ displayNameFixed }}
-              </template>
+              <Highlighter :query="props.searchInput">{{ displayNameFixed }}</Highlighter>
             </span>
           </template>
           <template v-else>
@@ -125,7 +120,6 @@
 </template>
 
 <script setup lang="ts">
-import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Tippy, TippyComponent } from 'vue-tippy';
 

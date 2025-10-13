@@ -17,18 +17,12 @@
       ref="highlightRef"
       class="absolute inset-0 overflow-auto whitespace-pre-wrap"
     >
-      <SearchHighlighter
-        :query="props.searchInput"
-        :text-to-highlight="textContent"
-        wrapper-tag="div"
-        highlight-class="TH-highlight-mark"
-      />
+      <Highlighter :query="props.searchInput">{{ textContent }}</Highlighter>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import { onClickOutside } from '@vueuse/core';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 

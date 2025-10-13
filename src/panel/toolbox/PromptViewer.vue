@@ -27,9 +27,8 @@
           </div>
           <div class="relative mr-1 flex-grow">
             <!-- prettier-ignore-attribute -->
-            <input
+            <SearchBar
               v-model="search_input"
-              type="text"
               class="
                 h-2 w-full rounded-sm border border-(--SmartThemeBorderColor) bg-transparent py-0.5 pr-8 pl-1 text-base
                 text-(--mainTextColor)

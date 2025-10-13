@@ -26,11 +26,7 @@
         filter: script.enabled ? 'none' : 'grayscale(0.5)',
       }"
     >
-      <SearchHighlighter
-        :query="props.searchInput"
-        :text-to-highlight="script.name"
-        highlight-class="TH-highlight-mark"
-      />
+      <Highlighter :query="props.searchInput">{{ script.name }}</Highlighter>
     </div>
     <div v-show="!props.isBatchMode" class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
@@ -52,7 +48,6 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import SearchHighlighter from '@/panel/component/SearchHighlighter.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
