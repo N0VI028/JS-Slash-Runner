@@ -169,4 +169,8 @@ onBeforeUnmount(() => {
 .jse-description {
   white-space: normal;
 }
+
+.jse-contextmenu .jse-row .jse-dropdown-button {
+  gap: 5px;
+}
 </style>
