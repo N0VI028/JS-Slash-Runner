@@ -45,6 +45,10 @@ onBeforeUnmount(() => {
   --jse-key-color: var(--SmartThemeQuoteColor);
   /* 选中的变量的背景色 */
   --jse-selection-background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent);
+  --jse-selection-background-inactive-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent);
+  /* 下拉箭头的背景色 */
+  --jse-context-menu-pointer-hover-background: #b2b2b2;
+  --jse-context-menu-pointer-background: #b2b2b2;
   /* 分隔符（也就是冒号）的颜色 */
   --jse-delimiter-color: var(--SmartThemeEmColor);
   /* 路径显示面板的文本颜色 */
@@ -68,6 +72,8 @@ onBeforeUnmount(() => {
   --jse-font-size: var(--mainFontSize);
   /* 上下文菜单内边距 */
   --jse-padding: calc(var(--mainFontSize) * 0.5);
+  /* 文本模式的搜索面板字号大小 */
+  --jse-font-size-text-mode-search: calc(var(--mainFontSize) * 0.9);
 
   /* 弹窗选择框背景 */
   --jse-svelte-select-background: var(--SmartThemeShadowColor);
@@ -153,6 +159,7 @@ onBeforeUnmount(() => {
 .cm-search label {
   display: inline-flex;
   padding-left: 0 !important;
+  color: var(--jse-panel-button-color) !important;
 }
 
 .cm-search input.cm-textfield {
