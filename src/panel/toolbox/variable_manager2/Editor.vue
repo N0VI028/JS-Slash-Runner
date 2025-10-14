@@ -3,7 +3,8 @@
 </template>
 
 <script setup lang="ts">
-// TODO: async import
+import { getCurrentLocale } from '@sillytavern/scripts/i18n';
+// TODO: async import?
 import { createJSONEditor, JSONEditorPropsOptional } from 'vanilla-jsoneditor';
 
 const props = defineProps<{ content: Record<string, any> }>();
@@ -15,7 +16,11 @@ onMounted(() => {
   editor = createJSONEditor({
     target: editor_ref.value!,
     props: {
-      content: { json: props.content },
+      content: {
+        json: props.content,
+      },
+      // @ts-expect-error 自定义版本的额外参数
+      language: getCurrentLocale().includes('zh') ? 'zh' : 'en',
     } satisfies JSONEditorPropsOptional,
   });
 });
