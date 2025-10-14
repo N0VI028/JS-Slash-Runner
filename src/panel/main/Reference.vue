@@ -6,48 +6,40 @@
       <div class="flex w-full flex-wrap gap-0.5">
         <Divider margin-y="0">{{ t`酒馆助手` }}</Divider>
         <div class="mb-0.5 flex items-center justify-center gap-0.5">
-          <div class="TH-reference-button">
-            <a
-              href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
-              style="cursor: pointer"
-            >
-              {{ t`查看教程及文档` }}
-            </a>
-            <i class="fa-solid fa-external-link"></i>
+          <div
+            class="TH-reference-button"
+            @click="open('https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html')"
+          >
+            {{ t`查看教程及文档` }}<i class="fa-solid fa-xs fa-external-link" />
           </div>
           <div ref="tavern_helper_types_button" class="TH-reference-button">
-            <a style="cursor: pointer">
-              {{ t`下载参考文件` }}
-            </a>
-            <i class="fa-solid fa-ellipsis-vertical"></i>
+            {{ t`下载参考文件` }}<i class="fa-solid fa-ellipsis-vertical" />
           </div>
           <div ref="tavern_helper_types_popup" class="list-group" style="display: none">
             <a
+              target="_blank"
               href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.zip?ref_type=heads&inline=false"
               class="list-group-item"
             >
-              {{ t`电脑编写模板用` }}
+              {{ t`电脑编写模板用` }}<i class="fa-solid fa-download" />
             </a>
             <a
+              target="_blank"
               href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.txt?ref_type=heads&inline=false"
               class="list-group-item"
             >
-              {{ t`手机或 AI 官网用` }}
+              {{ t`手机或 AI 官网用` }}<i class="fa-solid fa-download" />
             </a>
           </div>
         </div>
         <Divider margin-y="0">{{ t`酒馆 /STScript` }}</Divider>
         <div class="mb-0.5 flex items-center justify-center gap-0.5">
-          <div class="TH-reference-button">
-            <a href="https://rentry.org/sillytavern-script-book" style="cursor: pointer">
-              {{ t`查看手册` }}
-            </a>
-            <i class="fa-solid fa-external-link"></i>
+          <div class="TH-reference-button" @click="open('https://rentry.org/sillytavern-script-book')">
+            {{ t`查看手册` }}
+            <i class="fa-solid fa-external-link" />
           </div>
-          <div class="TH-reference-button">
-            <a target="_blank" @click="downloadSlashCommands">
-              {{ t`下载参考文件` }}
-            </a>
+          <div class="TH-reference-button" @click="downloadSlashCommands">
+            {{ t`下载参考文件` }}<i class="fa-solid fa-download" />
           </div>
         </div>
       </div>
@@ -61,6 +53,10 @@ import {
   SlashCommandNamedArgument,
 } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
+
+function open(url: string) {
+  window.open(url, '_blank');
+}
 
 function formatSlashCommands(): string {
   const cmdList = Object.keys(SlashCommandParser.commands)
