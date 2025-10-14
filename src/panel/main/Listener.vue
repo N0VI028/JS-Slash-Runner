@@ -3,7 +3,7 @@
     <template #title>{{ t`实时监听` }}</template>
     <template #description>{{ t`连接编写模板，将代码修改实时同步到酒馆` }}</template>
     <template #content>
-      <i class="fa-solid fa-wifi mr-0.5" :style="{ color: enabled ? 'green' : 'rgb(170, 0, 0)' }" />
+      <i class="fa-solid fa-wifi mr-0.5" :style="{ color: connected ? 'green' : 'rgb(170, 0, 0)' }" />
     </template>
     <template #detail>
       <div class="flex flex-wrap items-center justify-between gap-0.5">
@@ -41,5 +41,5 @@ import { useListener } from '@/panel/main/listener';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 const { enabled, enable_echo, url, duration } = toRefs(useGlobalSettingsStore().settings.listener);
-useListener(enabled, enable_echo, url, duration);
+const connected = useListener(enabled, enable_echo, url, duration);
 </script>

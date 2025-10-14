@@ -7,7 +7,7 @@ export function useListener(
   enabled_echo: Readonly<Ref<boolean>>,
   url: Readonly<Ref<string>>,
   duration: Readonly<Ref<number>>,
-) {
+): Ref<boolean> {
   const refreshMessageDebounced = useDebounceFn(() => {
     useMessageIframeRuntimesStore().reloadAll();
   }, duration);
@@ -19,10 +19,13 @@ export function useListener(
     refreshScriptDebounced();
   };
 
+  const connected = ref(false);
+
   watchEffect(() => {
     if (socket) {
       socket.close();
       socket = null;
+      connected.value = false;
     }
 
     if (!enabled.value) {
@@ -35,6 +38,7 @@ export function useListener(
 
     socket.on('connect', () => {
       console.info('[Listener] 成功连接至服务器');
+      connected.value = true;
     });
 
     socket.on('connect_error', (error: Error) => {
@@ -42,12 +46,14 @@ export function useListener(
         toastr.error(t`${error.name}: ${error.message}`, t`[酒馆助手]连接实时监听器出错, 尝试重连...`);
       }
       console.error(`${error.name}: ${error.message}${error.stack ?? ''}`);
+      connected.value = socket?.connected ?? false;
     });
     socket.on('disconnect', (reason, details) => {
       if (enabled_echo.value) {
         toastr.warning(t`${reason}`, t`[酒馆助手]实时监听器断开连接`);
       }
       console.info(`[Listener] 与服务器断开连接: ${reason}\n${details}`);
+      connected.value = socket?.connected ?? false;
     });
 
     socket.on('iframe_updated', () => refreshAllDebounced());
@@ -56,4 +62,6 @@ export function useListener(
 
     return result;
   });
+
+  return connected;
 }
