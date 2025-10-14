@@ -10,7 +10,7 @@
     <DefineNonDetailPart>
       <div class="flex min-w-0 flex-1 flex-col">
         <!-- prettier-ignore-attribute -->
-        <div class="TH-Item-title text-base font-bold">
+        <div class="TH-Item--title text-base font-bold">
           <slot name="title" />
         </div>
         <!-- prettier-ignore-attribute -->
@@ -29,11 +29,11 @@
 
     <template v-else>
       <div
-        class="TH-collapsible-header flex w-full flex-wrap items-center justify-between gap-0.75"
+        class="flex w-full flex-wrap items-center justify-between gap-0.75"
         :class="{
           'justify-between': has_content,
         }"
-        @click="onHeaderClick"
+        @click="toggle"
       >
         <NonDetailPart />
       </div>
@@ -72,28 +72,10 @@ const is_animating = ref<boolean>(false);
 const container_ref = useTemplateRef<HTMLDivElement>('container_ref');
 const content_ref = useTemplateRef<HTMLDivElement>('content_ref');
 
-function onHeaderClick(event: MouseEvent) {
-  if (!has_detail.value) return;
-  if (shouldIgnoreClick(event)) return;
-  toggle();
-}
-
-function shouldIgnoreClick(event: MouseEvent): boolean {
-  const target = event.target as HTMLElement;
-  if (!target) return false;
-
-  const $closest = (selector: string) => target.closest(selector);
-
-  // 忽略内容区域中的所有点击
-  if ($closest('.TH-collapsible--content')) {
-    return true;
-  }
-
-  return false;
-}
-
 function toggle() {
-  if (is_animating.value) return;
+  if (is_animating.value) {
+    return;
+  }
   if (is_expanded.value) {
     collapse();
   } else {
@@ -102,10 +84,14 @@ function toggle() {
 }
 
 function expand() {
-  if (is_animating.value || is_expanded.value) return;
+  if (is_animating.value || is_expanded.value) {
+    return;
+  }
   const content = content_ref.value;
   const container = container_ref.value;
-  if (!content || !container) return;
+  if (!content || !container) {
+    return;
+  }
 
   is_animating.value = true;
   container.classList.add('expanded');
@@ -149,10 +135,14 @@ function expand() {
 }
 
 function collapse() {
-  if (is_animating.value || !is_expanded.value) return;
+  if (is_animating.value || !is_expanded.value) {
+    return;
+  }
   const content = content_ref.value;
   const container = container_ref.value;
-  if (!content || !container) return;
+  if (!content || !container) {
+    return;
+  }
 
   is_animating.value = true;
   content.classList.add('animating');
@@ -193,19 +183,19 @@ function collapse() {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 /* 可折叠组件样式 */
 .TH-collapsible > div:first-child {
   cursor: pointer;
 }
 
-.TH-collapsible :deep(.TH-Item-title) {
+.TH-collapsible :deep(.TH-Item--title) {
   position: relative;
   cursor: pointer;
   padding-left: 15px;
 }
 
-.TH-collapsible :deep(.TH-Item-title::before) {
+.TH-collapsible :deep(.TH-Item--title::before) {
   content: '';
   position: absolute;
   left: 0;
@@ -220,7 +210,7 @@ function collapse() {
   transform-origin: center;
 }
 
-.TH-collapsible.expanded :deep(.TH-Item-title::before) {
+.TH-collapsible.expanded :deep(.TH-Item--title::before) {
   transform: translateY(-50%) rotate(90deg);
 }
 
@@ -236,9 +226,5 @@ function collapse() {
 
 .TH-collapsible--content.animating {
   display: flex;
-}
-
-.TH-collapsible .flex.flex-col {
-  cursor: pointer;
 }
 </style>
