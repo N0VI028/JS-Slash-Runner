@@ -1,6 +1,5 @@
 declare namespace SillyTavern {
   type ChatMessage = {
-    message_id: number;
     name: string;
     /**
      * 实际的 role 为:
