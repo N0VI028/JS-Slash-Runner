@@ -23,10 +23,7 @@ export const calculateLightness = (r: number, g: number, b: number): number => {
   const bNorm = b / 255;
 
   // 计算物理亮度的加权和
-  const physicalLuminance =
-    Math.pow(rNorm, GAMMA) +
-    Math.pow(1.5 * gNorm, GAMMA) +
-    Math.pow(0.6 * bNorm, GAMMA);
+  const physicalLuminance = Math.pow(rNorm, GAMMA) + Math.pow(1.5 * gNorm, GAMMA) + Math.pow(0.6 * bNorm, GAMMA);
 
   // 转换为心理亮度
   return K * Math.pow(physicalLuminance, 1 / GAMMA);
@@ -46,10 +43,7 @@ export const rgb2gray = (r: number, g: number, b: number): number => {
   const K = 0.547373141;
 
   // 直接在 0-255 范围计算
-  const physicalLuminance =
-    Math.pow(r, GAMMA) +
-    Math.pow(1.5 * g, GAMMA) +
-    Math.pow(0.6 * b, GAMMA);
+  const physicalLuminance = Math.pow(r, GAMMA) + Math.pow(1.5 * g, GAMMA) + Math.pow(0.6 * b, GAMMA);
 
   return Math.round(K * Math.pow(physicalLuminance, 1 / GAMMA));
 };
@@ -64,14 +58,9 @@ export const rgb2gray = (r: number, g: number, b: number): number => {
  * @param {number} a - 透明度 (0-1)，默认为 1
  * @returns {'black' | 'white'} 文本颜色值
  */
-export const determineTextColorFromRgba = (
-  r: number,
-  g: number,
-  b: number,
-  a: number = 1,
-): 'black' | 'white' => {
+export const determineTextColorFromRgba = (r: number, g: number, b: number, a: number = 1): 'black' | 'white' => {
   const lightness = calculateLightness(r, g, b);
-  return lightness > 0.62 ? 'black' : (a < 0.4 ? 'black' : 'white');
+  return lightness > 0.62 ? 'black' : a < 0.4 ? 'black' : 'white';
 };
 
 /**

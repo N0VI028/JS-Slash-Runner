@@ -14,7 +14,7 @@
       >
         <div
           class="flex-1 cursor-move font-bold"
-          style="touch-action: none;"
+          style="touch-action: none"
           :style="{ color: getSmartThemeQuoteTextColor() ?? 'inherit' }"
           @pointerdown="startDrag"
         >
@@ -78,7 +78,7 @@
 import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
 import { useEventListener, useLocalStorage, useResizeObserver, useThrottleFn, useWindowSize } from '@vueuse/core';
 import { computed, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
-import {getSmartThemeQuoteTextColor} from '@/util/color';
+import { getSmartThemeQuoteTextColor } from '@/util/color';
 
 interface ResizeHandle {
   name: string;

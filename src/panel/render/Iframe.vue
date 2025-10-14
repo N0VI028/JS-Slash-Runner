@@ -17,7 +17,7 @@ const iframe = ref<HTMLIFrameElement | null>(null);
 
 /**
  * 调整指定 iframe 的高度
- * @param target 
+ * @param target
  */
 function adjustIframeHeight(target: HTMLIFrameElement) {
   try {
@@ -90,7 +90,7 @@ function getSharedResizeObserver(): ResizeObserver {
 
 /**
  * 观察指定 iframe 的子文档主体
- * @param target 
+ * @param target
  */
 function observeIframeContent(target: HTMLIFrameElement) {
   try {

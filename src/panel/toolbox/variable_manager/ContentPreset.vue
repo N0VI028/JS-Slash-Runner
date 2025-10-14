@@ -6,7 +6,6 @@
     :current-view="props.currentView"
     :search-input="props.searchInput"
   />
-
 </template>
 
 <script setup lang="ts">

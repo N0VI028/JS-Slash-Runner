@@ -1,6 +1,15 @@
 import { macros } from '@/function/macro_like';
 import { reloadAndRenderChatWithoutEvents } from '@/util/tavern';
-import { characters, chat, event_types, eventSource, getCurrentChatId, saveSettings, substituteParams, this_chid } from '@sillytavern/script';
+import {
+  characters,
+  chat,
+  event_types,
+  eventSource,
+  getCurrentChatId,
+  saveSettings,
+  substituteParams,
+  this_chid,
+} from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';

@@ -92,4 +92,3 @@ export const nodeMatchesSearch = (
   }
   return valueMatchesSearch(value, query);
 };
-
