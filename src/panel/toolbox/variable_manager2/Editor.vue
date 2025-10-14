@@ -90,8 +90,13 @@ onBeforeUnmount(() => {
 
   /* 编辑框的边框 */
   --jse-edit-outline: (1px solid var(--grey5050a));
-
+  /* 选中行背景色 */
   --jse-active-line-background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent);
+
+  /* 缩进标记背景色 */
+  --jse-indent-marker-bg-color: var(--grey5050a);
+  /* 缩进标记选中背景色 */
+  --jse-indent-marker-active-bg-color: var(--grey5050a);
 }
 
 .jse-selected {
@@ -140,12 +145,16 @@ onBeforeUnmount(() => {
   border: none !important;
 }
 
-.cm-search {
-  display: flex;
-  flex-wrap: wrap;
+.cm-search label {
+  display: inline-flex;
+  padding-left: 0 !important;
 }
 
-.cm-search label {
-  display: flex;
+.cm-search input.cm-textfield {
+  width: 100px;
+}
+
+.jse-description {
+  white-space: normal;
 }
 </style>
