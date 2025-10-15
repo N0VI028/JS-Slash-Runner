@@ -17,10 +17,22 @@
 </template>
 
 <script setup lang="ts">
+import Character from '@/panel/toolbox/variable_manager/Character.vue';
+import Chat from '@/panel/toolbox/variable_manager/Chat.vue';
 import Global from '@/panel/toolbox/variable_manager/Global.vue';
+import Message from '@/panel/toolbox/variable_manager/Message.vue';
+import Preset from '@/panel/toolbox/variable_manager/Preset.vue';
+import Test from '@/panel/toolbox/variable_manager/Test.vue';
 
 const active_tab = useLocalStorage<number>('TH-VariableManager:active_tab', 0);
-const tabs = [{ name: t`全局`, component: Global }];
+const tabs = [
+  { name: t`测试`, component: Test },
+  { name: t`全局`, component: Global },
+  { name: t`预设`, component: Preset },
+  { name: t`角色`, component: Character },
+  { name: t`聊天`, component: Chat },
+  { name: t`消息`, component: Message },
+];
 </script>
 
 <style lang="scss" scoped>
