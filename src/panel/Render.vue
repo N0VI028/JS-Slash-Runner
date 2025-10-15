@@ -15,13 +15,6 @@
     </template>
   </Item>
   <Divider />
-  <Item type="plain">
-    <template #title>{{ t`启用加载动画` }}</template>
-    <template #description>{{ t`在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面` }}</template>
-    <template #content>
-      <Toggle id="TH-render-with-loading" v-model="with_loading" />
-    </template>
-  </Item>
   <Divider />
   <Item type="plain">
     <template #title>{{ t`启用 Blob URL 渲染` }}</template>
@@ -47,7 +40,6 @@
         <Iframe
           :id="`${message_id}-${index}`"
           :element="element"
-          :with-loading="with_loading"
           :use-blob-url="use_blob_url"
         />
       </Teleport>
@@ -64,7 +56,7 @@ import { useGlobalSettingsStore } from '@/store/settings';
 
 optimizeHljs();
 
-const { enabled, collapse_code_block, with_loading, use_blob_url, depth } = toRefs(
+const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(
   useGlobalSettingsStore().settings.render,
 );
 
