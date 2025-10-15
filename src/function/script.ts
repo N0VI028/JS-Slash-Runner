@@ -15,7 +15,7 @@ export function _getScriptButtons(this: Window): ScriptButton[] {
   return _.cloneDeep(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
 }
 
-export function getAllScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] } {
+export function getAllEnabledScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] } {
   return _.cloneDeep(useScriptIframeRuntimesStore().button_map);
 }
 

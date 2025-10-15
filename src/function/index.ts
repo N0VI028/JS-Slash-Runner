@@ -99,7 +99,7 @@ import {
   _getScriptInfo,
   _replaceScriptButtons,
   _replaceScriptInfo,
-  getAllScriptButtons,
+  getAllEnabledScriptButtons,
 } from '@/function/script';
 import { triggerSlash } from '@/function/slash';
 import {
@@ -310,7 +310,7 @@ function getTavernHelper() {
     registerMacroLike,
 
     // script
-    getAllScriptButtons,
+    getAllEnabledScriptButtons,
 
     // slash
     triggerSlash,

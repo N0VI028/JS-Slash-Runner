@@ -94,7 +94,7 @@ interface Window {
     readonly getChatHistoryDetail: typeof getChatHistoryDetail;
 
     // script
-    readonly getAllScriptButtons: typeof getAllScriptButtons;
+    readonly getAllEnabledScriptButtons: typeof getAllEnabledScriptButtons;
 
     // slash
     readonly triggerSlash: typeof triggerSlash;

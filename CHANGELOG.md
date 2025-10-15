@@ -45,8 +45,11 @@
 ### 📦函数
 
 - `getVariables`、`replaceVariables` 等变量相关函数现在支持处理预设变量 (`'preset'`) 和第三方插件常用的扩展变量 (`'extension'`).
+- 现在在脚本内操作脚本变量时, 你可以只写 `getVariables({type: 'script'})` 而不需要传入 `script_id` 参数.
 - `replaceVariables` 不再需要 `await`.
+- 新增 `getAllEnabledScriptButtons` 函数用于获取当前处于启用状态的所有脚本按钮.
 - 新增 `installExtension` 等安装酒馆插件相关接口, 现在你可以简单地在酒馆助手中安装、更新、卸载酒馆插件了 (虽然已经有[自动安装插件脚本](https://stagedog.github.io/青空莉/作品集/)).
+- 新增 `getTavernHelperExtensionId` 函数用于获取酒馆助手扩展 ID.
 - 新增 `getTavernVersion` 函数用于获取酒馆版本.
 
 ### 🔧杂项
