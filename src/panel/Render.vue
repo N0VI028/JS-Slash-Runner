@@ -15,7 +15,6 @@
     </template>
   </Item>
   <Divider />
-  <Divider />
   <Item type="plain">
     <template #title>{{ t`启用 Blob URL 渲染` }}</template>
     <template #description>
