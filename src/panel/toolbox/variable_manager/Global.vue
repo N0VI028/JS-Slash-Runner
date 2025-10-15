@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import Editor from '@/panel/toolbox/variable_manager2/Editor.vue';
+import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
 
 const variables = {
   _id: '68e9bd3e958440229e6b3353',
