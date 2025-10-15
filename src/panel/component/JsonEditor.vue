@@ -4,8 +4,8 @@
 
 <script setup lang="ts">
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
+import { detailedDiff } from 'deep-object-diff';
 import { destr, safeDestr } from 'destr';
-// TODO: async import?
 import { Content, createJSONEditor, JSONEditorPropsOptional, Mode } from 'vanilla-jsoneditor';
 
 const content = defineModel<Record<string, any>>({ required: true });
@@ -56,11 +56,27 @@ onMounted(() => {
 
   watch(
     content,
-    new_content => {
+    (new_content, old_content) => {
       if (prevent_updating_content) {
         prevent_updating_content = false;
         return;
       }
+
+      // TODO: 性能如何?
+      const diff = detailedDiff(old_content, new_content);
+      editor_instance.updateProps({
+        // TODO: `content: { json: toRaw(new_content) }` 从而仅重新渲染一次? 但似乎 deleted 会直接被刷新掉
+        onClassName: path => {
+          if (_.has(diff.updated, path)) {
+            return 'jse-custom-updated';
+          } else if (_.has(diff.deleted, path)) {
+            return 'jse-custom-deleted';
+          } else if (_.has(diff.added, path)) {
+            return 'jse-custom-added';
+          }
+          return undefined;
+        },
+      });
       editor_instance.update({ json: toRaw(new_content) });
     },
     { deep: true },
