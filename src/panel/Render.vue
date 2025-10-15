@@ -37,11 +37,7 @@
   <template v-for="(runtime, message_id) in runtimes" :key="message_id">
     <template v-for="(element, index) in runtime" :key="element">
       <Teleport :to="element">
-        <Iframe
-          :id="`${message_id}-${index}`"
-          :element="element"
-          :use-blob-url="use_blob_url"
-        />
+        <Iframe :id="`${message_id}-${index}`" :element="element" :use-blob-url="use_blob_url" />
       </Teleport>
     </template>
   </template>
@@ -56,9 +52,7 @@ import { useGlobalSettingsStore } from '@/store/settings';
 
 optimizeHljs();
 
-const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(
-  useGlobalSettingsStore().settings.render,
-);
+const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
 
 useCollapseCodeBlock(collapse_code_block);
 const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
