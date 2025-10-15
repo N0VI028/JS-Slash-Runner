@@ -106,7 +106,7 @@ const openScriptInfo = () =>
       buttons: [{ name: t`关闭` }],
     },
     slots: {
-      default: `<div class='text-left'>${script.value.info ? marked.parse(script.value.info) : t`未填写作者备注`}</div>`,
+      default: `<div class='p-1.5 text-left'>${script.value.info ? marked.parse(script.value.info) : t`未填写作者备注`}</div>`,
     },
   }).open();
 

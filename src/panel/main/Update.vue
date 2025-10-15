@@ -1,7 +1,7 @@
 <template>
   <Popup :buttons="[{ name: '更新', shouldEmphasize: true, onClick: onConfirm }, { name: '取消' }]">
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div v-html="changelog" />
+    <div class="p-1.5 text-left" v-html="changelog" />
   </Popup>
 </template>
 

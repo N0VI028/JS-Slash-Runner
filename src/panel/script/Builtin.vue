@@ -144,7 +144,7 @@ async function openInfo(builtin: BuiltinScript) {
       },
     },
     slots: {
-      default: `${marked.parse(await getInfo(builtin))}`,
+      default: `<div class="p-1.5 text-left">${marked.parse(await getInfo(builtin))}</div>`,
     },
   }).open();
 }
