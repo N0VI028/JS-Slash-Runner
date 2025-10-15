@@ -167,7 +167,6 @@ export const tavern_events = {
   CHAT_COMPLETION_SETTINGS_READY: 'chat_completion_settings_ready',
   CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready',
   CHARACTER_FIRST_MESSAGE_SELECTED: 'character_first_message_selected',
-  // TODO: Naming convention is inconsistent with other events
   CHARACTER_DELETED: 'characterDeleted',
   CHARACTER_DUPLICATED: 'character_duplicated',
   STREAM_TOKEN_RECEIVED: 'stream_token_received',

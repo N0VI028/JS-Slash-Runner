@@ -14,8 +14,7 @@ export const GlobalSettings = z
         bgm: z
           .object({
             enabled: z.boolean().default(true),
-            // TODO: 移除 catch
-            mode: AudioMode.default('repeat_all').catch('repeat_all'),
+            mode: AudioMode.default('repeat_all'),
             muted: z.boolean().default(false),
             volume: z.number().default(100),
           })
@@ -23,8 +22,7 @@ export const GlobalSettings = z
         ambient: z
           .object({
             enabled: z.boolean().default(true),
-            // TODO: 移除 catch
-            mode: AudioMode.default('play_one_and_stop').catch('play_one_and_stop'),
+            mode: AudioMode.default('play_one_and_stop'),
             muted: z.boolean().default(false),
             volume: z.number().default(100),
           })

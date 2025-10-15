@@ -184,7 +184,6 @@ const exportScript = () => {
       ],
     },
     slots: {
-      // TODO: 显示脚本变量有什么?
       default: t`<div>'${script.value.name}' 脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
     },
   }).open();

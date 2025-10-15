@@ -298,7 +298,6 @@ export async function setChatMessages(
     $mes_html.find('pre code').each((_index, element) => {
       highlight_code(element);
     });
-    // TODO: 要不要更换触发消息楼层 iframe 重新渲染的方式
     await eventSource.emit(
       chat_message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
       message_id,
@@ -354,8 +353,6 @@ export async function createChatMessages(
     } else {
       result = result.set('name', name2);
     }
-
-    // TODO: avatar
 
     result = result.set('is_user', chat_message.role === 'user');
     if (chat_message.role === 'system') {

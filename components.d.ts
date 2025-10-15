@@ -13,6 +13,7 @@ declare module 'vue' {
     Divider: typeof import('./src/panel/component/Divider.vue')['default']
     Highlighter: typeof import('./src/panel/component/Highlighter.vue')['default']
     Item: typeof import('./src/panel/component/Item.vue')['default']
+    JsonEditor: typeof import('./src/panel/component/JsonEditor.vue')['default']
     Popup: typeof import('./src/panel/component/Popup.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

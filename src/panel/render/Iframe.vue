@@ -44,7 +44,7 @@ onUnmounted(() => {
   }
 });
 
-// TODO: 应该有更好的办法处理和折叠代码块的兼容性
+// 与折叠代码块的兼容性
 onMounted(() => {
   $element
     .children()

@@ -99,7 +99,6 @@ const tabs = [
 ];
 
 const search_input = ref<RegExp | null>(null);
-// TODO: search_input 接入Toolbar，tabs.component
 const filters = ref(createDefaultFilters());
 const currentView = ref<'tree' | 'card' | 'text'>('tree');
 
