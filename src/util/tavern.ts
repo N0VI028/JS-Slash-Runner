@@ -3,9 +3,11 @@ import {
   clearChat,
   event_types,
   eventSource,
+  getThumbnailUrl,
   printMessages,
   saveChatConditional,
   this_chid,
+  user_avatar,
 } from '@sillytavern/script';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 
@@ -57,4 +59,15 @@ export function invokeMessageRenders() {
 export async function reloadAndRenderChatWithoutEvents() {
   await reloadChatWithoutEvents();
   invokeMessageRenders();
+}
+
+export function getUserAvatarPath() {
+  return `./User Avatars/${user_avatar}`;
+}
+
+export function getCharAvatarPath() {
+  const character = characters.at(this_chid as unknown as number);
+  const thumbnail_path = getThumbnailUrl('avatar', character?.avatar || character?.name || '');
+  const avatar_img = thumbnail_path.substring(thumbnail_path.lastIndexOf('=') + 1);
+  return '/characters/' + avatar_img;
 }

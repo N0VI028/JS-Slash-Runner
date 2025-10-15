@@ -1,5 +1,5 @@
 <template>
-  <iframe :id="`TH-message-${id}`" ref="iframe" loading="lazy" v-bind="src_prop" class="w-full" frameborder="0" />
+  <iframe :id="`TH-message-${id}`" ref="iframe_ref" loading="lazy" v-bind="src_prop" class="w-full" frameborder="0" />
 </template>
 
 <script setup lang="ts">
@@ -13,44 +13,34 @@ const props = defineProps<{
 
 const $element = $(props.element);
 
-const iframe = ref<HTMLIFrameElement | null>(null);
+const iframe_ref = useTemplateRef<HTMLIFrameElement>('iframe');
 
 /**
  * 调整指定 iframe 的高度
  * @param target
  */
 function adjustIframeHeight(target: HTMLIFrameElement) {
-  try {
-    const doc = target.contentWindow?.document as Document | undefined;
-    const body = doc?.body as HTMLElement | undefined;
-    const html = doc?.documentElement as HTMLElement | undefined;
-    if (!doc || !body || !html) return;
+  const doc = target.contentWindow?.document as Document | undefined;
+  const body = doc?.body as HTMLElement | undefined;
+  const html = doc?.documentElement as HTMLElement | undefined;
+  if (!doc || !body || !html) return;
 
-    const bodyHeight = body.offsetHeight || 0;
-    const htmlHeight = html.offsetHeight || 0;
-    const newHeight = Math.max(bodyHeight, htmlHeight);
-    if (!Number.isFinite(newHeight) || newHeight <= 0) return;
+  const bodyHeight = body.offsetHeight || 0;
+  const htmlHeight = html.offsetHeight || 0;
+  const newHeight = Math.max(bodyHeight, htmlHeight);
+  if (!Number.isFinite(newHeight) || newHeight <= 0) {
+    return;
+  }
 
-    const last = (window as any)._TH_lastHeights as WeakMap<HTMLIFrameElement, number> | undefined;
-    if (!last) (window as any)._TH_lastHeights = new WeakMap();
-    const map = (window as any)._TH_lastHeights as WeakMap<HTMLIFrameElement, number>;
-    const prev = map.get(target) || 0;
-    if (Math.abs(prev - newHeight) > 1) {
-      target.style.height = `${newHeight}px`;
-      console.log('[TH][parent] 目标iframe高度已更新', target);
-      map.set(target, newHeight);
-      try {
-        console.log('[TH][parent] 已应用 iframe 高度', target.id, newHeight);
-      } catch (err) {
-        // 忽略日志记录错误
-      }
-    }
-  } catch (err) {
-    try {
-      console.warn('[TH][parent] 应用高度失败', err);
-    } catch (logErr) {
-      // 忽略日志记录错误
-    }
+  const last = (window as any)._TH_lastHeights as WeakMap<HTMLIFrameElement, number> | undefined;
+  if (!last) {
+    (window as any)._TH_lastHeights = new WeakMap();
+  }
+  const map = (window as any)._TH_lastHeights as WeakMap<HTMLIFrameElement, number>;
+  const previousHeight = map.get(target) || 0;
+  if (Math.abs(previousHeight - newHeight) > 1) {
+    target.style.height = `${newHeight}px`;
+    map.set(target, newHeight);
   }
 }
 
@@ -66,8 +56,12 @@ function getSharedResizeObserver(): ResizeObserver {
     _TH_queue?: Set<HTMLIFrameElement>;
     _TH_sched?: boolean;
   };
-  if (!win._TH_observed) win._TH_observed = new Map();
-  if (!win._TH_queue) win._TH_queue = new Set();
+  if (!win._TH_observed) {
+    win._TH_observed = new Map();
+  }
+  if (!win._TH_queue) {
+    win._TH_queue = new Set();
+  }
   if (!win._TH_sharedRO) {
     win._TH_sharedRO = new ResizeObserver(entries => {
       // 合并在同一帧处理：加入队列并在 rAF 内批量调整高度
@@ -78,7 +72,9 @@ function getSharedResizeObserver(): ResizeObserver {
       if (!win._TH_sched) {
         win._TH_sched = true;
         requestAnimationFrame(() => {
-          for (const f of win._TH_queue!) adjustIframeHeight(f);
+          for (const f of win._TH_queue!) {
+            adjustIframeHeight(f);
+          }
           win._TH_queue!.clear();
           win._TH_sched = false;
         });
@@ -93,40 +89,52 @@ function getSharedResizeObserver(): ResizeObserver {
  * @param target
  */
 function observeIframeContent(target: HTMLIFrameElement) {
-  try {
-    const win = window as unknown as {
-      _TH_sharedRO?: ResizeObserver;
-      _TH_observed?: Map<Element, { iframe: HTMLIFrameElement }>;
-    };
-    const ro = getSharedResizeObserver();
-    const doc = target.contentWindow?.document;
-    const body = doc?.body || doc?.documentElement;
-    if (!doc || !body) return;
+  const win = window as unknown as {
+    _TH_sharedRO?: ResizeObserver;
+    _TH_observed?: Map<Element, { iframe: HTMLIFrameElement }>;
+  };
+  const ro = getSharedResizeObserver();
+  const doc = target.contentWindow?.document;
+  const body = doc?.body || doc?.documentElement;
+  if (!doc || !body) return;
 
-    for (const [el, meta] of win._TH_observed!) {
-      if (meta.iframe === target) {
-        ro.unobserve(el);
-        win._TH_observed!.delete(el);
-      }
-    }
-
-    // 建立新观察
-    win._TH_observed!.set(body, { iframe: target });
-    ro.observe(body);
-    try {
-      console.log('[TH][parent] 开始观察 iframe 尺寸', target.id);
-    } catch (err) {
-      // 忽略日志记录错误
-    }
-    adjustIframeHeight(target);
-  } catch (err) {
-    try {
-      console.warn('[TH][parent] 观察 iframe 失败', err);
-    } catch (logErr) {
-      // 忽略日志记录错误
+  for (const [el, meta] of win._TH_observed!) {
+    if (meta.iframe === target) {
+      ro.unobserve(el);
+      win._TH_observed!.delete(el);
     }
   }
+
+  // 建立新观察
+  win._TH_observed!.set(body, { iframe: target });
+  ro.observe(body);
+  adjustIframeHeight(target);
 }
+
+const onMessage = (event: MessageEvent) => {
+  const data = (event && event.data) || {};
+  if (data?.type === 'TH_DOM_CONTENT_LOADED' && data.iframe_name === iframe_ref.value?.id) {
+    observeIframeContent(iframe_ref.value!);
+  }
+};
+onMounted(() => {
+  window.addEventListener('message', onMessage, { once: true });
+});
+onBeforeUnmount(() => {
+  const win = window as unknown as {
+    _TH_sharedRO?: ResizeObserver;
+    _TH_observed?: Map<Element, { iframe: HTMLIFrameElement }>;
+  };
+  const ro = win._TH_sharedRO;
+  if (ro && win._TH_observed && iframe_ref.value) {
+    for (const [el, meta] of win._TH_observed) {
+      if (meta.iframe === iframe_ref.value) {
+        ro.unobserve(el);
+        win._TH_observed.delete(el);
+      }
+    }
+  }
+});
 
 const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => {
   if (old_src_prop?.src) {
@@ -147,46 +155,10 @@ onUnmounted(() => {
 
 // TODO: 应该有更好的办法处理和折叠代码块的兼容性
 onMounted(() => {
-  const onMessage = (e: MessageEvent) => {
-    const data = (e && e.data) || {};
-    if (!data || data.type !== 'TH_DOM_CONTENT_LOADED') return;
-    const idMatches = data.frameId && iframe.value && iframe.value.id === data.frameId;
-    const sourceMatches = iframe.value && e.source === iframe.value.contentWindow;
-    if (idMatches || sourceMatches) {
-      try {
-        console.log('[TH][parent] 子页面 DOMContentLoaded', data.frameId || iframe.value?.id);
-      } catch (err) {
-        // 忽略错误
-      }
-      if (iframe.value) observeIframeContent(iframe.value);
-    }
-  };
-  window.addEventListener('message', onMessage);
-
   $element
     .children()
     .filter((_index, child) => !$(child).is('iframe'))
     .hide();
-  onBeforeUnmount(() => {
-    window.removeEventListener('message', onMessage);
-    try {
-      const win = window as unknown as {
-        _TH_sharedRO?: ResizeObserver;
-        _TH_observed?: Map<Element, { iframe: HTMLIFrameElement }>;
-      };
-      const ro = win._TH_sharedRO;
-      if (ro && win._TH_observed && iframe.value) {
-        for (const [el, meta] of win._TH_observed) {
-          if (meta.iframe === iframe.value) {
-            ro.unobserve(el);
-            win._TH_observed.delete(el);
-          }
-        }
-      }
-    } catch (err) {
-      // 忽略错误
-    }
-  });
 });
 onBeforeUnmount(() => {
   const $button = $element.children('.TH-collapse-code-block-button');
