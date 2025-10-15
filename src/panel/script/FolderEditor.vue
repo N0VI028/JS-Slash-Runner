@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { ScriptFolderForm } from '@/panel/script/type';
-import { smart_theme_quote_color } from '@/util/color';
+import { getSmartThemeQuoteColor } from '@/util/color';
 import { showFontAwesomePicker } from '@sillytavern/scripts/utils';
 import PickColors from 'vue-pick-colors';
 
@@ -46,7 +46,7 @@ const script_folder = ref<ScriptFolderForm>(
     props.scriptFolder ?? {
       name: '',
       icon: '',
-      color: smart_theme_quote_color,
+      color: getSmartThemeQuoteColor(),
     },
   ),
 );

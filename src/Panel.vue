@@ -21,7 +21,7 @@
             <div
               class="flex flex-wrap items-center justify-center gap-0.25"
               :style="{
-                color: active_tab === index ? (getSmartThemeQuoteTextColor() ?? 'inherit') : 'inherit',
+                color: active_tab === index ? getSmartThemeQuoteTextColor() : 'inherit',
               }"
             >
               <i class="flex-shrink-0 text-[80%]" :class="icon"></i>
