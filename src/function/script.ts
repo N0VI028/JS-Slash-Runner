@@ -15,6 +15,10 @@ export function _getScriptButtons(this: Window): ScriptButton[] {
   return _.cloneDeep(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
 }
 
+export function getAllScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] } {
+  return _.cloneDeep(useScriptIframeRuntimesStore().button_map);
+}
+
 export function _replaceScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, param1: string | ScriptButton[], param2?: ScriptButton[]): void {

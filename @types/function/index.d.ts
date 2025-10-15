@@ -4,25 +4,18 @@ interface Window {
    * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.TavernHelper` 来查看当前酒馆助手所提供的接口
    */
   TavernHelper: {
-    // audio
-    readonly audioEnable: typeof audioEnable;
-    readonly audioImport: typeof audioImport;
-    readonly audioMode: typeof audioMode;
-    readonly audioPlay: typeof audioPlay;
-    readonly audioSelect: typeof audioSelect;
-
     // builtin
     readonly builtin: typeof builtin;
 
     // character
-    readonly Character: typeof RawCharacter;
+    readonly Character: typeof Character;
 
     // chat_message
     readonly getChatMessages: typeof getChatMessages;
     readonly setChatMessages: typeof setChatMessages;
+    readonly createChatMessages: typeof createChatMessages;
     readonly deleteChatMessages: typeof deleteChatMessages;
     readonly rotateChatMessages: typeof rotateChatMessages;
-    readonly createChatMessages: typeof createChatMessages;
 
     // displayed_message
     readonly formatAsDisplayedMessage: typeof formatAsDisplayedMessage;
@@ -38,6 +31,11 @@ interface Window {
     readonly reinstallExtension: typeof reinstallExtension;
     readonly updateExtension: typeof updateExtension;
 
+    // generate
+    readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
+    readonly generate: typeof generate;
+    readonly generateRaw: typeof generateRaw;
+
     // import_raw
     readonly importRawCharacter: typeof importRawCharacter;
     readonly importRawChat: typeof importRawChat;
@@ -48,11 +46,6 @@ interface Window {
     // inject
     readonly injectPrompts: typeof injectPrompts;
     readonly uninjectPrompts: typeof uninjectPrompts;
-
-    // generate
-    readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
-    readonly generate: typeof generate;
-    readonly generateRaw: typeof generateRaw;
 
     // lorebook_entry
     readonly getLorebookEntries: typeof getLorebookEntries;
@@ -100,14 +93,14 @@ interface Window {
     readonly getChatHistoryBrief: typeof getChatHistoryBrief;
     readonly getChatHistoryDetail: typeof getChatHistoryDetail;
 
-    // script_repository
-    readonly getScriptButtons: typeof getScriptButtons;
-    readonly replaceScriptButtons: typeof replaceScriptButtons;
+    // script
+    readonly getAllScriptButtons: typeof getAllScriptButtons;
 
     // slash
     readonly triggerSlash: typeof triggerSlash;
 
     // tavern_regex
+    readonly formatAsTavernRegexedString: typeof formatAsTavernRegexedString;
     readonly isCharacterTavernRegexesEnabled: typeof isCharacterTavernRegexesEnabled;
     readonly getTavernRegexes: typeof getTavernRegexes;
     readonly replaceTavernRegexes: typeof replaceTavernRegexes;
@@ -117,14 +110,15 @@ interface Window {
     readonly substitudeMacros: typeof substitudeMacros;
     readonly getLastMessageId: typeof getLastMessageId;
     readonly errorCatched: typeof errorCatched;
+    readonly getMessageId: typeof getMessageId;
 
     // variables
     readonly getVariables: typeof getVariables;
     readonly replaceVariables: typeof replaceVariables;
     readonly updateVariablesWith: typeof updateVariablesWith;
     readonly insertOrAssignVariables: typeof insertOrAssignVariables;
-    readonly deleteVariable: typeof deleteVariable;
     readonly insertVariables: typeof insertVariables;
+    readonly deleteVariable: typeof deleteVariable;
 
     // version
     readonly getTavernHelperVersion: typeof getTavernHelperVersion;
@@ -146,5 +140,7 @@ interface Window {
     readonly getWorldbook: typeof getWorldbook;
     readonly replaceWorldbook: typeof replaceWorldbook;
     readonly updateWorldbookWith: typeof updateWorldbookWith;
+    readonly createWorldbookEntries: typeof createWorldbookEntries;
+    readonly deleteWorldbookEntries: typeof deleteWorldbookEntries;
   };
 }

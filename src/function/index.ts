@@ -99,6 +99,7 @@ import {
   _getScriptInfo,
   _replaceScriptButtons,
   _replaceScriptInfo,
+  getAllScriptButtons,
 } from '@/function/script';
 import { triggerSlash } from '@/function/slash';
 import {
@@ -178,7 +179,7 @@ function getTavernHelper() {
       _initializeGlobal,
       _waitGlobalInitialized,
 
-      // // script
+      // script
       _getButtonEvent,
       _getScriptButtons,
       _replaceScriptButtons,
@@ -307,6 +308,9 @@ function getTavernHelper() {
 
     // macro_like
     registerMacroLike,
+
+    // script
+    getAllScriptButtons,
 
     // slash
     triggerSlash,
