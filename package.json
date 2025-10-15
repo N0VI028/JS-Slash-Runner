@@ -58,6 +58,7 @@
     "@vueuse/integrations": "^13.9.0",
     "@vueuse/shared": "^13.9.0",
     "compare-versions": "^6.1.1",
+    "destr": "^2.0.5",
     "emittery": "^1.2.0",
     "is-promise": "^4.0.0",
     "jszip": "^3.10.1",

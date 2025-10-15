@@ -12,7 +12,8 @@ const externals = {
   lodash: '_',
   toastr: 'toastr',
   // TODO: cdn -> testingcf
-  'vanilla-jsoneditor': 'https://cdn.jsdelivr.net/gh/StageDog/svelte-jsoneditor-for-tavern-helper/package-vanilla/standalone.js',
+  'vanilla-jsoneditor':
+    'https://cdn.jsdelivr.net/gh/StageDog/svelte-jsoneditor-for-tavern-helper/package-vanilla/standalone.js',
   '@popperjs/core': 'Popper',
 } as const;
 
@@ -46,7 +47,7 @@ export default defineConfig(({ mode }) => ({
         { from: 'vue-final-modal', imports: ['useModal'] },
         { from: 'zod', imports: ['z'] },
       ],
-      dirs: [{ glob: './src/panel/composable', types: true }],
+      dirs: [{ glob: 'src/panel/composable', types: true }],
     }),
     unpluginVueComponents({
       dts: true,
@@ -94,7 +95,7 @@ export default defineConfig(({ mode }) => ({
     },
 
     outDir: 'dist',
-    emptyOutDir: true,
+    emptyOutDir: false,
 
     sourcemap: mode === 'production' ? true : 'inline',
 

@@ -37,7 +37,7 @@
         <small>{{ t`绑定到脚本的变量, 会随脚本一同导出` }}</small>
         <!-- TODO: 这里是本来变量的显示, 得传入 JsonEditor -->
         <div class="flex w-full flex-col flex-wrap gap-1"></div>
-        <JsonEditor :content="script.data" />
+        <JsonEditor v-model="script.data" />
       </div>
       <div class="TH-script-editor-container">
         <div class="flex w-full items-center justify-between">

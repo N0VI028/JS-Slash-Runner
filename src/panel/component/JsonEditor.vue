@@ -4,28 +4,70 @@
 
 <script setup lang="ts">
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
+import { destr, safeDestr } from 'destr';
 // TODO: async import?
-import { createJSONEditor, JSONEditorPropsOptional } from 'vanilla-jsoneditor';
+import { Content, createJSONEditor, JSONEditorPropsOptional, Mode } from 'vanilla-jsoneditor';
 
-const props = defineProps<{ content: Record<string, any> }>();
+const content = defineModel<Record<string, any>>({ required: true });
 
 const editor_ref = useTemplateRef('editor');
 
-let editor: ReturnType<typeof createJSONEditor>;
+function updateModel(updated: Content) {
+  prevent_updating_content = true;
+  if (_.get(updated, 'text') !== undefined) {
+    if (editor_instance.validate() === undefined) {
+      content.value = destr(_.get(updated, 'text'));
+    }
+    return;
+  }
+  content.value = _.get(updated, 'json') as Record<string, any>;
+}
+const updateModelDebounced = _.debounce(updateModel, 300);
+
+let editor_instance: ReturnType<typeof createJSONEditor>;
+let prevent_updating_content = false;
+let mode: Mode = Mode.tree;
 onMounted(() => {
-  editor = createJSONEditor({
+  editor_instance = createJSONEditor({
     target: editor_ref.value!,
     props: {
       content: {
-        json: props.content,
+        json: content.value,
       },
-      // @ts-expect-error 自定义版本的额外参数
+      mode: mode,
+      parser: {
+        // @ts-expect-error destr 是可以使用的
+        parse: safeDestr,
+        stringify: JSON.stringify,
+      },
+      onChangeMode: new_mode => {
+        mode = new_mode;
+      },
+      onChange: updated => {
+        if (mode === Mode.text) {
+          updateModelDebounced(updated);
+        } else {
+          updateModel(updated);
+        }
+      },
       language: getCurrentLocale().includes('zh') ? 'zh' : 'en',
     } satisfies JSONEditorPropsOptional,
   });
+
+  watch(
+    content,
+    new_content => {
+      if (prevent_updating_content) {
+        prevent_updating_content = false;
+        return;
+      }
+      editor_instance.update({ json: toRaw(new_content) });
+    },
+    { deep: true },
+  );
 });
 onBeforeUnmount(() => {
-  editor.destroy();
+  editor_instance.destroy();
 });
 </script>
 

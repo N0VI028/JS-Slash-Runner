@@ -1,5 +1,5 @@
 <template>
-  <JsonEditor :content="variables" />
+  <JsonEditor v-model="variables" />
 </template>
 
 <script setup lang="ts">

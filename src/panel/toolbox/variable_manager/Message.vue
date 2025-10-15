@@ -35,7 +35,7 @@
   </div>
 
   <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
-    <JsonEditor :content="variables_map[message_id]" />
+    <JsonEditor v-model="variables_map[message_id]" />
   </template>
 </template>
 
