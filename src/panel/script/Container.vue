@@ -13,17 +13,18 @@
   <div class="flex h-full flex-col overflow-hidden">
     <VueDraggable
       v-model="script_trees"
-      group="scripts"
+      group="TH-scripts"
       handle=".TH-handle"
       class="flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5"
       :class="{ 'min-h-2': script_trees.length === 0 }"
-      item-key="id"
       :force-fallback="true"
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
       :data-container-type="storeType"
       direction="vertical"
       :disabled="search_input !== null"
+      :invert-swap="true"
+      :inverted-swap-threshold="0.5"
       @start="during_sorting = true"
       @end="during_sorting = false"
     >

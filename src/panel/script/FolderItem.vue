@@ -2,7 +2,8 @@
   <div
     v-show="is_visible"
     ref="folder_item"
-    class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)"
+    class="w-full rounded-md border bg-(--grey5020a)"
+    :class="[is_sorting_target ? 'border-solid! border-(--SmartThemeQuoteColor)' : 'border-(--SmartThemeBorderColor)']"
     data-type="folder"
     data-folder
     :data-folder-id="script_folder.id"
@@ -48,15 +49,16 @@
     <VueDraggable
       v-show="is_expanded"
       v-model="script_folder.scripts"
-      group="scripts"
+      group="TH-scripts"
       handle=".TH-handle"
       class="flex flex-grow flex-col gap-[5px] overflow-y-auto p-0.5"
-      item-key="id"
       :force-fallback="true"
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
       direction="vertical"
       :disabled="search_input !== null"
+      @start="during_sorting = true"
+      @end="during_sorting = false"
     >
       <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
         <ScriptItem v-model="script_folder.scripts[index]" :search-input="search_input" @delete="handleScriptDelete" />
@@ -87,8 +89,23 @@ const emit = defineEmits<{
 }>();
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
+const during_sorting = inject<Ref<boolean>>('during_sorting', ref(false));
 
 const is_expanded = ref<boolean>(false);
+
+const folder_item_ref = useTemplateRef<HTMLDivElement>('folder_item');
+const { isOutside: is_outside } = useMouseInElement(folder_item_ref, {
+  handleOutside: false,
+  windowResize: false,
+  windowScroll: false,
+});
+const is_sorting_target = computed(() => during_sorting.value && !is_outside.value);
+watch(is_sorting_target, value => {
+  if (value) {
+    // TODO: 仅当鼠标在文件夹上停留了一段时间才判定为展开?
+    is_expanded.value = value;
+  }
+});
 
 const is_visible = computed(() => {
   if (search_input.value === null) {
