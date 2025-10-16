@@ -9,16 +9,7 @@
     data-type="script"
     :data-script-id="script.id"
   >
-    <!-- 批量模式下显示复选框，正常模式显示拖拽手柄 -->
-    <div v-if="props.isBatchMode" class="flex items-center">
-      <input
-        type="checkbox"
-        :checked="props.isSelected"
-        class="cursor-pointer"
-        @change="emit('toggle-selection', script.id)"
-      />
-    </div>
-    <span v-else class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
+    <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
 
     <div
       class="ml-0.5 flex-grow overflow-hidden"
@@ -27,9 +18,9 @@
         filter: script.enabled ? 'none' : 'grayscale(0.5)',
       }"
     >
-      <Highlighter :query="props.searchInput">{{ script.name }}</Highlighter>
+      <Highlighter :query="search_input">{{ script.name }}</Highlighter>
     </div>
-    <div v-show="!props.isBatchMode" class="flex flex-nowrap items-center gap-[5px]">
+    <div class="flex flex-nowrap items-center gap-[5px]">
       <!-- 脚本开关 -->
       <div class="cursor-pointer" :class="{ enabled: script.enabled }" @click="script.enabled = !script.enabled">
         <i class="fa-solid" :class="[script.enabled ? 'fa-toggle-on' : 'fa-toggle-off']" />
@@ -64,25 +55,14 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
 
 const script = defineModel<Script>({ required: true });
 
-const props = withDefaults(
-  defineProps<{
-    searchInput: RegExp | null;
-    isBatchMode?: boolean;
-    isSelected?: boolean;
-  }>(),
-  {
-    isBatchMode: false,
-    isSelected: false,
-  },
-);
-
 const emit = defineEmits<{
   delete: [id: string];
-  'toggle-selection': [id: string];
 }>();
 
+const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
+
 const is_visible = computed(() => {
-  return props.searchInput === null || props.searchInput.test(script.value.name);
+  return search_input.value === null || search_input.value.test(script.value.name);
 });
 
 const { open: openScriptEditor } = useModal({
