@@ -43,8 +43,8 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   // 切换角色卡时刷新 id 和 settings
   eventSource.on(event_types.CHAT_CHANGED, () => {
     if (id.value !== this_chid) {
+      settings.value = getSettings(this_chid);
       id.value = this_chid;
-      settings.value = getSettings(id.value);
     }
   });
 

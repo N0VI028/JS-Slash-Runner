@@ -13,8 +13,8 @@ export const useChatSettingsStore = defineStore('chat_settings', () => {
   // 切换聊天时刷新 id 和 settings
   eventSource.on(event_types.CHAT_CHANGED, (new_chat_id: string | undefined) => {
     if (id.value !== new_chat_id) {
-      id.value = new_chat_id;
       settings.value = getSettings();
+      id.value = new_chat_id;
     }
   });
 

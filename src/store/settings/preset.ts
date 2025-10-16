@@ -31,8 +31,8 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
   eventSource.on(event_types.OAI_PRESET_CHANGED_AFTER, () => {
     const new_id = preset_manager.getSelectedPreset();
     if (id.value !== new_id) {
+      settings.value = getSettings(new_id);
       id.value = new_id;
-      settings.value = getSettings(id.value);
     }
   });
 
