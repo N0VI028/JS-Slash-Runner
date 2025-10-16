@@ -53,11 +53,11 @@
         <ScriptFolderButton name="编辑文件夹" icon="fa-pencil" @click.stop="openFolderEditor" />
         <ScriptFolderButton name="导出文件夹" icon="fa-file-export" @click.stop="exportFolder" />
         <ScriptFolderButton name="删除文件夹" icon="fa-trash" @click.stop="openDeleteConfirm" />
-        <ScriptFolderButton name="展开或折叠文件夹" :icon="is_expanded ? 'fa-chevron-down' : 'fa-chevron-up'" />
+        <ScriptFolderButton name="展开或折叠文件夹" :icon="is_expanded ? 'fa-chevron-up' : 'fa-chevron-down'" />
       </div>
       <!-- 批量模式下显示展开/折叠按钮 -->
       <div v-if="props.isBatchMode" class="mr-0.5 cursor-pointer" @click.stop>
-        <i class="fa-solid" :class="is_expanded ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+        <i class="fa-solid" :class="is_expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
       </div>
     </div>
     <VueDraggable
