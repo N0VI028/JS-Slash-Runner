@@ -1,31 +1,20 @@
 <template>
   <div
     v-show="is_visible"
+    ref="folder_item"
     class="w-full rounded-md border border-(--SmartThemeBorderColor) bg-(--grey5020a)"
     data-type="folder"
     data-folder
     :data-folder-id="script_folder.id"
   >
     <div class="flex w-full cursor-pointer items-center justify-between p-0.5" @click="is_expanded = !is_expanded">
-      <!-- 批量模式下显示复选框，正常模式显示拖拽手柄 -->
-      <div v-if="props.isBatchMode" class="flex items-center" @click.stop>
-        <input
-          type="checkbox"
-          :checked="props.isSelected"
-          class="cursor-pointer"
-          @change="emit('toggle-selection', script_folder.id)"
-        />
-      </div>
-      <!-- prettier-ignore-attribute -->
-      <span v-else class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true" @click.stop>
-        ☰
-      </span>
+      <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true" @click.stop>☰</span>
 
       <i
         class="fa-solid ml-0.5"
         :class="script_folder.icon || 'fa-folder'"
         :style="{ color: script_folder.color || 'var(--SmartThemeQuoteColor)' }"
-      ></i>
+      />
       <span
         class="TH-folder-name ml-0.5 flex-grow overflow-hidden"
         :style="{
@@ -33,9 +22,9 @@
           filter: script_folder.enabled ? 'none' : 'grayscale(0.5)',
         }"
       >
-        <Highlighter :query="props.searchInput" :text-to-highlight="script_folder.name" />
+        <Highlighter :query="search_input" :text-to-highlight="script_folder.name" />
       </span>
-      <div v-show="!props.isBatchMode" class="flex shrink-0 flex-wrap items-center gap-0.25">
+      <div class="flex shrink-0 flex-wrap items-center gap-0.25">
         <!-- prettier-ignore-attribute -->
         <div
           class="mt-0! mr-0.5 mb-0! cursor-pointer"
@@ -55,10 +44,6 @@
         <ScriptFolderButton name="删除文件夹" icon="fa-trash" @click.stop="openDeleteConfirm" />
         <ScriptFolderButton name="展开或折叠文件夹" :icon="is_expanded ? 'fa-chevron-up' : 'fa-chevron-down'" />
       </div>
-      <!-- 批量模式下显示展开/折叠按钮 -->
-      <div v-if="props.isBatchMode" class="mr-0.5 cursor-pointer" @click.stop>
-        <i class="fa-solid" :class="is_expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-      </div>
     </div>
     <VueDraggable
       v-show="is_expanded"
@@ -71,14 +56,10 @@
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
       direction="vertical"
-      :disabled="searchInput !== null"
+      :disabled="search_input !== null"
     >
       <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
-        <ScriptItem
-          v-model="script_folder.scripts[index]"
-          :search-input="props.searchInput"
-          @delete="handleScriptDelete"
-        />
+        <ScriptItem v-model="script_folder.scripts[index]" :search-input="search_input" @delete="handleScriptDelete" />
       </div>
     </VueDraggable>
   </div>
@@ -101,42 +82,22 @@ const [DefineScriptFolderButton, ScriptFolderButton] = createReusableTemplate<{
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
 
-const props = withDefaults(
-  defineProps<{
-    searchInput?: RegExp | null;
-    isBatchMode?: boolean;
-    isSelected?: boolean;
-    isExpanded?: boolean;
-  }>(),
-  {
-    searchInput: null,
-    isBatchMode: false,
-    isSelected: false,
-    isExpanded: false,
-  },
-);
-
 const emit = defineEmits<{
   delete: [id: string];
-  'toggle-selection': [id: string];
-  'update:is-expanded': [expanded: boolean];
 }>();
 
-const is_expanded = computed({
-  get: () => props.isExpanded,
-  set: (value: boolean) => {
-    emit('update:is-expanded', value);
-  },
-});
+const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
+
+const is_expanded = ref<boolean>(false);
 
 const is_visible = computed(() => {
-  if (props.searchInput === null) {
+  if (search_input.value === null) {
     return true;
   }
-  if (props.searchInput.test(script_folder.value.name)) {
+  if (search_input.value.test(script_folder.value.name)) {
     return true;
   }
-  return script_folder.value.scripts.some(script => props.searchInput!.test(script.name));
+  return script_folder.value.scripts.some(script => search_input.value!.test(script.name));
 });
 
 const { open: openFolderEditor } = useModal({

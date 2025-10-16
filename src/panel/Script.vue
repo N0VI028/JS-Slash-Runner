@@ -11,7 +11,6 @@
     v-model="global_scripts"
     :title="t`全局脚本`"
     :description="t`酒馆全局可用`"
-    :search-input="search_input"
     store-type="global"
   />
 
@@ -21,7 +20,6 @@
       v-model="character_scripts"
       :title="t`角色脚本`"
       :description="t`绑定到当前角色卡`"
-      :search-input="search_input"
       store-type="character"
     />
   </template>
@@ -31,7 +29,6 @@
     v-model="preset_scripts"
     :title="t`预设脚本`"
     :description="t`绑定到当前预设`"
-    :search-input="search_input"
     store-type="preset"
   />
 
@@ -66,6 +63,8 @@ import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsSto
 import { eventSource } from '@sillytavern/script';
 
 const search_input = ref<RegExp | null>(null);
+provide('search_input', search_input);
+provide('during_sorting', ref(false));
 
 const { id: character_id, name: character_name } = storeToRefs(useCharacterSettingsStore());
 const { id: preset_id, name: preset_name } = storeToRefs(usePresetSettingsStore());
