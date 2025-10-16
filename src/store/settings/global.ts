@@ -6,9 +6,11 @@ import { extension_settings } from '@sillytavern/scripts/extensions';
 
 function getSettings() {
   const backward_settings = _.get(extension_settings, 'TavernHelper');
-  if (backward_settings !== undefined) {
+  // TODO: 正式发布时要去掉 `&& !_.has(extension_settings, setting_field)`
+  if (backward_settings !== undefined && !_.has(extension_settings, setting_field)) {
     _.set(extension_settings, setting_field, BackwardGlobalSettings.parse(backward_settings));
-    _.unset(extension_settings, 'TavernHelper');
+    // TODO: 正式发布时要移除旧配置
+    // _.unset(extension_settings, 'TavernHelper');
     saveSettingsDebounced();
   }
   return validateInplace(GlobalSettings, _.get(extension_settings, setting_field));
