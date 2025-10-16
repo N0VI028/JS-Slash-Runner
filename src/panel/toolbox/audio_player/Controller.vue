@@ -25,14 +25,13 @@
               pointer-events-none absolute top-0 left-0 h-full rounded-full bg-[var(--SmartThemeBodyColor)]
               transition-all
             "
-            :style="{ width: `${model.volume * 100}%` }"
-          ></div>
+            :style="{ width: `${model.volume}%` }"
+          />
           <input
             v-model.number="model.volume"
             type="range"
             min="0"
-            max="1"
-            step="0.01"
+            max="100"
             class="absolute top-0 left-0 h-full w-full cursor-pointer opacity-0"
             :disabled="!props.enabled || !model.enabled"
           />
@@ -162,7 +161,7 @@ watchDebounced(
   syncRef(model_playing, controls.playing);
   syncRef(progress, controls_progress);
   syncRef(muted, controls.muted);
-  syncRef(volume, controls.volume);
+  syncRef(volume, controls.volume, { transform: { ltr: value => value / 100, rtl: value => value * 100 } });
 }
 
 // 监听 playlist 变化，自动选择第一个曲目
