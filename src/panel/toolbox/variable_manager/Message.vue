@@ -1,39 +1,47 @@
 <template>
-  <div class="my-0.75 rounded-sm bg-(--SmartThemeQuoteColor) p-0.75 text-sm">
-    <div class="flex flex-col gap-0.5">
-      <div class="flex items-center justify-between gap-0.75">
-        <div class="flex flex-1 items-center">
-          <input
-            v-model="from"
-            type="number"
-            class="TH-floor-input"
-            :min="sync_bottom ? -chat.length : 0"
-            :max="sync_bottom ? -1 : chat.length - 1"
-          />
-          <span class="mx-0.5 text-(--SmartThemeBodyColor)">~</span>
-          <input
-            v-model="to"
-            type="number"
-            class="TH-floor-input"
-            :min="sync_bottom ? -chat.length : 0"
-            :max="sync_bottom ? -1 : chat.length - 1"
-          />
-        </div>
-        <!-- prettier-ignore-attribute -->
-        <button
-          class="
-            flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25 text-sm
-            text-(--SmartThemeTextColor)
-          "
-        >
-          <i class="fa-solid fa-check"></i>
-          <span>确认</span>
-        </button>
+  <div class="mx-0.75 mb-0.5 flex flex-wrap items-center gap-0.5 rounded-sm bg-(--grey5020a) p-0.25 text-sm">
+    <div class="mr-1 flex grow flex-wrap items-center gap-0.5 text-sm">
+      <button
+        class="flex h-2 cursor-pointer items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25 text-sm! text-(--SmartThemeBodyColor)!"
+        @click="sync_bottom = !sync_bottom"
+      >
+        <i
+          class="fa-solid"
+          :class="{ 'fa-arrow-up-short-wide': sync_bottom, 'fa-arrow-down-short-wide': !sync_bottom }"
+        ></i>
+        <span>{{ sync_bottom ? `追踪最新` : `正序显示` }}</span>
+      </button>
+      <div class="flex items-center gap-0.5">
+        <input
+          v-model="from"
+          type="number"
+          class="TH-floor-input"
+          :min="sync_bottom ? -chat.length : 0"
+          :max="sync_bottom ? -1 : chat.length - 1"
+        />
+        楼
+        <span class="text-(--SmartThemeBodyColor)">~</span>
+        <input
+          v-model="to"
+          type="number"
+          class="TH-floor-input"
+          :min="sync_bottom ? -chat.length : 0"
+          :max="sync_bottom ? -1 : chat.length - 1"
+        />
+        楼
       </div>
-      <div class="py-0.25 text-sm text-(--warning)">最大楼层不能小于最小楼层</div>
+    </div>
+    <div class="flex items-center gap-0.25">
+      <button class="menu_button interactable m-0! h-2 gap-[5px] text-sm!">
+        <i class="fa-solid fa-plus"></i>
+        <span>新建</span>
+      </button>
+      <button class="menu_button interactable m-0! h-2 gap-[5px] text-sm!">
+        <i class="fa-solid fa-trash"></i>
+        <span>清空</span>
+      </button>
     </div>
   </div>
-
   <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
     <JsonEditor v-model="variables_map[message_id]" />
   </template>
@@ -59,6 +67,10 @@ watch(sync_bottom, () => {
 });
 
 const message_range = computed(() => {
+  if (!sync_bottom.value && from.value > to.value) {
+    toastr.error('最大楼层不能小于最小楼层', '输入错误');
+    return [];
+  }
   if (from.value > to.value) {
     return _.range(to.value, from.value + 1);
   }
@@ -95,6 +107,6 @@ watch(variables_map, new_variables => {
 <style lang="scss" scoped>
 @reference "tailwindcss";
 .TH-floor-input {
-  @apply w-full h-2 rounded-sm bg-(--SmartThemeQuoteColor) px-1 py-0.5 text-(--SmartThemeTextColor);
+  @apply rounded-sm h-2 bg-(--SmartThemeBlurTintColor) grow min-w-0 px-0.5 cursor-pointer text-(--SmartThemeBodyColor) border-none! text-sm!;
 }
 </style>
