@@ -152,6 +152,7 @@
   "打开": "Open",
   "批量操作": "Batch Operation",
   "导入脚本文件 '${0}' 失败": "Failed to import script file '${0}'",
+  "成功导入 ${0} 个脚本文件": "Successfully imported ${0} script files",
 
   "播放器": "Audio Player",
   "全局音频播放器": "Global audio player",

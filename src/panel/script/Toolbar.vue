@@ -26,6 +26,7 @@ import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
+import { ScriptData as BackwardScriptData } from '@/type/backward';
 import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts';
 import { validateInplace } from '@/util/zod';
 import { uuidv4 } from '@sillytavern/scripts/utils';
@@ -78,7 +79,8 @@ function onFolderEditorSubmit(target: 'global' | 'character' | 'preset', result:
 }
 
 const { open: openFileDialog, onChange } = useFileDialog({
-  accept: '.json,.zip',
+  accept: '.json',
+  multiple: true,
   directory: false,
 });
 
@@ -90,7 +92,8 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   await Promise.all(
     Array.from(files_list).map(async (file: File) => {
       try {
-        const script_tree = validateInplace(ScriptTree, { ...JSON.parse(await file.text()) });
+        const data = JSON.parse(await file.text());
+        const script_tree = validateInplace(_.has(data, 'buttons') ? BackwardScriptData : ScriptTree, data);
         script_tree.enabled = false;
         script_tree.id = uuidv4();
         if (isScriptFolder(script_tree)) {
@@ -106,6 +109,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
       }
     }),
   );
+  toastr.success(t`成功导入 ${files_list.length} 个脚本文件`);
 }
 
 const { open: openImport } = useModal({

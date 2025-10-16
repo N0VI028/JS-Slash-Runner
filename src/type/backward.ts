@@ -3,7 +3,7 @@ import { CharacterSettings as NewCharacterSettings, GlobalSettings as NewGlobalS
 import { getSmartThemeQuoteColor } from '@/util/color';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
-const ScriptData = z
+export const ScriptData = z
   .object({
     enabled: z.boolean().default(false),
     name: z.string().default(''),
