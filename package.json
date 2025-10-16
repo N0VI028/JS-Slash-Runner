@@ -1,6 +1,6 @@
 {
   "name": "Tavern-Helper",
-  "version": "3.6.1",
+  "version": "4.0.0",
   "scripts": {
     "build": "vite build",
     "watch": "vite build --watch --mode development",
