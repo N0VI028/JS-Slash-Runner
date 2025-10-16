@@ -28,10 +28,18 @@ export function useResolveIdConflict(
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
 ) {
-  watch(character_id, () => {
-    resolveConflictScriptTrees(character_scripts.script_trees, global_scripts, preset_scripts);
-  });
-  watch(preset_id, () => {
-    resolveConflictScriptTrees(preset_scripts.script_trees, global_scripts, character_scripts);
-  });
+  watch(
+    character_id,
+    () => {
+      resolveConflictScriptTrees(character_scripts.script_trees, global_scripts, preset_scripts);
+    },
+    { flush: 'post' },
+  );
+  watch(
+    preset_id,
+    () => {
+      resolveConflictScriptTrees(preset_scripts.script_trees, global_scripts, character_scripts);
+    },
+    { flush: 'post' },
+  );
 }

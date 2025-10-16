@@ -186,6 +186,7 @@ export const tavern_events = {
   PRESET_CHANGED: 'preset_changed',
   PRESET_DELETED: 'preset_deleted',
   PRESET_RENAMED: 'preset_renamed',
+  PRESET_RENAMED_BEFORE: 'preset_renamed_before',
   MAIN_API_CHANGED: 'main_api_changed',
   WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded',
 } as const;
@@ -344,6 +345,7 @@ export type ListenerType = {
   [tavern_events.PRESET_CHANGED]: (data: { apiId: string; name: string }) => void;
   [tavern_events.PRESET_DELETED]: (data: { apiId: string; name: string }) => void;
   [tavern_events.PRESET_RENAMED]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.PRESET_RENAMED_BEFORE]: (data: { apiId: string; oldName: string; newName: string }) => void;
   [tavern_events.MAIN_API_CHANGED]: (data: { apiId: string }) => void;
   [tavern_events.WORLDINFO_ENTRIES_LOADED]: (lores: {
     globalLore: Record<string, any>[];

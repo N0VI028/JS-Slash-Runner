@@ -243,8 +243,10 @@ declare const tavern_events: {
   PRESET_CHANGED: 'preset_changed';
   /** since SillyTavern v1.13.2 */
   PRESET_DELETED: 'preset_deleted';
-  /** since SillyTavern v1.13.2 */
+  /** since SillyTavern v1.13.5 */
   PRESET_RENAMED: 'preset_renamed';
+  /** since SillyTavern v1.13.5 */
+  PRESET_RENAMED_BEFORE: 'preset_renamed_before';
   /** since SillyTavern v1.13.2 */
   MAIN_API_CHANGED: 'main_api_changed';
   /** since SillyTavern v1.13.4 */
@@ -414,6 +416,7 @@ interface ListenerType {
   [tavern_events.PRESET_CHANGED]: (data: { apiId: string; name: string }) => void;
   [tavern_events.PRESET_DELETED]: (data: { apiId: string; name: string }) => void;
   [tavern_events.PRESET_RENAMED]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.PRESET_RENAMED_BEFORE]: (data: { apiId: string; oldName: string; newName: string }) => void;
   [tavern_events.MAIN_API_CHANGED]: (data: { apiId: string }) => void;
   [custom_event: string]: (...args: any) => any;
 }

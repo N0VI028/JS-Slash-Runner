@@ -63,17 +63,20 @@ import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { eventSource } from '@sillytavern/script';
+import { useCheckEnablementPopup } from '@/panel/script/use_check_enablement_popup';
 
 const search_input = ref<RegExp | null>(null);
 
-const character_id = toRef(useCharacterSettingsStore(), 'id');
-const preset_id = toRef(usePresetSettingsStore(), 'id');
+const { id: character_id, name: character_name } = storeToRefs(useCharacterSettingsStore());
+const { id: preset_id, name: preset_name } = storeToRefs(usePresetSettingsStore());
 
+const global_settings = useGlobalSettingsStore();
 const global_scripts = useGlobalScriptsStore();
 const character_scripts = useCharacterScriptsStore();
 const preset_scripts = usePresetScriptsStore();
 
 useResolveIdConflict(character_id, preset_id, global_scripts, character_scripts, preset_scripts);
+useCheckEnablementPopup(character_name, preset_name, global_settings, character_scripts, preset_scripts);
 
 const { runtimes, button_map } = toRefs(useScriptIframeRuntimesStore());
 const use_blob_url = toRef(useGlobalSettingsStore().settings.render, 'use_blob_url');
