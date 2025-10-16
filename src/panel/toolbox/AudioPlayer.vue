@@ -1,5 +1,5 @@
 <template>
-  <Item type="box">
+  <Item v-model="is_expanded" type="box">
     <template #title>{{ t`播放器` }}</template>
     <template #description>{{ t`全局音频播放器` }}</template>
     <template #content>
@@ -18,6 +18,8 @@
 import Controller from '@/panel/toolbox/audio_player/Controller.vue';
 import { useAmbientAudioStore, useBgmAudioStore } from '@/store/audio';
 import { useGlobalSettingsStore } from '@/store/settings';
+
+const is_expanded = useLocalStorage('TH-AudioPlayer:is_expanded', false);
 
 const { enabled } = toRefs(useGlobalSettingsStore().settings.audio);
 const bgm = useBgmAudioStore();

@@ -50,15 +50,15 @@ import { createReusableTemplate } from '@vueuse/core';
 
 const [DefineNonDetailPart, NonDetailPart] = createReusableTemplate();
 
+const is_expanded = defineModel<boolean>();
+
 const props = withDefaults(
   defineProps<{
     type?: 'plain' | 'box';
-    initiallyExpanded?: boolean;
     duration?: number;
   }>(),
   {
     type: 'plain',
-    initiallyExpanded: false,
     duration: 260,
   },
 );
@@ -67,7 +67,6 @@ const slots = useSlots();
 const has_content = computed(() => !!slots.content);
 const has_detail = computed(() => !!slots.detail);
 
-const is_expanded = ref<boolean>(props.initiallyExpanded);
 const is_animating = ref<boolean>(false);
 const container_ref = useTemplateRef<HTMLDivElement>('container_ref');
 const content_ref = useTemplateRef<HTMLDivElement>('content_ref');
