@@ -16,6 +16,8 @@ export const version = await fetch('/version')
   .then(data => data.pkgVersion)
   .catch(() => '1.0.0');
 
+export const APP_READY_EVENTS = [event_types.APP_READY, 'chatLoaded', event_types.SETTINGS_UPDATED];
+
 export const preset_manager = getPresetManager('openai');
 
 export function highlight_code(element: HTMLElement) {

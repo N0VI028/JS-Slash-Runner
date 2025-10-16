@@ -58,12 +58,12 @@ import Container from '@/panel/script/Container.vue';
 import Iframe from '@/panel/script/Iframe.vue';
 import Toolbar from '@/panel/script/Toolbar.vue';
 import { useButtonDestinationElement } from '@/panel/script/use_button_destination_element';
+import { useCheckEnablementPopup } from '@/panel/script/use_check_enablement_popup';
 import { useResolveIdConflict } from '@/panel/script/use_resolve_id_conflict';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { eventSource } from '@sillytavern/script';
-import { useCheckEnablementPopup } from '@/panel/script/use_check_enablement_popup';
 
 const search_input = ref<RegExp | null>(null);
 
