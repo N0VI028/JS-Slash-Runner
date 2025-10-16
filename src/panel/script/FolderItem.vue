@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: 手机上似乎显示不出 is_sorting_target 时的 border 效果 -->
   <div
     v-show="is_visible"
     ref="folder_item"
