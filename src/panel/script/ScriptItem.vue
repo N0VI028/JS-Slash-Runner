@@ -7,6 +7,7 @@
       bg-(--SmartThemeBlurTintColor) p-[5px]
     "
     data-type="script"
+    :data-script-id="script.id"
   >
     <!-- 批量模式下显示复选框，正常模式显示拖拽手柄 -->
     <div v-if="props.isBatchMode" class="flex items-center">
