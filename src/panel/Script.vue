@@ -7,12 +7,7 @@
     clearable
   />
 
-  <Container
-    v-model="global_scripts"
-    :title="t`全局脚本`"
-    :description="t`酒馆全局可用`"
-    store-type="global"
-  />
+  <Container v-model="global_scripts" :title="t`全局脚本`" :description="t`酒馆全局可用`" store-type="global" />
 
   <template v-if="character_id !== undefined">
     <Divider />
@@ -25,12 +20,7 @@
   </template>
 
   <Divider />
-  <Container
-    v-model="preset_scripts"
-    :title="t`预设脚本`"
-    :description="t`绑定到当前预设`"
-    store-type="preset"
-  />
+  <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" store-type="preset" />
 
   <template v-for="script in runtimes" :key="script.id + script.reload_memo">
     <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
