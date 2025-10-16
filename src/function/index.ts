@@ -1,3 +1,12 @@
+import {
+  getAudioList,
+  getAudioSettings,
+  insertAudioList,
+  pauseAudio,
+  playAudio,
+  replaceAudioList,
+  setAudioSettings,
+} from '@/function/audio';
 import { builtin } from '@/function/builtin';
 import {
   createChatMessages,
@@ -208,6 +217,13 @@ function getTavernHelper() {
     audioMode,
     audioPlay,
     audioSelect,
+    playAudio,
+    pauseAudio,
+    getAudioList,
+    replaceAudioList,
+    insertAudioList,
+    getAudioSettings,
+    setAudioSettings,
 
     // builtin
     builtin,

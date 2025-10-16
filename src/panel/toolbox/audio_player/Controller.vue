@@ -130,18 +130,6 @@ const model_playing = computed({
   },
 });
 
-watchDebounced(
-  () => model.value.volume,
-  new_value => {
-    if (new_value > 0 && model.value.muted) {
-      model.value.muted = false;
-    } else if (new_value === 0 && !model.value.muted) {
-      model.value.muted = true;
-    }
-  },
-  { debounce: 100 },
-);
-
 {
   const controls_progress = computed({
     get: () => {

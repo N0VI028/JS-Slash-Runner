@@ -4,6 +4,15 @@ interface Window {
    * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.TavernHelper` 来查看当前酒馆助手所提供的接口
    */
   TavernHelper: {
+    // audio
+    readonly playAudio: typeof playAudio;
+    readonly pauseAudio: typeof pauseAudio;
+    readonly getAudioList: typeof getAudioList;
+    readonly replaceAudioList: typeof replaceAudioList;
+    readonly insertAudioList: typeof insertAudioList;
+    readonly getAudioSettings: typeof getAudioSettings;
+    readonly setAudioSettings: typeof setAudioSettings;
+
     // builtin
     readonly builtin: typeof builtin;
 
