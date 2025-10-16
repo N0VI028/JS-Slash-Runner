@@ -26,7 +26,7 @@ export const useChatSettingsStore = defineStore('chat_settings', () => {
         return;
       }
       if (new_id !== undefined) {
-        _.set(chat_metadata, setting_field, toRaw(new_settings));
+        _.set(chat_metadata, setting_field, klona(new_settings));
         saveMetadataDebounced();
       }
     },

@@ -82,7 +82,7 @@ const emit = defineEmits<{
 }>();
 
 const script = ref<ScriptForm>(
-  _.cloneDeep(
+  klona(
     props.script ?? {
       name: '',
       content: '',

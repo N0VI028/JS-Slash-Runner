@@ -1,9 +1,9 @@
 <template>
-  <JsonEditor v-model="settings.variables" />
+  <JsonEditor v-model="store.settings.variables" />
 </template>
 
 <script setup lang="ts">
 import { useCharacterSettingsStore } from '@/store/settings';
 
-const settings = toRef(useCharacterSettingsStore(), 'settings');
+const store = useCharacterSettingsStore();
 </script>

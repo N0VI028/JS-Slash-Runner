@@ -49,7 +49,7 @@ export function pauseAudio(type: 'bgm' | 'ambient'): void {
 
 export function getAudioList(type: 'bgm' | 'ambient'): Audio[] {
   const store = get_store_by_type(type);
-  return _.cloneDeep(store.playlist);
+  return klona(store.playlist);
 }
 
 export function replaceAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void {
@@ -73,7 +73,7 @@ type AudioSettings = {
 
 export function getAudioSettings(type: 'bgm' | 'ambient'): AudioSettings {
   const store = get_store_by_type(type);
-  return _.cloneDeep(_.pick(store, ['enabled', 'mode', 'muted', 'volume']));
+  return klona(_.pick(store, ['enabled', 'mode', 'muted', 'volume']));
 }
 
 export function setAudioSettings(type: 'bgm' | 'ambient', settings: Partial<AudioSettings>): void {

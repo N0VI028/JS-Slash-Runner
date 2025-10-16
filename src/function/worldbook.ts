@@ -20,11 +20,11 @@ import {
 import { LiteralUnion, PartialDeep } from 'type-fest';
 
 export function getWorldbookNames(): string[] {
-  return structuredClone(world_names);
+  return klona(world_names);
 }
 
 export function getGlobalWorldbookNames(): string[] {
-  return structuredClone((getWorldInfoSettings().world_info as { globalSelect: string[] }).globalSelect);
+  return klona((getWorldInfoSettings().world_info as { globalSelect: string[] }).globalSelect);
 }
 export async function rebindGlobalWorldbooks(worldbook_names: string[]): Promise<void> {
   const $world_info = $('#world_info');
@@ -383,9 +383,7 @@ export async function getWorldbook(worldbook_name: string): Promise<WorldbookEnt
     data => (data! as { entries: { [uid: number]: _OriginalWorldbookEntry & _ImplicitKeys } }) ?? {},
   );
 
-  return structuredClone(
-    _(original_worldbook_entries.entries).values().sortBy('displayIndex').map(toWorldbookEntry).value(),
-  );
+  return klona(_(original_worldbook_entries.entries).values().sortBy('displayIndex').map(toWorldbookEntry).value());
 }
 
 export async function replaceWorldbook(

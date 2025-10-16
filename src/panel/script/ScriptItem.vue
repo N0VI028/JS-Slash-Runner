@@ -140,7 +140,7 @@ type ScriptExportPayload = {
 };
 
 const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptExportPayload> => {
-  const to_export = _.cloneDeep(script.value);
+  const to_export = klona(script.value);
   if (option.should_strip_data) {
     _.set(to_export, 'data', {});
   }

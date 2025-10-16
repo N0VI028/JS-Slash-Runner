@@ -17,11 +17,7 @@ useEventSourceOn(
   }, 1000),
 );
 
-watchDebounced(
-  variables,
-  new_variables => {
-    replaceVariables(toRaw(new_variables), { type: 'global' });
-  },
-  { debounce: 1000, deep: true },
-);
+watch(variables, new_variables => {
+  replaceVariables(toRaw(new_variables), { type: 'global' });
+});
 </script>

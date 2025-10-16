@@ -165,7 +165,7 @@ export function getChatMessages(
     .map(i => process_message(i))
     .filter(chat_message => chat_message !== null);
 
-  return structuredClone(chat_messages);
+  return klona(chat_messages);
 }
 
 type SetChatMessagesOption = {

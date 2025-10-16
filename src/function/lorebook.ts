@@ -183,7 +183,7 @@ type GetCharLorebooksOption = {
 };
 
 export function getLorebookSettings(): LorebookSettings {
-  return structuredClone(toLorebookSettings(getWorldInfoSettings()));
+  return klona(toLorebookSettings(getWorldInfoSettings()));
 }
 
 export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
@@ -200,7 +200,7 @@ export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
 }
 
 export function getLorebooks(): string[] {
-  return structuredClone(world_names);
+  return klona(world_names);
 }
 
 export async function deleteLorebook(lorebook: string): Promise<boolean> {
@@ -239,7 +239,7 @@ export function getCharLorebooks({
     books.additional = extra_charlore.extraBooks;
   }
 
-  return structuredClone(books);
+  return klona(books);
 }
 
 export function getCurrentCharPrimaryLorebook(): string | null {

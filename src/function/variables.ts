@@ -58,7 +58,7 @@ export function get_variables_without_clone(option: VariableOption): Record<stri
 }
 
 export function getVariables(option: VariableOption = { type: 'chat' }): Record<string, any> {
-  return _.cloneDeep(get_variables_without_clone(option));
+  return klona(get_variables_without_clone(option));
 }
 
 export function _getVariables(this: Window, option: VariableOption = { type: 'chat' }): Record<string, any> {
@@ -86,7 +86,7 @@ export function _getAllVariables(this: Window): Record<string, any> {
         .map((chat_message: any) => chat_message?.variables?.[chat_message?.swipe_id ?? 0]),
     );
   }
-  return structuredClone(result.value());
+  return klona(result.value());
 }
 
 export function replaceVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): void {

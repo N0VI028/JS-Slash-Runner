@@ -42,7 +42,7 @@ const emit = defineEmits<{
 }>();
 
 const script_folder = ref<ScriptFolderForm>(
-  _.cloneDeep(
+  klona(
     props.scriptFolder ?? {
       name: '',
       icon: '',

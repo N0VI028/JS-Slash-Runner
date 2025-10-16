@@ -189,7 +189,7 @@ export function getTavernRegexes({ scope = 'all', enable_state = 'all' }: GetTav
     regexes = regexes.filter(regex => regex.enabled === (enable_state === 'enabled'));
   }
 
-  return structuredClone(regexes);
+  return klona(regexes);
 }
 
 type ReplaceTavernRegexesOption = {

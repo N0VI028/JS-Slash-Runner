@@ -1,19 +1,41 @@
+import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward';
 import { CharacterSettings, setting_field } from '@/type/settings';
 import { validateInplace } from '@/util/zod';
 import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
 
 function getSettings(id: string | undefined): CharacterSettings {
+  const character = characters.at(id as unknown as number);
+  if (character === undefined) {
+    return CharacterSettings.parse({});
+  }
+
+  const backward_scripts = _.get(character, `data.extensions.TavernHelper_scripts`);
+  const backward_variables = _.get(character, `data.extensions.TavernHelper_characterScriptVariables`);
+  if (
+    (backward_scripts !== undefined || backward_variables !== undefined) &&
+    !_.has(character, `data.extensions.${setting_field}`)
+  ) {
+    const converted = BackwardCharacterSettings.parse({
+      scripts: backward_scripts ?? [],
+      variables: backward_variables ?? {},
+    } satisfies z.infer<typeof BackwardCharacterSettings>);
+    saveSettingsDebounced(id as string, converted);
+  }
+
   return validateInplace(
     CharacterSettings,
-    _.get(characters.at(id as unknown as number), `data.extensions.${setting_field}`, {}),
+    Object.fromEntries(_.get(character, `data.extensions.${setting_field}`, [])),
   );
 }
 
-async function saveSettings(id: string, settings: CharacterSettings) {
-  await writeExtensionField(id, setting_field, settings);
+const writeExtensionFieldDebounced = _.debounce(writeExtensionField, 1000);
+function saveSettingsDebounced(id: string, settings: CharacterSettings) {
+  // 酒馆的 `writeExtensionField` 会对对象进行合并, 因此要将对象转换为数组再存储
+  const entries = Object.entries(settings);
+  _.set(characters[id as unknown as number], `data.extensions.${setting_field}`, entries);
+  writeExtensionFieldDebounced(id, setting_field, entries);
 }
-const saveSettingsDebounced = _.debounce(saveSettings, 1000);
 
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
@@ -34,7 +56,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
         return;
       }
       if (new_id !== undefined) {
-        saveSettingsDebounced(new_id, toRaw(new_settings));
+        saveSettingsDebounced(new_id, klona(new_settings));
       }
     },
     { deep: true },

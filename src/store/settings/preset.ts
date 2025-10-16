@@ -43,10 +43,11 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
       if (new_id !== previous_id) {
         return;
       }
+      const cloned = klona(new_settings);
       if (new_id === preset_manager.getSelectedPreset()) {
-        saveSettingsToMemoryDebounced(id.value, toRaw(new_settings));
+        saveSettingsToMemoryDebounced(id.value, cloned);
       }
-      saveSettingsToFileDebounced(id.value, toRaw(new_settings));
+      saveSettingsToFileDebounced(id.value, cloned);
     },
     { deep: true },
   );

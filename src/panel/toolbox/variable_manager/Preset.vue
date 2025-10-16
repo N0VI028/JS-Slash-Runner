@@ -1,9 +1,9 @@
 <template>
-  <JsonEditor v-model="settings.variables" />
+  <JsonEditor v-model="store.settings.variables" />
 </template>
 
 <script setup lang="ts">
 import { usePresetSettingsStore } from '@/store/settings';
 
-const settings = toRef(usePresetSettingsStore(), 'settings');
+const store = usePresetSettingsStore();
 </script>

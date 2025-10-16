@@ -524,7 +524,7 @@ function fromPreset(preset: Preset): _OriginalPreset {
 const preset_manager = getPresetManager('openai');
 
 export function getPresetNames(): string[] {
-  return structuredClone(['in_use', ...preset_manager.getAllPresets()]);
+  return klona(['in_use', ...preset_manager.getAllPresets()]);
 }
 
 export function getLoadedPresetName(): string {
@@ -650,7 +650,7 @@ export function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset {
   if (!original_preset) {
     throw Error(`预设 '${preset_name}' 不存在`);
   }
-  return structuredClone(toPreset(original_preset, { in_use: preset_name === 'in_use' }));
+  return klona(toPreset(original_preset, { in_use: preset_name === 'in_use' }));
 }
 
 export async function replacePreset(

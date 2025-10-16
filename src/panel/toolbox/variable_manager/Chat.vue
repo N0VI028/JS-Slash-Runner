@@ -13,11 +13,7 @@ useIntervalFn(() => {
   }
 }, 2000);
 
-watchDebounced(
-  variables,
-  new_variables => {
-    replaceVariables(toRaw(new_variables), { type: 'chat' });
-  },
-  { debounce: 1000 },
-);
+watch(variables, new_variables => {
+  replaceVariables(toRaw(new_variables), { type: 'chat' });
+});
 </script>

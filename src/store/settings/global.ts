@@ -1,7 +1,18 @@
+import { GlobalSettings as BackwardGlobalSettings } from '@/type/backward';
 import { GlobalSettings, setting_field } from '@/type/settings';
 import { validateInplace } from '@/util/zod';
 import { event_types, eventSource, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
+
+function getSettings() {
+  const backward_settings = _.get(extension_settings, 'TavernHelper');
+  if (backward_settings !== undefined) {
+    _.set(extension_settings, setting_field, BackwardGlobalSettings.parse(backward_settings));
+    _.unset(extension_settings, 'TavernHelper');
+    saveSettingsDebounced();
+  }
+  return validateInplace(GlobalSettings, _.get(extension_settings, setting_field));
+}
 
 export const useGlobalSettingsStore = defineStore('global_settings', () => {
   const app_ready = ref<boolean>(false);
@@ -11,11 +22,11 @@ export const useGlobalSettingsStore = defineStore('global_settings', () => {
     }),
   );
 
-  const settings = ref(validateInplace(GlobalSettings, _.get(extension_settings, setting_field)));
+  const settings = ref(getSettings());
   watch(
     settings,
     new_settings => {
-      _.set(extension_settings, setting_field, toRaw(new_settings));
+      _.set(extension_settings, setting_field, klona(new_settings));
       saveSettingsDebounced();
     },
     { deep: true },

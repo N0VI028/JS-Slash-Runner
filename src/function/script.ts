@@ -12,11 +12,11 @@ export function _getButtonEvent(this: Window, button_name: string): string {
 }
 
 export function _getScriptButtons(this: Window): ScriptButton[] {
-  return _.cloneDeep(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
+  return klona(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
 }
 
 export function getAllEnabledScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] } {
-  return _.cloneDeep(useScriptIframeRuntimesStore().button_map);
+  return klona(useScriptIframeRuntimesStore().button_map);
 }
 
 export function _replaceScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;

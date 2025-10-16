@@ -183,7 +183,7 @@ type ScriptFolderExportPayload = {
 };
 
 const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptFolderExportPayload> => {
-  const to_export = _.cloneDeep(script_folder.value);
+  const to_export = klona(script_folder.value);
   if (option.should_strip_data) {
     to_export.scripts.forEach(script => {
       _.set(script, 'data', {});

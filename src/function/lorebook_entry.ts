@@ -217,7 +217,7 @@ export async function getLorebookEntries(
     );
   }
 
-  return structuredClone(entries);
+  return klona(entries);
 }
 
 function fromPartialLorebookEntry(

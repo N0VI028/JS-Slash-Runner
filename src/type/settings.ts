@@ -16,7 +16,7 @@ export const GlobalSettings = z
             enabled: z.boolean().default(true),
             mode: AudioMode.default('repeat_all'),
             muted: z.boolean().default(false),
-            volume: z.number().default(100),
+            volume: z.number().default(50),
           })
           .prefault({}),
         ambient: z
@@ -24,7 +24,7 @@ export const GlobalSettings = z
             enabled: z.boolean().default(true),
             mode: AudioMode.default('play_one_and_stop'),
             muted: z.boolean().default(false),
-            volume: z.number().default(100),
+            volume: z.number().default(50),
           })
           .prefault({}),
       })
@@ -65,43 +65,6 @@ export const GlobalSettings = z
   })
   .prefault({});
 export type GlobalSettings = z.infer<typeof GlobalSettings>;
-
-// const Settings = z.object({
-//   enabled_extension: z.boolean().default(true),
-//   script: z.object({
-//     global_script_enabled: z.boolean().default(true),
-//     scriptsRepository: z.array(ScriptRepositoryItemSchema),
-//     characters_with_scripts: z.array(z.string()),
-//   }),
-//   audio: z.object({
-//     audio_enabled: z.boolean().default(true),
-//     bgm_enabled: z.boolean().default(true),
-//     ambient_enabled: z.boolean().default(true),
-//     bgm_mode: z.string().default('repeat'),
-//     bgm_muted: z.boolean().default(false),
-//     bgm_volume: z.number().default(50),
-//     bgm_selected: z.string().nullable().default(null),
-//     bgm_current_time: z.number().default(0),
-//     ambient_mode: z.string().default('stop'),
-//     ambient_muted: z.boolean().default(false),
-//     ambient_volume: z.number().default(50),
-//     ambient_selected: z.string().nullable().default(null),
-//     ambient_current_time: z.number().default(0),
-//     audio_cooldown: z.number().default(0),
-//   }),
-//   listener: z.object({
-//     enabled: z.boolean().default(false),
-//     enable_echo: z.boolean().default(true),
-//     url: z.string().default('http://localhost:6621'),
-//     duration: z.number().default(1000),
-//   }),
-//   macro: z.object({
-//     replace: z.boolean().default(true),
-//   }),
-//   debug: z.object({
-//     enabled: z.boolean().default(false),
-//   }),
-// });
 
 export const ChatSettings = z
   .object({

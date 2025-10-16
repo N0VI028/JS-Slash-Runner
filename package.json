@@ -64,6 +64,7 @@
     "emittery": "^1.2.0",
     "is-promise": "^4.0.0",
     "jszip": "^3.10.1",
+    "klona": "^2.0.6",
     "marked": "^16.4.0",
     "pinia": "^3.0.3",
     "socket.io-client": "^4.8.1",

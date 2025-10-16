@@ -85,13 +85,11 @@ useIntervalFn(() => {
   }
 }, 2000);
 
-watchDebounced(
-  variables_map,
-  new_variables => {
-    replaceVariables(toRaw(new_variables), { type: 'chat' });
-  },
-  { debounce: 1000 },
-);
+watch(variables_map, new_variables => {
+  Object.entries(new_variables).forEach(([message_id, variables]) => {
+    replaceVariables(toRaw(variables), { type: 'message', message_id: Number(message_id) });
+  });
+});
 </script>
 
 <style lang="scss" scoped>
