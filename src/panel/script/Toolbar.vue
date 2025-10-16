@@ -89,7 +89,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
     return;
   }
 
-  await Promise.all(
+  await Promise.allSettled(
     Array.from(files_list).map(async (file: File) => {
       try {
         const data = JSON.parse(await file.text());
@@ -100,6 +100,9 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
           script_tree.scripts.forEach(script => {
             script.id = uuidv4();
           });
+          toastr.success(t`成功导入脚本文件夹 '${script_tree.name}'`);
+        } else {
+          toastr.success(t`成功导入脚本 '${script_tree.name}'`);
         }
         getStoreFormType(target).script_trees.push(script_tree);
       } catch (err) {
@@ -109,7 +112,6 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
       }
     }),
   );
-  toastr.success(t`成功导入 ${files_list.length} 个脚本文件`);
 }
 
 const { open: openImport } = useModal({
