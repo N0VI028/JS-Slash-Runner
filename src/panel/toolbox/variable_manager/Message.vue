@@ -35,14 +35,13 @@
     </div>
   </div>
   <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
-    <span>第 {{ sync_bottom ? fromBackwardMessageId(message_id) : message_id }} 楼</span>
+    <span>第 {{ sync_bottom ? chat_length + message_id : message_id }} 楼</span>
     <JsonEditor v-model="variables_map[message_id]" />
   </template>
 </template>
 
 <script setup lang="ts">
 import { get_variables_without_clone, replaceVariables } from '@/function/variables';
-import { fromBackwardMessageId, toBackwardMessageId } from '@/util/message';
 import { chat, event_types } from '@sillytavern/script';
 
 const sync_bottom = ref(true);
@@ -69,18 +68,18 @@ useEventSourceOn(
   },
 );
 
-const variables_map = shallowRef<{ [message_id: number]: Record<string, any> }>(getVariablesMap());
-useIntervalFn(updateVariablesMap, 2000);
 const message_range = computed(() => {
   if (chat_length.value === 0) {
     return [];
   }
   const result = from.value > to.value ? _.range(to.value, from.value + 1) : _.range(from.value, to.value + 1);
   if (sync_bottom.value) {
-    return result.map(toBackwardMessageId);
+    return result.map(value => value - chat_length.value);
   }
   return result;
 });
+const variables_map = shallowRef<{ [message_id: number]: Record<string, any> }>(getVariablesMap());
+useIntervalFn(updateVariablesMap, 2000);
 watchDebounced(message_range, updateVariablesMap, { debounce: 1000 });
 
 function getVariablesMap() {
