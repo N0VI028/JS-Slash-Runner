@@ -73,7 +73,7 @@ export default defineConfig(({ mode }) => ({
       resolveId(id) {
         if (id === 'vanilla-jsoneditor') {
           return {
-            id: path.join(relative_lib_path, 'jsoneditor.js'),
+            id: path.join(relative_lib_path, 'jsoneditor.js').replaceAll('\\', '/'),
             external: true,
           };
         }
