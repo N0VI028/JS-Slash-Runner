@@ -35,8 +35,6 @@
           </div>
         </div>
         <small>{{ t`绑定到脚本的变量, 会随脚本一同导出` }}</small>
-        <!-- TODO: 这里是本来变量的显示, 得传入 JsonEditor -->
-        <div class="flex w-full flex-col flex-wrap gap-1"></div>
         <JsonEditor v-model="script.data" />
       </div>
       <div class="TH-script-editor-container">
@@ -58,7 +56,7 @@
             :key="`button-${index}`"
             class="flex items-center justify-between gap-1"
           >
-            <!-- TODO: 拖拽功能 -->
+            <!-- TODO(4.0): 拖拽功能 -->
             <span class="">☰</span>
             <input v-model="button.visible" type="checkbox" />
             <input v-model="button.name" class="text_pole" type="text" :placeholder="t`按钮名称`" />
@@ -112,7 +110,7 @@ const submit = (close: () => void) => {
 };
 
 const addVariable = () => {
-  // TODO: 直接使用变量编辑器？
+  // TODO(4.0): 直接使用变量编辑器？
 };
 
 const addButton = () => {

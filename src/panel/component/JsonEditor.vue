@@ -65,7 +65,7 @@ onMounted(() => {
       // TODO: 性能如何?
       const diff = detailedDiff(old_content, new_content);
       editor_instance.updateProps({
-        // TODO: `content: { json: toRaw(new_content) }` 从而仅重新渲染一次? 但似乎 deleted 会直接被刷新掉
+        // TODO(4.0): `content: { json: toRaw(new_content) }` 从而仅重新渲染一次? 但似乎 deleted 会直接被刷新掉, 可以试试
         onClassName: path => {
           if (_.has(diff.updated, path)) {
             return 'jse-custom-updated';

@@ -120,7 +120,6 @@ function formatSlashCommands(): string {
     .join('\n');
 }
 
-// TODO: 不再使用 popper
 const tavern_helper_types_button = useTemplateRef('tavern_helper_types_button');
 const tavern_helper_types_popup = useTemplateRef('tavern_helper_types_popup');
 onMounted(() => {

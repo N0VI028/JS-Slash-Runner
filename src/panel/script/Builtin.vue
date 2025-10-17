@@ -1,7 +1,7 @@
 <template>
   <Popup :buttons="[{ name: t`关闭` }]">
     <div class="my-1.25 flex flex-col flex-wrap gap-0.5">
-      <!-- TODO: 调整这两句提示的样式 -->
+      <!-- TODO(4.0): 调整这两句提示的样式 -->
       <div>
         {{ t`内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区` }}<br />
         {{ t`如果需要制作脚本, 建议查看` }}
@@ -12,7 +12,7 @@
           {{ t`官方编写模板配置教程` }}
         </a>
       </div>
-      <!-- TODO: 要不要复用 ScriptItem 的样式 -->
+      <!-- TODO(4.0): 要不要复用 ScriptItem 的样式 -->
       <!-- prettier-ignore-attribute -->
       <div
         v-for="builtin in builtins"

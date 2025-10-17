@@ -48,7 +48,7 @@
       </button>
     </div>
   </div>
-  <!-- TODO: 调整好样式 (能够正常滑动、页面高度刚好能显示两个左右) 后再调整 min-size -->
+  <!-- TODO(4.0): 调整好样式 (能够正常滑动、页面高度刚好能显示两个左右) 后再调整 min-size -->
   <VirtList ref="virt_list" item-key="message_id" :list="messages" :min-size="1000" :item-gap="7">
     <template #default="{ itemData: item_data }">
       <MessageItem :chat-length="chat_length" :message-id="item_data.message_id" :refresh-key="refresh_key" />
