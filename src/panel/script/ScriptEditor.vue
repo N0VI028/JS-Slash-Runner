@@ -30,9 +30,6 @@
       <div class="TH-script-editor-container">
         <div class="flex flex-wrap items-center justify-center gap-[5px]">
           <div>{{ t`变量列表` }}</div>
-          <div class="menu_button interactable" @click="addVariable">
-            <i class="fa-solid fa-plus"></i>
-          </div>
         </div>
         <small>{{ t`绑定到脚本的变量, 会随脚本一同导出` }}</small>
         <JsonEditor v-model="script.data" />
@@ -107,10 +104,6 @@ const submit = (close: () => void) => {
   }
   emit('submit', result.data);
   close();
-};
-
-const addVariable = () => {
-  // TODO(4.0): 直接使用变量编辑器？
 };
 
 const addButton = () => {
