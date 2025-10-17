@@ -51,7 +51,7 @@
   <template v-for="message_id in message_range" :key="message_id">
     <span>第 {{ sync_bottom ? chat_length + message_id : message_id }} 楼</span>
     <JsonEditor
-      :model-value="variables_map[message_id]"
+      :model-value="variables_map.get(message_id)!.value"
       @update:model-value="updateVariablesFromEditor(message_id, $event)"
     />
   </template>
@@ -95,21 +95,33 @@ const message_range = computed(() => {
   }
   return result;
 });
-const variables_map = ref<{ [message_id: number]: Record<string, any> }>(getVariablesMap());
-const { pause, resume } = useIntervalFn(updateVariablesMap, 2000);
-watchDebounced(message_range, updateVariablesMap);
 
-function getVariablesMap() {
-  return Object.fromEntries(
+const variables_map = new Map<number, ShallowRef<Record<string, any>>>(
+  message_range.value.map(message_id => [
+    message_id,
+    shallowRef(get_variables_without_clone({ type: 'message', message_id })),
+  ]),
+);
+const { pause, resume } = useIntervalFn(() => {
+  const new_variables_map = new Map(
     message_range.value.map(message_id => [message_id, get_variables_without_clone({ type: 'message', message_id })]),
   );
-}
-function updateVariablesMap() {
-  const new_variables_map = getVariablesMap();
-  if (!_.isEqual(variables_map.value, new_variables_map)) {
-    variables_map.value = new_variables_map;
-  }
-}
+  variables_map.forEach((variables, message_id) => {
+    if (!_.isEqual(variables.value, new_variables_map.get(message_id))) {
+      variables.value = new_variables_map.get(message_id) ?? {};
+    }
+  });
+}, 2000);
+watch(message_range, (new_range, old_range) => {
+  pause();
+  _.difference(old_range, new_range).forEach(message_id => {
+    variables_map.delete(message_id);
+  });
+  _.difference(new_range, old_range).forEach(message_id => {
+    variables_map.set(message_id, shallowRef(get_variables_without_clone({ type: 'message', message_id })));
+  });
+  resume();
+});
 
 function updateVariablesFromEditor(message_id: number, variables: Record<string, any>) {
   pause();
