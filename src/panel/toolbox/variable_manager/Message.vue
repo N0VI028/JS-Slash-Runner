@@ -48,23 +48,22 @@
       </button>
     </div>
   </div>
-  <template v-for="message_id in message_range" :key="message_id">
-    <MessageItem
-      :message-id="message_id"
-      :normalized-message-id="sync_bottom ? chat_length + message_id : message_id"
-    />
-  </template>
+  <!-- TODO: 调整好样式 (能够正常滑动、页面高度刚好能显示两个左右) 后再调整 min-size -->
+  <VirtList ref="virt_list" item-key="message_id" :list="messages" :min-size="1000" :item-gap="7">
+    <template #default="{ itemData: item_data }">
+      <MessageItem :chat-length="chat_length" :message-id="item_data.message_id" :refresh-key="refresh_key" />
+    </template>
+  </VirtList>
 </template>
 
 <script setup lang="ts">
 import MessageItem from '@/panel/toolbox/variable_manager/MessageItem.vue';
 import { chat, event_types } from '@sillytavern/script';
+import { VirtList } from 'vue-virt-list';
 
-const sync_bottom = ref(true);
+const virt_list_ref = useTemplateRef('virt_list');
 
 const chat_length = ref(chat.length);
-const from = ref(Math.max(0, chat.length - 5));
-const to = ref(Math.max(0, chat.length - 1));
 useEventSourceOn(
   [
     event_types.CHAT_CHANGED,
@@ -77,22 +76,40 @@ useEventSourceOn(
   ],
   () => {
     chat_length.value = chat.length;
-    if (sync_bottom.value) {
-      from.value = Math.max(0, chat.length - 5);
-      to.value = Math.max(0, chat.length - 1);
-    }
   },
 );
 
-const message_range = computed(() => {
+const sync_bottom = ref(true);
+watch(sync_bottom, () => {
+  virt_list_ref.value?.forceUpdate();
+});
+
+const from = ref(Math.max(0, chat_length.value - 3));
+const to = ref(Math.max(0, chat_length.value - 1));
+watch([sync_bottom, chat_length], ([new_sync_bottom, new_chat_length], [old_sync_bottom]) => {
+  if (new_sync_bottom) {
+    from.value = Math.max(0, new_chat_length - 3);
+    to.value = Math.max(0, new_chat_length - 1);
+    if (new_sync_bottom === old_sync_bottom) {
+      refresh_key.value = Symbol();
+    }
+  }
+});
+
+const refresh_key = ref<symbol>(Symbol());
+useIntervalFn(() => {
+  refresh_key.value = Symbol();
+}, 2000);
+
+const messages = computed(() => {
   if (chat_length.value === 0) {
     return [];
   }
-  const result = from.value > to.value ? _.range(to.value, from.value + 1) : _.range(from.value, to.value + 1);
-  if (sync_bottom.value) {
-    return result.map(value => value - chat_length.value).toReversed();
-  }
-  return result;
+  const range = from.value > to.value ? _.range(to.value, from.value + 1) : _.range(from.value, to.value + 1);
+  const result = sync_bottom.value ? range.toReversed() : range;
+  return result.map(value => ({
+    message_id: sync_bottom.value ? value - chat_length.value : value,
+  }));
 });
 </script>
 
