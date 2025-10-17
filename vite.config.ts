@@ -11,9 +11,6 @@ const externals = {
   hljs: 'hljs',
   lodash: '_',
   toastr: 'toastr',
-  // TODO: cdn -> testingcf
-  'vanilla-jsoneditor':
-    'https://cdn.jsdelivr.net/gh/StageDog/svelte-jsoneditor-for-tavern-helper/package-vanilla/standalone.js',
   '@popperjs/core': 'Popper',
 } as const;
 
@@ -21,6 +18,8 @@ const relative_sillytavern_path = path.relative(
   path.join(__dirname, 'dist'),
   __dirname.substring(0, __dirname.lastIndexOf('public') + 6),
 );
+
+const relative_lib_path = path.relative(path.join(__dirname, 'dist'), path.join(__dirname, 'lib'));
 
 export default defineConfig(({ mode }) => ({
   plugins: [
@@ -58,11 +57,23 @@ export default defineConfig(({ mode }) => ({
     }),
     {
       name: 'sillytavern_resolver',
-      enforce: 'post',
+      enforce: 'pre',
       resolveId(id) {
         if (id.startsWith('@sillytavern/')) {
           return {
             id: path.join(relative_sillytavern_path, id.replace('@sillytavern/', '')).replaceAll('\\', '/') + '.js',
+            external: true,
+          };
+        }
+      },
+    },
+    {
+      name: 'jsoneditor_resolver',
+      enforce: 'pre',
+      resolveId(id) {
+        if (id === 'vanilla-jsoneditor') {
+          return {
+            id: path.join(relative_lib_path, 'jsoneditor.js'),
             external: true,
           };
         }
