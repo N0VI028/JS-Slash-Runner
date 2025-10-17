@@ -2,8 +2,8 @@ import { getCharAvatarPath, getUserAvatarPath } from '@/util/tavern';
 import { MacrosParser } from '@sillytavern/scripts/macros';
 
 const macros = {
-  userAvatarPath: getUserAvatarPath(),
-  charAvatarPath: getCharAvatarPath(),
+  userAvatarPath: getUserAvatarPath,
+  charAvatarPath: getCharAvatarPath,
 };
 
 export function registerMacros() {
