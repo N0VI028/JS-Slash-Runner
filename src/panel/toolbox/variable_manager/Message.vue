@@ -34,14 +34,15 @@
       </button>
     </div>
   </div>
-  <template v-for="(_varaibles, message_id) in variables_map" :key="variables_map[message_id].key">
-    <JsonEditor v-model="variables_map[message_id].data" />
+  <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
+    <span>第 {{ sync_bottom ? fromBackwardMessageId(message_id) : message_id }} 楼</span>
+    <JsonEditor v-model="variables_map[message_id]" />
   </template>
 </template>
 
 <script setup lang="ts">
 import { get_variables_without_clone, replaceVariables } from '@/function/variables';
-import { toBackwardMessageId } from '@/util/message';
+import { fromBackwardMessageId, toBackwardMessageId } from '@/util/message';
 import { chat, event_types } from '@sillytavern/script';
 
 const sync_bottom = ref(true);
@@ -68,27 +69,23 @@ useEventSourceOn(
   },
 );
 
-const variables_map = shallowRef<{ [message_id: string]: { key: number; data: Record<string, any> } }>(
-  getVariablesMap(),
-);
+const variables_map = shallowRef<{ [message_id: number]: Record<string, any> }>(getVariablesMap());
 useIntervalFn(updateVariablesMap, 2000);
 const message_range = computed(() => {
   if (chat_length.value === 0) {
     return [];
   }
-  return from.value > to.value ? _.range(to.value, from.value + 1) : _.range(from.value, to.value + 1);
+  const result = from.value > to.value ? _.range(to.value, from.value + 1) : _.range(from.value, to.value + 1);
+  if (sync_bottom.value) {
+    return result.map(toBackwardMessageId);
+  }
+  return result;
 });
 watchDebounced(message_range, updateVariablesMap, { debounce: 1000 });
 
 function getVariablesMap() {
   return Object.fromEntries(
-    message_range.value.map(message_id => [
-      message_id,
-      {
-        key: sync_bottom.value ? toBackwardMessageId(message_id) : message_id,
-        data: get_variables_without_clone({ type: 'message', message_id }),
-      },
-    ]),
+    message_range.value.map(message_id => [message_id, get_variables_without_clone({ type: 'message', message_id })]),
   );
 }
 function updateVariablesMap() {
@@ -101,8 +98,8 @@ function updateVariablesMap() {
 }
 
 const { pause, resume } = watchPausable(variables_map, new_variables => {
-  Object.entries(new_variables).forEach(([message_id, { data }]) => {
-    replaceVariables(toRaw(data), { type: 'message', message_id: Number(message_id) });
+  Object.entries(new_variables).forEach(([message_id, variables]) => {
+    replaceVariables(toRaw(variables), { type: 'message', message_id: Number(message_id) });
   });
 });
 </script>
