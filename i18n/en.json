@@ -91,6 +91,7 @@
   "预设防误触": "Prevent mis-touch preset settings",
   "世界书强制自定义排序": "Forcely sort world book by \"custom\" order",
   "世界书强制用推荐的全局设置": "Forcely use recommended global settings for world book",
+  "一键禁用条目递归": "Disable recursion of worldbook entries in one click",
   "保存预设条目时直接保存预设": "Save preset when saving preset entries",
   "预设条目更多按钮: 一键新增预设条目": "More buttons for preset entries: insert new prompt entries in one click",
   "输入助手": "Input Helper",

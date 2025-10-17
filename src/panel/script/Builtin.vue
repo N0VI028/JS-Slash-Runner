@@ -101,6 +101,13 @@ const builtins: BuiltinScript[] = [
       'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制用推荐的全局设置/README.md',
   },
   {
+    name: t`一键禁用条目递归`,
+    content_url:
+      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制用推荐的全局设置/index.js',
+    info_url:
+      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制用推荐的全局设置/README.md',
+  },
+  {
     name: t`保存预设条目时直接保存预设`,
     content_url:
       'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/保存提示词时保存预设/index.js',
