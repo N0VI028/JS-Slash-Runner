@@ -11,8 +11,8 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
   const global_settings = useGlobalSettingsStore();
 
   const global_scripts = useGlobalScriptsStore();
-  const character_scripts = useCharacterScriptsStore();
   const preset_scripts = usePresetScriptsStore();
+  const character_scripts = useCharacterScriptsStore();
 
   const reload_memos = ref<{ [id: string]: string }>({});
   const reload = (id: string) => {
@@ -25,7 +25,7 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
 
   const enabled_scripts = computed(() => {
     return global_settings.app_ready
-      ? _([global_scripts, character_scripts, preset_scripts])
+      ? _([global_scripts, preset_scripts, character_scripts])
           .flatMap(store => store.enabled_scripts)
           .value()
       : [];

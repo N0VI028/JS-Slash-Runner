@@ -9,6 +9,9 @@
 
   <Container v-model="global_scripts" :title="t`全局脚本`" :description="t`酒馆全局可用`" store-type="global" />
 
+  <Divider />
+  <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" store-type="preset" />
+
   <template v-if="character_id !== undefined">
     <Divider />
     <Container
@@ -18,9 +21,6 @@
       store-type="character"
     />
   </template>
-
-  <Divider />
-  <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" store-type="preset" />
 
   <template v-for="script in runtimes" :key="script.id + script.reload_memo">
     <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
@@ -56,16 +56,16 @@ const search_input = ref<RegExp | null>(null);
 provide('search_input', search_input);
 provide('during_sorting', ref(false));
 
-const { id: character_id, name: character_name } = storeToRefs(useCharacterSettingsStore());
 const { id: preset_id, name: preset_name } = storeToRefs(usePresetSettingsStore());
+const { id: character_id, name: character_name } = storeToRefs(useCharacterSettingsStore());
 
 const global_settings = useGlobalSettingsStore();
 const global_scripts = useGlobalScriptsStore();
-const character_scripts = useCharacterScriptsStore();
 const preset_scripts = usePresetScriptsStore();
+const character_scripts = useCharacterScriptsStore();
 
-useResolveIdConflict(character_id, preset_id, global_scripts, character_scripts, preset_scripts);
-useCheckEnablementPopup(character_name, preset_name, global_settings, character_scripts, preset_scripts);
+useResolveIdConflict(preset_id, character_id, global_scripts, preset_scripts, character_scripts);
+useCheckEnablementPopup(preset_name, character_name, global_settings, preset_scripts, character_scripts);
 
 const { runtimes, button_map } = toRefs(useScriptIframeRuntimesStore());
 const use_blob_url = toRef(useGlobalSettingsStore().settings.render, 'use_blob_url');

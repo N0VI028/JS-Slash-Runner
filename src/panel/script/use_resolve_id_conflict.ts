@@ -22,11 +22,11 @@ function resolveConflictScriptTrees(script_trees: ScriptTree[], ...stores: Retur
 }
 
 export function useResolveIdConflict(
-  character_id: Ref<string | undefined>,
   preset_id: Ref<string>,
+  character_id: Ref<string | undefined>,
   global_scripts: ReturnType<typeof useGlobalScriptsStore>,
-  character_scripts: ReturnType<typeof useCharacterScriptsStore>,
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
+  character_scripts: ReturnType<typeof useCharacterScriptsStore>,
 ) {
   watch(
     character_id,
