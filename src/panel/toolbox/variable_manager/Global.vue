@@ -12,12 +12,14 @@ useEventSourceOn(
   _.debounce(() => {
     const new_variables = get_variables_without_clone({ type: 'global' });
     if (!_.isEqual(variables.value, new_variables)) {
+      pause();
       variables.value = new_variables;
+      resume();
     }
   }, 1000),
 );
 
-watch(variables, new_variables => {
+const { pause, resume } = watchPausable(variables, new_variables => {
   replaceVariables(toRaw(new_variables), { type: 'global' });
 });
 </script>
