@@ -68,7 +68,9 @@ useEventSourceOn(
   },
 );
 
-const variables_map = shallowRef<{ [message_id: string]: Record<string, any> }>(getVariablesMap());
+const variables_map = shallowRef<{ [message_id: string]: { key: number; data: Record<string, any> } }>(
+  getVariablesMap(),
+);
 useIntervalFn(updateVariablesMap, 2000);
 const message_range = computed(() => {
   if (chat_length.value === 0) {
