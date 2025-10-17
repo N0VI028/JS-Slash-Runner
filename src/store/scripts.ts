@@ -23,6 +23,31 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
         });
         break;
       }
+      case 'preset': {
+        const global_store = useGlobalSettingsStore();
+        const preset_store = usePresetSettingsStore();
+        enabled = computed({
+          get: () =>
+            preset_store.name !== undefined && global_store.settings.script.enabled.presets.includes(preset_store.name),
+          set: value => {
+            if (preset_store.name === undefined) {
+              return;
+            }
+            if (value) {
+              global_store.settings.script.enabled.presets.push(preset_store.name);
+            } else {
+              _.pull(global_store.settings.script.enabled.presets, preset_store.name);
+            }
+          },
+        });
+        script_trees = computed({
+          get: () => preset_store.settings.scripts,
+          set: value => {
+            preset_store.settings.scripts = value;
+          },
+        });
+        break;
+      }
       case 'character': {
         const global_store = useGlobalSettingsStore();
         const character_store = useCharacterSettingsStore();
@@ -45,31 +70,6 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
           get: () => character_store.settings.scripts,
           set: value => {
             character_store.settings.scripts = value;
-          },
-        });
-        break;
-      }
-      case 'preset': {
-        const global_store = useGlobalSettingsStore();
-        const preset_store = usePresetSettingsStore();
-        enabled = computed({
-          get: () =>
-            preset_store.name !== undefined && global_store.settings.script.enabled.presets.includes(preset_store.name),
-          set: value => {
-            if (preset_store.name === undefined) {
-              return;
-            }
-            if (value) {
-              global_store.settings.script.enabled.presets.push(preset_store.name);
-            } else {
-              _.pull(global_store.settings.script.enabled.presets, preset_store.name);
-            }
-          },
-        });
-        script_trees = computed({
-          get: () => preset_store.settings.scripts,
-          set: value => {
-            preset_store.settings.scripts = value;
           },
         });
         break;

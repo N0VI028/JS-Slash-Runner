@@ -106,8 +106,8 @@ export const GlobalSettings = z
       script: {
         enabled: {
           global: settings.script.global_script_enabled,
-          characters: settings.script.characters_with_scripts.map(character => character.replace('.png', '')),
           presets: [],
+          characters: settings.script.characters_with_scripts.map(character => character.replace('.png', '')),
         },
         scripts: settings.script.scriptsRepository,
       },

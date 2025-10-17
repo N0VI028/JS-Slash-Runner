@@ -55,8 +55,8 @@ export const GlobalSettings = z
         enabled: z
           .object({
             global: z.boolean().default(true),
-            characters: z.array(z.string()).default([]),
             presets: z.array(z.string()).default([]),
+            characters: z.array(z.string()).default([]),
           })
           .prefault({}),
         scripts: z.array(ScriptTree).default([]),
@@ -74,14 +74,6 @@ export const ChatSettings = z
   .prefault({});
 export type ChatSettings = z.infer<typeof ChatSettings>;
 
-export const CharacterSettings = z
-  .object({
-    scripts: z.array(ScriptTree).default([]),
-    variables: z.record(z.string(), z.any()).default({}),
-  })
-  .prefault({});
-export type CharacterSettings = z.infer<typeof CharacterSettings>;
-
 export const PresetSettings = z
   .object({
     scripts: z.array(ScriptTree).default([]),
@@ -89,3 +81,11 @@ export const PresetSettings = z
   })
   .prefault({});
 export type PresetSettings = z.infer<typeof CharacterSettings>;
+
+export const CharacterSettings = z
+  .object({
+    scripts: z.array(ScriptTree).default([]),
+    variables: z.record(z.string(), z.any()).default({}),
+  })
+  .prefault({});
+export type CharacterSettings = z.infer<typeof CharacterSettings>;
