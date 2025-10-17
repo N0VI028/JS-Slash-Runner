@@ -16,6 +16,6 @@ useIntervalFn(() => {
 }, 2000);
 
 const { pause, resume } = watchPausable(variables, new_variables => {
-  replaceVariables(toRaw(new_variables), { type: 'chat' });
+  replaceVariables(klona(new_variables), { type: 'chat' });
 });
 </script>

@@ -15,11 +15,25 @@
         ></i>
         <span>{{ sync_bottom ? `追踪最新` : `正序显示` }}</span>
       </button>
-      <div :disable="sync_bottom" class="flex items-center gap-0.5">
-        <input v-model="from" type="number" class="TH-floor-input" :min="0" :max="chat_length - 1" />
+      <div class="flex items-center gap-0.5">
+        <input
+          v-model="from"
+          :disabled="sync_bottom"
+          type="number"
+          class="TH-floor-input"
+          :min="0"
+          :max="chat_length - 1"
+        />
         楼
         <span class="text-(--SmartThemeBodyColor)">~</span>
-        <input v-model="to" type="number" class="TH-floor-input" :min="0" :max="chat_length - 1" />
+        <input
+          v-model="to"
+          :disabled="sync_bottom"
+          type="number"
+          class="TH-floor-input"
+          :min="0"
+          :max="chat_length - 1"
+        />
         楼
       </div>
     </div>
@@ -34,9 +48,12 @@
       </button>
     </div>
   </div>
-  <template v-for="(_varaibles, message_id) in variables_map" :key="message_id">
+  <template v-for="message_id in message_range" :key="message_id">
     <span>第 {{ sync_bottom ? chat_length + message_id : message_id }} 楼</span>
-    <JsonEditor v-model="variables_map[message_id]" />
+    <JsonEditor
+      :model-value="variables_map[message_id]"
+      @update:model-value="updateVariablesFromEditor(message_id, $event)"
+    />
   </template>
 </template>
 
@@ -74,13 +91,13 @@ const message_range = computed(() => {
   }
   const result = from.value > to.value ? _.range(to.value, from.value + 1) : _.range(from.value, to.value + 1);
   if (sync_bottom.value) {
-    return result.map(value => value - chat_length.value);
+    return result.map(value => value - chat_length.value).toReversed();
   }
   return result;
 });
-const variables_map = shallowRef<{ [message_id: number]: Record<string, any> }>(getVariablesMap());
-useIntervalFn(updateVariablesMap, 2000);
-watchDebounced(message_range, updateVariablesMap, { debounce: 1000 });
+const variables_map = ref<{ [message_id: number]: Record<string, any> }>(getVariablesMap());
+const { pause, resume } = useIntervalFn(updateVariablesMap, 2000);
+watchDebounced(message_range, updateVariablesMap);
 
 function getVariablesMap() {
   return Object.fromEntries(
@@ -90,17 +107,15 @@ function getVariablesMap() {
 function updateVariablesMap() {
   const new_variables_map = getVariablesMap();
   if (!_.isEqual(variables_map.value, new_variables_map)) {
-    pause();
     variables_map.value = new_variables_map;
-    resume();
   }
 }
 
-const { pause, resume } = watchPausable(variables_map, new_variables => {
-  Object.entries(new_variables).forEach(([message_id, variables]) => {
-    replaceVariables(toRaw(variables), { type: 'message', message_id: Number(message_id) });
-  });
-});
+function updateVariablesFromEditor(message_id: number, variables: Record<string, any>) {
+  pause();
+  replaceVariables(klona(variables), { type: 'message', message_id });
+  resume();
+}
 </script>
 
 <style lang="scss" scoped>

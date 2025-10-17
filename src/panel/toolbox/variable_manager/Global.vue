@@ -20,6 +20,6 @@ useEventSourceOn(
 );
 
 const { pause, resume } = watchPausable(variables, new_variables => {
-  replaceVariables(toRaw(new_variables), { type: 'global' });
+  replaceVariables(klona(new_variables), { type: 'global' });
 });
 </script>

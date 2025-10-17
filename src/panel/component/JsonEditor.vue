@@ -77,7 +77,7 @@ onMounted(() => {
           return undefined;
         },
       });
-      editor_instance.update({ json: toRaw(new_content) });
+      editor_instance.update({ json: klona(new_content) });
     },
     { deep: true },
   );
