@@ -25,7 +25,7 @@ function getSettings(id: string | undefined): CharacterSettings {
 
   // TODO(4.0): 移除 _.isObject 的情况
   const settings = _.get(character, `data.extensions.${setting_field}`, []);
-  return validateInplace(CharacterSettings, _.isObject(settings) ? settings : Object.fromEntries(settings));
+  return validateInplace(CharacterSettings, _.isPlainObject(settings) ? settings : Object.fromEntries(settings));
 }
 
 const writeExtensionFieldDebounced = _.debounce(writeExtensionField, 1000);
