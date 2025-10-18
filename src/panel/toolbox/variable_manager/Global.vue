@@ -10,14 +10,14 @@ const variables = shallowRef<Record<string, any>>(getVariables({ type: 'global' 
 useEventSourceOn(event_types.SETTINGS_UPDATED, () => {
   const new_variables = get_variables_without_clone({ type: 'global' });
   if (!_.isEqual(variables.value, new_variables)) {
-    pause();
-    // 酒馆可能用 /flushglobalvar 等直接修改对象内部, 因此要拷贝一份从而能被 _.isEqual 判定
-    variables.value = klona(new_variables);
-    resume();
+    ignoreUpdates(() => {
+      // 酒馆可能用 /flushglobalvar 等直接修改对象内部, 因此要拷贝一份从而能被 _.isEqual 判定
+      variables.value = klona(new_variables);
+    });
   }
 });
 
-const { pause, resume } = watchPausable(variables, new_variables => {
+const { ignoreUpdates } = watchIgnorable(variables, new_variables => {
   replaceVariables(klona(new_variables), { type: 'global' });
 });
 </script>

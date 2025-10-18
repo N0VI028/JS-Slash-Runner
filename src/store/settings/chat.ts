@@ -18,16 +18,18 @@ export const useChatSettingsStore = defineStore('chat_settings', () => {
 
   const settings = ref<ChatSettings>(getSettings());
 
-  watch(
-    [id, settings],
-    ([new_id, new_settings], [old_id]) => {
-      // 切换聊天时刷新 settings
-      if (new_id !== old_id) {
-        settings.value = getSettings();
-        return;
-      }
-      // 在某聊天内修改 settings 时保存
-      if (new_id !== undefined) {
+  // 切换聊天时刷新 settings, 但不触发 settings 保存
+  watch(id, () => {
+    ignoreUpdates(() => {
+      settings.value = getSettings();
+    });
+  });
+
+  // 在某聊天内修改 settings 时保存
+  const { ignoreUpdates } = watchIgnorable(
+    settings,
+    new_settings => {
+      if (id.value !== undefined) {
         _.set(chat_metadata, setting_field, klona(new_settings));
         saveMetadataDebounced();
       }

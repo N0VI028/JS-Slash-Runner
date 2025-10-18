@@ -18,15 +18,15 @@ watch(
   () => {
     const new_variables = get_variables_without_clone({ type: 'message', message_id: props.messageId });
     if (!_.isEqual(variables.value, new_variables)) {
-      pause();
-      // 用户可能用 delete 等直接修改对象内部, 因此要拷贝一份从而能被 _.isEqual 判定
-      variables.value = klona(new_variables);
-      resume();
+      ignoreUpdates(() => {
+        // 用户可能用 delete 等直接修改对象内部, 因此要拷贝一份从而能被 _.isEqual 判定
+        variables.value = klona(new_variables);
+      });
     }
   },
 );
 
-const { pause, resume } = watchPausable(variables, new_variables => {
+const { ignoreUpdates } = watchIgnorable(variables, new_variables => {
   replaceVariables(klona(new_variables), { type: 'message', message_id: props.messageId });
 });
 </script>

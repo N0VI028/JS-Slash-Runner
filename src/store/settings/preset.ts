@@ -35,21 +35,21 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
   });
 
   const settings = ref<PresetSettings>(getSettings(id.value));
+  // 切换预设时刷新 settings, 但不触发 settings 保存
+  watch(id, () => {
+    ignoreUpdates(() => {
+      settings.value = getSettings(id.value);
+    });
+  });
 
-  watch(
-    [id, settings],
-    ([new_id, new_settings], [old_id]) => {
-      // 切换预设时刷新 settings
-      if (new_id !== old_id) {
-        settings.value = getSettings(new_id);
-        return;
+  // 在某预设内修改 settings 时保存
+  const { ignoreUpdates } = watchIgnorable(
+    settings,
+    new_settings => {
+      if (id.value === preset_manager.getSelectedPreset()) {
+        saveSettingsToMemoryDebounced(id.value, klona(new_settings));
       }
-      // 在某预设内修改 settings 时保存
-      const cloned = klona(new_settings);
-      if (new_id === preset_manager.getSelectedPreset()) {
-        saveSettingsToMemoryDebounced(id.value, cloned);
-      }
-      saveSettingsToFileDebounced(id.value, cloned);
+      saveSettingsToFileDebounced(id.value, klona(new_settings));
     },
     { deep: true },
   );
