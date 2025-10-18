@@ -166,6 +166,8 @@ onBeforeUnmount(() => {
   --jse-indent-marker-bg-color: var(--grey5050a);
   /* 缩进标记选中背景色 */
   --jse-indent-marker-active-bg-color: var(--grey5050a);
+
+  --jse-collapsed-items-link-color: var(--SmartThemeEmColor);
 }
 
 .jse-selected {
@@ -238,6 +240,13 @@ onBeforeUnmount(() => {
 }
 
 .jse-key {
-  white-space: nowrap!important;
+  white-space: nowrap !important;
+}
+
+.jse-collapsed-items {
+  margin-left: 0 !important;
+  background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent) !important;
+  background-image: none !important;
+  white-space: break-spaces;
 }
 </style>
