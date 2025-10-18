@@ -16,8 +16,8 @@
 
 ### 🔢变量管理器
 
-- 翻译并调整了 [svelte-jsoneditor](https://github.com/josdejong/svelte-jsoneditor) 作为新的变量管理器, 用 512mb 的数据进行测试没有卡顿.
-- 新的变量管理器支持【文本】、【树状】两种视图.
+- 翻译并调整了 [svelte-jsoneditor](https://github.com/josdejong/svelte-jsoneditor) 作为新的变量管理器, 用 250mb 的数据进行测试没有卡顿.
+- 新的变量管理器支持【文本】、【树状】两种视图, 未来将继续支持【卡片】视图.
 
 ### 🗣提示词查看器
 
