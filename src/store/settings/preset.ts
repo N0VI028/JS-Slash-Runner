@@ -36,23 +36,20 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
 
   const settings = ref<PresetSettings>(getSettings(id.value));
 
-  // 在某预设内修改 settings 时保存
   watch(
     [id, settings],
-    ([new_id, new_settings], [old_id, old_settings]) => {
+    ([new_id, new_settings], [old_id]) => {
       // 切换预设时刷新 settings
       if (new_id !== old_id) {
         settings.value = getSettings(new_id);
         return;
       }
       // 在某预设内修改 settings 时保存
-      if (!_.isEqual(new_settings, old_settings)) {
-        const cloned = klona(new_settings);
-        if (new_id === preset_manager.getSelectedPreset()) {
-          saveSettingsToMemoryDebounced(id.value, cloned);
-        }
-        saveSettingsToFileDebounced(id.value, cloned);
+      const cloned = klona(new_settings);
+      if (new_id === preset_manager.getSelectedPreset()) {
+        saveSettingsToMemoryDebounced(id.value, cloned);
       }
+      saveSettingsToFileDebounced(id.value, cloned);
     },
     { deep: true },
   );

@@ -49,14 +49,14 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
 
   watch(
     [id, settings],
-    ([new_id, new_settings], [old_id, old_settings]) => {
+    ([new_id, new_settings], [old_id]) => {
       // 切换角色卡时刷新 settings
       if (new_id !== old_id) {
         settings.value = getSettings(new_id);
         return;
       }
       // 在某角色卡内修改 settings 时保存
-      if (new_id !== undefined && !_.isEqual(new_settings, old_settings)) {
+      if (new_id !== undefined) {
         saveSettingsDebounced(new_id, klona(new_settings));
       }
     },

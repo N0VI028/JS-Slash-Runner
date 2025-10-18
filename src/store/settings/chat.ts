@@ -20,14 +20,14 @@ export const useChatSettingsStore = defineStore('chat_settings', () => {
 
   watch(
     [id, settings],
-    ([new_id, new_settings], [old_id, old_settings]) => {
+    ([new_id, new_settings], [old_id]) => {
       // 切换聊天时刷新 settings
       if (new_id !== old_id) {
         settings.value = getSettings();
         return;
       }
       // 在某聊天内修改 settings 时保存
-      if (new_id !== undefined && !_.isEqual(new_settings, old_settings)) {
+      if (new_id !== undefined) {
         _.set(chat_metadata, setting_field, klona(new_settings));
         saveMetadataDebounced();
       }

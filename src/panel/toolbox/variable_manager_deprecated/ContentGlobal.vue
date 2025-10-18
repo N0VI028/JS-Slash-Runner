@@ -39,7 +39,7 @@ watchDebounced(
   new_variables => {
     replaceVariables(toRaw(new_variables), { type: 'global' });
   },
-  { debounce: 1000, deep: true },
+  { debounce: 1000 },
 );
 
 const undo = () => editorRef.value?.undo();
