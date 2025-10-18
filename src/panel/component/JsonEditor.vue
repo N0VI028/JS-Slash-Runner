@@ -166,16 +166,14 @@ onBeforeUnmount(() => {
   --jse-indent-marker-bg-color: var(--grey5050a);
   /* 缩进标记选中背景色 */
   --jse-indent-marker-active-bg-color: var(--grey5050a);
-
+  /* 折叠项的链接颜色 */
   --jse-collapsed-items-link-color: var(--SmartThemeEmColor);
+  /* 标签的背景色 */
+  --jse-tag-background: var(--grey5050a);
 }
 
 .jse-selected {
   color: var(--SmartThemeBlurTintColor) !important;
-}
-
-.jse-main {
-  padding-inline: calc(var(--mainFontSize) * 0.75);
 }
 
 .jse-navigation-bar {

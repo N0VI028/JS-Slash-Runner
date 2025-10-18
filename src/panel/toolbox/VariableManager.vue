@@ -8,7 +8,7 @@
       </template>
     </div>
 
-    <div class="flex-1 overflow-hidden">
+    <div class="flex-1 overflow-hidden px-0.75">
       <template v-for="({ component }, index) in tabs" :key="index">
         <component :is="component" v-if="active_tab === index" />
       </template>

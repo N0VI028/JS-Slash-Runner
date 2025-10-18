@@ -6,10 +6,17 @@
     :teleport-to="'body'"
     :z-index-fn="() => 10000"
     :hide-overlay="true"
-    :class="width === 'normal' ? 'w-fit!' : width === 'wide' ? 'w-full!' : ''"
     :style="width !== 'normal' && width !== 'wide' ? `width: ${width} !important;` : ''"
+    :class="width === 'normal' ? `w-fit!` : width === 'wide' ? `w-full!` : ''"
+    @closed="emit('closed')"
   >
-    <div ref="dialog_ref" class="popup box-border px-1.5! focus:outline-none" role="dialog" aria-modal="true">
+    <div
+      ref="dialog_ref"
+      class="popup box-border px-1.5! focus:outline-none"
+      role="dialog"
+      aria-modal="true"
+      :class="width === 'normal' ? `w-fit!` : width === 'wide' ? `w-full!` : ''"
+    >
       <div class="max-h-[80vh] overflow-y-auto">
         <slot></slot>
       </div>
