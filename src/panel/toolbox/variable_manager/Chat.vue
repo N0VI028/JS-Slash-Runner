@@ -3,14 +3,15 @@
 </template>
 
 <script setup lang="ts">
-import { get_variables_without_clone, replaceVariables } from '@/function/variables';
+import { get_variables_without_clone, getVariables, replaceVariables } from '@/function/variables';
 
-const variables = shallowRef<Record<string, any>>(get_variables_without_clone({ type: 'chat' }));
+const variables = shallowRef<Record<string, any>>(getVariables({ type: 'chat' }));
 useIntervalFn(() => {
   const new_variables = get_variables_without_clone({ type: 'chat' });
   if (!_.isEqual(variables.value, new_variables)) {
     pause();
-    variables.value = new_variables;
+    // 酒馆可能用 /flushvar 等直接修改对象内部, 因此要拷贝一份从而能被 _.isEqual 判定
+    variables.value = klona(new_variables);
     resume();
   }
 }, 2000);
