@@ -44,15 +44,14 @@
 
 <script setup lang="ts">
 import Iframe from '@/panel/render/Iframe.vue';
-import { optimizeHljs } from '@/panel/render/optimize_hljs';
+import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
 
-optimizeHljs();
-
 const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
 
+useOptimizeHljs(enabled);
 useCollapseCodeBlock(collapse_code_block);
 const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
 </script>

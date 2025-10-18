@@ -25,8 +25,8 @@ function resolveConflictScriptTrees(script_trees: ScriptTree[], ...stores: Retur
 }
 
 export function useResolveIdConflict(
-  preset_name: Ref<string>,
-  character_name: Ref<string | undefined>,
+  preset_name: Readonly<Ref<string>>,
+  character_name: Readonly<Ref<string | undefined>>,
   global_scripts: ReturnType<typeof useGlobalScriptsStore>,
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,

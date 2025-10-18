@@ -50,15 +50,19 @@ function uncollapseCodeBlockForAll() {
 }
 
 export function useCollapseCodeBlock(enabled: Readonly<Ref<boolean>>) {
-  watch(enabled, (value, old_value) => {
-    if (value) {
-      collapseCodeBlockForAll();
-      return;
-    }
-    if (!value && old_value) {
-      uncollapseCodeBlockForAll();
-    }
-  });
+  watch(
+    enabled,
+    (value, old_value) => {
+      if (value) {
+        collapseCodeBlockForAll();
+        return;
+      }
+      if (!value && old_value) {
+        uncollapseCodeBlockForAll();
+      }
+    },
+    { immediate: true },
+  );
 
   eventSource.on('chatLoaded', () => {
     if (enabled.value) {

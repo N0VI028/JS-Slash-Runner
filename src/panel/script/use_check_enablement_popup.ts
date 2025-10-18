@@ -76,8 +76,8 @@ function checkEmbeddedCharacterScripts(name: string | undefined, scripts: Return
 }
 
 export function useCheckEnablementPopup(
-  preset_name: Ref<string>,
-  character_name: Ref<string | undefined>,
+  preset_name: Readonly<Ref<string>>,
+  character_name: Readonly<Ref<string | undefined>>,
   global_settings: ReturnType<typeof useGlobalSettingsStore>,
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,

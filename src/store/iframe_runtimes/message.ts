@@ -41,7 +41,9 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
     (value, old_value) => {
       if (value) {
         runtimes.value = parseAll(global_settings.settings.render.depth);
-      } else if (!value && old_value) {
+        return;
+      }
+      if (!value && old_value) {
         runtimes.value = {};
       }
     },
