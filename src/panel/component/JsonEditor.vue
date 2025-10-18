@@ -247,6 +247,10 @@ onBeforeUnmount(() => {
   margin-left: 0 !important;
   background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent) !important;
   background-image: none !important;
-  white-space: break-spaces;
+  white-space: normal;
+}
+
+.jse-message {
+  white-space: normal;
 }
 </style>
