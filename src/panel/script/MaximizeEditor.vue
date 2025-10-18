@@ -24,7 +24,6 @@
 </template>
 
 <script setup lang="ts">
-
 const props = withDefaults(
   defineProps<{
     target: 'content' | 'info' | 'data';
