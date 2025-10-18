@@ -231,4 +231,13 @@ onBeforeUnmount(() => {
 .jse-contextmenu .jse-row .jse-dropdown-button {
   gap: 5px;
 }
+
+.jse-contextmenu .jse-label {
+  font-size: calc(var(--mainFontSize) * 0.7);
+  font-weight: 700;
+}
+
+.jse-key {
+  white-space: nowrap!important;
+}
 </style>
