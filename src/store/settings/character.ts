@@ -39,22 +39,24 @@ function saveSettingsDebounced(id: string, settings: CharacterSettings) {
 
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
-  const settings = ref<CharacterSettings>(getSettings(id.value));
-  // 切换角色卡时刷新 id 和 settings
+  // 切换角色卡时刷新 id
   eventSource.on(event_types.CHAT_CHANGED, () => {
     if (id.value !== this_chid) {
-      settings.value = getSettings(this_chid);
       id.value = this_chid;
     }
   });
 
-  // 在某角色卡内修改 settings 时保存
+  const settings = ref<CharacterSettings>(getSettings(id.value));
+
   watch(
     [id, settings],
-    ([new_id, new_settings], [previous_id]) => {
-      if (new_id !== previous_id) {
+    ([new_id, new_settings], [old_id]) => {
+      // 切换角色卡时刷新 settings
+      if (new_id !== old_id) {
+        settings.value = getSettings(new_id);
         return;
       }
+      // 在某角色卡内修改 settings 时保存
       if (new_id !== undefined) {
         saveSettingsDebounced(new_id, klona(new_settings));
       }
@@ -62,7 +64,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     { deep: true },
   );
 
-  const name = computed(() => characters.at(id.value as unknown as number)?.name);
+  const name = computed(() => characters?.[id.value as unknown as number]?.name);
 
   return { id: readonly(id), settings, name };
 });

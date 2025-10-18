@@ -9,23 +9,25 @@ function getSettings(): ChatSettings {
 
 export const useChatSettingsStore = defineStore('chat_settings', () => {
   const id = ref<string | undefined>(getCurrentChatId());
-  const settings = ref<ChatSettings>(getSettings());
   // 切换聊天时刷新 id 和 settings
   eventSource.on(event_types.CHAT_CHANGED, (new_chat_id: string | undefined) => {
     if (id.value !== new_chat_id) {
-      settings.value = getSettings();
       id.value = new_chat_id;
     }
   });
 
-  // 在某聊天内修改 settings 时保存
+  const settings = ref<ChatSettings>(getSettings());
+
   watch(
     [id, settings],
-    ([new_id, new_settings], [previous_id]) => {
-      if (new_id !== previous_id) {
+    ([new_id, new_settings], [old_id, old_settings]) => {
+      // 切换聊天时刷新 settings
+      if (new_id !== old_id) {
+        settings.value = getSettings();
         return;
       }
-      if (new_id !== undefined) {
+      // 在某聊天内修改 settings 时保存
+      if (new_id !== undefined && !_.isEqual(new_settings, old_settings)) {
         _.set(chat_metadata, setting_field, klona(new_settings));
         saveMetadataDebounced();
       }

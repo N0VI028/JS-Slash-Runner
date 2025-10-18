@@ -25,7 +25,7 @@ export const useGlobalSettingsStore = defineStore('global_settings', () => {
     }),
   );
 
-  const settings = ref(getSettings());
+  const settings = ref<GlobalSettings>(getSettings());
   watch(
     settings,
     new_settings => {

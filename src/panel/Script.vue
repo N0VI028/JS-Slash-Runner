@@ -12,7 +12,7 @@
   <Divider />
   <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" store-type="preset" />
 
-  <template v-if="character_id !== undefined">
+  <template v-if="character_name !== undefined">
     <Divider />
     <Container
       v-model="character_scripts"
@@ -56,15 +56,15 @@ const search_input = ref<RegExp | null>(null);
 provide('search_input', search_input);
 provide('during_sorting', ref(false));
 
-const { id: preset_id, name: preset_name } = storeToRefs(usePresetSettingsStore());
-const { id: character_id, name: character_name } = storeToRefs(useCharacterSettingsStore());
+const { name: preset_name } = storeToRefs(usePresetSettingsStore());
+const { name: character_name } = storeToRefs(useCharacterSettingsStore());
 
 const global_settings = useGlobalSettingsStore();
 const global_scripts = useGlobalScriptsStore();
 const preset_scripts = usePresetScriptsStore();
 const character_scripts = useCharacterScriptsStore();
 
-useResolveIdConflict(preset_id, character_id, global_scripts, preset_scripts, character_scripts);
+useResolveIdConflict(preset_name, character_name, global_scripts, preset_scripts, character_scripts);
 useCheckEnablementPopup(preset_name, character_name, global_settings, preset_scripts, character_scripts);
 
 const { runtimes, button_map } = toRefs(useScriptIframeRuntimesStore());

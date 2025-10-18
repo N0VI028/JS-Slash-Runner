@@ -45,8 +45,8 @@ function getCharacterKey(name: string): string {
   return `TavernHelper_AlertScript_Character_${name}`;
 }
 
-function checkEmbeddedCharacterScripts(name: string, scripts: ReturnType<typeof useCharacterScriptsStore>) {
-  if (scripts.script_trees.length === 0 || scripts.enabled) {
+function checkEmbeddedCharacterScripts(name: string | undefined, scripts: ReturnType<typeof useCharacterScriptsStore>) {
+  if (name === undefined || scripts.script_trees.length === 0 || scripts.enabled) {
     return;
   }
 
@@ -82,13 +82,9 @@ export function useCheckEnablementPopup(
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,
 ) {
-  watch(
-    preset_name,
-    new_name => {
-      checkEmbeddedPresetScripts(new_name, preset_scripts);
-    },
-    { flush: 'post' },
-  );
+  watch(preset_name, new_name => {
+    checkEmbeddedPresetScripts(new_name, preset_scripts);
+  });
   if (compare(version, '1.13.5', '>=')) {
     eventSource.on(event_types.PRESET_RENAMED_BEFORE, ({ oldName, newName }: { oldName: string; newName: string }) => {
       const old_key = getPresetKey(oldName);
@@ -126,16 +122,9 @@ export function useCheckEnablementPopup(
     );
   }
 
-  watch(
-    character_name,
-    new_name => {
-      if (new_name === undefined) {
-        return;
-      }
-      checkEmbeddedCharacterScripts(new_name, character_scripts);
-    },
-    { flush: 'post' },
-  );
+  watch(character_name, new_name => {
+    checkEmbeddedCharacterScripts(new_name, character_scripts);
+  });
   eventSource.on(event_types.CHARACTER_DELETED, ({ character }: { character: v1CharData }) => {
     const key = getCharacterKey(character.name);
     if (accountStorage.getItem(key)) {

@@ -12,9 +12,12 @@ function getFlattenedScriptTrees(...script_trees: ScriptTree[][]): ScriptTree[] 
 }
 
 function resolveConflictScriptTrees(script_trees: ScriptTree[], ...stores: ReturnType<typeof useGlobalScriptsStore>[]) {
+  if (script_trees.length === 0) {
+    return;
+  }
   const other_scripts = getFlattenedScriptTrees(...stores.map(store => store.script_trees));
-  const conflict_scripts = getFlattenedScriptTrees(script_trees).filter(
-    script => !other_scripts.some(existing_script => existing_script.id === script.id),
+  const conflict_scripts = getFlattenedScriptTrees(script_trees).filter(script =>
+    other_scripts.some(existing_script => existing_script.id === script.id),
   );
   conflict_scripts.forEach(script => {
     script.id = uuidv4();
@@ -22,24 +25,16 @@ function resolveConflictScriptTrees(script_trees: ScriptTree[], ...stores: Retur
 }
 
 export function useResolveIdConflict(
-  preset_id: Ref<string>,
-  character_id: Ref<string | undefined>,
+  preset_name: Ref<string>,
+  character_name: Ref<string | undefined>,
   global_scripts: ReturnType<typeof useGlobalScriptsStore>,
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,
 ) {
-  watch(
-    character_id,
-    () => {
-      resolveConflictScriptTrees(character_scripts.script_trees, global_scripts, preset_scripts);
-    },
-    { flush: 'post' },
-  );
-  watch(
-    preset_id,
-    () => {
-      resolveConflictScriptTrees(preset_scripts.script_trees, global_scripts, character_scripts);
-    },
-    { flush: 'post' },
-  );
+  watch(character_name, () => {
+    resolveConflictScriptTrees(character_scripts.script_trees, global_scripts, preset_scripts);
+  });
+  watch(preset_name, () => {
+    resolveConflictScriptTrees(preset_scripts.script_trees, global_scripts, character_scripts);
+  });
 }
