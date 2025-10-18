@@ -23,10 +23,9 @@ function getSettings(id: string | undefined): CharacterSettings {
     saveSettingsDebounced(id as string, converted);
   }
 
-  return validateInplace(
-    CharacterSettings,
-    Object.fromEntries(_.get(character, `data.extensions.${setting_field}`, [])),
-  );
+  // TODO(4.0): 移除 _.isObject 的情况
+  const settings = _.get(character, `data.extensions.${setting_field}`, []);
+  return validateInplace(CharacterSettings, _.isObject(settings) ? settings : Object.fromEntries(settings));
 }
 
 const writeExtensionFieldDebounced = _.debounce(writeExtensionField, 1000);
