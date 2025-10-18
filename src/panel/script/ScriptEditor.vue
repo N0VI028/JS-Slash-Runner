@@ -66,19 +66,27 @@
           <Toggle id="TH-script-editor-button-enabled-toggle" v-model="script.button.enabled" class="mr-[5px]" />
         </div>
         <div class="button-list">
-          <div
-            v-for="(button, index) in script.button.buttons"
-            :key="`button-${index}`"
-            class="flex items-center justify-between gap-1"
+          <VueDraggable
+            v-model="script.button.buttons"
+            handle=".TH-handle"
+            class="flex flex-col"
+            direction="vertical"
+            item-key="id"
+            :force-fallback="true"
           >
-            <!-- TODO(4.0): 拖拽功能 -->
-            <span class="">☰</span>
-            <input v-model="button.visible" type="checkbox" />
-            <input v-model="button.name" class="text_pole" type="text" :placeholder="t`按钮名称`" />
-            <div class="menu_button interactable" :data-index="index" @click="deleteButton(index)">
-              <i class="fa-solid fa-trash"></i>
+            <div
+              v-for="(button, index) in script.button.buttons"
+              :key="`button-${index}`"
+              class="flex items-center justify-between gap-0.25"
+            >
+              <span class="TH-handle cursor-grab select-none">☰</span>
+              <input v-model="button.visible" type="checkbox" />
+              <input v-model="button.name" class="text_pole" type="text" :placeholder="t`按钮名称`" />
+              <div class="menu_button interactable" :data-index="index" @click="deleteButton(index)">
+                <i class="fa-solid fa-trash"></i>
+              </div>
             </div>
-          </div>
+          </VueDraggable>
         </div>
       </div>
     </div>
@@ -89,6 +97,7 @@
 import MaximizeEditor from '@/panel/script/MaximizeEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { createReusableTemplate } from '@vueuse/core';
+import { VueDraggable } from 'vue-draggable-plus';
 
 const [DefineMaximizeButton, MaximizeButton] = createReusableTemplate();
 
@@ -178,5 +187,13 @@ const deleteButton = (index: number) => {
 
 .TH-script-editor-container {
   @apply flex flex-col items-start mb-1 w-full;
+}
+
+.button-list {
+  @apply mt-0.5;
+}
+
+.button-list input.text_pole {
+  @apply m-0;
 }
 </style>
