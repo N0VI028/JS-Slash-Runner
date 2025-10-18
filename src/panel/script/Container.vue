@@ -24,7 +24,7 @@
       direction="vertical"
       :disabled="search_input !== null"
       :invert-swap="true"
-      :inverted-swap-threshold="0.5"
+      :inverted-swap-threshold="0.8"
       @start="during_sorting = true"
       @end="during_sorting = false"
     >
