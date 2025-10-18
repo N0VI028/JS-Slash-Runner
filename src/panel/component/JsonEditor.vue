@@ -203,6 +203,10 @@ onBeforeUnmount(() => {
   --jse-tag-background: var(--grey5050a);
 }
 
+.jse-modal {
+  z-index: 10000;
+}
+
 .jse-selected {
   color: var(--SmartThemeBlurTintColor) !important;
 }
