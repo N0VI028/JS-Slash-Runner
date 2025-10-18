@@ -12,6 +12,9 @@ const content = defineModel<Record<string, any>>({ required: true });
 
 const editor_ref = useTemplateRef('editor');
 
+// 动画时长
+const JSON_ANIM_MS = 1000;
+
 function updateModel(updated: Content) {
   prevent_updating_content = true;
   if (_.get(updated, 'text') !== undefined) {
@@ -28,6 +31,7 @@ let editor_instance: ReturnType<typeof createJSONEditor>;
 let prevent_updating_content = false;
 let mode: Mode = Mode.tree;
 onMounted(() => {
+  document.documentElement.style.setProperty('--jse-custom-anim-duration', `${JSON_ANIM_MS}ms`);
   editor_instance = createJSONEditor({
     target: editor_ref.value!,
     props: {
@@ -62,20 +66,51 @@ onMounted(() => {
 
     // TODO: 性能如何?
     const diff = detailedDiff(old_content, new_content);
-    editor_instance.updateProps({
-      // TODO(4.0): `content: { json: toRaw(new_content) }` 从而仅重新渲染一次? 但似乎 deleted 会直接被刷新掉, 可以试试
-      onClassName: path => {
-        if (_.has(diff.updated, path)) {
-          return 'jse-custom-updated';
-        } else if (_.has(diff.deleted, path)) {
-          return 'jse-custom-deleted';
-        } else if (_.has(diff.added, path)) {
-          return 'jse-custom-added';
-        }
-        return undefined;
-      },
-    });
-    editor_instance.update({ json: klona(new_content) });
+
+    const hasDeletions = !_.isEmpty(diff.deleted);
+
+    // 工具函数：为选中元素绑定 animationend，动画结束后移除高亮类
+    const attachAnimationCleanup = (selector: string) => {
+      nextTick(() => {
+        const highlighted = editor_ref.value?.querySelectorAll(selector);
+        highlighted?.forEach(el => {
+          const onEnd = (ev: Event) => {
+            const e = ev as AnimationEvent;
+            if (e.animationName.includes('background-flash')) {
+              el.classList.remove('jse-custom-added', 'jse-custom-updated');
+              el.removeEventListener('animationend', onEnd);
+            }
+          };
+          el.addEventListener('animationend', onEnd);
+        });
+      });
+    };
+
+    if (hasDeletions) {
+      // 给将被删除的节点加类，先播放删除动画
+      editor_instance.updateProps({
+        onClassName: path => (_.has(diff.deleted, path) ? 'jse-custom-deleted' : undefined),
+      });
+      editor_instance.update({ json: klona(old_content) });
+
+      window.setTimeout(() => {
+        editor_instance.updateProps({
+          onClassName: path =>
+            _.has(diff.updated, path) ? 'jse-custom-updated' : _.has(diff.added, path) ? 'jse-custom-added' : undefined,
+        });
+        editor_instance.update({ json: klona(new_content) });
+
+        attachAnimationCleanup('.jse-custom-added, .jse-custom-updated');
+      }, JSON_ANIM_MS);
+    } else {
+      editor_instance.updateProps({
+        onClassName: path =>
+          _.has(diff.updated, path) ? 'jse-custom-updated' : _.has(diff.added, path) ? 'jse-custom-added' : undefined,
+      });
+      editor_instance.update({ json: klona(new_content) });
+
+      attachAnimationCleanup('.jse-custom-added, .jse-custom-updated');
+    }
   });
 });
 onBeforeUnmount(() => {
@@ -246,5 +281,56 @@ onBeforeUnmount(() => {
 
 .jse-message {
   white-space: normal;
+}
+
+.jse-custom-added {
+  animation: background-flash-green var(--jse-custom-anim-duration) ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+.jse-custom-deleted {
+  animation: background-flash-red var(--jse-custom-anim-duration) ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+.jse-custom-updated {
+  animation: background-flash-blue var(--jse-custom-anim-duration) ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes background-flash-green {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(34, 197, 94, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes background-flash-red {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes background-flash-blue {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(16, 104, 247, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 </style>
