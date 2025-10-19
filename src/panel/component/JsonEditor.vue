@@ -12,9 +12,6 @@ const content = defineModel<Record<string, any>>({ required: true });
 
 const editor_ref = useTemplateRef('editor');
 
-// 动画时长
-const JSON_ANIM_MS = 1000;
-
 function updateModel(updated: Content) {
   prevent_updating_content = true;
   if (_.get(updated, 'text') !== undefined) {
@@ -31,7 +28,9 @@ let editor_instance: ReturnType<typeof createJSONEditor>;
 let prevent_updating_content = false;
 let mode: Mode = Mode.tree;
 onMounted(() => {
-  document.documentElement.style.setProperty('--jse-custom-anim-duration', `${JSON_ANIM_MS}ms`);
+  const ANIMATION_TIME = 1000;
+  document.documentElement.style.setProperty('--jse-custom-anim-duration', `${ANIMATION_TIME}ms`);
+
   editor_instance = createJSONEditor({
     target: editor_ref.value!,
     props: {
@@ -67,49 +66,43 @@ onMounted(() => {
     // TODO: 性能如何?
     const diff = detailedDiff(old_content, new_content);
 
-    const hasDeletions = !_.isEmpty(diff.deleted);
+    const has_deletions = !_.isEmpty(diff.deleted);
 
-    // 工具函数：为选中元素绑定 animationend，动画结束后移除高亮类
-    const attachAnimationCleanup = (selector: string) => {
+    const play_addition_and_update_animation = () => {
+      editor_instance.updateProps({
+        content: {
+          json: klona(new_content),
+        },
+        onClassName: path =>
+          _.has(diff.updated, path) ? 'jse-custom-updated' : _.has(diff.added, path) ? 'jse-custom-added' : undefined,
+      });
+
       nextTick(() => {
-        const highlighted = editor_ref.value?.querySelectorAll(selector);
-        highlighted?.forEach(el => {
-          const onEnd = (ev: Event) => {
-            const e = ev as AnimationEvent;
-            if (e.animationName.includes('background-flash')) {
-              el.classList.remove('jse-custom-added', 'jse-custom-updated');
-              el.removeEventListener('animationend', onEnd);
-            }
-          };
-          el.addEventListener('animationend', onEnd);
+        const highlighted = editor_ref.value?.querySelectorAll('.jse-custom-added, .jse-custom-updated');
+        highlighted?.forEach(element => {
+          element.addEventListener(
+            'animationend',
+            (event: Event) => {
+              const e = event as AnimationEvent;
+              if (e.animationName.includes('background-flash')) {
+                element.classList.remove('jse-custom-added', 'jse-custom-updated');
+              }
+            },
+            { once: true },
+          );
         });
       });
     };
 
-    if (hasDeletions) {
+    if (has_deletions) {
       // 给将被删除的节点加类，先播放删除动画
       editor_instance.updateProps({
         onClassName: path => (_.has(diff.deleted, path) ? 'jse-custom-deleted' : undefined),
       });
-      editor_instance.update({ json: klona(old_content) });
-
-      window.setTimeout(() => {
-        editor_instance.updateProps({
-          onClassName: path =>
-            _.has(diff.updated, path) ? 'jse-custom-updated' : _.has(diff.added, path) ? 'jse-custom-added' : undefined,
-        });
-        editor_instance.update({ json: klona(new_content) });
-
-        attachAnimationCleanup('.jse-custom-added, .jse-custom-updated');
-      }, JSON_ANIM_MS);
+      // 延迟一段时间后播放添加和更新动画
+      _.delay(play_addition_and_update_animation, ANIMATION_TIME);
     } else {
-      editor_instance.updateProps({
-        onClassName: path =>
-          _.has(diff.updated, path) ? 'jse-custom-updated' : _.has(diff.added, path) ? 'jse-custom-added' : undefined,
-      });
-      editor_instance.update({ json: klona(new_content) });
-
-      attachAnimationCleanup('.jse-custom-added, .jse-custom-updated');
+      play_addition_and_update_animation();
     }
   });
 });
