@@ -9,9 +9,9 @@
   <Divider />
   <Item type="plain">
     <template #title>{{ t`启用代码折叠` }}</template>
-    <template #description>{{ t`折叠所有代码块，避免正则替换成前端代码时影响阅读` }}</template>
+    <template #description>{{ t`折叠指定类型的代码块，当选择“前端”时，将只折叠可渲染成界面的代码` }}</template>
     <template #content>
-      <Toggle id="TH-render-collapse-code-block" v-model="collapse_code_block" />
+      <RadioButtonGroup v-model="collapse_code_block" :options="collapse_code_block_options" />
     </template>
   </Item>
   <Divider />
@@ -40,6 +40,19 @@
       </Teleport>
     </template>
   </template>
+  <Teleport defer to="#extensionsMenu">
+    <div class="extension_container">
+      <div
+        class="list-group-item flex-container flexGap5 interactable"
+        tabindex="0"
+        role="listitem"
+        @click="enabled = !enabled"
+      >
+        <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" />
+        <span>{{ enabled ? t`关闭前端渲染` : t`开启前端渲染` }}</span>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -50,6 +63,21 @@ import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
+
+const collapse_code_block_options = [
+  {
+    label: '全部',
+    value: 'all',
+  },
+  {
+    label: '前端',
+    value: 'frontend',
+  },
+  {
+    label: '禁用',
+    value: 'disabled',
+  },
+];
 
 useOptimizeHljs(enabled);
 useCollapseCodeBlock(collapse_code_block);

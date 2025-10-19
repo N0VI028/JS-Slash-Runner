@@ -9,7 +9,7 @@
       <slot></slot>
     </div>
     <div
-      class="flex-grow bg-[var(--grey5050a)]"
+      class="flex-grow bg-(--grey5050a)"
       :class="weight ? weight : type === 'plain' ? 'h-[1px]' : 'h-[2px]'"
     ></div>
   </div>

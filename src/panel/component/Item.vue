@@ -18,7 +18,7 @@
           <slot name="description" />
         </div>
       </div>
-      <div class="flex-none shrink-0" style="max-width: 30%">
+      <div class="flex-none shrink-0">
         <slot name="content" />
       </div>
     </DefineNonDetailPart>
