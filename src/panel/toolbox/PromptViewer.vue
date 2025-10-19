@@ -33,9 +33,7 @@
           <!-- prettier-ignore-attribute -->
           <SearchBar
             v-model="search_input"
-            class="
-              grow rounded-sm border border-(--SmartThemeBorderColor) bg-transparent text-base text-(--mainTextColor)
-            "
+            class="grow rounded-sm bg-transparent text-base text-(--mainTextColor)"
             :placeholder="t`搜索消息内容...`"
           />
           <!-- prettier-ignore-attribute -->
@@ -69,7 +67,10 @@
       </div>
     </div>
     <template v-if="is_refreshing">
-      <div class="mt-1 text-center opacity-70">正在发送虚假生成请求, 从而获取最新提示词...</div>
+      <div class="mx-2 flex h-full items-center justify-center gap-1 opacity-70">
+        <div class="TH-loading-spinner"></div>
+        <span class="whitespace-normal">正在发送虚假生成请求, 从而获取最新提示词...</span>
+      </div>
     </template>
     <template v-else>
       <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :min-size="20" :item-gap="7">
@@ -204,3 +205,23 @@ if (compare(version, '1.13.4', '<=')) {
   );
 }
 </script>
+
+<style scoped>
+.TH-loading-spinner {
+  width: var(--mainFontSize);
+  height: var(--mainFontSize);
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+</style>

@@ -3,7 +3,17 @@
     <template v-if="props.searchInput !== null && props.matchedOnly">
       <template v-for="(item, index) in parsed_content" :key="index">
         <div v-if="is_expanded[index]">{{ item }}</div>
-        <div v-else @click="is_expanded[index] = true">展开 {{ (item.match(/\n/g)?.length ?? 0) + 1 }} 行隐藏内容</div>
+        <div v-else @click="is_expanded[index] = true">
+          <!-- prettier-ignore-attribute -->
+          <div
+            class="
+              my-0.5 flex cursor-pointer items-center justify-center gap-0.5 rounded-sm border
+              border-(--SmartThemeBorderColor) px-1 py-0.5 text-sm text-(--SmartThemeQuoteColor)
+            "
+          >
+            展开 {{ (item.match(/\n/g)?.length ?? 0) + 1 }} 行隐藏内容<i class="fa-solid fa-chevron-down"></i>
+          </div>
+        </div>
       </template>
     </template>
     <template v-else>{{ content }}</template>
