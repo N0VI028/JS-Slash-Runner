@@ -10,7 +10,7 @@
             class="TH-reference-button"
             @click="open('https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html')"
           >
-            {{ t`查看教程及文档` }}<i class="fa-solid fa-xs fa-external-link" />
+            {{ t`查看教程及文档` }}<i class="fa-solid fa-external-link" />
           </div>
           <div ref="tavern_helper_types_button" class="TH-reference-button">
             {{ t`下载参考文件` }}<i class="fa-solid fa-ellipsis-vertical" />

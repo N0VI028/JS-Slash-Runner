@@ -18,7 +18,7 @@
         :style="{ color: script_folder.color || 'var(--SmartThemeQuoteColor)' }"
       />
       <span
-        class="TH-folder-name ml-0.5 flex-grow overflow-hidden"
+        class="ml-0.5 w-0 flex-grow overflow-hidden"
         :style="{
           textDecoration: script_folder.enabled ? 'none' : 'line-through',
           filter: script_folder.enabled ? 'none' : 'grayscale(0.5)',

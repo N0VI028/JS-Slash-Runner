@@ -10,7 +10,7 @@
     <Toggle :id="`${title}-script-enable-toggle`" v-model="store.enabled" />
   </div>
 
-  <div class="flex h-full flex-col overflow-hidden">
+  <div class="flex h-full flex-col">
     <VueDraggable
       v-model="script_trees"
       group="TH-scripts"

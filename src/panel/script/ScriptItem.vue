@@ -12,7 +12,7 @@
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
 
     <div
-      class="ml-0.5 flex-grow overflow-hidden"
+      class="ml-0.5 w-0 flex-grow overflow-hidden"
       :style="{
         textDecoration: script.enabled ? 'none' : 'line-through',
         filter: script.enabled ? 'none' : 'grayscale(0.5)',
