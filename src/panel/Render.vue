@@ -27,7 +27,7 @@
   <Divider />
   <Item type="plain">
     <template #title>{{ t`渲染深度` }}</template>
-    <template #description>{{ t`设置需要渲染的楼层数，从最新楼层开始计数。为0时，将渲染所有楼层` }}</template>
+    <template #description>{{ t`设置需要渲染的楼层数，从最新楼层开始计数。为 0 时，将渲染所有楼层` }}</template>
     <template #content>
       <input v-model="depth" class="text_pole w-3.5!" type="number" :min="0" />
     </template>
@@ -71,11 +71,11 @@ const collapse_code_block_options = [
   },
   {
     label: '前端',
-    value: 'frontend',
+    value: 'frontend_only',
   },
   {
     label: '禁用',
-    value: 'disabled',
+    value: 'none',
   },
 ];
 

@@ -6,6 +6,10 @@ export const audio_mode_enum = ['repeat_one', 'repeat_all', 'shuffle', 'play_one
 export const AudioMode = z.enum(audio_mode_enum);
 export type AudioMode = z.infer<typeof AudioMode>;
 
+export const collapse_code_block_enum = ['none', 'frontend_only', 'all'] as const;
+export const CollapseCodeBlock = z.enum(collapse_code_block_enum);
+export type CollapseCodeBlock = z.infer<typeof CollapseCodeBlock>;
+
 export const GlobalSettings = z
   .object({
     audio: z
@@ -45,7 +49,8 @@ export const GlobalSettings = z
     render: z
       .object({
         enabled: z.boolean().default(true),
-        collapse_code_block: z.boolean().default(false),
+        // TODO: 过一段时间移除 .catch
+        collapse_code_block: CollapseCodeBlock.default('frontend_only').catch('frontend_only'),
         use_blob_url: z.boolean().default(false),
         depth: z.number().default(0),
       })
