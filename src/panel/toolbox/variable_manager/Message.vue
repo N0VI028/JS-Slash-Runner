@@ -38,7 +38,7 @@
         楼
       </div>
     </div>
-    <div class="mr-0.5">当前楼层数：22</div>
+    <div class="mr-0.5">最新楼层号: {{ chat_length - 1 }}</div>
   </div>
   <!-- TODO(4.0): 调整好样式 (能够正常滑动、页面高度刚好能显示两个左右) 后再调整 min-size -->
   <VirtList ref="virt_list" item-key="message_id" :list="messages" :min-size="1000" :item-gap="7">
