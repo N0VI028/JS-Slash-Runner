@@ -29,7 +29,7 @@ const tabs = [
   { name: t`预设`, component: Preset },
   { name: t`角色`, component: Character },
   { name: t`聊天`, component: Chat },
-  { name: t`消息`, component: Message },
+  { name: t`消息楼层`, component: Message },
 ];
 </script>
 
