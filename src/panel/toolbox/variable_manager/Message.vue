@@ -17,14 +17,7 @@
         <span>{{ sync_bottom ? `追踪最新` : `正序显示` }}</span>
       </button>
       <div class="flex items-center gap-0.5">
-        <input
-          v-model="from"
-          :disabled="sync_bottom"
-          type="number"
-          class="TH-floor-input"
-          :min="0"
-          :max="chat_length - 1"
-        />
+        <input v-model="from" type="number" class="TH-floor-input" :min="0" :max="chat_length - 1" />
         楼
         <span class="text-(--SmartThemeBodyColor)">~</span>
         <input
@@ -78,12 +71,13 @@ watch(sync_bottom, () => {
   virt_list_ref.value?.forceUpdate();
 });
 
-const from = ref(Math.max(0, chat_length.value - 3));
-const to = ref(Math.max(0, chat_length.value - 1));
+const to = ref(chat_length.value - 1);
+const from = ref(Math.max(0, to.value - 2));
 watch([sync_bottom, chat_length], ([new_sync_bottom, new_chat_length], [old_sync_bottom]) => {
   if (new_sync_bottom) {
-    from.value = Math.max(0, new_chat_length - 3);
-    to.value = Math.max(0, new_chat_length - 1);
+    const gap = Math.abs(from.value - to.value);
+    to.value = new_chat_length - 1;
+    from.value = Math.max(0, to.value - gap);
     if (new_sync_bottom === old_sync_bottom) {
       refresh_key.value = Symbol();
     }
@@ -94,6 +88,11 @@ const refresh_key = ref<symbol>(Symbol());
 useIntervalFn(() => {
   refresh_key.value = Symbol();
 }, 2000);
+watch(refresh_key, () => {
+  if (chat.length !== chat_length.value) {
+    chat_length.value = chat.length;
+  }
+});
 
 const messages = computed(() => {
   if (chat_length.value === 0) {
