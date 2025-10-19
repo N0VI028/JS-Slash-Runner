@@ -1,6 +1,20 @@
 <template>
-  <span>第 {{ messageId < 0 ? chatLength + messageId : messageId }} 楼</span>
-  <JsonEditor v-model="variables" />
+  <!-- prettier-ignore-attribute -->
+  <div
+    class="
+      flex cursor-pointer items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor)/20 px-0.5 py-0.25
+      text-sm
+    "
+    @click="is_collapsed = !is_collapsed"
+  >
+    <span>第 {{ messageId < 0 ? chatLength + messageId : messageId }} 楼</span>
+    <div class="flex items-center justify-center">
+      <i class="fa-solid" :class="is_collapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+    </div>
+  </div>
+  <div v-show="!is_collapsed">
+    <JsonEditor v-model="variables" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -12,6 +26,7 @@ const props = defineProps<{
   refreshKey: symbol;
 }>();
 
+const is_collapsed = ref(false);
 const variables = shallowRef<Record<string, any>>(getVariables({ type: 'message', message_id: props.messageId }));
 watch(
   () => props.refreshKey,
