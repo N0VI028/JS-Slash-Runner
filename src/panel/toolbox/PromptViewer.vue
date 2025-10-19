@@ -85,7 +85,7 @@
               </span>
               <div class="fa-solid fa-circle-chevron-down"></div>
             </div>
-            <template v-if="is_expanded[item_data.id]">
+            <div v-show="is_expanded[item_data.id]">
               <Divider />
               <!-- prettier-ignore-attribute -->
               <div
@@ -96,7 +96,7 @@
               >
                 <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
               </div>
-            </template>
+            </div>
           </div>
         </template>
       </VirtList>
