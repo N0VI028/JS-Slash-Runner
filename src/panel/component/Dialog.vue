@@ -70,8 +70,15 @@
 
 <script setup lang="ts">
 import { getSmartThemeQuoteTextColor } from '@/util/color';
-// import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
-import { useDraggable, useEventListener, useLocalStorage, useResizeObserver, useThrottleFn, useWindowSize } from '@vueuse/core';
+import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
+import {
+  useDraggable,
+  useEventListener,
+  useLocalStorage,
+  useResizeObserver,
+  useThrottleFn,
+  useWindowSize,
+} from '@vueuse/core';
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
 
 interface ResizeHandle {
@@ -244,7 +251,7 @@ const convertToPixels = (value: string | number): number => {
   return parseFloat(value) || 400;
 };
 
-const is_mobile = false;
+const is_mobile = isMobile();
 const mobile_top_offset = computed(() => mobile_dialog_index.value * header_height.value);
 const MOBILE_STACK_KEY = '__TH_MOBILE_DIALOG_STACK__' as const;
 const MOBILE_STACK_EVENT = 'th-mobile-dialog-stack-change' as const;
@@ -669,7 +676,7 @@ useDraggable(dialog_ref, {
       return;
     }
     const newX = dragStartLeft + (event.clientX - dragStartPointerX);
-    let newY = dragStartTop + (event.clientY - dragStartPointerY);
+    const newY = dragStartTop + (event.clientY - dragStartPointerY);
 
     if (was_snapped.value && !dragHasRestoredFromSnap && pre_snap_rect.value) {
       const snapDist = props.snapDistance;
