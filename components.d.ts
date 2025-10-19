@@ -15,6 +15,7 @@ declare module 'vue' {
     Item: typeof import('./src/panel/component/Item.vue')['default']
     JsonEditor: typeof import('./src/panel/component/JsonEditor.vue')['default']
     Popup: typeof import('./src/panel/component/Popup.vue')['default']
+    RadioButtonGroup: typeof import('./src/panel/component/RadioButtonGroup.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchBar: typeof import('./src/panel/component/SearchBar.vue')['default']

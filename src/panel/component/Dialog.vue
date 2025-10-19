@@ -71,7 +71,14 @@
 <script setup lang="ts">
 import { getSmartThemeQuoteTextColor } from '@/util/color';
 // import { isMobile } from '@sillytavern/scripts/RossAscends-mods';
-import { useDraggable, useEventListener, useLocalStorage, useResizeObserver, useThrottleFn, useWindowSize } from '@vueuse/core';
+import {
+  useDraggable,
+  useEventListener,
+  useLocalStorage,
+  useResizeObserver,
+  useThrottleFn,
+  useWindowSize,
+} from '@vueuse/core';
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
 
 interface ResizeHandle {
