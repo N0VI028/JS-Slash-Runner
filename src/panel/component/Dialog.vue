@@ -51,7 +51,7 @@
             ></div>
           </div>
         </div>
-        <div v-if="!is_collapsed" class="flex flex-1 flex-col overflow-hidden">
+        <div v-show="!is_collapsed" class="flex flex-1 flex-col overflow-hidden">
           <slot> </slot>
         </div>
       </div>
