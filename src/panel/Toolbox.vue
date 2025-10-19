@@ -42,26 +42,24 @@
     </div>
   </Teleport>
 
-  <Teleport to="body">
-    <Dialog
-      v-if="enable_prompt_viewer"
-      storage-id="prompt-viewer"
-      :title="t`提示词查看器`"
-      :show-guide="true"
-      @close="enable_prompt_viewer = false"
-      @open-guide-popup="showPromptViewerHelp"
-    >
-      <PromptViewer />
-    </Dialog>
-    <Dialog
-      v-if="enable_variable_manager"
-      storage-id="variable-manager"
-      :title="t`变量管理器`"
-      @close="enable_variable_manager = false"
-    >
-      <VariableManager />
-    </Dialog>
-  </Teleport>
+  <Dialog
+    v-if="enable_prompt_viewer"
+    storage-id="prompt-viewer"
+    :title="t`提示词查看器`"
+    :show-guide="true"
+    @close="enable_prompt_viewer = false"
+    @open-guide-popup="showPromptViewerHelp"
+  >
+    <PromptViewer />
+  </Dialog>
+  <Dialog
+    v-if="enable_variable_manager"
+    storage-id="variable-manager"
+    :title="t`变量管理器`"
+    @close="enable_variable_manager = false"
+  >
+    <VariableManager />
+  </Dialog>
 </template>
 
 <script setup lang="ts">
