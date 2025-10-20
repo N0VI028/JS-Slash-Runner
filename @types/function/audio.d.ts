@@ -85,9 +85,21 @@ type AudioSettings = {
 declare function getAudioSettings(type: 'bgm' | 'ambient'): AudioSettings;
 
 /**
- * 修改音频设置, 如果某字段不存在, 则使用原本的设置
+ * 修改音频设置, 如果某字段不存在, 则使用原本的设置.
  *
  * @param type 背景音乐 ('bgm') 或音效 ('ambient')
  * @param settings 要修改的音频设置
+ *
+ * @example
+ * // 将背景音乐设置为单曲循环
+ * setAudioSettings('bgm', { mode: 'repeat_one' });
+ *
+ * @example
+ * // 将音效设置为静音
+ * setAudioSettings('ambient', { muted: true });
+ *
+ * @example
+ * // 将背景音乐音量设置为 50%
+ * setAudioSettings('bgm', { volume: 50 });
  */
 declare function setAudioSettings(type: 'bgm' | 'ambient', settings: Partial<AudioSettings>): void;
