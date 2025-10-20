@@ -34,7 +34,8 @@
     <div class="mr-0.5">最新楼层号: {{ chat_length - 1 }}</div>
   </div>
   <!-- TODO(4.0): 调整好样式 (能够正常滑动、页面高度刚好能显示两个左右) 后再调整 min-size -->
-  <VirtList ref="virt_list" item-key="message_id" :list="messages" :min-size="1000" :item-gap="7">
+  <!-- 将 sync_bottom 作为 key, 从而在切换 sync_bottom 时刷新整个 VirtList, 避免存在大量空白 -->
+  <VirtList :key="sync_bottom ? 'bottom' : 'top'" item-key="message_id" :list="messages" :min-size="200" :item-gap="7">
     <template #default="{ itemData: item_data }">
       <MessageItem :chat-length="chat_length" :message-id="item_data.message_id" :refresh-key="refresh_key" />
     </template>
@@ -47,8 +48,6 @@ import { getSmartThemeQuoteTextColor } from '@/util/color';
 import { chat, event_types } from '@sillytavern/script';
 import { VirtList } from 'vue-virt-list';
 const text_color = getSmartThemeQuoteTextColor();
-
-const virt_list_ref = useTemplateRef('virt_list');
 
 const chat_length = ref(chat.length);
 useEventSourceOn(
@@ -68,9 +67,6 @@ useEventSourceOn(
 );
 
 const sync_bottom = ref(true);
-watch(sync_bottom, () => {
-  virt_list_ref.value?.forceUpdate();
-});
 
 const to = ref(chat_length.value - 1);
 const from = ref(Math.max(0, to.value - 2));
