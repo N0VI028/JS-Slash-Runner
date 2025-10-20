@@ -40,7 +40,6 @@ jobs:
         run: |-
           mkdir -p dist
           cat @types/**/*.d.ts > dist/@types.txt
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
       - name: Compress @types files to a zip
         run: |-
           tar \
@@ -49,7 +48,7 @@ jobs:
             --owner=0 --group=0 --numeric-owner \
             --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
             -caf ../dist/@types.zip .
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner/@types
+        working-directory: '@types'
       # tag if [release...] is in the commit message subject
       - id: autotag_check
         shell: bash
