@@ -2,16 +2,15 @@
   <Teleport :to="teleport_target">
     <div ref="dialog_ref" :style="dialog_style" :class="dialog_classes">
       <div
-        class="flex h-full flex-col overflow-hidden rounded-sm bg-(--SmartThemeBlurTintColor) shadow-lg"
+        class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBlurTintColor) shadow-lg"
         role="dialog"
         aria-modal="true"
+        :class="is_mobile ? '' : 'rounded-sm'"
       >
         <!-- prettier-ignore-attribute -->
         <div
           ref="header_ref"
-          class="
-            flex flex-shrink-0 items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor) px-1 select-none
-          "
+          class="flex flex-shrink-0 items-center justify-between bg-(--SmartThemeQuoteColor) px-1 select-none"
         >
           <div
             class="flex-1 cursor-move font-bold"
@@ -1050,10 +1049,11 @@ const dialog_style = computed(() => {
     return {
       position: position,
       transform: `translateY(${mobile_top_offset.value}px)`,
-      height: `${dialog_size.value.height}px`,
-      maxHeight: 'calc(100dvh - 45px - ${mobile_top_offset.value}px)',
+      height: `${is_collapsed.value ? header_height.value : dialog_size.value.height}px`,
+      maxHeight: `calc(100dvh - 45px - ${mobile_top_offset.value}px)`,
       zIndex: 10000,
       userSelect: user_select,
+      borderRadius: '0px 0px 5px 5px',
     };
   } else {
     return {

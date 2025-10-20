@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBotMesBlurTintColor) p-1">
+  <div class="flex h-full flex-col overflow-hidden p-1">
     <div class="z-1 flex-shrink-0 text-wrap">
       <div class="mb-0.75 flex items-center justify-between p-0.5">
         <div class="flex flex-col gap-0.25">

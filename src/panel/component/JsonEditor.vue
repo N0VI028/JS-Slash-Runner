@@ -270,6 +270,10 @@ onBeforeUnmount(() => {
   white-space: normal;
 }
 
+.jse-modal-wrapper .jse-modal-contents .jse-modal-inline-editor {
+  --jse-theme-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent) !important;
+}
+
 .jse-custom-added {
   animation: background-flash-green var(--jse-custom-anim-duration) ease-in-out;
   animation-fill-mode: forwards;
