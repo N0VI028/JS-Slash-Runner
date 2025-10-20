@@ -1,5 +1,4 @@
 import { iframe_events, tavern_events } from '@/function/event';
-
 import { eventSource, extension_prompts, setExtensionPrompt } from '@sillytavern/script';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
@@ -28,7 +27,7 @@ export function injectPrompts(prompts: InjectionPrompt[], { once = false }: inje
       prompt.depth ?? 0,
       prompt.should_scan ?? false,
       { system: 0, user: 1, assistant: 2 }[prompt.role ?? 'system'],
-      // @ts-expect-error
+      // @ts-expect-error `null` 按照实际接口是可行的
       prompt.filter ?? null,
     ),
   );

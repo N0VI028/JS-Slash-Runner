@@ -6,15 +6,17 @@ export function _initializeGlobal(this: Window, global: LiteralUnion<'Mvu', stri
   _eventEmit.call(this, `global_${global}_initialized`);
 }
 
-export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<'Mvu', string>): Promise<void> {
+export async function _waitGlobalInitialized<T>(this: Window, global: LiteralUnion<'Mvu', string>): Promise<T> {
   if (_.has(window, global)) {
-    _.set(this, global, _.get(window, global));
-    return;
+    const value = _.get(window, global);
+    _.set(this, global, value);
+    return value as T;
   }
   return new Promise(resolve => {
     _eventOnce.call(this, `global_${global}_initialized`, () => {
-      _.set(this, global, _.get(window, global));
-      resolve();
+      const value = _.get(window, global);
+      _.set(this, global, value);
+      resolve(value as T);
     });
   });
 }

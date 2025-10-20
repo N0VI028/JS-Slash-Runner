@@ -1,98 +1,84 @@
-import { scriptEvents, ScriptRepositoryEventType } from '@/component/script_repository/events';
-import { ScriptManager } from '@/component/script_repository/script_controller';
-import { getChatMessages, setChatMessages } from '@/function/chat_message';
 import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
+import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
+import { useCharacterSettingsStore, usePresetSettingsStore } from '@/store/settings';
+import { saveChatConditionalDebounced } from '@/util/tavern';
+import { chat, chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
+import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
+import isPromise from 'is-promise';
 
-import {
-  characters,
-  chat,
-  chat_metadata,
-  eventSource,
-  saveMetadata,
-  saveSettings,
-  this_chid,
-} from '@sillytavern/script';
-import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
-
-import log from 'loglevel';
-
-type VariableOption = {
-  type?: 'message' | 'chat' | 'character' | 'script' | 'global';
+type VariableOptionNormal = {
+  type: 'chat' | 'character' | 'preset' | 'global';
+};
+type VariableOptionMessage = {
+  type: 'message';
   message_id?: number | 'latest';
+};
+type VariableOptionScript = {
+  type: 'script';
   script_id?: string;
 };
+type VariableOptionExtension = {
+  type: 'extension';
+  extension_id: string;
+};
+type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
 
-function getVariablesByType({ type = 'chat', message_id = 'latest', script_id }: VariableOption): Record<string, any> {
-  switch (type) {
+export function get_variables_without_clone(option: VariableOption): Record<string, any> {
+  switch (option.type) {
     case 'message': {
-      if (message_id !== 'latest' && (message_id < -chat.length || message_id >= chat.length)) {
-        throw Error(`提供的 message_id(${message_id}) 超出了聊天消息楼层号范围`);
+      option.message_id = option.message_id === undefined || option.message_id === 'latest' ? -1 : option.message_id;
+      if (!_.inRange(option.message_id, -chat.length, chat.length)) {
+        throw Error(`提供的消息楼层号 '${option.message_id}' 超出了范围 [${-chat.length}, ${chat.length})`);
       }
-      message_id = message_id === 'latest' ? -1 : message_id;
-      return getChatMessages(message_id)[0].data;
+      const chat_message = chat.at(option.message_id);
+      return chat_message?.variables?.[chat_message?.swipe_id ?? 0] ?? {};
     }
     case 'chat': {
-      const metadata = chat_metadata as {
-        variables: Record<string, any> | undefined;
-      };
-      if (!metadata.variables) {
-        metadata.variables = {};
-      }
-      return metadata.variables;
+      return _.get(chat_metadata, 'variables', {});
     }
     case 'character': {
-      //@ts-ignore
-      return characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables || {};
+      return useCharacterSettingsStore().settings.variables;
     }
-    case 'global':
+    case 'preset': {
+      return usePresetSettingsStore().settings.variables;
+    }
+    case 'global': {
       return extension_settings.variables.global;
+    }
     case 'script': {
-      if (!script_id) {
-        throw Error('获取脚本变量失败, 未指定 script_id');
+      if (!option.script_id) {
+        throw Error('获取变量失败, 未指定 script_id');
       }
-      const script_manager = ScriptManager.getInstance();
-      const script = script_manager.getScriptById(script_id);
-      if (!script) {
-        throw Error(`获取脚本变量失败, '${script_id}' 脚本不存在`);
-      }
-      return script_manager.getScriptVariables(script_id);
+      return useScriptIframeRuntimesStore().get(option.script_id)?.data ?? {};
+    }
+    case 'extension': {
+      return _.get(extension_settings, option.extension_id, {});
     }
   }
 }
 
-export function getVariables({ type = 'chat', message_id = 'latest', script_id }: VariableOption = {}): Record<
-  string,
-  any
-> {
-  const result = getVariablesByType({ type, message_id, script_id });
+export function getVariables(option: VariableOption = { type: 'chat' }): Record<string, any> {
+  return klona(get_variables_without_clone(option));
+}
 
-  log.info(
-    `获取${
-      {
-        message: `'${message_id}' 消息`,
-        chat: '聊天',
-        character: '角色',
-        script: `'${script_id}' 脚本`,
-        global: '全局',
-      }[type]
-    }变量表`,
-  );
-  return structuredClone(result);
+export function _getVariables(this: Window, option: VariableOption = { type: 'chat' }): Record<string, any> {
+  return option.type === 'script'
+    ? getVariables({ type: 'script', script_id: _getScriptId.call(this) })
+    : getVariables(option);
 }
 
 export function _getAllVariables(this: Window): Record<string, any> {
-  const is_message_iframe = _getIframeName.call(this).startsWith('message-iframe');
+  const is_message_iframe = _getIframeName.call(this).startsWith('TH-message');
 
   let result = _({});
   result = result.assign(
-    extension_settings.variables.global,
-    // @ts-expect-error
-    characters[this_chid]?.data?.extensions?.TavernHelper_characterScriptVariables,
+    get_variables_without_clone({ type: 'global' }),
+    get_variables_without_clone({ type: 'character' }),
   );
   if (!is_message_iframe) {
-    result = result.assign(getVariables({ type: 'script', script_id: _getScriptId.call(this) }));
+    result = result.assign(get_variables_without_clone({ type: 'script', script_id: _getScriptId.call(this) }));
   }
-  result = result.assign((chat_metadata as { variables: Record<string, any> | undefined }).variables);
+  result = result.assign(get_variables_without_clone({ type: 'chat' }));
   if (is_message_iframe) {
     result = result.assign(
       ...chat
@@ -100,134 +86,181 @@ export function _getAllVariables(this: Window): Record<string, any> {
         .map((chat_message: any) => chat_message?.variables?.[chat_message?.swipe_id ?? 0]),
     );
   }
-  return structuredClone(result.value());
+  return klona(result.value());
 }
 
-export async function replaceVariables(
-  variables: Record<string, any>,
-  { type = 'chat', message_id = 'latest', script_id }: VariableOption = {},
-): Promise<void> {
-  switch (type) {
-    case 'message':
-      if (message_id !== 'latest' && (message_id < -chat.length || message_id >= chat.length)) {
-        throw Error(`提供的 message_id(${message_id}) 超出了聊天消息楼层号范围`);
+export function replaceVariables(variables: Record<string, any>, option: VariableOption = { type: 'chat' }): void {
+  switch (option.type) {
+    case 'message': {
+      option.message_id = option.message_id === undefined || option.message_id === 'latest' ? -1 : option.message_id;
+      if (!_.inRange(option.message_id, -chat.length, chat.length)) {
+        throw Error(`提供的消息楼层号 '${option.message_id}' 超出了范围 (${-chat.length}, ${chat.length})`);
       }
-      message_id = message_id === 'latest' ? chat.length - 1 : message_id < 0 ? chat.length + message_id : message_id;
-      await setChatMessages([{ message_id, data: variables }], { refresh: 'none' });
+      const chat_message = chat.at(option.message_id) as Record<string, any>;
+      if (!_.has(chat_message, 'variables')) {
+        _.set(chat_message, 'variables', _.times(chat_message.swipes?.length ?? 1, _.constant({})));
+      }
+      // 与提示词模板的兼容性
+      if (_.isPlainObject(_.get(chat_message, 'variables'))) {
+        _.set(
+          chat_message,
+          'variables',
+          _.range(0, chat_message.swipes?.length ?? 1).map(i => chat_message.variables[i] ?? {}),
+        );
+      }
+      _.set(chat_message, ['variables', _.get(chat_message, 'swipe_id', 0)], variables);
+      saveChatConditionalDebounced();
       break;
-    case 'chat':
+    }
+    case 'chat': {
       _.set(chat_metadata, 'variables', variables);
-      await saveMetadata();
+      saveMetadataDebounced();
       break;
-    case 'character':
-      if (this_chid === undefined) {
+    }
+    case 'character': {
+      const store = useCharacterSettingsStore();
+      if (store.id === undefined) {
         throw new Error('保存变量失败，当前角色为空');
       }
-      //@ts-ignore
-      await writeExtensionField(this_chid, 'TavernHelper_characterScriptVariables', variables);
-      eventSource.emit('character_variables_changed', { variables });
+      toRef(store.settings, 'variables').value = variables;
       break;
-    case 'global':
+    }
+    case 'preset': {
+      const store = usePresetSettingsStore();
+      toRef(store.settings, 'variables').value = variables;
+      break;
+    }
+    case 'global': {
       _.set(extension_settings.variables, 'global', variables);
-      await saveSettings();
+      saveSettingsDebounced();
       break;
-    case 'script':
-      if (!script_id) {
+    }
+    case 'script': {
+      if (!option.script_id) {
         throw Error('保存变量失败, 未指定 script_id');
       }
-      {
-        const script_manager = ScriptManager.getInstance();
-        const script = script_manager.getScriptById(script_id);
-        if (!script) {
-          throw Error(`保存变量失败, '${script_id}' 脚本不存在`);
-        }
-        script.data = variables;
-        const script_type = script_manager['scriptData'].getScriptType(script);
-        scriptEvents.emit(ScriptRepositoryEventType.UI_REFRESH, {
-          action: 'script_update',
-          script,
-          type: script_type,
-        });
-        await script_manager.updateScriptVariables(script_id, variables, script_type);
+      const script = useScriptIframeRuntimesStore().get(option.script_id);
+      if (!script) {
+        throw Error(`保存变量失败, '${option.script_id}' 脚本不存在`);
       }
+      script.data = variables;
       break;
+    }
+    case 'extension': {
+      _.set(extension_settings, option.extension_id, variables);
+      saveSettingsDebounced();
+      break;
+    }
   }
-
-  log.info(
-    `替换${
-      {
-        message: `'${message_id}' 消息`,
-        chat: '聊天',
-        character: '角色',
-        script: `'${script_id}' 脚本`,
-        global: '全局',
-      }[type]
-    }变量表`,
-  );
 }
 
-type VariablesUpdater =
-  | ((variables: Record<string, any>) => Record<string, any>)
-  | ((variables: Record<string, any>) => Promise<Record<string, any>>);
-
-export async function updateVariablesWith(
-  updater: VariablesUpdater,
-  { type = 'chat', message_id = 'latest', script_id }: VariableOption = {},
-): Promise<Record<string, any>> {
-  let variables = getVariables({ type, message_id, script_id });
-  variables = await updater(variables);
-  log.info(
-    `对${
-      type === 'message'
-        ? `'${message_id}' 消息`
-        : type === 'chat'
-          ? '聊天'
-          : type === 'character'
-            ? '角色'
-            : type === 'script'
-              ? `'${script_id}' 脚本`
-              : '全局'
-    }变量表进行更新`,
-  );
-  await replaceVariables(variables, { type, message_id, script_id });
-  return variables;
-}
-
-export async function insertOrAssignVariables(
+export function _replaceVariables(
+  this: Window,
   variables: Record<string, any>,
-  { type = 'chat', message_id = 'latest', script_id }: VariableOption = {},
-): Promise<Record<string, any>> {
-  return await updateVariablesWith(
+  option: VariableOption = { type: 'chat' },
+): void {
+  return option.type === 'script'
+    ? replaceVariables(variables, { type: 'script', script_id: _getScriptId.call(this) })
+    : replaceVariables(variables, option);
+}
+
+export function updateVariablesWith(
+  updater: (variables: Record<string, any>) => Record<string, any>,
+  option: VariableOption,
+): Record<string, any>;
+export function updateVariablesWith(
+  updater: (variables: Record<string, any>) => Promise<Record<string, any>>,
+  option: VariableOption,
+): Promise<Record<string, any>>;
+export function updateVariablesWith(
+  updater:
+    | ((variables: Record<string, any>) => Record<string, any>)
+    | ((variables: Record<string, any>) => Promise<Record<string, any>>),
+  option: VariableOption = { type: 'chat' },
+): Record<string, any> | Promise<Record<string, any>> {
+  const variables = getVariables(option);
+  let result = updater(variables);
+  if (isPromise(result)) {
+    result = result.then((result: Record<string, any>) => {
+      replaceVariables(result, option);
+      return result;
+    });
+  } else {
+    replaceVariables(result, option);
+  }
+  return result;
+}
+
+export function _updateVariablesWith(
+  this: Window,
+  updater:
+    | ((variables: Record<string, any>) => Record<string, any>)
+    | ((variables: Record<string, any>) => Promise<Record<string, any>>),
+  option: VariableOption = { type: 'chat' },
+): Record<string, any> | Promise<Record<string, any>> {
+  return option.type === 'script'
+    ? updateVariablesWith(updater, { type: 'script', script_id: _getScriptId.call(this) })
+    : updateVariablesWith(updater, option);
+}
+
+export function insertOrAssignVariables(
+  variables: Record<string, any>,
+  option: VariableOption = { type: 'chat' },
+): Record<string, any> {
+  return updateVariablesWith(
     old_variables => _.mergeWith(old_variables, variables, (_lhs, rhs) => (_.isArray(rhs) ? rhs : undefined)),
-    { type, message_id, script_id },
+    option,
   );
 }
 
-export async function insertVariables(
+export function _insertOrAssignVariables(
+  this: Window,
   variables: Record<string, any>,
-  { type = 'chat', message_id = 'latest', script_id }: VariableOption = {},
-): Promise<Record<string, any>> {
-  return await updateVariablesWith(
+  option: VariableOption = { type: 'chat' },
+): Record<string, any> {
+  return option.type === 'script'
+    ? insertOrAssignVariables(variables, { type: 'script', script_id: _getScriptId.call(this) })
+    : insertOrAssignVariables(variables, option);
+}
+
+export function insertVariables(
+  variables: Record<string, any>,
+  option: VariableOption = { type: 'chat' },
+): Record<string, any> {
+  return updateVariablesWith(
     old_variables => _.mergeWith({}, variables, old_variables, (_lhs, rhs) => (_.isArray(rhs) ? rhs : undefined)),
-    {
-      type,
-      message_id,
-      script_id,
-    },
+    option,
   );
 }
 
-export async function deleteVariable(
+export function _insertVariables(
+  this: Window,
+  variables: Record<string, any>,
+  option: VariableOption = { type: 'chat' },
+): Record<string, any> {
+  return option.type === 'script'
+    ? insertVariables(variables, { type: 'script', script_id: _getScriptId.call(this) })
+    : insertVariables(variables, option);
+}
+
+export function deleteVariable(
   variable_path: string,
-  { type = 'chat', message_id = 'latest', script_id }: VariableOption = {},
-): Promise<{ variables: Record<string, any>; delete_occurred: boolean }> {
+  option: VariableOption = { type: 'chat' },
+): { variables: Record<string, any>; delete_occurred: boolean } {
   let delete_occurred: boolean = false;
-  const variables = await updateVariablesWith(
-    old_variables => {
-      delete_occurred = _.unset(old_variables, variable_path);
-      return old_variables;
-    },
-    { type, message_id, script_id },
-  );
+  const variables = updateVariablesWith(old_variables => {
+    delete_occurred = _.unset(old_variables, variable_path);
+    return old_variables;
+  }, option);
   return { variables, delete_occurred };
+}
+
+export function _deleteVariable(
+  this: Window,
+  variable_path: string,
+  option: VariableOption = { type: 'chat' },
+): { variables: Record<string, any>; delete_occurred: boolean } {
+  return option.type === 'script'
+    ? deleteVariable(variable_path, { type: 'script', script_id: _getScriptId.call(this) })
+    : deleteVariable(variable_path, option);
 }

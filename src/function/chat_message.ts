@@ -1,5 +1,5 @@
-import { highlight_code } from '@/util/highlight_code';
-
+import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
+import { highlight_code, saveChatConditionalDebounced } from '@/util/tavern';
 import {
   addOneMessage,
   chat,
@@ -13,8 +13,6 @@ import {
   substituteParamsExtended,
   system_message_types,
 } from '@sillytavern/script';
-
-import log from 'loglevel';
 
 type ChatMessage = {
   message_id: number;
@@ -43,6 +41,7 @@ type GetChatMessagesOption = {
   include_swipes?: boolean;
 };
 
+// TODO: 移入 @/util/message.ts
 function string_to_range(input: string, min: number, max: number) {
   let start, end;
 
@@ -109,18 +108,15 @@ export function getChatMessages(
   const process_message = (message_id: number): (ChatMessage | ChatMessageSwiped) | null => {
     const message = chat[message_id];
     if (!message) {
-      log.warn(`没找到第 ${message_id} 楼的消息`);
       return null;
     }
 
     const message_role = get_role(message);
     if (role !== 'all' && message_role !== role) {
-      log.debug(`筛去了第 ${message_id} 楼的消息因为它的身份不是 ${role}`);
       return null;
     }
 
     if (hide_state !== 'all' && (hide_state === 'hidden') !== message.is_system) {
-      log.debug(`筛去了第 ${message_id} 楼的消息因为它${hide_state === 'hidden' ? `` : `没`} 被隐藏`);
       return null;
     }
 
@@ -130,9 +126,9 @@ export function getChatMessages(
     let swipes_data: Record<string, any>[] = message?.variables ?? [{}];
     let swipes_info: Record<string, any>[] = message?.swipes_info ?? [message?.extra ?? {}];
     const max_length = _.max([swipes.length, swipes_data.length, swipes_info.length]) ?? 1;
-    swipes = _.range(0, max_length).map(i => swipes?.[i] ?? '');
-    swipes_data = _.range(0, max_length).map(i => swipes_data?.[i] ?? {});
-    swipes_info = _.range(0, max_length).map(i => swipes_info?.[i] ?? {});
+    swipes = _.range(0, max_length).map(i => swipes[i] ?? '');
+    swipes_data = _.range(0, max_length).map(i => swipes_data[i] ?? {});
+    swipes_info = _.range(0, max_length).map(i => swipes_info[i] ?? {});
 
     const extra = swipes_info[swipe_id];
     const data = swipes_data[swipe_id];
@@ -169,14 +165,7 @@ export function getChatMessages(
     .map(i => process_message(i))
     .filter(chat_message => chat_message !== null);
 
-  log.info(
-    `获取${start == end ? `第 ${start} ` : ` ${start}-${end} `}楼的消息, 选项: ${JSON.stringify({
-      role,
-      hide_state,
-      include_swipes,
-    })} `,
-  );
-  return structuredClone(chat_messages);
+  return klona(chat_messages);
 }
 
 type SetChatMessagesOption = {
@@ -193,7 +182,7 @@ export async function setChatMessages(
     return _(data)
       .map(chat_message => ({
         ...chat_message,
-        message_id: chat_message.message_id < 0 ? chat.length + chat_message.message_id : chat_message.message_id,
+        message_id: normalizeMessageId(chat_message.message_id),
       }))
       .sortBy('message_id')
       .groupBy('message_id')
@@ -251,10 +240,6 @@ export async function setChatMessages(
           _.set(data, 'variables', _.times(data.swipes?.length ?? 1, _.constant({})));
         }
         _.set(data, ['variables', data.swipe_id ?? 0], chat_message.data);
-        eventSource.emit('message_variables_changed', {
-          message_id: chat_message.message_id,
-          variables: chat_message.data,
-        });
       }
       if (chat_message?.extra !== undefined) {
         if (data?.swipes_info === undefined) {
@@ -285,11 +270,6 @@ export async function setChatMessages(
       _.set(data, 'swipe_id', chat_message.swipe_id);
       _.set(data, 'mes', data.swipes[data.swipe_id]);
       _.set(data, 'extra', data.swipes_info[data.swipe_id]);
-
-      eventSource.emit('message_variables_changed', {
-        message_id: chat_message.message_id,
-        variables: (chat_message.swipes_data as Record<string, any>[])[chat_message.swipe_id as number],
-      });
     }
   };
 
@@ -326,17 +306,15 @@ export async function setChatMessages(
 
   chat_messages = convert_and_merge_messages(chat_messages);
   await Promise.all(chat_messages.map(modify));
-  await saveChatConditional();
   if (refresh === 'all') {
+    await saveChatConditional();
     await reloadCurrentChat();
-  } else if (refresh === 'affected') {
-    await Promise.all(chat_messages.map(message => render(message.message_id)));
+  } else {
+    saveChatConditionalDebounced();
+    if (refresh === 'affected') {
+      await Promise.all(chat_messages.map(message => render(message.message_id)));
+    }
   }
-  log.info(
-    `修改第 '${chat_messages.map(message => message.message_id).join(', ')}' 楼的消息, 选项: ${JSON.stringify({
-      refresh,
-    })}`,
-  );
 }
 
 type ChatMessageCreating = {
@@ -358,9 +336,8 @@ export async function createChatMessages(
   { insert_at = 'end', refresh = 'affected' }: CreateChatMessagesOption = {},
 ): Promise<void> {
   if (insert_at !== 'end') {
-    insert_at = insert_at < 0 ? chat.length + insert_at : insert_at;
-    if (insert_at < 0 || insert_at > chat.length) {
-      throw Error(`提供的 insert_at 无效, 请提供一个在 '0' 到 '${chat.length}' 之间的整数, 你提供的是: '${insert_at}'`);
+    if (inUnnormalizedMessageRange(insert_at)) {
+      throw Error(`提供的 insert_at 无效超出了允许范围 [${-chat.length}, ${chat.length}), 你提供的是: '${insert_at}'`);
     }
   }
 
@@ -376,8 +353,6 @@ export async function createChatMessages(
     } else {
       result = result.set('name', name2);
     }
-
-    // TODO: avatar
 
     result = result.set('is_user', chat_message.role === 'user');
     if (chat_message.role === 'system') {
@@ -400,8 +375,8 @@ export async function createChatMessages(
   } else {
     chat.splice(insert_at, 0, ...converted);
   }
-  await saveChatConditional();
   if (refresh === 'affected' && insert_at === 'end') {
+    saveChatConditionalDebounced();
     converted.forEach(message => addOneMessage(message));
     converted.forEach(async (message, index) => {
       await eventSource.emit(
@@ -410,16 +385,11 @@ export async function createChatMessages(
       );
     });
   } else if (refresh !== 'none') {
+    await saveChatConditional();
     await reloadCurrentChat();
+  } else {
+    saveChatConditionalDebounced();
   }
-  log.info(
-    `在${insert_at === 'end' ? '最后' : `第 ${insert_at} 楼前`}创建 ${
-      chat_messages.length
-    } 条消息, 选项: ${JSON.stringify({
-      insert_at,
-      refresh,
-    })}`,
-  );
 }
 
 type DeleteChatMessagesOption = {
@@ -430,18 +400,15 @@ export async function deleteChatMessages(
   message_ids: number[],
   { refresh = 'all' }: DeleteChatMessagesOption = {},
 ): Promise<void> {
-  message_ids = message_ids.map(id => (id < 0 ? chat.length + id : id)).filter(id => id >= 0 && id < chat.length);
+  message_ids = message_ids.filter(inUnnormalizedMessageRange).map(id => normalizeMessageId(id));
 
   _.pullAt(chat, message_ids);
-  await saveChatConditional();
   if (refresh === 'all') {
+    await saveChatConditional();
     await reloadCurrentChat();
+  } else {
+    saveChatConditionalDebounced();
   }
-  log.info(
-    `删除第 '${message_ids.join(', ')}' 楼的消息, 选项: ${JSON.stringify({
-      refresh,
-    })}`,
-  );
 }
 
 type RotateChatMessagesOption = {
@@ -456,15 +423,12 @@ export async function rotateChatMessages(
 ): Promise<void> {
   const right_part = chat.splice(middle, end - middle);
   chat.splice(begin, 0, ...right_part);
-  await saveChatConditional();
   if (refresh === 'all') {
+    await saveChatConditional();
     await reloadCurrentChat();
+  } else {
+    saveChatConditionalDebounced();
   }
-  log.info(
-    `旋转第 '[${begin}, ${middle}) [${middle}, ${end})' 楼的消息, 选项: ${JSON.stringify({
-      refresh,
-    })}`,
-  );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -492,7 +456,6 @@ export async function setChatMessage(
 
   const chat_message = chat.at(message_id);
   if (!chat_message) {
-    log.warn(`未找到第 ${message_id} 楼的消息`);
     return;
   }
 
@@ -547,14 +510,13 @@ export async function setChatMessage(
   };
 
   const update_partial_html = async (should_update_swipe: boolean) => {
-    // @ts-ignore
     const mes_html = $(`div.mes[mesid = "${message_id}"]`);
     if (!mes_html) {
       return;
     }
 
     if (should_update_swipe && chat_message.swipes) {
-      // FIXME: 只有一条消息时, swipes-counter 不会正常显示; 此外还要考虑 swipes-counter 的 "Swipe # for All Messages" 选项
+      // TODO: 只有一条消息时, swipes-counter 不会正常显示; 此外还要考虑 swipes-counter 的 "Swipe # for All Messages" 选项
       mes_html.find('.swipes-counter').text(`${swipe_id_to_use_index + 1}\u200b/\u200b${chat_message.swipes.length}`);
     }
     if (refresh != 'none') {
@@ -581,11 +543,4 @@ export async function setChatMessage(
   } else {
     await update_partial_html(should_update_swipe);
   }
-
-  log.info(
-    `设置第 ${message_id} 楼消息, 选项: ${JSON.stringify({
-      swipe_id,
-      refresh,
-    })}, 设置前使用的消息页: ${swipe_id_previous_index}, 设置的消息页: ${swipe_id_to_set_index}, 现在使用的消息页: ${swipe_id_to_use_index} `,
-  );
 }

@@ -1,21 +1,18 @@
-import { macros } from '@/component/macrolike';
-import { reloadChatWithoutEventsButRender } from '@/util/reload_chat_without_events';
+import { macros } from '@/function/macro_like';
+import { reloadAndRenderChatWithoutEvents } from '@/util/tavern';
 import {
   characters,
   chat,
   event_types,
   eventSource,
   getCurrentChatId,
-  saveChatConditional,
   saveSettings,
   substituteParams,
-  this_chid
+  this_chid,
 } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
 import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
-
-import log from 'loglevel';
 
 type FormatAsTavernRegexedStringOption = {
   depth?: number;
@@ -96,18 +93,12 @@ type TavernRegex = {
   max_depth: number | null;
 };
 
-export function isCharacterTavernRegexEnabled(): boolean {
-  // @ts-ignore 2345
-  return extension_settings?.character_allowed_regex?.includes(characters?.[this_chid]?.avatar);
-}
-
 export function getGlobalRegexes(): RegexScriptData[] {
   return extension_settings.regex ?? [];
 }
 
 export function getCharacterRegexes(): RegexScriptData[] {
-  // @ts-ignore
-  return characters[this_chid]?.data?.extensions?.regex_scripts ?? [];
+  return characters.at(this_chid as unknown as number)?.data?.extensions?.regex_scripts ?? [];
 }
 
 function toTavernRegex(regex_script_data: RegexScriptData, scope: 'global' | 'character'): TavernRegex {
@@ -158,9 +149,9 @@ function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
 
     substituteRegex: 0, // TODO: handle this?
 
-    // @ts-ignore
+    // @ts-expect-error 类型是正确的
     minDepth: tavern_regex.min_depth,
-    // @ts-ignore
+    // @ts-expect-error 类型是正确的
     maxDepth: tavern_regex.max_depth,
 
     markdownOnly: tavern_regex.destination.display,
@@ -169,10 +160,9 @@ function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
 }
 
 export function isCharacterTavernRegexesEnabled(): boolean {
-  const result = isCharacterTavernRegexEnabled();
-
-  log.info(`查询到局部正则${result ? '被启用' : '被禁用'}`);
-  return result;
+  return (extension_settings?.character_allowed_regex as string[])?.includes(
+    characters.at(this_chid as unknown as number)?.avatar ?? '',
+  );
 }
 
 type GetTavernRegexesOption = {
@@ -199,7 +189,7 @@ export function getTavernRegexes({ scope = 'all', enable_state = 'all' }: GetTav
     regexes = regexes.filter(regex => regex.enabled === (enable_state === 'enabled'));
   }
 
-  return structuredClone(regexes);
+  return klona(regexes);
 }
 
 type ReplaceTavernRegexesOption = {
@@ -208,11 +198,7 @@ type ReplaceTavernRegexesOption = {
 
 export async function render_tavern_regexes() {
   await saveSettings();
-  // @ts-ignore
-  if (characters[this_chid]) {
-    await saveChatConditional();
-  }
-  await reloadChatWithoutEventsButRender();
+  await reloadAndRenderChatWithoutEvents();
   await eventSource.emit(event_types.CHAT_CHANGED, getCurrentChatId());
 }
 export const render_tavern_regexes_debounced = _.debounce(render_tavern_regexes, 1000);
@@ -225,7 +211,7 @@ export async function replaceTavernRegexes(
     throw Error(`提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${scope}`);
   }
 
-  // FIXME: `trimStrings` and `substituteRegex` are not considered
+  // TODO: `trimStrings` and `substituteRegex` are not considered
   const emptied_regexes = regexes.filter(regex => regex.script_name == '');
   if (emptied_regexes.length > 0) {
     throw Error(`不能将酒馆正则的名称设置为空字符串:\n${JSON.stringify(emptied_regexes.map(regex => regex.id))}`);
@@ -234,24 +220,17 @@ export async function replaceTavernRegexes(
     paritioned.map(fromTavernRegex),
   );
 
-  // @ts-ignore
-  const character = characters[this_chid];
+  const character = characters.at(this_chid as unknown as number);
   if (scope === 'all' || scope === 'global') {
     extension_settings.regex = global_regexes;
   }
   if (scope === 'all' || scope === 'character') {
     if (character) {
-      // @ts-ignore
-      characters[this_chid].data.extensions.regex_scripts = character_regexes;
-      // @ts-ignore
-      await writeExtensionField(this_chid, 'regex_scripts', character_regexes);
+      character.data.extensions.regex_scripts = character_regexes;
+      await writeExtensionField(this_chid as unknown as string, 'regex_scripts', character_regexes);
     }
   }
   render_tavern_regexes_debounced();
-
-  log.info(`替换酒馆正则\
-${scope === 'all' || scope === 'global' ? `, 全局正则:\n${JSON.stringify(global_regexes)}` : ``}\
-${scope === 'all' || scope === 'character' ? `, 局部正则:\n${JSON.stringify(character_regexes)}` : ``}`);
 }
 
 type TavernRegexUpdater =
@@ -264,7 +243,6 @@ export async function updateTavernRegexesWith(
 ): Promise<TavernRegex[]> {
   let regexes = getTavernRegexes({ scope });
   regexes = await updater(regexes);
-  log.info(`对${{ all: '全部', global: '全局', character: '局部' }[scope]}变量表进行更新`);
   await replaceTavernRegexes(regexes, { scope });
   return regexes;
 }

@@ -1,7 +1,6 @@
-import { getButtonId } from '@/component/script_repository/button';
-import { ScriptData } from '@/component/script_repository/data';
-import { ScriptManager } from '@/component/script_repository/script_controller';
 import { _getScriptId } from '@/function/util';
+import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
+import { getButtonId } from '@/store/iframe_runtimes/script';
 
 type ScriptButton = {
   name: string;
@@ -13,23 +12,18 @@ export function _getButtonEvent(this: Window, button_name: string): string {
 }
 
 export function _getScriptButtons(this: Window): ScriptButton[] {
-  return ScriptManager.getInstance().getScriptButton(_getScriptId.call(this));
+  return klona(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
+}
+
+export function getAllEnabledScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] } {
+  return klona(useScriptIframeRuntimesStore().button_map);
 }
 
 export function _replaceScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, param1: string | ScriptButton[], param2?: ScriptButton[]): void {
-  const script_id = _getScriptId.call(this);
-
-  const script = ScriptManager.getInstance().getScriptById(script_id);
-  if (!script) {
-    throw new Error(`脚本不存在: ${script_id}`);
-  }
-
-  const type = ScriptData.getInstance().getScriptType(script);
-
-  script.buttons = typeof param1 === 'string' ? param2! : param1;
-  ScriptManager.getInstance().setScriptButton(script, type);
+  const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this))!;
+  script.button.buttons = typeof param1 === 'string' ? param2! : param1;
 }
 
 export function _appendInexistentScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
@@ -40,34 +34,19 @@ export function _appendInexistentScriptButtons(
   param2?: ScriptButton[],
 ): void {
   const buttons = typeof param1 === 'string' ? param2! : param1;
-
   const script_buttons = _getScriptButtons.call(this);
-  const inexistent_buttons = buttons.filter(button => !script_buttons.some(sb => sb.name === button.name));
+  const inexistent_buttons = buttons.filter(button => !script_buttons.some(b => b.name === button.name));
   if (inexistent_buttons.length === 0) {
     return;
   }
-
   _replaceScriptButtons.call(this, [...script_buttons, ...inexistent_buttons]);
 }
 
 export function _getScriptInfo(this: Window): string {
-  const script_id = _getScriptId.call(this);
-  const script = ScriptManager.getInstance().getScriptById(script_id);
-  if (!script) {
-    throw new Error(`脚本不存在: ${script_id}`);
-  }
-  return script.info;
+  return useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.info;
 }
 
 export function _replaceScriptInfo(this: Window, info: string): void {
-  const script = ScriptManager.getInstance().getScriptById(_getScriptId.call(this));
-
-  if (!script) {
-    throw new Error(`脚本不存在: ${_getScriptId.call(this)}`);
-  }
-
-  const type = ScriptData.getInstance().getScriptType(script);
-
+  const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this))!;
   script.info = info;
-  ScriptManager.getInstance().updateScript(script, type);
 }

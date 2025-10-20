@@ -1,9 +1,9 @@
+import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
   activateSendButtons,
   eventSource,
   extension_prompt_roles,
   extension_prompt_types,
-  saveChatConditional,
   setExtensionPrompt,
   setGenerationProgress,
   showSwipeButtons,
@@ -13,7 +13,6 @@ import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensio
 import { oai_settings } from '@sillytavern/scripts/openai';
 import { flushEphemeralStoppingStrings } from '@sillytavern/scripts/power-user';
 import { getBase64Async, isDataURL } from '@sillytavern/scripts/utils';
-import log from 'loglevel';
 
 /**
  * 将文件转换为base64
@@ -34,8 +33,8 @@ export async function convertFileToBase64(img: File | string): Promise<string | 
       } else {
         processedImg = await getBase64Async(img);
       }
-    } catch (error) {
-      log.error('[Generate:图片数组处理] 图片处理失败:', error);
+    } catch (err) {
+      return undefined;
     }
   }
   return processedImg;
@@ -176,8 +175,7 @@ export async function clearInjectionPrompts(prefixes: string[]): Promise<void> {
   Object.keys(prompts)
     .filter(key => prefixes.some(prefix => key.startsWith(prefix)))
     .forEach(key => delete prompts[key]);
-
-  await saveChatConditional();
+  saveChatConditionalDebounced();
 }
 
 /**
@@ -197,7 +195,7 @@ export async function processImageArrayDirectly(
       try {
         const processedImg = await convertFileToBase64(img);
         if (!processedImg) {
-          log.warn('[Generate:图片数组处理] 图片处理失败，跳过该图片');
+          console.warn('[TavernHelper][Generate:图片数组处理] 图片处理失败，跳过该图片');
           return null;
         }
         return {
@@ -205,7 +203,7 @@ export async function processImageArrayDirectly(
           image_url: { url: processedImg, detail: quality },
         };
       } catch (imgError) {
-        log.error('[Generate:图片数组处理] 单个图片处理失败:', imgError);
+        console.warn('[TavernHelper][Generate:图片数组处理] 图片处理失败，跳过该图片');
         return null;
       }
     }),
@@ -217,7 +215,6 @@ export async function processImageArrayDirectly(
     text: processedUserInput,
   };
 
-  log.info('[Generate:图片数组处理] 成功处理', validImageContents.length, '张图片');
   return [textContent, ...validImageContents];
 }
 
@@ -252,14 +249,12 @@ export function setupImageArrayProcessing(
   let isHandlerRegistered = true;
 
   const imageArrayHandler = async (eventData: { chat: { role: string; content: string | any[] }[] }) => {
-    log.debug('[Generate:图片数组处理] imageArrayHandler 被调用');
-
     try {
       // 添加超时保护
       timeoutId = setTimeout(() => {
-        log.warn('[Generate:图片数组处理] 图片处理超时');
+        console.warn('[TavernHelper][Generate:图片数组处理] 图片处理超时');
         rejectImageProcessing(new Error('图片处理超时'));
-      }, 30000); 
+      }, 30000);
 
       for (let i = eventData.chat.length - 1; i >= 0; i--) {
         const message = eventData.chat[i];
@@ -274,7 +269,7 @@ export function setupImageArrayProcessing(
                 try {
                   const processedImg = await convertFileToBase64(img);
                   if (!processedImg) {
-                    log.warn('[Generate:图片数组处理] 图片处理失败，跳过该图片');
+                    console.warn('[TavernHelper][Generate:图片数组处理] 图片处理失败，跳过该图片');
                     return null;
                   }
                   return {
@@ -282,7 +277,7 @@ export function setupImageArrayProcessing(
                     image_url: { url: processedImg, detail: quality },
                   };
                 } catch (imgError) {
-                  log.error('[Generate:图片数组处理] 单个图片处理失败:', imgError);
+                  console.warn('[TavernHelper][Generate:图片数组处理] 单个图片处理失败:', imgError);
                   return null;
                 }
               }),
@@ -301,7 +296,6 @@ export function setupImageArrayProcessing(
               clearTimeout(timeoutId);
               timeoutId = null;
             }
-            log.info('[Generate:图片数组处理] 成功将', validImageContents.length, '张图片插入到用户消息中');
             resolveImageProcessing();
             return;
           } catch (error) {
@@ -309,17 +303,17 @@ export function setupImageArrayProcessing(
               clearTimeout(timeoutId);
               timeoutId = null;
             }
-            log.error('[Generate:图片数组处理] 处理图片时出错:', error);
+            console.error('[TavernHelper][Generate:图片数组处理] 处理图片时出错:', error);
             rejectImageProcessing(error);
             return;
           }
         }
       }
 
-      log.warn('[Generate:图片数组处理] 未找到包含图片标记的用户消息');
+      console.warn('[TavernHelper][Generate:图片数组处理] 未找到包含图片标记的用户消息');
       resolveImageProcessing();
     } catch (error) {
-      log.error('[Generate:图片数组处理] imageArrayHandler 异常:', error);
+      console.error('[TavernHelper][Generate:图片数组处理] imageArrayHandler 异常:', error);
       rejectImageProcessing(error);
     }
   };
@@ -335,9 +329,8 @@ export function setupImageArrayProcessing(
       try {
         eventSource.removeListener('chat_completion_prompt_ready', imageArrayHandler);
         isHandlerRegistered = false;
-        log.debug('[Generate:图片数组处理] 已清理事件监听器');
       } catch (error) {
-        log.warn('[Generate:图片数组处理] 清理事件监听器时出错:', error);
+        console.warn('[TavernHelper][Generate:图片数组处理] 清理事件监听器时出错:', error);
       }
     }
   };

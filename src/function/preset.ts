@@ -1,4 +1,4 @@
-import { settingsToUpdate } from '@/compatibility';
+import { settingsToUpdate } from '@/util/compatibility';
 import { saveSettingsDebounced } from '@sillytavern/script';
 import { oai_settings, promptManager } from '@sillytavern/scripts/openai';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
@@ -151,30 +151,54 @@ export const default_preset: Preset = {
   prompts: [
     {
       id: 'worldInfoBefore',
-      name: 'World Info (before)',
+      name: 'World Info (before) - 角色定义之前',
       enabled: true,
       position: { type: 'relative' },
       role: 'system',
     },
     {
       id: 'personaDescription',
-      name: 'Persona Description',
+      name: 'Persona Description - 玩家描述',
       enabled: true,
       position: { type: 'relative' },
       role: 'system',
     },
-    { id: 'charDescription', name: 'Char Description', enabled: true, position: { type: 'relative' }, role: 'system' },
-    { id: 'charPersonality', name: 'Char Personality', enabled: true, position: { type: 'relative' }, role: 'system' },
-    { id: 'scenario', name: 'Scenario', enabled: true, position: { type: 'relative' }, role: 'system' },
+    {
+      id: 'charDescription',
+      name: 'Char Description - 角色描述',
+      enabled: true,
+      position: { type: 'relative' },
+      role: 'system',
+    },
+    {
+      id: 'charPersonality',
+      name: 'Char Personality - 角色性格',
+      enabled: true,
+      position: { type: 'relative' },
+      role: 'system',
+    },
+    { id: 'scenario', name: 'Scenario - 情景', enabled: true, position: { type: 'relative' }, role: 'system' },
     {
       id: 'worldInfoAfter',
-      name: 'World Info (after)',
+      name: 'World Info (after) - 角色定义之后',
       enabled: true,
       position: { type: 'relative' },
       role: 'system',
     },
-    { id: 'dialogueExamples', name: 'Chat Examples', enabled: true, position: { type: 'relative' }, role: 'system' },
-    { id: 'chatHistory', name: 'Chat History', enabled: true, position: { type: 'relative' }, role: 'system' },
+    {
+      id: 'dialogueExamples',
+      name: 'Chat Examples - 对话示例',
+      enabled: true,
+      position: { type: 'relative' },
+      role: 'system',
+    },
+    {
+      id: 'chatHistory',
+      name: 'Chat History - 聊天记录',
+      enabled: true,
+      position: { type: 'relative' },
+      role: 'system',
+    },
   ],
   prompts_unused: [],
   extensions: {},
@@ -524,7 +548,7 @@ function fromPreset(preset: Preset): _OriginalPreset {
 const preset_manager = getPresetManager('openai');
 
 export function getPresetNames(): string[] {
-  return structuredClone(['in_use', ...preset_manager.getAllPresets()]);
+  return klona(['in_use', ...preset_manager.getAllPresets()]);
 }
 
 export function getLoadedPresetName(): string {
@@ -650,7 +674,7 @@ export function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset {
   if (!original_preset) {
     throw Error(`预设 '${preset_name}' 不存在`);
   }
-  return structuredClone(toPreset(original_preset, { in_use: preset_name === 'in_use' }));
+  return klona(toPreset(original_preset, { in_use: preset_name === 'in_use' }));
 }
 
 export async function replacePreset(

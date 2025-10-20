@@ -1,6 +1,5 @@
-import { updateWorldInfoList } from '@/compatibility';
 import { render_tavern_regexes_debounced } from '@/function/tavern_regex';
-
+import { updateWorldInfoList } from '@/util/compatibility';
 import { characters, getRequestHeaders, name1, this_chid } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
@@ -35,10 +34,8 @@ export async function importRawChat(name: string, content: string): Promise<Resp
   const form_data = new FormData();
   form_data.append('avatar', new File([content], name + '.jsonl', { type: 'application/json' }));
   form_data.append('file_type', 'jsonl');
-  // @ts-expect-error
-  form_data.append('avatar_url', characters[this_chid].avatar);
-  // @ts-expect-error
-  form_data.append('character_name', characters[this_chid].name);
+  form_data.append('avatar_url', characters[this_chid as unknown as number].avatar);
+  form_data.append('character_name', characters[this_chid as unknown as number].name);
   form_data.append('user_name', name1);
 
   const headers = getRequestHeaders();

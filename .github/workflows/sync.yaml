@@ -20,4 +20,3 @@ jobs:
           gitlab_url: https://gitlab.com/novi028/JS-Slash-Runner.git
           username: novi028
           gitlab_pat: ${{ secrets.GITLAB_PAT }}
-          force_push: true

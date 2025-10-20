@@ -21,16 +21,14 @@ export async function handlePresetPath(
 ) {
   // prepareOpenAIMessages会从设置里读取场景因此临时覆盖
   let originalScenario = null;
+  const character = characters.at(this_chid as unknown as number);
 
   try {
     const scenarioOverride = config?.overrides?.scenario;
-    // @ts-ignore
-    if (scenarioOverride && characters && characters[this_chid]) {
+    if (scenarioOverride && character) {
       // 保存原始场景
-      // @ts-ignore
-      originalScenario = characters[this_chid].scenario || null;
-      // @ts-ignore
-      characters[this_chid].scenario = scenarioOverride;
+      originalScenario = character.scenario || null;
+      character.scenario = scenarioOverride;
     }
     // 添加user消息(一次性)
     const userMessageTemp = {
@@ -74,10 +72,8 @@ export async function handlePresetPath(
     return { prompt };
   } finally {
     // 恢复原始场景
-    // @ts-ignore
-    if (originalScenario !== null && characters && characters[this_chid]) {
-      // @ts-ignore
-      characters[this_chid].scenario = originalScenario;
+    if (originalScenario !== null && character) {
+      character.scenario = originalScenario;
     }
   }
 }

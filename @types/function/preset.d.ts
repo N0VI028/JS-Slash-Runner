@@ -146,8 +146,8 @@ declare function getPresetNames(): string[];
  * 获取酒馆正在使用的预设 (`'in_use'`) 是从哪个预设加载来的.
  *
  * 请务必注意这个说法, `'in_use'` 预设虽然是从 `getLoadedPresetName()` 预设加载而来, 但它的预设内容可能与 `getLoadedPresetName()` 预设不同.
- *   请回忆一下: 在酒馆中编辑预设后, 编辑结果会立即在在聊天中生效 (`'in_use'` 预设被更改),
- *   但我们没有点击保存按钮 (将 `'in_use'` 预设内容保存回 `getLoadedPresetName()` 预设), 一旦切换预设, 编辑结果就会丢失
+ *   请回忆一下: 在酒馆中编辑预设后, 编辑结果会立即在聊天中生效 (`'in_use'` 预设被更改),
+ *   但我们没有点击保存按钮 (将 `'in_use'` 预设内容保存回 `getLoadedPresetName()` 预设), 一旦切换预设, 编辑结果就会丢失.
  *
  * @returns 预设名称
  */
@@ -177,7 +177,7 @@ declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: P
  * @param preset_name 预设名称
  * @param preset 预设内容; 不填则使用默认内容
  * @param options 可选选项
- *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
+ *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖重新渲染 (debounced) 还是立即重新渲染 (immediate) 预设界面? 默认为性能更好的防抖渲染
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */

@@ -21,7 +21,7 @@
           "background": {
             "activeOnStart": true,
             "beginsPattern": ".*",
-            "endsPattern": "webpack (?:\\d+\\.){2}\\d+ compiled"
+            "endsPattern": "built in \\d+ms."
           }
         }
       ],

@@ -1,8 +1,5 @@
-import { reloadEditorDebounced } from '@/compatibility';
-
+import { reloadEditorDebounced } from '@/util/compatibility';
 import { loadWorldInfo, saveWorldInfo, world_names } from '@sillytavern/scripts/world-info';
-
-import log from 'loglevel';
 
 type LorebookEntry = {
   uid: number;
@@ -141,16 +138,17 @@ function toLorebookEntry(entry: _OriginalLorebookEntry): LorebookEntry {
     comment: entry.comment,
     enabled: !entry.disable,
     type: entry.constant ? 'constant' : entry.vectorized ? 'vectorized' : 'selective',
-    // @ts-ignore
     position:
-      {
-        0: 'before_character_definition',
-        1: 'after_character_definition',
-        5: 'before_example_messages',
-        6: 'after_example_messages',
-        2: 'before_author_note',
-        3: 'after_author_note',
-      }[entry.position] ??
+      (
+        {
+          0: 'before_character_definition',
+          1: 'after_character_definition',
+          5: 'before_example_messages',
+          6: 'after_example_messages',
+          2: 'before_author_note',
+          3: 'after_author_note',
+        } as const
+      )[entry.position] ??
       (entry.role === 1 ? 'at_depth_as_user' : entry.role === 2 ? 'at_depth_as_assistant' : 'at_depth_as_system'),
     depth: entry.position === 4 ? entry.depth : null,
     order: entry.order,
@@ -158,12 +156,14 @@ function toLorebookEntry(entry: _OriginalLorebookEntry): LorebookEntry {
 
     key: entry.key,
     keys: entry.key,
-    logic: {
-      0: 'and_any',
-      1: 'not_all',
-      2: 'not_any',
-      3: 'and_all',
-    }[entry.selectiveLogic as number] as 'and_any' | 'and_all' | 'not_any' | 'not_all',
+    logic: (
+      {
+        0: 'and_any',
+        1: 'not_all',
+        2: 'not_any',
+        3: 'and_all',
+      } as const
+    )[entry.selectiveLogic],
     filter: entry.keysecondary,
     filters: entry.keysecondary,
 
@@ -205,8 +205,7 @@ export async function getLorebookEntries(
   if (filter !== 'none') {
     entries = entries.filter(entry =>
       Object.entries(filter).every(([field, expected_value]) => {
-        // @ts-ignore
-        const entry_value = entry[field];
+        const entry_value = entry[field as keyof LorebookEntry];
         if (Array.isArray(entry_value)) {
           return (expected_value as string[]).every(value => entry_value.includes(value));
         }
@@ -218,8 +217,7 @@ export async function getLorebookEntries(
     );
   }
 
-  log.info(`获取世界书 '${lorebook}' 中的条目, 选项: ${JSON.stringify({ filter })}`);
-  return structuredClone(entries);
+  return klona(entries);
 }
 
 function fromPartialLorebookEntry(
@@ -247,13 +245,15 @@ function fromPartialLorebookEntry(
         at_depth_as_user: 4,
         at_depth_as_assistant: 4,
       }[value],
-      role:
-        // @ts-ignore
+      role: _.get(
         {
           at_depth_as_system: 0,
           at_depth_as_user: 1,
           at_depth_as_assistant: 2,
-        }[value] ?? null,
+        },
+        value,
+        null,
+      ),
     }),
     depth: (value: LorebookEntry['depth']) => ({ depth: value === null ? 4 : value }),
     order: (value: LorebookEntry['order']) => ({ order: value }),
@@ -294,14 +294,14 @@ function fromPartialLorebookEntry(
     sticky: (value: LorebookEntry['sticky']) => ({ sticky: value === null ? 0 : value }),
     cooldown: (value: LorebookEntry['cooldown']) => ({ cooldown: value === null ? 0 : value }),
     delay: (value: LorebookEntry['delay']) => ({ delay: value === null ? 0 : value }),
-  };
+  } as const;
 
   return _.merge(
     {},
     default_original_lorebook_entry,
     ...Object.entries(entry)
       .filter(([_, value]) => value !== undefined)
-      // @ts-ignore
+      // @ts-expect-error 未知类型报错
       .map(([key, value]) => transformers[key]?.(value)),
   );
 }
@@ -352,8 +352,6 @@ export async function replaceLorebookEntries(lorebook: string, entries: Partial<
   };
   await saveWorldInfo(lorebook, data);
   reloadEditorDebounced(lorebook);
-
-  log.info(`更新世界书 '${lorebook}' 中的条目`);
 }
 
 type LorebookEntriesUpdater =
@@ -364,7 +362,6 @@ export async function updateLorebookEntriesWith(
   lorebook: string,
   updater: LorebookEntriesUpdater,
 ): Promise<LorebookEntry[]> {
-  log.info(`对世界书 '${lorebook}' 中的条目进行更新`);
   await replaceLorebookEntries(lorebook, await updater(await getLorebookEntries(lorebook)));
   return getLorebookEntries(lorebook);
 }

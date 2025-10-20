@@ -5,11 +5,8 @@ import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
 import { detail, GenerateConfig, GenerateRawConfig, Overrides } from '@/function/generate/types';
 import { setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
-
 import { event_types, eventSource, stopGeneration } from '@sillytavern/script';
 import { uuidv4 } from '@sillytavern/scripts/utils';
-
-import log from 'loglevel';
 
 declare const $: any;
 
@@ -22,10 +19,9 @@ const generationControllers = new Map<string, AbortController>();
 export function stopGenerationById(id: string) {
   if (generationControllers.has(id)) {
     const controller = generationControllers.get(id);
-    controller?.abort(`Generation stopped by id: ${id}`);
+    controller?.abort(`生成 ID '${id}' 已停止`);
     generationControllers.delete(id);
     eventSource.emit(event_types.GENERATION_STOPPED, id);
-    log.info(`[Generate:停止] 已中断生成任务: ${id}`);
     return true;
   }
   return false;
@@ -37,14 +33,13 @@ export function stopGenerationById(id: string) {
 export function stopAllGeneration() {
   try {
     for (const [id, controller] of generationControllers.entries()) {
-      controller.abort(`Generation stopped by id: ${id}`);
+      controller.abort(`生成 ID '${id}' 已停止`);
       eventSource.emit(event_types.GENERATION_STOPPED, id);
     }
     generationControllers.clear();
-    log.info(`[Generate:停止] 已中断所有生成任务`);
     return true;
   } catch (error) {
-    log.error('[Generate:停止] 中断所有生成任务时出错:', error);
+    console.error(`[TavernHelper][Generate:停止] 中断所有生成任务时出错: ${error}`);
     return false;
   }
 }
@@ -57,9 +52,8 @@ function cleanupImageProcessing(imageProcessingSetup?: ReturnType<typeof setupIm
     try {
       imageProcessingSetup.cleanup();
       imageProcessingSetup.rejectImageProcessing(new Error('Generation stopped'));
-      log.info('[Generate:停止] 已清理图片处理相关逻辑');
     } catch (error) {
-      log.warn('[Generate:停止] 清理图片处理时出错:', error);
+      console.warn(`[TavernHelper][Generate:停止] 清理图片处理时出错: ${error}`);
     }
   }
 }
@@ -160,7 +154,7 @@ async function iframeGenerate({
     const { processedUserInput, processedImageArray } = inputResult;
     imageProcessingSetup = inputResult.imageProcessingSetup;
 
-    await eventSource.emit(event_types.GENERATION_AFTER_COMMANDS, 'quiet', {}, false);
+    await eventSource.emit(event_types.GENERATION_AFTER_COMMANDS, 'normal', {}, false);
 
     // 2. 准备过滤后的基础数据
     const baseData = await prepareAndOverrideData(
@@ -197,7 +191,6 @@ async function iframeGenerate({
 
     await eventSource.emit(event_types.GENERATE_AFTER_DATA, generate_data);
     // 4. 根据 stream 参数决定生成方式
-    log.info(`[Generate:发送提示词] (id: ${generationId})`, generate_data);
     const result = await generateResponse(
       generate_data,
       stream,
@@ -240,12 +233,10 @@ export async function generateRaw(config: GenerateRawConfig) {
 $(document).on('click', '#mes_stop', function () {
   const wasStopped = stopGeneration();
   if (wasStopped) {
-    log.info(`[Generate:停止] 正在中断所有 ${generationControllers.size} 个生成任务...`);
-    for (const [id, controller] of generationControllers.entries()) {
+    for (const [, controller] of generationControllers.entries()) {
       controller.abort('Clicked stop button');
-      log.info(`[Generate:停止] > 已发送中断信号给 ${id}`);
     }
     generationControllers.clear();
-    unblockGeneration(); 
+    unblockGeneration();
   }
 });

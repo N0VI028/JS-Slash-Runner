@@ -8,10 +8,15 @@ import {
 } from '@/function/generate/types';
 import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
 import { InjectionPrompt, injectPrompts } from '@/function/inject';
-
-import { MAX_INJECTION_DEPTH, event_types, eventSource, getExtensionPromptByName, substituteParams } from '@sillytavern/script';
+import {
+  MAX_INJECTION_DEPTH,
+  eventSource,
+  event_types,
+  extension_prompts,
+  getExtensionPromptByName,
+  substituteParams,
+} from '@sillytavern/script';
 import { NOTE_MODULE_NAME } from '@sillytavern/scripts/authors-note';
-import { getContext } from '@sillytavern/scripts/extensions';
 import {
   ChatCompletion,
   Message,
@@ -23,8 +28,6 @@ import {
 import { persona_description_positions, power_user } from '@sillytavern/scripts/power-user';
 import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
 import { uuidv4 } from '@sillytavern/scripts/utils';
-
-import log from 'loglevel';
 
 /**
  * @fileoverview 原始生成路径处理模块 - 不使用预设的生成逻辑
@@ -66,7 +69,6 @@ async function convertSystemPromptsToCollection(
       const content = builtinPromptContents[item as keyof typeof builtinPromptContents];
       if (content) {
         promptCollection.add(
-          // @ts-ignore
           new Prompt({
             identifier: item,
             role: 'system',
@@ -79,7 +81,6 @@ async function convertSystemPromptsToCollection(
       // 处理自定义注入
       const identifier = `custom_prompt_${index}`;
       promptCollection.add(
-        // @ts-ignore
         new Prompt({
           identifier: identifier,
           role: item.role,
@@ -238,7 +239,7 @@ async function processChatHistoryAndInject(
     const promptManager = setupChatCompletionPromptManager(oai_settings);
 
     if (promptManager) {
-      // @ts-ignore
+      // @ts-expect-error 类型正确
       if (promptManager.serviceSettings.names_behavior === character_names_behavior.COMPLETION && prompt.name) {
         const messageName = promptManager.isValidName(prompt.name)
           ? prompt.name
@@ -287,9 +288,8 @@ async function populationInjectionPrompts(
   const processedMessages = [...messages];
   let totalInsertedMessages = 0;
   const injectionPrompts = [];
-  // @ts-ignore
 
-  const authorsNote = getContext().extensionPrompts[NOTE_MODULE_NAME];
+  const authorsNote = _.get(extension_prompts, NOTE_MODULE_NAME, {}) as any;
   if (authorsNote && authorsNote.value) {
     injectionPrompts.push({
       role: getPromptRole(authorsNote.role),
@@ -324,7 +324,6 @@ async function populationInjectionPrompts(
           injection_depth: entry.depth,
           injected: true,
         });
-        log.info('injectionPrompts', injectionPrompts);
       }
     }
   }
@@ -447,6 +446,6 @@ export async function handleCustomPath(
     await chatCompletion.squashSystemMessages();
   }
   const prompt = chatCompletion.getChat();
-  eventSource.emit(event_types.CHAT_COMPLETION_PROMPT_READY, {chat:prompt,dryRun:false});
+  eventSource.emit(event_types.CHAT_COMPLETION_PROMPT_READY, { chat: prompt, dryRun: false });
   return { prompt };
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 declare namespace SillyTavern {
   type ChatMessage = {
     name: string;
@@ -490,7 +491,7 @@ declare const SillyTavern: {
     errorMessage: string;
   }>;
   readonly timestampToMoment: (timestamp: string | number) => any;
-  readonly registerMacro: (key: string, value: string | ((text: string) => string), description?: string) => void;
+  readonly registerMacro: (key: string, value: string | ((uid: string) => string), description?: string) => void;
   readonly unregisterMacro: (key: string) => void;
   readonly registerFunctionTool: (tool: {
     /** 工具名称 */

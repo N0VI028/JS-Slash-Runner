@@ -1,12 +1,7 @@
 import { substituteParamsExtended } from '@sillytavern/script';
 
-import log from 'loglevel';
-
 export function substitudeMacros(text: string): string {
-  const text_demacroed = substituteParamsExtended(text);
-
-  log.info(`替换字符串中的宏, 字符串: '${text}', 结果: '${text_demacroed}'`);
-  return text_demacroed;
+  return substituteParamsExtended(text);
 }
 
 export function getLastMessageId(): number {
@@ -38,11 +33,11 @@ export function _getIframeName(this: Window): string {
 }
 
 export function _getScriptId(this: Window): string {
-  const script_id = $(this.frameElement as Element).attr('script-id');
-  if (!script_id) {
+  const iframe_name = _getIframeName.call(this);
+  if (!iframe_name.startsWith('TH-script-')) {
     throw new Error('你只能在脚本 iframe 内获取 getScriptId!');
   }
-  return script_id;
+  return iframe_name.replace('TH-script-', '');
 }
 
 export function _getCurrentMessageId(this: Window): number {
@@ -50,7 +45,7 @@ export function _getCurrentMessageId(this: Window): number {
 }
 
 export function getMessageId(iframe_name: string): number {
-  const match = iframe_name.match(/^message-iframe-(\d+)-\d+$/);
+  const match = iframe_name.match(/^TH-message-(\d+)-\d+$/);
   if (!match) {
     throw Error(`获取 ${iframe_name} 所在楼层 id 时出错: 不要对全局脚本 iframe 调用 getMessageId!`);
   }

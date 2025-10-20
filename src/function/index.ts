@@ -1,4 +1,12 @@
-import { registerMacroLike } from '@/component/macrolike';
+import {
+  appendAudioList,
+  getAudioList,
+  getAudioSettings,
+  pauseAudio,
+  playAudio,
+  replaceAudioList,
+  setAudioSettings,
+} from '@/function/audio';
 import { builtin } from '@/function/builtin';
 import {
   createChatMessages,
@@ -24,15 +32,18 @@ import {
   iframe_events,
   tavern_events,
 } from '@/function/event';
-import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
 import {
-  getCharAvatarPath,
-  getCharData,
-  getChatHistoryBrief,
-  getChatHistoryDetail,
-  RawCharacter,
-} from '@/function/raw_character';
-
+  getExtensionInstallationInfo,
+  getExtensionType,
+  getTavernHelperExtensionId,
+  installExtension,
+  isAdmin,
+  isInstalledExtension,
+  reinstallExtension,
+  uninstallExtension,
+  updateExtension,
+} from '@/function/extension';
+import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
 import { builtin_prompt_default_order } from '@/function/generate/types';
 import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
 import {
@@ -66,6 +77,7 @@ import {
   setLorebookEntries,
   updateLorebookEntriesWith,
 } from '@/function/lorebook_entry';
+import { registerMacroLike } from '@/function/macro_like';
 import {
   createOrReplacePreset,
   createPreset,
@@ -84,12 +96,20 @@ import {
   updatePresetWith,
 } from '@/function/preset';
 import {
+  getCharAvatarPath,
+  getCharData,
+  getChatHistoryBrief,
+  getChatHistoryDetail,
+  RawCharacter,
+} from '@/function/raw_character';
+import {
   _appendInexistentScriptButtons,
   _getButtonEvent,
   _getScriptButtons,
   _getScriptInfo,
   _replaceScriptButtons,
   _replaceScriptInfo,
+  getAllEnabledScriptButtons,
 } from '@/function/script';
 import { triggerSlash } from '@/function/slash';
 import {
@@ -109,7 +129,13 @@ import {
   substitudeMacros,
 } from '@/function/util';
 import {
+  _deleteVariable,
   _getAllVariables,
+  _getVariables,
+  _insertOrAssignVariables,
+  _insertVariables,
+  _replaceVariables,
+  _updateVariablesWith,
   deleteVariable,
   getVariables,
   insertOrAssignVariables,
@@ -117,7 +143,7 @@ import {
   replaceVariables,
   updateVariablesWith,
 } from '@/function/variables';
-import { getTavernHelperVersion, updateTavernHelper } from '@/function/version';
+import { getTavernHelperVersion, getTavernVersion, updateTavernHelper } from '@/function/version';
 import {
   createOrReplaceWorldbook,
   createWorldbook,
@@ -167,7 +193,13 @@ function getTavernHelper() {
       _replaceScriptInfo,
 
       // variables
+      _getVariables,
       _getAllVariables,
+      _replaceVariables,
+      _updateVariablesWith,
+      _insertOrAssignVariables,
+      _insertVariables,
+      _deleteVariable,
 
       // util
       _getIframeName,
@@ -181,6 +213,13 @@ function getTavernHelper() {
     audioMode,
     audioPlay,
     audioSelect,
+    playAudio,
+    pauseAudio,
+    getAudioList,
+    replaceAudioList,
+    insertAudioList: appendAudioList,
+    getAudioSettings,
+    setAudioSettings,
 
     // builtin
     builtin,
@@ -203,6 +242,17 @@ function getTavernHelper() {
     // event
     tavern_events,
     iframe_events,
+
+    // extension
+    isAdmin,
+    getTavernHelperExtensionId,
+    getExtensionType,
+    getExtensionStatus: getExtensionInstallationInfo,
+    isInstalledExtension,
+    installExtension,
+    uninstallExtension,
+    reinstallExtension,
+    updateExtension,
 
     // import_raw
     importRawCharacter,
@@ -269,8 +319,11 @@ function getTavernHelper() {
     getChatHistoryBrief,
     getChatHistoryDetail,
 
-    // macrolike
+    // macro_like
     registerMacroLike,
+
+    // script
+    getAllEnabledScriptButtons,
 
     // slash
     triggerSlash,
@@ -299,9 +352,10 @@ function getTavernHelper() {
 
     // version
     getTavernHelperVersion,
-    updateTavernHelper,
     getFrontendVersion: getTavernHelperVersion,
+    updateTavernHelper,
     updateFrontendVersion: updateTavernHelper,
+    getTavernVersion,
 
     // worldbook
     getWorldbookNames,
@@ -323,14 +377,11 @@ function getTavernHelper() {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace globalThis {
   let TavernHelper: ReturnType<typeof getTavernHelper>;
 }
 
-/**
- * 初始化TavernHelper全局对象
- * 将各种功能函数暴露到全局作用域
- */
 export function initTavernHelperObject() {
   globalThis.TavernHelper = getTavernHelper();
 }

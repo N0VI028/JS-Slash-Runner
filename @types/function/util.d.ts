@@ -18,14 +18,14 @@ declare function substitudeMacros(text: string): string;
 declare function getLastMessageId(): number;
 
 /**
- * 包装 `fn` 函数，返回一个会将报错消息通过酒馆通知显示出来的同功能函数
+ * 包装任意函数，返回一个会将报错消息通过酒馆通知显示出来的同功能函数
  *
  * @param fn 要包装的函数
  * @returns 包装后的函数
  *
  * @example
  * // 包装 `test` 函数从而在酒馆通知中显示 'test' 文本
- *  function test() {
+ * function test() {
  *   throw Error(`test`);
  * }
  * errorCatched(test)();
@@ -33,9 +33,9 @@ declare function getLastMessageId(): number;
 declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U;
 
 /**
- * 从消息楼层 iframe 的 `iframe_name` 获取它所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
+ * 从前端界面的 iframe 标识名称 `iframe_name` 获取它所在楼层的楼层号, **只能对前端界面 iframe 标识名称使用**
  *
- * @param iframe_name 消息楼层 iframe 的名称
- * @returns 楼层 id
+ * @param iframe_name 前端界面的 iframe 标识名称
+ * @returns 楼层号
  */
 declare function getMessageId(iframe_name: string): number;
