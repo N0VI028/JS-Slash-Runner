@@ -159,6 +159,8 @@ onBeforeUnmount(() => {
   --item-hover-bg: rgb(from var(--SmartThemeChatTintColor) r g b / 1);
   /* 按钮文本颜色 */
   --jse-button-primary-color: var(--SmartThemeBodyColor);
+  /* 键值的字号大小 */
+  --jse-font-size-mono: var(--mainFontSize);
 
   /* 变量：字符串颜色 */
   --jse-value-color-string: var(--SmartThemeBodyColor);
@@ -184,6 +186,16 @@ onBeforeUnmount(() => {
   --jse-collapsed-items-link-color: var(--SmartThemeEmColor);
   /* 标签的背景色 */
   --jse-tag-background: var(--grey5050a);
+}
+
+@media screen and (max-width: 500px) {
+  :root {
+    --jse-font-size: calc(var(--mainFontSize) * 0.8);
+    --jse-font-size-main-menu: calc(var(--mainFontSize) * 0.8);
+    --jse-svelte-select-font-size: calc(var(--mainFontSize) * 0.8);
+    --jse-font-size-mono: calc(var(--mainFontSize) * 0.8);
+    --jse-font-size-text-mode-search: calc(var(--mainFontSize) * 0.7);
+  }
 }
 
 .jse-modal {
