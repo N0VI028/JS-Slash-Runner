@@ -143,11 +143,7 @@ import {
   replaceVariables,
   updateVariablesWith,
 } from '@/function/variables';
-import {
-  getTavernHelperVersion,
-  getTavernVersion,
-  updateTavernHelper,
-} from '@/function/version';
+import { getTavernHelperVersion, getTavernVersion, updateTavernHelper } from '@/function/version';
 import {
   createOrReplaceWorldbook,
   createWorldbook,
