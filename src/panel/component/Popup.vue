@@ -6,8 +6,8 @@
     :teleport-to="'body'"
     :z-index-fn="() => 10000"
     :hide-overlay="true"
-    :style="width !== 'normal' && width !== 'wide' ? `width: ${width} !important;` : ''"
-    :class="width === 'normal' ? `w-fit!` : width === 'wide' ? `w-full!` : ''"
+    :style="width !== 'normal' && width !== 'wide' && width !== 'fit' ? `width: ${width} !important;` : ''"
+    :class="width === 'normal' ? `w-[500px]` : width === 'wide' ? `w-full!` : width === 'fit' ? `w-fit!` : ''"
     @closed="emit('closed')"
   >
     <div
@@ -15,7 +15,7 @@
       class="popup box-border px-1.5! focus:outline-none"
       role="dialog"
       aria-modal="true"
-      :class="width === 'normal' ? `w-fit!` : width === 'wide' ? `w-full!` : ''"
+      :class="width === 'normal' ? `w-[500px]` : width === 'wide' ? `w-full!` : width === 'fit' ? `w-fit!` : ''"
     >
       <div class="max-h-[80vh] overflow-y-auto">
         <slot></slot>
@@ -55,7 +55,7 @@ withDefaults(
       shouldEmphasize?: boolean;
       class?: string;
     }[];
-    width?: string | 'normal' | 'wide';
+    width?: string | 'normal' | 'wide' | 'fit';
   }>(),
   {
     buttons: () => [{ name: '取消' }],

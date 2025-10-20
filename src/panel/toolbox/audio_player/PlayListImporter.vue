@@ -1,6 +1,6 @@
 <template>
   <!-- prettier-ignore -->
-  <Popup v-model="isVisible" :buttons="popupButtons" width="500px">
+  <Popup v-model="isVisible" :buttons="popupButtons">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
         <h3>导入音频链接</h3>
