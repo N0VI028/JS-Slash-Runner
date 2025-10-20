@@ -4,6 +4,10 @@ import { isAdmin as isAdminImpl } from '@sillytavern/scripts/user';
 
 export const isAdmin = isAdminImpl;
 
+export function getTavernHelperExtensionId(): string {
+  return 'JS-Slash-Runner';
+}
+
 export function getExtensionType(extension_id: string): 'local' | 'global' | 'system' | null {
   const result = Object.keys(extensionTypes).find(result => result.endsWith(extension_id));
   return result ? (extensionTypes[result] as 'global' | 'local' | 'system') : null;

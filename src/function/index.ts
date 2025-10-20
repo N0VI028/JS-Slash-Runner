@@ -1,7 +1,7 @@
 import {
+  appendAudioList,
   getAudioList,
   getAudioSettings,
-  insertAudioList,
   pauseAudio,
   playAudio,
   replaceAudioList,
@@ -35,6 +35,7 @@ import {
 import {
   getExtensionInstallationInfo,
   getExtensionType,
+  getTavernHelperExtensionId,
   installExtension,
   isAdmin,
   isInstalledExtension,
@@ -143,7 +144,6 @@ import {
   updateVariablesWith,
 } from '@/function/variables';
 import {
-  getTavernHelperExtensionId,
   getTavernHelperVersion,
   getTavernVersion,
   updateTavernHelper,
@@ -221,7 +221,7 @@ function getTavernHelper() {
     pauseAudio,
     getAudioList,
     replaceAudioList,
-    insertAudioList,
+    insertAudioList: appendAudioList,
     getAudioSettings,
     setAudioSettings,
 
@@ -249,6 +249,7 @@ function getTavernHelper() {
 
     // extension
     isAdmin,
+    getTavernHelperExtensionId,
     getExtensionType,
     getExtensionStatus: getExtensionInstallationInfo,
     isInstalledExtension,
@@ -356,7 +357,6 @@ function getTavernHelper() {
     // version
     getTavernHelperVersion,
     getFrontendVersion: getTavernHelperVersion,
-    getTavernHelperExtensionId,
     updateTavernHelper,
     updateFrontendVersion: updateTavernHelper,
     getTavernVersion,

@@ -21,12 +21,15 @@ type EventType = IframeEventType | TavernEventType | string;
  * eventOn(要监听的事件, hello);
  *
  * @example
+ * // 监听消息接收并弹出 `'hello'`
+ * eventOn(tavern_events.MESSAGE_RECEIVED, () => alert('hello'));
+ *
+ * @example
  * // 消息被修改时监听是哪一条消息被修改
- * // 能这么做是因为酒馆 MESSAGE_UPDATED 会发送消息 id 回来, 但是这个发送太自由了, 我还没整理出每种消息会发送什么
- * function detectMessageUpdated(message_id) {
- *   alert(`你刚刚修改了第 ${message_id} 条聊天消息对吧😡`);
- * }
- * eventOn(tavern_events.MESSAGE_UPDATED, detectMessageUpdated);
+ * // 酒馆事件 tavern_events.MESSAGE_UPDATED 会传递被更新的楼层 id
+ * eventOn(tavern_events.MESSAGE_UPDATED, message_id => {
+ *   alert(`你刚刚更新了第 ${message_id} 条聊天消息对吧😡`);
+ * });
  */
 declare function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 

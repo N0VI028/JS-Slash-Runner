@@ -18,7 +18,7 @@ type ScriptButton = {
 };
 
 /**
- * 获取指定脚本 `script_id` 的按钮, **只能在脚本中使用**
+ * 获取脚本的按钮列表, **只能在脚本中使用**
  *
  * @returns 按钮数组
  *
@@ -29,7 +29,7 @@ type ScriptButton = {
 declare function getScriptButtons(): ScriptButton[];
 
 /**
- * 替换指定脚本 `script_id` 的按钮, **只能在脚本中使用**
+ * 完全替换脚本的按钮列表, **只能在脚本中使用**
  *
  * @param buttons 按钮数组
  *
@@ -46,7 +46,7 @@ declare function getScriptButtons(): ScriptButton[];
 declare function replaceScriptButtons(buttons: ScriptButton[]): void;
 
 /**
- * 如果指定脚本 `script_id` 没有 `buttons`, 为脚本新增它们到现有按钮末尾, **只能在脚本中使用**
+ * 为脚本按钮列表末尾添加不存在的按钮, 不会重复添加同名按钮, **只能在脚本中使用**
  *
  * @param buttons
  *

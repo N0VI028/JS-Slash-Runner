@@ -1,6 +1,9 @@
 /** 检查当前用户是否为管理员, 只有管理员能更新全局扩展 */
 declare function isAdmin(): boolean;
 
+/** 获取酒馆助手扩展 id */
+declare function getTavernHelperExtensionId(): string;
+
 /**
  * 获取已安装扩展的类型
  * - `'local'`: 本地扩展, 仅当前用户可用
@@ -32,7 +35,7 @@ declare function getExtensionInstallationInfo(extension_id: string): Promise<Ext
  *
  * @example
  * // 检查是否已安装酒馆助手
- * const result = isInstalledExtension('JS-Slash-Runner'));
+ * const is_installed = isInstalledExtension(getTavernHelperExtensionId());
  */
 declare function isInstalledExtension(extension_id: string): boolean;
 

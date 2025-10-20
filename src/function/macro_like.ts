@@ -2,10 +2,10 @@ import { get_variables_without_clone } from '@/function/variables';
 
 interface MacroLike {
   regex: RegExp;
-  replace: (context: Context, substring: string, ...args: any[]) => string;
+  replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string;
 }
 
-interface Context {
+interface MacroLikeContext {
   message_id?: number;
   role?: 'user' | 'assistant' | 'system';
 }
@@ -14,7 +14,7 @@ export const macros: MacroLike[] = [
   {
     regex: /\{\{get_(message|chat|character|preset|global)_variable::(.*?)\}\}/gi,
     replace: (
-      context: Context,
+      context: MacroLikeContext,
       _substring: string,
       type: 'message' | 'chat' | 'character' | 'preset' | 'global',
       path: string,
@@ -30,7 +30,7 @@ export const macros: MacroLike[] = [
 
 export function registerMacroLike(
   regex: RegExp,
-  replace: (context: Context, substring: string, ...args: any[]) => string,
+  replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string,
 ) {
   macros.push({ regex, replace });
 }

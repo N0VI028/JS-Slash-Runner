@@ -1,13 +1,9 @@
 import manifest from '@/../manifest.json';
-import { updateExtension } from '@/function/extension';
+import { getTavernHelperExtensionId, updateExtension } from '@/function/extension';
 import { version } from '@/util/tavern';
 
 export function getTavernHelperVersion(): string {
   return manifest.version;
-}
-
-export function getTavernHelperExtensionId(): string {
-  return 'JS-Slash-Runner';
 }
 
 export async function updateTavernHelper(): Promise<boolean> {
