@@ -23,15 +23,11 @@
         <template #content>
           <!-- prettier-ignore-attribute -->
           <div class="flex cursor-pointer flex-col gap-0.25 rounded-sm bg-(--SmartThemeBlurTintColor) p-0.5">
-            <a
-              href="https://discord.com/channels/1134557553011998840/1296494001406345318"
-              target="_blank"
+            <a href="https://discord.com/channels/1134557553011998840/1296494001406345318" target="_blank"
               ><span class="text-(--SmartThemeBodyColor)">{{ t`类脑` }}</span></a
             >
             <div class="h-[0.5px] w-full bg-(--SmartThemeEmColor)" />
-            <a
-              href="https://discord.com/channels/1291925535324110879/1374297592854216774"
-              target="_blank"
+            <a href="https://discord.com/channels/1291925535324110879/1374297592854216774" target="_blank"
               ><span class="text-(--SmartThemeBodyColor)">{{ t`旅程` }}</span></a
             >
           </div>
