@@ -17,35 +17,102 @@ concurrency:
 
 jobs:
   bundle:
-    if: github.repository != 'StageDog/tavern_helper_template'
     runs-on: ubuntu-latest
     steps:
+      # checkout
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: JesseTG/rm@v1.0.3
         with:
           path: dist
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      # build
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-
-      - run: pnpm install && pnpm format && pnpm build
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9.1.3
-        with:
-          default_author: github_actions
-          message: '[bot] bundle'
-
-      # 自动打版本 tag, 从而让 jsdelivr 基于版本号在 12h 内更新缓存而不是用非版本号的 7d 缓存
-      - id: autotag
+      - run: pnpm i
+      - run: pnpm build
+      - name: Merge @types files to a single file
+        run: |-
+          mkdir -p dist
+          cat @types/**/*.d.ts > dist/@types.txt
+        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
+      - name: Compress @types files to a zip
+        run: |-
+          tar \
+            --sort=name \
+            --mtime='UTC 1980-02-01' \
+            --owner=0 --group=0 --numeric-owner \
+            --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
+            -caf ../dist/@types.zip .
+        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner/@types
+      # tag if [release...] is in the commit message subject
+      - id: autotag_check
+        shell: bash
+        run: |-
+          message=$(git log -n 1 --pretty=format:"%s")
+          if [[ $message == *"[release]"* || $message == *"[release patch]"* ]]; then
+            echo "should_tag=true" >> "$GITHUB_OUTPUT"
+            echo "bump=patch" >> "$GITHUB_OUTPUT"
+          elif [[ $message == *"[release minor]"* ]]; then
+            echo "should_tag=true" >> "$GITHUB_OUTPUT"
+            echo "bump=minor" >> "$GITHUB_OUTPUT"
+          elif [[ $message == *"[release major]"* ]]; then
+            echo "should_tag=true" >> "$GITHUB_OUTPUT"
+            echo "bump=major" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_tag=false" >> "$GITHUB_OUTPUT"
+            echo "bump=" >> "$GITHUB_OUTPUT"
+          fi
+      - if: ${{ github.ref_type != 'tag' && steps.autotag_check.outputs.should_tag == 'true' }}
+        id: autotag
         uses: phish108/autotag-action@v1.1.64
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          with-v: true
-      - if: ${{ steps.autotag.outputs.tag != '0.0.0' }}
-        run: git push --delete origin ${{ steps.autotag.outputs.tag }}
+          bump: ${{ steps.autotag_check.outputs.bump }}
+          dry-run: true
+      - if: ${{ github.ref_type == 'tag' }}
+        id: manual_tag
+        env:
+          VALUE: ${{ github.ref }}
+        run: |-
+          export TAG=${VALUE##refs/tags/}
+          echo result=$TAG >> "$GITHUB_OUTPUT"
+      - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          include: manifest.json
+          find: \d+\.\d+\.\d+
+          replace: ${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}
+          regex: true
+      - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+        id: package_version
+        run: |-
+          echo 'result="version": "${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}"' >> "$GITHUB_OUTPUT"
+      - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          include: package.json
+          find: '"version": "\d+\.\d+\.\d+"'
+          replace: ${{ steps.package_version.outputs.result }}
+          regex: true
+
+      # commit
+      - uses: EndBug/add-and-commit@v9.1.3
+        with:
+          default_author: github_actions
+          message: '[bot] Bundle'
+      - if: ${{ github.ref_type == 'tag' }}
+        shell: bash
+        run: |-
+          git tag -d ${{ steps.manual_tag.outputs.result }}
+          git push --delete origin ${{ steps.manual_tag.outputs.result }}
+      - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+        shell: bash
+        run: |-
+          git tag ${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}
+          git push --tags

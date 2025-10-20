@@ -10,7 +10,7 @@
 
 ### 📕脚本库
 
-- 现在预设也可以绑定酒馆助手脚本了, 从而方便门之主写卡助手 ([类脑](https://discord.com/channels/1134557553011998840/1384864160671858688)/[旅程](https://discord.com/channels/1291925535324110879/1372476919618211961)) 这类有配套脚本的预设, 及 SPreset 等可以绑定在预设上方便导入的脚本.
+- 现在预设也可以绑定酒馆助手脚本了, 从而方便门之主写卡助手这类有配套脚本的预设, 及 SPreset 等可以绑定在预设上方便导入的脚本.
 - 移除脚本库的【移动到另一脚本库】按钮, 现在你可以直接将脚本拖动到另一个脚本库.
 - 移除了使用较少的脚本批量操作功能, 请将脚本放入同一文件夹后进行操作来替代.
 - 在脚本编辑界面, 为脚本按钮设置了总开关, 你可以方便地一键启用/禁用所有脚本按钮.
@@ -34,17 +34,16 @@
 ### 🎧播放器
 
 - 新增音频标题功能. 你现在可以为导入的音频设置一个标题, 从而更方便地在 UI 中管理播放列表.
-- 新增可获取和修改播放列表的`getAudioList`、`replaceAudioList`和`insertAudioList`函数.
-- 新增可获取和修改音频设置的`getAudioSettings`和`setAudioSettings`函数, 支持获取和设置播放器的启用状态、播放模式、静音状态和音量.
 - 调整音频导入 UI, 支持单个链接导入和批量导入两种模式.
 - 调整了音量控制器的位置, 方便移动端用户操作.
 - 移除了播放器的冷却时间和淡入淡出功能.
+- 为音频播放器制作了[新的函数接口](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/播放音频/播放状态.html)
 - 不再维护 `/audioselect` 等快速回复命令 (旧角色卡不受影响), 因为酒馆助手脚本完全兼容和上位替代快速回复.
-- 不再维护`audioenable`、`audioplay`、`audioMode` 等旧命令, 建议以新的 `playAudio`、`pauseAudio`、`setAudioSettings` 等函数代替.
+- 不再维护 `audioenable`、`audioplay`、`audioMode` 等旧命令, 建议以新的 `playAudio`、`pauseAudio`、`setAudioSettings` 等函数代替.
 
 ### 🌐i18n 国际化
 
-- 对酒馆助手进行了英文翻译. 现在酒馆选择英文版时, 酒馆助手也将显示英文界面.
+- 对酒馆助手进行了英文翻译. 现在酒馆语言选择英文时, 酒馆助手也将显示英文界面.
 
 ### 💬酒馆助手宏
 
@@ -52,13 +51,14 @@
 
 ### 📦函数
 
-- `getVariables`、`replaceVariables` 等变量相关函数现在支持处理预设变量 (`'preset'`) 和第三方插件常用的扩展变量 (`'extension'`).
+- `getVariables`、`replaceVariables` 等[变量相关函数](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/变量/变量类型.html)现在支持处理预设变量 (`'preset'`) 和第三方插件常用的扩展变量 (`'extension'`).
 - 现在在脚本内操作脚本变量时, 你可以只写 `getVariables({type: 'script'})` 而不需要传入 `script_id` 参数.
 - `replaceVariables` 不再需要 `await`.
-- 新增 `getAllEnabledScriptButtons` 函数用于获取当前处于启用状态的所有脚本按钮.
-- 新增 `installExtension` 等安装酒馆插件相关接口, 现在你可以简单地在酒馆助手中安装、更新、卸载酒馆插件了 (虽然已经有[自动安装插件脚本](https://stagedog.github.io/青空莉/作品集/)).
+- 新增 [`getAllEnabledScriptButtons`](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/脚本额外功能.html#getallenabledscriptbuttons) 函数用于获取当前处于启用状态的所有脚本按钮, 方便 QR 助手对脚本按钮进行适配
+- 新增 `installExtension` 等[安装酒馆插件](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/安装酒馆扩展.html)相关接口, 现在你可以简单地在酒馆助手中安装、更新、卸载酒馆插件了 (虽然已经有[自动安装插件脚本](https://stagedog.github.io/青空莉/作品集/)).
 - 新增 `getTavernHelperExtensionId` 函数用于获取酒馆助手扩展 ID.
-- 新增 `getTavernVersion` 函数用于获取酒馆版本.
+- 新增 `getTavernVersion` 函数用于[获取酒馆版本](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/查询版本.html).
+- 为音频播放器制作了[新的函数接口](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/播放音频/播放状态.html)
 
 ### 🔧杂项
 
@@ -66,6 +66,48 @@
 - 为便于其他插件使用酒馆助手接口, 将酒馆助手加载顺序提前到了 `"loading_order": 50`, 而不是默认的 `"loading_order": 100`.
 - 插件主界面将会记忆用户最后选择的功能面板, 下次打开时会自动显示.
 - 补充了一些酒馆事件的类型定义, 请使用酒馆助手前端界面或脚本编写模板的作者[更新模板](https://stagedog.github.io/青空莉/工具经验/实时编写前端界面或脚本/如何更新模板/).
+
+### 3.6.13
+
+### ⏫功能
+
+- 为 `generate` 和 `generateRaw` 添加 `iframe_events.GENERATION_BEFORE_END` 事件, 以便在生成结束前由提示词模板等脚本更改结果
+
+## 3.6.12
+
+### 🐛修复
+
+- 3.6.3 后 `replaceTavernRegexes` 成功修改正则，但正则界面对正则的显示没刷新
+
+## 3.6.11
+
+### 💻界面
+
+- 移除了酒馆助手设置中的 `token 数过多提醒` 功能, 因为并没有解决答疑频道问类似问题人很多的问题; 需要此功能请在 `酒馆助手-内置库` 中添加 `token 数过多提醒脚本`
+
+### ⏫功能
+
+**内置库:**
+
+- 添加`token数过多提醒`脚本, 可以提醒你 token 数过多
+
+## 3.6.10
+
+### 💻界面
+
+- 提示词查看器上面的提示信息改为显示 5 秒后自动消失, 避免占用手机屏幕空间
+
+## 3.6.9
+
+### 💻界面
+
+- 考虑到答疑频道提问这类问题的人有很多, 在酒馆助手设置中新增 `token 数过多提醒` 功能, 当聊天 token 数过多时会提醒你总结前文
+
+## 3.6.8
+
+### 🐛修复
+
+- 与最新版提示词模板的消息楼层变量兼容性
 
 ## 3.6.7
 

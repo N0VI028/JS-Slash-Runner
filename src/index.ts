@@ -2,8 +2,8 @@ import '@/global.css';
 import Panel from '@/Panel.vue';
 import { App } from 'vue';
 import { createVfm } from 'vue-final-modal';
-import VueTippy from 'vue-tippy';
 import 'vue-final-modal/style.css';
+import VueTippy from 'vue-tippy';
 
 const app = createApp(Panel);
 
@@ -28,6 +28,6 @@ const i18n = {
 app.use(i18n);
 
 $(() => {
-  const $app = $('<div id="tavern_helper_new">').appendTo('#extensions_settings');
+  const $app = $('<div id="tavern_helper">').appendTo('#extensions_settings');
   app.mount($app[0]);
 });

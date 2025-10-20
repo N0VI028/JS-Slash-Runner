@@ -1,5 +1,5 @@
 {
-  "name": "Tavern-Helper",
+  "name": "JS-Slash-Runner",
   "version": "4.0.0",
   "scripts": {
     "build": "vite build",
