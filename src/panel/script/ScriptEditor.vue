@@ -1,7 +1,5 @@
 <template>
-  <Popup
-    :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]"
-  >
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]">
     <DefineMaximizeButton v-slot="{ activate }">
       <i class="fa-solid fa-maximize interactable cursor-pointer" @click="activate"></i>
     </DefineMaximizeButton>
