@@ -1,44 +1,45 @@
 <template>
-  <div class="mb-0.5 flex flex-wrap items-center gap-0.5 rounded-sm bg-(--grey5020a) p-0.25 text-sm">
-    <div class="mr-1 flex grow flex-wrap items-center gap-0.5 text-sm">
-      <!-- prettier-ignore-attribute -->
-      <button
-        class="
-          flex h-2 cursor-pointer items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75
-          py-0.25 text-sm!
-        "
-        :style="{ color: text_color }"
-        @click="sync_bottom = !sync_bottom"
-      >
-        <i
-          class="fa-solid"
-          :class="{ 'fa-arrow-up-short-wide': sync_bottom, 'fa-arrow-down-short-wide': !sync_bottom }"
-        ></i>
-        <span>{{ sync_bottom ? `追踪最新` : `正序显示` }}</span>
-      </button>
-      <div class="flex items-center gap-0.5">
-        <input v-model="from" type="number" class="TH-floor-input" :min="0" :max="chat_length - 1" />
-        楼
-        <span class="text-(--SmartThemeBodyColor)">~</span>
-        <input
-          v-model="to"
-          :disabled="sync_bottom"
-          type="number"
-          class="TH-floor-input"
-          :min="0"
-          :max="chat_length - 1"
-        />
-        楼
+  <div class="flex h-full flex-col">
+    <div class="mb-0.5 flex flex-wrap items-center gap-0.5 rounded-sm bg-(--grey5020a) p-0.25 text-sm">
+      <div class="mr-1 flex grow flex-wrap items-center gap-0.5 text-sm">
+        <!-- prettier-ignore-attribute -->
+        <button
+          class="
+            flex h-2 cursor-pointer items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75
+            py-0.25 text-sm!
+          "
+          :style="{ color: text_color }"
+          @click="sync_bottom = !sync_bottom"
+        >
+          <i
+            class="fa-solid"
+            :class="{ 'fa-arrow-up-short-wide': sync_bottom, 'fa-arrow-down-short-wide': !sync_bottom }"
+          ></i>
+          <span>{{ sync_bottom ? `追踪最新` : `正序显示` }}</span>
+        </button>
+        <div class="flex items-center gap-0.5">
+          <input v-model="from" type="number" class="TH-floor-input" :min="0" :max="chat_length - 1" />
+          楼
+          <span class="text-(--SmartThemeBodyColor)">~</span>
+          <input
+            v-model="to"
+            :disabled="sync_bottom"
+            type="number"
+            class="TH-floor-input"
+            :min="0"
+            :max="chat_length - 1"
+          />
+          楼
+        </div>
       </div>
+      <div class="mr-0.5">最新楼层号: {{ chat_length - 1 }}</div>
     </div>
-    <div class="mr-0.5">最新楼层号: {{ chat_length - 1 }}</div>
+    <VirtList item-key="message_id" :list="messages" :min-size="200" :item-gap="7">
+      <template #default="{ itemData: item_data }">
+        <MessageItem :chat-length="chat_length" :message-id="item_data.message_id" :refresh-key="refresh_key" />
+      </template>
+    </VirtList>
   </div>
-  <!-- 将 sync_bottom 作为 key, 从而在切换 sync_bottom 时刷新整个 VirtList, 避免存在大量空白 -->
-  <VirtList :key="sync_bottom ? 'bottom' : 'top'" item-key="message_id" :list="messages" :min-size="200" :item-gap="7">
-    <template #default="{ itemData: item_data }">
-      <MessageItem :chat-length="chat_length" :message-id="item_data.message_id" :refresh-key="refresh_key" />
-    </template>
-  </VirtList>
 </template>
 
 <script setup lang="ts">
