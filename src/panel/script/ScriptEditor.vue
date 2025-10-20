@@ -41,7 +41,7 @@
         <small>{{ t`绑定到脚本的变量, 会随脚本一同导出` }}</small>
         <div
           :class="[
-            'my-[5px] h-[150px] rounded-[5px] border border-(--SmartThemeBorderColor) bg-(--black30a) p-[3px]',
+            'my-[5px] h-[150px] w-full rounded-[5px] border border-(--SmartThemeBorderColor) bg-(--black30a) p-[3px]',
             { 'pointer-events-none': hideInlineDataEditor },
           ]"
           :aria-hidden="hideInlineDataEditor"
