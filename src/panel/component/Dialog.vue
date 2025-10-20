@@ -164,7 +164,7 @@ const { width: window_width } = useWindowSize();
 
 const dialog_ref = useTemplateRef<HTMLElement>('dialog_ref');
 const header_ref = useTemplateRef<HTMLElement>('header_ref');
-const teleport_target = computed(() => (is_mobile ? '#sheld' : 'body'));
+const teleport_target = computed(() => (is_mobile ? '#movingDivs' : 'body'));
 const mobile_dialog_index = ref(0);
 
 const header_height = ref(32);
@@ -297,7 +297,7 @@ if (typeof window !== 'undefined') {
  */
 const initizeSize = () => {
   const target_width = is_mobile ? '100%' : props.width;
-  const target_height = is_mobile ? props.mobileHeight : props.height;
+  const target_height = is_mobile ? (props.mobileHeight ?? '80%') : props.height;
 
   dialog_size.value.width = convertToPixels(target_width);
   dialog_size.value.height = convertToPixels(target_height);
@@ -520,7 +520,8 @@ function checkAndAdjustBounds() {
     adjusted = true;
   }
 
-  if (dialog_size.value.height > max_height) {
+  // 移动端不对高度做强制限制，避免输入法弹出导致压缩高度
+  if (!is_mobile && dialog_size.value.height > max_height) {
     dialog_size.value.height = max_height;
     adjusted = true;
   }
@@ -528,7 +529,8 @@ function checkAndAdjustBounds() {
   const min_x = 0;
   const max_x = viewport_width - dialog_size.value.width;
   const min_y = 0;
-  const max_y = viewport_height - (is_collapsed.value ? header_height.value : dialog_size.value.height);
+  const dialog_current_height = is_collapsed.value ? header_height.value : dialog_size.value.height;
+  const max_y = Math.max(0, viewport_height - dialog_current_height);
 
   if (!is_mobile) {
     if (x.value < min_x) {
@@ -1042,22 +1044,28 @@ const startResize = (direction: string, event: PointerEvent) => {
  * @returns {object} 返回对话框样式对象
  */
 const dialog_style = computed(() => {
-  const base_height = is_collapsed.value ? `${header_height.value}px` : `${dialog_size.value.height}px`;
   const user_select = is_dragging.value || is_resizing.value ? ('none' as const) : ('auto' as const);
-  const width_px = is_mobile ? '100%' : `${dialog_size.value.width}px`;
-  const left = is_mobile ? '0px' : `${x.value}px`;
-  const top = is_mobile ? `${mobile_top_offset.value}px` : `${y.value}px`;
-
-  return {
-    position: 'absolute' as const,
-    left: left,
-    top: top,
-    width: width_px,
-    height: base_height,
-    maxHeight: is_mobile ? '90%' : '',
-    zIndex: 10000,
-    userSelect: user_select,
-  };
+  const position = 'absolute' as const;
+  if (is_mobile) {
+    return {
+      position: position,
+      transform: `translateY(${mobile_top_offset.value}px)`,
+      height: `${dialog_size.value.height}px`,
+      maxHeight: 'calc(100dvh - 45px - ${mobile_top_offset.value}px)',
+      zIndex: 10000,
+      userSelect: user_select,
+    };
+  } else {
+    return {
+      position: position,
+      left: `${x.value}px`,
+      top: `${y.value}px`,
+      width: `${dialog_size.value.width}px`,
+      height: is_collapsed.value ? `${header_height.value}px` : `${dialog_size.value.height}px`,
+      zIndex: 10000,
+      userSelect: user_select,
+    };
+  }
 });
 
 const dialog_classes = computed(() => ({
