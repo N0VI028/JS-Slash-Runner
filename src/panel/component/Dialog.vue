@@ -1058,8 +1058,11 @@ const dialog_style = computed(() => {
   } else {
     return {
       position: position,
-      left: `${x.value}px`,
-      top: `${y.value}px`,
+      // 避免触发布局与重绘
+      transform: `translate3d(${x.value}px, ${y.value}px, 0)`,
+      willChange: 'transform',
+      left: '0px',
+      top: '0px',
       width: `${dialog_size.value.width}px`,
       height: is_collapsed.value ? `${header_height.value}px` : `${dialog_size.value.height}px`,
       zIndex: 10000,
