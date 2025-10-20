@@ -1,21 +1,19 @@
 <template>
   <VueFinalModal
     v-model="visible"
-    class="TH-popup absolute! top-1/2! left-1/2! h-fit -translate-x-1/2 -translate-y-1/2"
-    content-class="flex items-center justify-center"
+    class="TH-popup absolute! flex h-full w-full items-center justify-center"
     :teleport-to="'body'"
     :z-index-fn="() => 10000"
     :hide-overlay="true"
-    :style="width !== 'normal' && width !== 'wide' && width !== 'fit' ? `width: ${width} !important;` : ''"
-    :class="width === 'normal' ? `w-[500px]` : width === 'wide' ? `w-full!` : width === 'fit' ? `w-fit!` : ''"
     @closed="emit('closed')"
   >
     <div
       ref="dialog_ref"
-      class="popup box-border px-1.5! focus:outline-none"
+      class="popup box-border justify-between px-1.5! focus:outline-none"
       role="dialog"
       aria-modal="true"
-      :class="width === 'normal' ? `w-[500px]` : width === 'wide' ? `w-full!` : width === 'fit' ? `w-fit!` : ''"
+      :class="width === 'normal' ? `w-[500px]` : width === 'wide' ? `h-dvh w-dvw!` : width === 'fit' ? `w-fit!` : ''"
+      :style="width !== 'normal' && width !== 'wide' && width !== 'fit' ? `width: ${width} !important;` : ''"
     >
       <div class="max-h-[80vh] overflow-y-auto">
         <slot></slot>

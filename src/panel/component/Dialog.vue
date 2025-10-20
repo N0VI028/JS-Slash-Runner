@@ -128,8 +128,8 @@ const props = withDefaults(
     storageId?: string;
   }>(),
   {
-    width: '60vw',
-    height: '70vh',
+    width: '60dvw',
+    height: '70dvh',
     mobileHeight: '90%',
     title: '未命名浮窗',
     showGuide: false,
@@ -137,8 +137,8 @@ const props = withDefaults(
     resizable: true,
     minWidth: 300,
     minHeight: 200,
-    maxWidth: '90vw',
-    maxHeight: '90vh',
+    maxWidth: '90dvw',
+    maxHeight: '90dvh',
     edgeSnap: true,
     snapDistance: 100,
     handles: () => ['tl', 'tm', 'tr', 'mr', 'br', 'bm', 'bl', 'ml'],

@@ -12,8 +12,7 @@
         <textarea
           v-model="text"
           :placeholder="props.target === 'content' ? t`JavaScript 代码` : t`备注文本`"
-          rows="18"
-          class="text_pole min-h-[50vh] font-[family-name:var(--monoFontFamily)]!"
+          class="text_pole h-dvh! min-h-[50vh] font-[family-name:var(--monoFontFamily)]!"
         />
       </template>
       <template v-else>
