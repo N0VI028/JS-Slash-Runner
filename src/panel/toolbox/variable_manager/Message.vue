@@ -33,7 +33,6 @@
     </div>
     <div class="mr-0.5">最新楼层号: {{ chat_length - 1 }}</div>
   </div>
-  <!-- TODO(4.0): 调整好样式 (能够正常滑动、页面高度刚好能显示两个左右) 后再调整 min-size -->
   <!-- 将 sync_bottom 作为 key, 从而在切换 sync_bottom 时刷新整个 VirtList, 避免存在大量空白 -->
   <VirtList :key="sync_bottom ? 'bottom' : 'top'" item-key="message_id" :list="messages" :min-size="200" :item-gap="7">
     <template #default="{ itemData: item_data }">
