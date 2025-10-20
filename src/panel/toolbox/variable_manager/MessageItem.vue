@@ -7,7 +7,7 @@
     "
     @click="is_collapsed = !is_collapsed"
   >
-    <span>第 {{ normalized_message_id }} 楼</span>
+    <span> {{ t`第 ${normalized_message_id} 楼` }} </span>
     <div class="flex items-center justify-center">
       <i class="fa-solid" :class="is_collapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
     </div>

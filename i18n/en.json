@@ -56,6 +56,8 @@
   "预设脚本": "Preset Script",
   "绑定到当前预设": "Bind to the current preset",
 
+  "关闭前端渲染": "Disable Fontend Renderer",
+  "开启前端渲染": "Enabled Fontend Renderer",
   "提示词查看器": "Prompt Viewer",
   "查看当前提示词发送情况，窗口开启时会监听新的发送及时更新显示": "View the current prompt sending situation, the window will listen for new sending and update the display in time",
   "变量管理器": "Variable Manager",
@@ -178,5 +180,10 @@
   "预设": "Preset",
   "角色": "Character",
   "聊天": "Chat",
-  "消息楼层": "Message"
+  "消息楼层": "Message",
+  "追踪最新": "Track Latest",
+  "正序显示": "In Order",
+  "楼": "message id",
+  "最新楼层号": "latest message id",
+  "第 ${0} 楼": "#${0}"
 }
