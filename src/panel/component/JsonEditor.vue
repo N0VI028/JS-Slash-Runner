@@ -77,21 +77,11 @@ onMounted(() => {
           _.has(diff.updated, path) ? 'jse-custom-updated' : _.has(diff.added, path) ? 'jse-custom-added' : undefined,
       });
 
-      nextTick(() => {
-        const highlighted = editor_ref.value?.querySelectorAll('.jse-custom-added, .jse-custom-updated');
-        highlighted?.forEach(element => {
-          element.addEventListener(
-            'animationend',
-            (event: Event) => {
-              const e = event as AnimationEvent;
-              if (e.animationName.includes('background-flash')) {
-                element.classList.remove('jse-custom-added', 'jse-custom-updated');
-              }
-            },
-            { once: true },
-          );
+      _.delay(() => {
+        editor_instance.updateProps({
+          onClassName: () => undefined,
         });
-      });
+      }, ANIMATION_TIME);
     };
 
     if (has_deletions) {

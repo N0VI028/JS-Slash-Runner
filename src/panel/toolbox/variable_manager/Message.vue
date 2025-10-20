@@ -53,7 +53,6 @@ const virt_list_ref = useTemplateRef('virt_list');
 const chat_length = ref(chat.length);
 useEventSourceOn(
   [
-    event_types.CHAT_CHANGED,
     event_types.MESSAGE_DELETED,
     event_types.MESSAGE_RECEIVED,
     event_types.MESSAGE_SENT,
@@ -62,7 +61,9 @@ useEventSourceOn(
     event_types.USER_MESSAGE_RENDERED,
   ],
   () => {
-    chat_length.value = chat.length;
+    if (chat.length !== chat_length.value) {
+      chat_length.value = chat.length;
+    }
   },
 );
 
@@ -88,6 +89,9 @@ const refresh_key = ref<symbol>(Symbol());
 useIntervalFn(() => {
   refresh_key.value = Symbol();
 }, 2000);
+useEventSourceOn(event_types.CHAT_CHANGED, () => {
+  refresh_key.value = Symbol();
+});
 watch(refresh_key, () => {
   if (chat.length !== chat_length.value) {
     chat_length.value = chat.length;
