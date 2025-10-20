@@ -10,7 +10,6 @@
             {{ t`${filtered_prompts.length}/${prompts.length} 条消息` }}
           </div>
         </div>
-        <!-- TODO(4.0): 调整位置和样式 -->
         <div class="flex items-center gap-1">
           <div class="fa-solid fa-expand cursor-pointer" title="展开全部" @click="toggleAll(true)" />
           <div class="fa-solid fa-compress cursor-pointer" title="收起全部" @click="toggleAll(false)" />
