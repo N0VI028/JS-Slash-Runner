@@ -57,7 +57,7 @@ export function replaceAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithO
   store.playlist = audio_list.map(item => ({ title: item.title || handle_url_to_title(item.url), url: item.url }));
 }
 
-export function insertAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void {
+export function appendAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void {
   const store = get_store_by_type(type);
   store.playlist.push(
     ...audio_list.map(item => ({ title: item.title || handle_url_to_title(item.url), url: item.url })),

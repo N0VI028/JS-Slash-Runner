@@ -1,7 +1,7 @@
 <template>
   <Popup :buttons="[{ name: t`关闭` }]">
     <div class="my-1.25 flex flex-col flex-wrap gap-0.5">
-      <h3 class="my-0!">内置库</h3>
+      <h3 class="my-0!">{{ t`内置库` }}</h3>
       <div class="mb-0.75 flex flex-col gap-0.75">
         <span class="inline-block text-left">{{
           t`内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区`

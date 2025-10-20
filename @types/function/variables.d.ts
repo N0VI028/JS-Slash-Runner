@@ -95,7 +95,7 @@ declare function replaceVariables(variables: Record<string, any>, option: Variab
  *
  * @example
  * // 更新 "爱城华恋.好感度" 为原来的 2 倍, 如果该变量不存在则设置为 0
- * updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0));
+ * updateVariablesWith(variables => _.update(variables, "爱城华恋.好感度", value => value ? value * 2 : 0), {type: 'chat'});
  */
 declare function updateVariablesWith(
   updater: (variables: Record<string, any>) => Record<string, any>,
@@ -111,7 +111,7 @@ declare function updateVariablesWith(
  * @returns 更新后的变量表
  *
  * @example
- * await updateVariablesWith(async variables => {await update(variables); return variables;});
+ * await updateVariablesWith(async variables => {await update(variables); return variables;}, {type: 'chat'});
  */
 declare function updateVariablesWith(
   updater: (variables: Record<string, any>) => Promise<Record<string, any>>,
@@ -130,13 +130,10 @@ declare function updateVariablesWith(
  *
  * @example
  * // 执行前变量: `{爱城华恋: {好感度: 5}}`
- * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
+ * await insertOrAssignVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}, {type: 'chat'});
  * // 执行后变量: `{爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-declare function insertOrAssignVariables(
-  variables: Record<string, any>,
-  option: VariableOption,
-): Promise<Record<string, any>>;
+declare function insertOrAssignVariables(variables: Record<string, any>, option: VariableOption): Record<string, any>;
 
 /**
  * 插入新变量, 如果变量已经存在则什么也不做
@@ -150,10 +147,10 @@ declare function insertOrAssignVariables(
  *
  * @example
  * // 执行前变量: `{爱城华恋: {好感度: 5}}`
- * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}});
+ * await insertVariables({爱城华恋: {好感度: 10}, 神乐光: {好感度: 5, 认知度: 0}}, {type: 'chat'});
  * // 执行后变量: `{爱城华恋: {好感度: 5}, 神乐光: {好感度: 5, 认知度: 0}}`
  */
-declare function insertVariables(variables: Record<string, any>, option: VariableOption): Promise<Record<string, any>>;
+declare function insertVariables(variables: Record<string, any>, option: VariableOption): Record<string, any>;
 
 /**
  * 删除变量, 如果变量不存在则什么也不做
@@ -167,10 +164,10 @@ declare function insertVariables(variables: Record<string, any>, option: Variabl
  *
  * @example
  * // 执行前变量: `{爱城华恋: {好感度: 5}}`
- * await deleteVariable("爱城华恋.好感度");
+ * await deleteVariable("爱城华恋.好感度", {type: 'chat'});
  * // 执行后变量: `{爱城华恋: {}}`
  */
 declare function deleteVariable(
   variable_path: string,
   option: VariableOption,
-): Promise<{ variables: Record<string, any>; delete_occurred: boolean }>;
+): { variables: Record<string, any>; delete_occurred: boolean };

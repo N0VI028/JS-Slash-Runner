@@ -1,12 +1,12 @@
 /**
- * 获取世界书列表
+ * 获取世界书名称列表
  *
  * @returns 世界书名称列表
  */
 declare function getWorldbookNames(): string[];
 
 /**
- * 获取当前全局开启的世界书列表
+ * 获取当前全局开启的世界书名称列表
  *
  * @returns 全局世界书名称列表
  */

@@ -1,5 +1,5 @@
-import { reinstallExtension, updateExtension } from '@/function/extension';
-import { getTavernHelperExtensionId, getTavernHelperVersion } from '@/function/version';
+import { getTavernHelperExtensionId, reinstallExtension, updateExtension } from '@/function/extension';
+import { getTavernHelperVersion } from '@/function/version';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { compare } from 'compare-versions';
 import { marked } from 'marked';

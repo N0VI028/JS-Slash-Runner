@@ -96,7 +96,7 @@ type GenerateRawConfig = {
   injects?: Omit<InjectionPrompt, 'id'>[];
 
   /**
-   * 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设. 该数组允许存放两种类型:
+   * 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设. 该数组允许存放两种类型:
    * - `BuiltinPrompt`: 内置提示词. 由于不使用预设, 如果需要 "角色描述" 等提示词, 你需要自己指定要用哪些并给出顺序
    *                      如果不想自己指定, 可通过 `builtin_prompt_default_order` 得到酒馆默认预设所使用的顺序 (但对于这种情况, 也许你更应该用 `generate`).
    * - `RolePrompt`: 要额外给定的提示词.
@@ -162,7 +162,7 @@ type BuiltinPrompt =
   | 'user_input';
 
 /**
- * 使用酒馆当前启用的预设, 让 ai 生成一段文本.
+ * 使用酒馆当前启用的预设, 让 AI 生成一段文本.
  *
  * 该函数在执行过程中将会发送以下事件:
  * - `iframe_events.GENERATION_STARTED`: 生成开始
@@ -216,7 +216,7 @@ type BuiltinPrompt =
 declare function generate(config: GenerateConfig): Promise<string>;
 
 /**
- * 不使用酒馆当前启用的预设, 让 ai 生成一段文本.
+ * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
  *
  * 该函数在执行过程中将会发送以下事件:
  * - `iframe_events.GENERATION_STARTED`: 生成开始
@@ -231,7 +231,7 @@ declare function generate(config: GenerateConfig): Promise<string>;
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
  *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
- *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 ai, 因而相当于自定义预设
+ *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设
  * @returns 生成的最终文本
  *
  * @example

@@ -15,6 +15,8 @@
  * @example
  * // 获取当前聊天消息最后一条消息对应的 id
  * const last_message_id = await triggerSlash('/pass {{lastMessageId}}');
+ * // 但更建议你用酒馆助手函数
+ * const last_message = getLastMessageId();
  *
  * @example
  * // 创建一条用户输入到消息楼层末尾

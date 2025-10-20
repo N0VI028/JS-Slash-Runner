@@ -7,10 +7,10 @@ import { extension_settings } from '@sillytavern/scripts/extensions';
 
 function getSettings() {
   const backward_settings = _.get(extension_settings, 'TavernHelper');
-  // TODO(4.0): 正式发布时要去掉 `&& !_.has(extension_settings, setting_field)`
+  // TODO: 等 4.0 稳定后去掉 `&& !_.has(extension_settings, setting_field)`
   if (backward_settings !== undefined && !_.has(extension_settings, setting_field)) {
     _.set(extension_settings, setting_field, BackwardGlobalSettings.parse(backward_settings));
-    // TODO(4.0): 正式发布时要移除旧配置
+    // TODO: 等 4.0 稳定后移除旧配置
     // _.unset(extension_settings, 'TavernHelper');
     saveSettingsDebounced();
   }

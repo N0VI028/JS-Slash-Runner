@@ -37,13 +37,16 @@
   "启用渲染器": "Enable Renderer",
   "启用后，符合条件的代码块将被渲染": "When enabled, qualified code blocks will be rendered",
   "启用代码折叠": "Enable Code Folding",
-  "折叠所有代码块，避免正则替换成前端代码时影响阅读": "Fold all code blocks to avoid affecting reading when regex replaces frontend code",
+  "折叠指定类型的代码块，当选择“仅前端”时，将只折叠可渲染成前端界面但没被渲染的代码块": "Fold specified types of code blocks, when selecting \"Only Frontend\", only code blocks that can be rendered into frontend interface but not rendered will be folded",
   "启用加载动画": "Enable Loading Animation",
   "在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面": "Show loading animation instead of incomplete interface before fonts, images and other resources in frontend are loaded",
   "启用 Blob URL 渲染": "Enable Blob URL Rendering",
   "使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试": "Use Blob URL to render frontend interface, may have style issues and not available on some browsers, but easier for F12 developer tool debugging",
   "渲染深度": "Rendering Depth",
   "设置需要渲染的楼层数，从最新楼层开始计数。为 0 时，将渲染所有楼层": "Set the number of floors to render, counting from the latest floor. When 0, all floors will be rendered",
+  "全部": "All",
+  "仅前端": "Only Frontend",
+  "禁用": "Disable",
 
   "搜索（支持普通和/正则/）": "Search (supports both plain and /regex/)",
   "全局脚本": "Global Script",
@@ -53,6 +56,8 @@
   "预设脚本": "Preset Script",
   "绑定到当前预设": "Bind to the current preset",
 
+  "关闭前端渲染": "Disable Fontend Renderer",
+  "开启前端渲染": "Enabled Fontend Renderer",
   "提示词查看器": "Prompt Viewer",
   "查看当前提示词发送情况，窗口开启时会监听新的发送及时更新显示": "View the current prompt sending situation, the window will listen for new sending and update the display in time",
   "变量管理器": "Variable Manager",
@@ -175,5 +180,10 @@
   "预设": "Preset",
   "角色": "Character",
   "聊天": "Chat",
-  "消息楼层": "Message"
+  "消息楼层": "Message",
+  "追踪最新": "Track Latest",
+  "正序显示": "In Order",
+  "楼": "message id",
+  "最新楼层号": "latest message id",
+  "第 ${0} 楼": "#${0}"
 }
