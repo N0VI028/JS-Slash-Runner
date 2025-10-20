@@ -61,7 +61,7 @@
         v-for="handle in enabled_handles"
         :key="handle.name"
         :class="['absolute opacity-0', handle.cursor, handle.class]"
-        :style="handle.style"
+        :style="[handle.style, { touchAction: 'none' }]"
         @pointerdown="startResize(handle.name, $event)"
       ></div>
     </div>
@@ -660,7 +660,7 @@ useDraggable(dialog_ref, {
   initialValue: computed(() => ({ x: x.value, y: y.value })),
   onStart: (_position, event) => {
     if (!props.draggable || is_mobile) {
-      return false;
+      return;
     }
     is_dragging.value = true;
     dragStartPointerX = event.clientX;
