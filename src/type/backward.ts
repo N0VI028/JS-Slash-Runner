@@ -5,11 +5,14 @@ import { uuidv4 } from '@sillytavern/scripts/utils';
 
 export const ScriptData = z
   .object({
-    enabled: z.boolean().default(false),
-    name: z.string().default(''),
-    id: z.string().default(() => uuidv4()),
-    content: z.string().default(''),
-    info: z.string().default(''),
+    enabled: z.boolean().default(false).catch(false),
+    name: z.string().default('').catch(''),
+    id: z
+      .string()
+      .default(() => uuidv4())
+      .catch(() => uuidv4()),
+    content: z.string().default('').catch(''),
+    info: z.string().default('').catch(''),
     buttons: z
       .array(
         z
@@ -19,8 +22,9 @@ export const ScriptData = z
           })
           .prefault({}),
       )
-      .default([]),
-    data: z.record(z.string(), z.any()).default({}),
+      .default([])
+      .catch([]),
+    data: z.record(z.string(), z.any()).default({}).catch({}),
   })
   .prefault({})
   .transform(item => {
@@ -41,18 +45,21 @@ export const ScriptData = z
 
 const ScriptItem = z
   .object({
-    type: z.literal('script').default('script'),
+    type: z.literal('script').default('script').catch('script'),
     value: ScriptData,
   })
   .transform(item => item.value);
 const ScriptFolder = z
   .object({
-    type: z.literal('folder').default('folder'),
-    id: z.string().default(() => uuidv4()),
-    name: z.string().default(''),
-    icon: z.string().default('fa-solid fa-folder'),
-    color: z.string().default(getSmartThemeQuoteColor),
-    value: z.array(ScriptData).default([]),
+    type: z.literal('folder').default('folder').catch('folder'),
+    id: z
+      .string()
+      .default(() => uuidv4())
+      .catch(() => uuidv4()),
+    name: z.string().default('').catch(''),
+    icon: z.string().default('fa-solid fa-folder').catch('fa-solid fa-folder'),
+    color: z.string().default(getSmartThemeQuoteColor).catch(getSmartThemeQuoteColor),
+    value: z.array(ScriptData).default([]).catch([]),
   })
   .transform(folder => {
     return NewScriptFolder.parse({
@@ -72,22 +79,26 @@ export const GlobalSettings = z
   .object({
     macro: z
       .object({
-        replace: z.boolean().default(true),
+        replace: z.boolean().default(true).catch(true),
       })
       .prefault({}),
     render: z
       .object({
-        render_enabled: z.boolean().default(true),
-        render_depth: z.number().default(0),
-        render_hide_style: z.boolean().default(false),
-        render_blob_url: z.boolean().default(false),
+        render_enabled: z.boolean().default(true).catch(true),
+        render_depth: z.number().default(0).catch(0),
+        render_blob_url: z.boolean().default(false).catch(false),
       })
       .prefault({}),
     script: z
       .object({
-        global_script_enabled: z.boolean().default(true),
-        scriptsRepository: z.array(ScriptTree).default([]),
-        characters_with_scripts: z.array(z.string()).default([]),
+        global_script_enabled: z.boolean().default(true).catch(true),
+        scriptsRepository: z.array(ScriptTree).default([]).catch([]),
+        characters_with_scripts: z
+          .array(z.union([z.string(), z.null()]))
+          .default([])
+          .catch([])
+          .transform(characters => characters.filter(character => character !== null))
+          .transform(characters => characters.map(character => character.replace('.png', ''))),
       })
       .prefault({}),
   })
@@ -107,7 +118,7 @@ export const GlobalSettings = z
         enabled: {
           global: settings.script.global_script_enabled,
           presets: [],
-          characters: settings.script.characters_with_scripts.map(character => character.replace('.png', '')),
+          characters: settings.script.characters_with_scripts,
         },
         scripts: settings.script.scriptsRepository,
       },
@@ -116,8 +127,8 @@ export const GlobalSettings = z
 
 export const CharacterSettings = z
   .object({
-    scripts: z.array(ScriptTree).default([]),
-    variables: z.record(z.string(), z.any()).default({}),
+    scripts: z.array(ScriptTree).default([]).catch([]),
+    variables: z.record(z.string(), z.any()).default({}).catch({}),
   })
   .prefault({})
   .transform(settings => {
