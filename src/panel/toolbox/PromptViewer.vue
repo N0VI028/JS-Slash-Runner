@@ -156,6 +156,7 @@ function toggleAll(should_expand: boolean) {
   should_expand_by_default.value = should_expand;
 }
 
+const is_refreshing = ref<boolean>(false);
 const during_generation_when_opening = ref<boolean>(false);
 if (is_send_press) {
   during_generation_when_opening.value = true;
@@ -171,8 +172,6 @@ if (is_send_press) {
 } else {
   triggerRefresh();
 }
-
-const is_refreshing = ref<boolean>(false);
 function triggerRefresh(): void {
   if (is_refreshing.value) {
     return;
