@@ -1,6 +1,5 @@
 <template>
   <iframe
-    v-if="$div.children('iframe').length === 0"
     :id="`TH-message-${id}`"
     ref="iframe_ref"
     loading="lazy"
@@ -33,7 +32,10 @@ useEventListener('message', event => {
   }
 });
 onBeforeUnmount(() => {
-  unobserve(iframe_ref.value!);
+  if (iframe_ref.value) {
+    unobserve(iframe_ref.value);
+    $(iframe_ref.value).remove();
+  }
 });
 
 const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => {
