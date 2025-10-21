@@ -13,10 +13,8 @@ function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRunt
         .filter((_index, pre) => isFrontend($(pre).text()))
         .map((_index, pre) => {
           const $pre = $(pre);
-          const $possible_div = $pre.prev('div.TH-render');
-          return $possible_div.length > 0
-            ? $possible_div[0]
-            : $('<div class="TH-render">').insertBefore($pre)[0];
+          const $possible_div = $pre.next('div.TH-render');
+          return $possible_div.length > 0 ? $possible_div[0] : $('<div class="TH-render">').insertAfter($pre)[0];
         });
       return [message_id, $element.toArray()] as const;
     })
