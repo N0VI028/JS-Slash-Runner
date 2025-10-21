@@ -1,7 +1,7 @@
 <template>
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
-      <b>{{ t`酒馆助手新` }} <span v-if="has_update" class="text-xs font-bold text-red-500">New!</span></b>
+      <b>{{ t`酒馆助手` }} <span v-if="has_update" class="text-xs font-bold text-red-500">New!</span></b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
     </div>
     <div class="inline-drawer-content">
