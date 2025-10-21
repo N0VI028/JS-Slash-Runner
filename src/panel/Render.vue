@@ -88,7 +88,7 @@ const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
 </script>
 
 <style>
-.TH-render:has(.TH-collapse-code-block-button:not([style*='display: none;'])) {
+.TH-render:has(.TH-collapse-code-block-button:not([style*='display: none'])):has(pre[style*='display: none']) {
   display: inline-block;
 }
 </style>
