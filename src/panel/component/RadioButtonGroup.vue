@@ -5,6 +5,7 @@
       :key="option.value"
       class="TH-radio-button"
       :class="{ 'TH-radio-button--selected': modelValue === option.value }"
+      :style="modelValue === option.value ? { color: textColor } : {}"
       @click="selectOption(option.value)"
     >
       {{ option.label }}
@@ -13,6 +14,10 @@
 </template>
 
 <script setup lang="ts">
+import { getSmartThemeQuoteTextColor } from '@/util/color';
+
+const textColor = getSmartThemeQuoteTextColor();
+
 interface RadioOption {
   value: string | number;
   label: string;
