@@ -4,7 +4,12 @@ import { isFrontend } from '@/util/is_frontend';
 import { chat, event_types, eventSource } from '@sillytavern/script';
 
 function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: CollapseCodeBlock) {
-  if ($pre.prev('div.TH-collapse-code-block-button').length > 0) {
+  const $possible_div = $pre.parent('div.TH-render');
+  if ($possible_div.length === 0) {
+    $pre.wrap('<div class="TH-render">');
+  }
+  const $div = $pre.parent('div.TH-render');
+  if ($div.children('div.TH-collapse-code-block-button').length > 0) {
     return;
   }
 
@@ -13,7 +18,7 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
     return;
   }
 
-  const $button = $('<div class="TH-collapse-code-block-button inline-block">')
+  const $button = $('<div class="TH-collapse-code-block-button">')
     .text(is_frontend ? '显示前端代码块' : '显示代码块')
     .on('click', function () {
       const is_visible = $pre.is(':visible');
@@ -25,8 +30,8 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
         $(this).text(is_frontend ? '隐藏前端代码块' : '隐藏代码块');
       }
     })
-    .insertBefore($pre);
-  if ($pre.next('div.TH-render').length > 0) {
+    .prependTo($div);
+  if ($div.children('iframe').length > 0) {
     $button.hide();
   }
   $pre.hide();
@@ -52,7 +57,7 @@ function uncollapseCodeBlockForAll() {
   $('.TH-collapse-code-block-button').remove();
   $('#chat')
     .find('pre')
-    .filter((_index, pre) => $(pre).next('div.TH-render').children('iframe').length === 0)
+    .filter((_index, pre) => $(pre).siblings('iframe').length === 0)
     .show();
 }
 

@@ -13,7 +13,7 @@ const props = defineProps<{
 }>();
 
 const $div = $(props.element);
-const $pre = $div.prev('pre');
+const $pre = $div.children('pre');
 
 const iframe_ref = useTemplateRef<HTMLIFrameElement>('iframe');
 
@@ -47,12 +47,13 @@ onUnmounted(() => {
 
 // 与折叠代码块的兼容性
 onMounted(() => {
-  $pre.prev('div.TH-collapse-code-block-button').hide();
-  $pre.hide();
+  $div
+    .children()
+    .filter((_index, child) => !$(child).is('iframe'))
+    .hide();
 });
 onBeforeUnmount(() => {
-  $div.remove();
-  const $button = $pre.prev('div.TH-collapse-code-block-button');
+  const $button = $div.children('.TH-collapse-code-block-button');
   if ($button.length === 0) {
     $pre.show();
   } else {
