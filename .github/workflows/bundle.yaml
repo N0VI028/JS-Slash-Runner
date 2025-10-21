@@ -27,28 +27,6 @@ jobs:
         with:
           path: dist
 
-      # build
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: pnpm/action-setup@v4.1.0
-        with:
-          version: 10
-      - run: pnpm i
-      - run: pnpm build
-      - name: Merge @types files to a single file
-        run: |-
-          mkdir -p dist
-          cat @types/**/*.d.ts > dist/@types.txt
-      - name: Compress @types files to a zip
-        run: |-
-          tar \
-            --sort=name \
-            --mtime='UTC 1980-02-01' \
-            --owner=0 --group=0 --numeric-owner \
-            --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
-            -caf ../dist/@types.zip .
-        working-directory: '@types'
       # tag if [release...] is in the commit message subject
       - id: autotag_check
         shell: bash
@@ -99,6 +77,29 @@ jobs:
           find: '"version": "\d+\.\d+\.\d+"'
           replace: ${{ steps.package_version.outputs.result }}
           regex: true
+
+      # build after tag change
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 10
+      - run: pnpm i
+      - run: pnpm build
+      - name: Merge @types files to a single file
+        run: |-
+          mkdir -p dist
+          cat @types/**/*.d.ts > dist/@types.txt
+      - name: Compress @types files to a zip
+        run: |-
+          tar \
+            --sort=name \
+            --mtime='UTC 1980-02-01' \
+            --owner=0 --group=0 --numeric-owner \
+            --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
+            -caf ../dist/@types.zip .
+        working-directory: '@types'
 
       # commit
       - uses: EndBug/add-and-commit@v9.1.3
