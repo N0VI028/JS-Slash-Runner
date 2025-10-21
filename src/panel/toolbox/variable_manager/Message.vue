@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import MessageItem from '@/panel/toolbox/variable_manager/MessageItem.vue';
 import { getSmartThemeQuoteTextColor } from '@/util/color';
-import { chat, event_types } from '@sillytavern/script';
+import { chat, event_types, eventSource } from '@sillytavern/script';
 import { VirtList } from 'vue-virt-list';
 const text_color = getSmartThemeQuoteTextColor();
 
@@ -89,9 +89,15 @@ watch([sync_bottom, chat_length], ([new_sync_bottom, new_chat_length], [old_sync
 });
 
 const refresh_key = ref<symbol>(Symbol());
-useIntervalFn(() => {
+const { pause, resume } = useIntervalFn(() => {
   refresh_key.value = Symbol();
 }, 2000);
+useEventSourceOn(event_types.STREAM_TOKEN_RECEIVED, () => {
+  pause();
+  eventSource.once(event_types.MESSAGE_RECEIVED, () => {
+    resume();
+  });
+});
 useEventSourceOn(event_types.CHAT_CHANGED, () => {
   refresh_key.value = Symbol();
 });
