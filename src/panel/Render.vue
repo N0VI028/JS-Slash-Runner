@@ -86,3 +86,13 @@ useOptimizeHljs(enabled);
 useCollapseCodeBlock(collapse_code_block);
 const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
 </script>
+
+<style>
+.TH-render {
+  display: inline-block;
+}
+
+.TH-render:has(.TH-collapse-code-block-button[style*="display: none;"]) {
+  display: block;
+}
+</style>
