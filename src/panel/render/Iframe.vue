@@ -31,11 +31,11 @@ useEventListener('message', event => {
     observe(iframe_ref.value!);
   }
 });
+onBeforeMount(() => {
+  $div.children('iframe').remove();
+});
 onBeforeUnmount(() => {
-  if (iframe_ref.value) {
-    unobserve(iframe_ref.value);
-    $(iframe_ref.value).remove();
-  }
+  unobserve(iframe_ref.value!);
 });
 
 const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => {
