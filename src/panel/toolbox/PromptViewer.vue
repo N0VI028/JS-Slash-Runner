@@ -65,6 +65,12 @@
         </Teleport>
       </div>
     </div>
+    <template v-if="during_generation_when_opening">
+      <div class="mx-2 flex h-full items-center justify-center gap-1 opacity-70">
+        <div class="TH-loading-spinner"></div>
+        <span class="whitespace-normal">{{ t`等待已有生成请求完成... (或用刷新按钮强制取消它)` }}</span>
+      </div>
+    </template>
     <template v-if="is_refreshing">
       <div class="mx-2 flex h-full items-center justify-center gap-1 opacity-70">
         <div class="TH-loading-spinner"></div>
@@ -106,7 +112,15 @@
 <script setup lang="ts">
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 import { version } from '@/util/tavern';
-import { event_types, Generate, main_api, online_status, stopGeneration } from '@sillytavern/script';
+import {
+  event_types,
+  eventSource,
+  Generate,
+  is_send_press,
+  main_api,
+  online_status,
+  stopGeneration,
+} from '@sillytavern/script';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
 import { Teleport } from 'vue';
@@ -142,8 +156,23 @@ function toggleAll(should_expand: boolean) {
   should_expand_by_default.value = should_expand;
 }
 
+const during_generation_when_opening = ref<boolean>(false);
+if (is_send_press) {
+  during_generation_when_opening.value = true;
+  const triggerRefreshIfNoPrompts = () => {
+    during_generation_when_opening.value = false;
+    if (prompts.value.length !== 0) {
+      return;
+    }
+    triggerRefresh();
+  };
+  eventSource.on(event_types.GENERATION_ENDED, triggerRefreshIfNoPrompts);
+  onBeforeUnmount(() => eventSource.removeListener(event_types.GENERATION_ENDED, triggerRefreshIfNoPrompts));
+} else {
+  triggerRefresh();
+}
+
 const is_refreshing = ref<boolean>(false);
-triggerRefresh();
 function triggerRefresh(): void {
   if (is_refreshing.value) {
     return;
@@ -162,6 +191,7 @@ function triggerRefresh(): void {
   is_refreshing.value = true;
   Generate('normal');
 }
+
 function collectPrompts(data: { role: string; content: string }[], dry_run: boolean) {
   if (dry_run) {
     return;
