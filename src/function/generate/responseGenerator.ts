@@ -211,7 +211,10 @@ export async function generateResponse(
         saveSettingsDebounced();
       }
     } else {
+      const should_stream = oai_settings.stream_openai;
+      oai_settings.stream_openai = false;
       const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
+      oai_settings.stream_openai = should_stream;
       result = await handleResponse(response, generationId);
     }
   } catch (error) {
