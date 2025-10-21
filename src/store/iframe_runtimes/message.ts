@@ -44,13 +44,13 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
 
   const runtimes = shallowRef<MessageIframeRuntime>({});
   watch(
-    () => global_settings.settings.render.enabled,
-    (value, old_value) => {
-      if (value) {
-        runtimes.value = parseAll(global_settings.settings.render.depth);
+    () => [global_settings.settings.render.enabled, global_settings.settings.render.depth] as const,
+    ([new_enabled, new_depth], old_value) => {
+      if (new_enabled) {
+        runtimes.value = parseAll(new_depth);
         return;
       }
-      if (!value && old_value) {
+      if (!new_enabled && old_value !== undefined && old_value[0]) {
         runtimes.value = {};
       }
     },
