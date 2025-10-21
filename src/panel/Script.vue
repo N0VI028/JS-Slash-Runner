@@ -27,7 +27,12 @@
   </template>
 
   <Teleport v-if="button_element" :to="button_element">
-    <div v-for="(buttons, _script_id) in button_map" :key="_script_id" class="qr--buttons flex gap-[5px]">
+    <div
+      v-for="(buttons, _script_id) in button_map"
+      :id="`script_container_${_script_id}`"
+      :key="_script_id"
+      class="qr--buttons flex gap-[5px]"
+    >
       <div
         v-for="button in buttons"
         :key="button.button_id"
