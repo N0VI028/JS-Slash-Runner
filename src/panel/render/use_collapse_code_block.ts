@@ -3,12 +3,13 @@ import { CollapseCodeBlock } from '@/type/settings';
 import { event_types, eventSource } from '@sillytavern/script';
 
 function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: CollapseCodeBlock) {
-  const $code = $pre.find('code');
-  if ($code.hasClass('TH-collapse-code-block')) {
+  const $possible_div = $pre.prev('div.TH-render');
+  const $div = $possible_div.length > 0 ? $possible_div : $('<div class="TH-render">').insertBefore($pre);
+  if ($div.children('.TH-collapse-code-block-button').length > 0) {
     return;
   }
 
-  const is_frontend = $code.text().includes('<body');
+  const is_frontend = $pre.text().includes('<body');
   if (collapse_code_block === 'frontend_only' && !is_frontend) {
     return;
   }
@@ -16,20 +17,20 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
   const $button = $('<div class="TH-collapse-code-block-button">')
     .text(is_frontend ? '显示前端代码块' : '显示代码块')
     .on('click', function () {
-      const is_visible = $code.is(':visible');
+      const is_visible = $pre.is(':visible');
       if (is_visible) {
-        $code.hide();
+        $pre.hide();
         $(this).text(is_frontend ? '显示前端代码块' : '显示代码块');
       } else {
-        $code.show();
+        $pre.show();
         $(this).text(is_frontend ? '隐藏前端代码块' : '隐藏代码块');
       }
     })
-    .prependTo($pre);
+    .prependTo($div);
   if ($button.siblings('iframe').length > 0) {
     $button.hide();
   }
-  $code.hide();
+  $pre.hide();
 }
 
 function collapseCodeBlockForMessageId(message_id: number, collapse_code_block: CollapseCodeBlock) {
@@ -51,8 +52,8 @@ function collapseCodeBlockForAll(collapse_code_block: CollapseCodeBlock) {
 function uncollapseCodeBlockForAll() {
   $('.TH-collapse-code-block-button').remove();
   $('#chat')
-    .find('pre > code')
-    .filter((_index, code) => $(code).siblings('iframe').length === 0)
+    .find('pre')
+    .filter((_index, pre) => $(pre).prev('div.TH-render').children('iframe').length === 0)
     .show();
 }
 

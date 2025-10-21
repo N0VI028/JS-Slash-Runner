@@ -9,9 +9,9 @@
   <Divider />
   <Item type="plain">
     <template #title>{{ t`启用代码折叠` }}</template>
-    <template #description>{{
-      t`折叠指定类型的代码块，当选择“仅前端”时，将只折叠可渲染成前端界面但没被渲染的代码块`
-    }}</template>
+    <template #description>
+      {{ t`折叠指定类型的代码块，当选择“仅前端”时，将只折叠可渲染成前端界面但没被渲染的代码块` }}
+    </template>
     <template #content>
       <RadioButtonGroup v-model="collapse_code_block" :options="collapse_code_block_options" />
     </template>
@@ -42,6 +42,7 @@
       </Teleport>
     </template>
   </template>
+
   <Teleport defer to="#extensionsMenu">
     <div class="extension_container">
       <div

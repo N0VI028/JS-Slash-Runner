@@ -7,13 +7,15 @@ function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRunt
   return _($mes.toArray())
     .map(div => {
       const message_id = Number($(div).attr('mesid'));
-      return [
-        message_id,
-        $(div)
-          .find('pre')
-          .filter((_index, pre) => $(pre).text().includes('<body'))
-          .toArray(),
-      ] as const;
+      const $element = $(div)
+        .find('pre')
+        .filter((_index, pre) => $(pre).text().includes('<body'))
+        .map((_index, pre) => {
+          const $pre = $(pre);
+          const $possible_div = $pre.prev('div.TH-render');
+          return $possible_div.length > 0 ? $possible_div[0] : $('<div class="TH-render">').insertBefore($pre)[0];
+        });
+      return [message_id, $element.toArray()] as const;
     })
     .filter(([_message_id, elements]) => elements.length > 0)
     .fromPairs()

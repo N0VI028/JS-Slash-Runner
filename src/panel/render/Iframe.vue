@@ -12,7 +12,8 @@ const props = defineProps<{
   useBlobUrl: boolean;
 }>();
 
-const $element = $(props.element);
+const $div = $(props.element);
+const $pre = $div.next('pre');
 
 const iframe_ref = useTemplateRef<HTMLIFrameElement>('iframe');
 
@@ -32,7 +33,7 @@ const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => 
     URL.revokeObjectURL(old_src_prop.src);
   }
 
-  const content = createSrcContent($element.find('code').text(), props.useBlobUrl);
+  const content = createSrcContent($pre.find('code').text(), props.useBlobUrl);
   if (!props.useBlobUrl) {
     return { srcdoc: content };
   }
@@ -46,17 +47,15 @@ onUnmounted(() => {
 
 // 与折叠代码块的兼容性
 onMounted(() => {
-  $element
-    .children()
-    .filter((_index, child) => !$(child).is('iframe'))
-    .hide();
+  $div.children('.TH-collapse-code-block-button').hide();
+  $pre.hide();
 });
 onBeforeUnmount(() => {
-  const $button = $element.children('.TH-collapse-code-block-button');
+  const $button = $div.children('.TH-collapse-code-block-button');
   if ($button.length === 0) {
-    $element.children('code').show();
+    $pre.show();
   } else {
-    $button.text('显示代码块').show();
+    $button.text('显示前端代码块').show();
   }
 });
 </script>

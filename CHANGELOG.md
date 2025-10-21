@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.0.1
+
+### 🐛修复
+
+- 修复前端界面与一些美化之间的冲突
+
 ## 4.0.0
 
 **用 Vue + Pinia + TailwindCSS 完全重写了酒馆助手.**
