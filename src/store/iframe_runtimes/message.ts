@@ -17,9 +17,8 @@ function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRunt
           if ($possible_div.length > 0) {
             return $possible_div[0];
           }
-          const $div = $('<div class="TH-render">');
-          $pre.wrap($div);
-          return $div[0];
+          $pre.wrap('<div class="TH-render">');
+          return $pre.parent('div.TH-render')[0];
         });
       return [message_id, $element.toArray()] as const;
     })
