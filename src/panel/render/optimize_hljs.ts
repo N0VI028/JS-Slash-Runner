@@ -1,8 +1,10 @@
+import { isFrontend } from '@/util/is_frontend';
+
 const originalHighlightElement = hljs.highlightElement;
 
 function optimizeHljs() {
   hljs.highlightElement = (element: HTMLElement) => {
-    if ($(element).text().includes('<body')) {
+    if (isFrontend($(element).text())) {
       return;
     }
     originalHighlightElement(element);

@@ -1,6 +1,7 @@
 import '@/panel/render/use_collapse_code_block.scss';
 import { CollapseCodeBlock } from '@/type/settings';
-import { event_types, eventSource } from '@sillytavern/script';
+import { isFrontend } from '@/util/is_frontend';
+import { chat, event_types, eventSource } from '@sillytavern/script';
 
 function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: CollapseCodeBlock) {
   const $possible_div = $pre.prev('div.TH-render');
@@ -9,7 +10,7 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
     return;
   }
 
-  const is_frontend = $pre.text().includes('<body');
+  const is_frontend = isFrontend($pre.text());
   if (collapse_code_block === 'frontend_only' && !is_frontend) {
     return;
   }
@@ -76,7 +77,40 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
       collapseCodeBlockForAll(collapse_code_block.value);
     }
   });
+
+  // 流式过程监听变化并应用折叠代码块功能
+  const observer = new MutationObserver(() => {
+    const chat_length = chat.length;
+    if (chat_length > 0) {
+      collapseCodeBlockForMessageId(chat_length - 1, collapse_code_block.value);
+    }
+  });
+  let during_observe = false;
+  eventSource.on(event_types.STREAM_TOKEN_RECEIVED, () => {
+    if (collapse_code_block.value === 'none') {
+      return;
+    }
+    if (during_observe) {
+      return;
+    }
+    during_observe = true;
+    const $mes = $(`.mes[mesid=${chat.length - 1}]`).find('.mes_text');
+    if ($mes.length === 0) {
+      return;
+    }
+    observer.observe($mes[0], { childList: true });
+    eventSource.once(event_types.MESSAGE_RECEIVED, () => {
+      observer.disconnect();
+      during_observe = false;
+    });
+  });
+
   eventSource.on(event_types.MESSAGE_UPDATED, (message_id: string | number) => {
+    if (collapse_code_block.value !== 'none') {
+      collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value);
+    }
+  });
+  eventSource.on(event_types.USER_MESSAGE_RENDERED, (message_id: string | number) => {
     if (collapse_code_block.value !== 'none') {
       collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value);
     }

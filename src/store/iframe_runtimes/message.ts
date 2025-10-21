@@ -1,4 +1,5 @@
 import { useGlobalSettingsStore } from '@/store/settings';
+import { isFrontend } from '@/util/is_frontend';
 import { toMessageDepth } from '@/util/message';
 import { reloadAndRenderChatWithoutEvents } from '@/util/tavern';
 import { event_types, eventSource } from '@sillytavern/script';
@@ -9,7 +10,7 @@ function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRunt
       const message_id = Number($(div).attr('mesid'));
       const $element = $(div)
         .find('pre')
-        .filter((_index, pre) => $(pre).text().includes('<body'))
+        .filter((_index, pre) => isFrontend($(pre).text()))
         .map((_index, pre) => {
           const $pre = $(pre);
           const $possible_div = $pre.prev('div.TH-render');
