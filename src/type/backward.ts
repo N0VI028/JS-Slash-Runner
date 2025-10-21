@@ -17,8 +17,8 @@ export const ScriptData = z
       .array(
         z
           .object({
-            name: z.string().default(''),
-            visible: z.boolean().default(true),
+            name: z.string().default('').catch(''),
+            visible: z.boolean().default(true).catch(true),
           })
           .prefault({}),
       )
