@@ -5,7 +5,7 @@ import { chat, event_types, eventSource } from '@sillytavern/script';
 
 function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: CollapseCodeBlock) {
   const $possible_div = $pre.prev('div.TH-render');
-  const $div = $possible_div.length > 0 ? $possible_div : $('<div class="TH-render">').insertBefore($pre);
+  const $div = $possible_div.length > 0 ? $possible_div : $('<div class="TH-render inline-block">').insertBefore($pre);
   if ($div.children('.TH-collapse-code-block-button').length > 0) {
     return;
   }
