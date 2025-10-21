@@ -68,7 +68,7 @@
     <template v-if="is_refreshing">
       <div class="mx-2 flex h-full items-center justify-center gap-1 opacity-70">
         <div class="TH-loading-spinner"></div>
-        <span class="whitespace-normal">正在发送虚假生成请求, 从而获取最新提示词...</span>
+        <span class="whitespace-normal">{{ t`正在发送虚假生成请求, 从而获取最新提示词...` }}</span>
       </div>
     </template>
     <template v-else>
