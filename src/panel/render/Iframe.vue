@@ -22,22 +22,25 @@ const props = defineProps<{
 
 const $div = $(props.element);
 const $pre = $div.children('pre');
+// 某些
+onBeforeMount(() => {
+  $div.children('iframe').remove();
+});
 
 const iframe_ref = useTemplateRef<HTMLIFrameElement>('iframe');
 
+// 高度调整
 const { observe, unobserve } = useHeightObserver();
 useEventListener('message', event => {
   if (event?.data?.type === 'TH_DOM_CONTENT_LOADED' && event?.data?.iframe_name === iframe_ref.value?.id) {
     observe(iframe_ref.value!);
   }
 });
-onBeforeMount(() => {
-  $div.children('iframe').remove();
-});
 onBeforeUnmount(() => {
   unobserve(iframe_ref.value!);
 });
 
+// 代码内容
 const src_prop = computed((old_src_prop?: { srcdoc?: string; src?: string }) => {
   if (old_src_prop?.src) {
     URL.revokeObjectURL(old_src_prop.src);
