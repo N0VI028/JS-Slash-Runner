@@ -196,6 +196,11 @@ onBeforeUnmount(() => {
     --jse-font-size-mono: calc(var(--mainFontSize) * 0.8);
     --jse-font-size-text-mode-search: calc(var(--mainFontSize) * 0.7);
   }
+
+  .jse-header button svg {
+    width: calc(var(--mainFontSize) * 0.8);
+    height: calc(var(--mainFontSize) * 0.8);
+  }
 }
 
 .jse-modal {
