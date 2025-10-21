@@ -16,7 +16,7 @@ function renderCodeBlockForMessage($mes: JQuery<HTMLElement>): MessageIframeRunt
           const $possible_div = $pre.prev('div.TH-render');
           return $possible_div.length > 0
             ? $possible_div[0]
-            : $('<div class="TH-render inline-block">').insertBefore($pre)[0];
+            : $('<div class="TH-render">').insertBefore($pre)[0];
         });
       return [message_id, $element.toArray()] as const;
     })
