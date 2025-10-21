@@ -1,4 +1,4 @@
-function adjustIframeHeight(iframe: HTMLIFrameElement) {
+export function adjustIframeHeight(iframe: HTMLIFrameElement) {
   if (!iframe.contentWindow) {
     return;
   }
@@ -9,11 +9,8 @@ function adjustIframeHeight(iframe: HTMLIFrameElement) {
     return;
   }
 
-  const current_height = parseFloat(iframe.style.height) || 0;
-  if (Math.abs(current_height - height) > 5) {
-    iframe.style.height = `${height}px`;
-    iframe.contentWindow.postMessage({ type: 'TH_UPDATE_VIEWPORT_HEIGHT' }, '*');
-  }
+  iframe.style.height = `${height}px`;
+  iframe.contentWindow.postMessage({ type: 'TH_UPDATE_VIEWPORT_HEIGHT' }, '*');
 }
 
 const observed_elements = new Map<Element, HTMLIFrameElement>();

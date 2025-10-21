@@ -7,12 +7,13 @@
     v-bind="src_prop"
     class="w-full"
     frameborder="0"
+    @load="$event => adjustIframeHeight($event.target as HTMLIFrameElement)"
   />
 </template>
 
 <script setup lang="ts">
 import { createSrcContent } from '@/panel/render/iframe';
-import { useHeightObserver } from '@/panel/render/use_height_observer';
+import { adjustIframeHeight, useHeightObserver } from '@/panel/render/use_height_observer';
 
 const props = defineProps<{
   id: string;
@@ -27,8 +28,7 @@ const iframe_ref = useTemplateRef<HTMLIFrameElement>('iframe');
 
 const { observe, unobserve } = useHeightObserver();
 useEventListener('message', event => {
-  const data = (event && event.data) || {};
-  if (data?.type === 'TH_DOM_CONTENT_LOADED' && data.iframe_name === iframe_ref.value?.id) {
+  if (event?.data?.type === 'TH_DOM_CONTENT_LOADED' && event?.data?.iframe_name === iframe_ref.value?.id) {
     observe(iframe_ref.value!);
   }
 });

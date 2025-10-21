@@ -1,10 +1,11 @@
 (function () {
   function emit_loaded_event() {
-    parent.postMessage({ type: 'TH_DOM_CONTENT_LOADED', iframe_name: getIframeName() }, '*');
+    window.parent.postMessage({ type: 'TH_DOM_CONTENT_LOADED', iframe_name: getIframeName() }, '*');
   }
-  if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    emit_loaded_event();
+
+  if (window.document.readyState === 'loading') {
+    window.document.addEventListener('DOMContentLoaded', emit_loaded_event, { once: true });
   } else {
-    document.addEventListener('DOMContentLoaded', emit_loaded_event, { once: true });
+    emit_loaded_event();
   }
 })();
