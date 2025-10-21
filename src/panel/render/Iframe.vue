@@ -1,5 +1,13 @@
 <template>
-  <iframe :id="`TH-message-${id}`" ref="iframe_ref" loading="lazy" v-bind="src_prop" class="w-full" frameborder="0" />
+  <iframe
+    v-if="$div.children('iframe').length === 0"
+    :id="`TH-message-${id}`"
+    ref="iframe_ref"
+    loading="lazy"
+    v-bind="src_prop"
+    class="w-full"
+    frameborder="0"
+  />
 </template>
 
 <script setup lang="ts">
