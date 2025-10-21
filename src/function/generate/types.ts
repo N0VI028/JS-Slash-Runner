@@ -133,6 +133,7 @@ export type BaseData = {
 /**
  * 详细配置命名空间
  */
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace detail {
   export type CustomPrompt = {
     role: 'system' | 'user' | 'assistant';

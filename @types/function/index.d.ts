@@ -5,28 +5,45 @@ interface Window {
    */
   TavernHelper: {
     // audio
-    readonly audioEnable: typeof audioEnable;
-    readonly audioImport: typeof audioImport;
-    readonly audioMode: typeof audioMode;
-    readonly audioPlay: typeof audioPlay;
-    readonly audioSelect: typeof audioSelect;
+    readonly playAudio: typeof playAudio;
+    readonly pauseAudio: typeof pauseAudio;
+    readonly getAudioList: typeof getAudioList;
+    readonly replaceAudioList: typeof replaceAudioList;
+    readonly insertAudioList: typeof insertAudioList;
+    readonly getAudioSettings: typeof getAudioSettings;
+    readonly setAudioSettings: typeof setAudioSettings;
 
     // builtin
     readonly builtin: typeof builtin;
 
     // character
-    readonly Character: typeof RawCharacter;
+    readonly Character: typeof Character;
 
     // chat_message
     readonly getChatMessages: typeof getChatMessages;
     readonly setChatMessages: typeof setChatMessages;
+    readonly createChatMessages: typeof createChatMessages;
     readonly deleteChatMessages: typeof deleteChatMessages;
     readonly rotateChatMessages: typeof rotateChatMessages;
-    readonly createChatMessages: typeof createChatMessages;
 
     // displayed_message
     readonly formatAsDisplayedMessage: typeof formatAsDisplayedMessage;
     readonly retrieveDisplayedMessage: typeof retrieveDisplayedMessage;
+
+    // extension
+    readonly isAdmin: typeof isAdmin;
+    readonly getExtensionType: typeof getExtensionType;
+    readonly getExtensionStatus: typeof getExtensionInstallationInfo;
+    readonly isInstalledExtension: typeof isInstalledExtension;
+    readonly installExtension: typeof installExtension;
+    readonly uninstallExtension: typeof uninstallExtension;
+    readonly reinstallExtension: typeof reinstallExtension;
+    readonly updateExtension: typeof updateExtension;
+
+    // generate
+    readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
+    readonly generate: typeof generate;
+    readonly generateRaw: typeof generateRaw;
 
     // import_raw
     readonly importRawCharacter: typeof importRawCharacter;
@@ -38,11 +55,6 @@ interface Window {
     // inject
     readonly injectPrompts: typeof injectPrompts;
     readonly uninjectPrompts: typeof uninjectPrompts;
-
-    // generate
-    readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
-    readonly generate: typeof generate;
-    readonly generateRaw: typeof generateRaw;
 
     // lorebook_entry
     readonly getLorebookEntries: typeof getLorebookEntries;
@@ -90,14 +102,14 @@ interface Window {
     readonly getChatHistoryBrief: typeof getChatHistoryBrief;
     readonly getChatHistoryDetail: typeof getChatHistoryDetail;
 
-    // script_repository
-    readonly getScriptButtons: typeof getScriptButtons;
-    readonly replaceScriptButtons: typeof replaceScriptButtons;
+    // script
+    readonly getAllEnabledScriptButtons: typeof getAllEnabledScriptButtons;
 
     // slash
     readonly triggerSlash: typeof triggerSlash;
 
     // tavern_regex
+    readonly formatAsTavernRegexedString: typeof formatAsTavernRegexedString;
     readonly isCharacterTavernRegexesEnabled: typeof isCharacterTavernRegexesEnabled;
     readonly getTavernRegexes: typeof getTavernRegexes;
     readonly replaceTavernRegexes: typeof replaceTavernRegexes;
@@ -107,18 +119,20 @@ interface Window {
     readonly substitudeMacros: typeof substitudeMacros;
     readonly getLastMessageId: typeof getLastMessageId;
     readonly errorCatched: typeof errorCatched;
+    readonly getMessageId: typeof getMessageId;
 
     // variables
     readonly getVariables: typeof getVariables;
     readonly replaceVariables: typeof replaceVariables;
     readonly updateVariablesWith: typeof updateVariablesWith;
     readonly insertOrAssignVariables: typeof insertOrAssignVariables;
-    readonly deleteVariable: typeof deleteVariable;
     readonly insertVariables: typeof insertVariables;
+    readonly deleteVariable: typeof deleteVariable;
 
     // version
     readonly getTavernHelperVersion: typeof getTavernHelperVersion;
-    readonly updateTavernHelper: typeof updateTavernHelper;
+    readonly getTavernHelperExtensionId: typeof getTavernHelperExtensionId;
+    readonly getTavernVersion: typeof getTavernVersion;
 
     // worldbook
     readonly getWorldbookNames: typeof getWorldbookNames;
@@ -135,5 +149,7 @@ interface Window {
     readonly getWorldbook: typeof getWorldbook;
     readonly replaceWorldbook: typeof replaceWorldbook;
     readonly updateWorldbookWith: typeof updateWorldbookWith;
+    readonly createWorldbookEntries: typeof createWorldbookEntries;
+    readonly deleteWorldbookEntries: typeof deleteWorldbookEntries;
   };
 }

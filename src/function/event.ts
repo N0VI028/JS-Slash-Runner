@@ -1,28 +1,24 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 import { _getButtonEvent } from '@/function/script';
-import { get_or_set } from '@/util/map_util';
-
+import { _getIframeName } from '@/function/util';
+import { getOrSet } from '@/util/algorithm';
 import { eventSource } from '@sillytavern/script';
 
 const iframe_event_listeners_map: Map<string, Map<string, Set<Function>>> = new Map();
 
 function register_listener(this: Window, event: string, listener: Function): void {
-  const iframe_id = this.frameElement?.id;
-  if (!iframe_id) {
-    return;
-  }
-
-  const event_listeners_map = get_or_set(iframe_event_listeners_map, iframe_id, () => new Map<string, Set<Function>>());
-  const listeners = get_or_set(event_listeners_map, event, () => new Set());
+  const event_listeners_map = getOrSet(
+    iframe_event_listeners_map,
+    _getIframeName.call(this),
+    () => new Map<string, Set<Function>>(),
+  );
+  const listeners = getOrSet(event_listeners_map, event, () => new Set());
 
   listeners.add(listener);
 }
 
 function get_map(this: Window): Map<string, Set<Function>> {
-  const iframe_id = this.frameElement?.id;
-  if (!iframe_id) {
-    return new Map();
-  }
-  return get_or_set(iframe_event_listeners_map, iframe_id, () => new Map<string, Set<Function>>());
+  return getOrSet(iframe_event_listeners_map, _getIframeName.call(this), () => new Map<string, Set<Function>>());
 }
 
 export function _eventOn<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
@@ -101,7 +97,7 @@ export function _eventClearAll(this: Window): void {
       eventSource.removeListener(event_type, listener);
     });
   });
-  iframe_event_listeners_map.delete(this.frameElement?.id ?? 'unknown_iframe');
+  iframe_event_listeners_map.delete(_getIframeName.call(this));
 }
 
 type EventType = IframeEventType | TavernEventType | string;
@@ -114,7 +110,6 @@ export const iframe_events = {
   GENERATION_STARTED: 'js_generation_started',
   STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully',
   STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally',
-  GENERATION_BEFORE_END: 'js_generation_before_end',
   GENERATION_ENDED: 'js_generation_ended',
 } as const;
 
@@ -172,7 +167,6 @@ export const tavern_events = {
   CHAT_COMPLETION_SETTINGS_READY: 'chat_completion_settings_ready',
   CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready',
   CHARACTER_FIRST_MESSAGE_SELECTED: 'character_first_message_selected',
-  // TODO: Naming convention is inconsistent with other events
   CHARACTER_DELETED: 'characterDeleted',
   CHARACTER_DUPLICATED: 'character_duplicated',
   STREAM_TOKEN_RECEIVED: 'stream_token_received',
@@ -184,6 +178,16 @@ export const tavern_events = {
   CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',
   TOOL_CALLS_PERFORMED: 'tool_calls_performed',
   TOOL_CALLS_RENDERED: 'tool_calls_rendered',
+  CHARACTER_MANAGEMENT_DROPDOWN: 'charManagementDropdown',
+  SECRET_WRITTEN: 'secret_written',
+  SECRET_DELETED: 'secret_deleted',
+  SECRET_ROTATED: 'secret_rotated',
+  SECRET_EDITED: 'secret_edited',
+  PRESET_CHANGED: 'preset_changed',
+  PRESET_DELETED: 'preset_deleted',
+  PRESET_RENAMED: 'preset_renamed',
+  PRESET_RENAMED_BEFORE: 'preset_renamed_before',
+  MAIN_API_CHANGED: 'main_api_changed',
   WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded',
 } as const;
 
@@ -193,7 +197,6 @@ export type ListenerType = {
   [iframe_events.GENERATION_STARTED]: (generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string, generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string, generation_id: string) => void;
-  [iframe_events.GENERATION_BEFORE_END]: (data: { message: string }, generation_id: string) => void;
   [iframe_events.GENERATION_ENDED]: (text: string, generation_id: string) => void;
 
   [tavern_events.APP_READY]: () => void;
@@ -247,23 +250,23 @@ export type ListenerType = {
   [tavern_events.SETTINGS_UPDATED]: () => void;
   [tavern_events.GROUP_UPDATED]: () => void;
   [tavern_events.MOVABLE_PANELS_RESET]: () => void;
-  [tavern_events.SETTINGS_LOADED_BEFORE]: (settings: Object) => void;
-  [tavern_events.SETTINGS_LOADED_AFTER]: (settings: Object) => void;
+  [tavern_events.SETTINGS_LOADED_BEFORE]: (settings: object) => void;
+  [tavern_events.SETTINGS_LOADED_AFTER]: (settings: object) => void;
   [tavern_events.CHATCOMPLETION_SOURCE_CHANGED]: (source: string) => void;
   [tavern_events.CHATCOMPLETION_MODEL_CHANGED]: (model: string) => void;
   [tavern_events.OAI_PRESET_CHANGED_BEFORE]: (result: {
-    preset: Object;
+    preset: object;
     presetName: string;
-    settingsToUpdate: Object;
-    settings: Object;
+    settingsToUpdate: object;
+    settings: object;
     savePreset: Function;
   }) => void;
   [tavern_events.OAI_PRESET_CHANGED_AFTER]: () => void;
-  [tavern_events.OAI_PRESET_EXPORT_READY]: (preset: Object) => void;
-  [tavern_events.OAI_PRESET_IMPORT_READY]: (result: { data: Object; presetName: string }) => void;
+  [tavern_events.OAI_PRESET_EXPORT_READY]: (preset: object) => void;
+  [tavern_events.OAI_PRESET_IMPORT_READY]: (result: { data: object; presetName: string }) => void;
   [tavern_events.WORLDINFO_SETTINGS_UPDATED]: () => void;
-  [tavern_events.WORLDINFO_UPDATED]: (name: string, data: { entries: Object[] }) => void;
-  [tavern_events.CHARACTER_EDITED]: (result: { detail: { id: string; character: Object } }) => void;
+  [tavern_events.WORLDINFO_UPDATED]: (name: string, data: { entries: object[] }) => void;
+  [tavern_events.CHARACTER_EDITED]: (result: { detail: { id: string; character: object } }) => void;
   [tavern_events.CHARACTER_PAGE_LOADED]: () => void;
   [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_BEFORE]: (state: number) => void;
   [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_AFTER]: (state: number) => void;
@@ -276,7 +279,11 @@ export type ListenerType = {
   [tavern_events.GROUP_CHAT_CREATED]: () => void;
   [tavern_events.GENERATE_BEFORE_COMBINE_PROMPTS]: () => void;
   [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
-  [tavern_events.GENERATE_AFTER_DATA]: (generate_data: { prompt: { role: string; content: string }[] }) => void;
+  /** dry_run 只在 SillyTavern 1.13.15 及以后有 */
+  [tavern_events.GENERATE_AFTER_DATA]: (
+    generate_data: { prompt: { role: string; content: string }[] },
+    dry_run: boolean,
+  ) => void;
   [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
   [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
@@ -289,7 +296,7 @@ export type ListenerType = {
     top_p: number;
     max_tokens: number;
     stream: boolean;
-    logit_bias: Object;
+    logit_bias: object;
     stop: string[];
     chat_comletion_source: string;
     n?: number;
@@ -313,23 +320,33 @@ export type ListenerType = {
   [tavern_events.CHARACTER_FIRST_MESSAGE_SELECTED]: (event_args: {
     input: string;
     output: string;
-    character: Object;
+    character: object;
   }) => void;
-  [tavern_events.CHARACTER_DELETED]: (result: { id: string; character: Object }) => void;
+  [tavern_events.CHARACTER_DELETED]: (result: { id: string; character: object }) => void;
   [tavern_events.CHARACTER_DUPLICATED]: (result: { oldAvatar: string; newAvatar: string }) => void;
   [tavern_events.STREAM_TOKEN_RECEIVED]: (text: string) => void;
   [tavern_events.FILE_ATTACHMENT_DELETED]: (url: string) => void;
-  [tavern_events.WORLDINFO_FORCE_ACTIVATE]: (entries: Object[]) => void;
+  [tavern_events.WORLDINFO_FORCE_ACTIVATE]: (entries: object[]) => void;
   [tavern_events.OPEN_CHARACTER_LIBRARY]: () => void;
   [tavern_events.ONLINE_STATUS_CHANGED]: () => void;
   [tavern_events.IMAGE_SWIPED]: (result: {
-    message: Object;
+    message: object;
     element: JQuery<HTMLElement>;
     direction: 'left' | 'right';
   }) => void;
   [tavern_events.CONNECTION_PROFILE_LOADED]: (profile_name: string) => void;
-  [tavern_events.TOOL_CALLS_PERFORMED]: (tool_invocations: Object[]) => void;
-  [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: Object[]) => void;
+  [tavern_events.TOOL_CALLS_PERFORMED]: (tool_invocations: object[]) => void;
+  [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: object[]) => void;
+  [tavern_events.CHARACTER_MANAGEMENT_DROPDOWN]: (target: JQuery) => void;
+  [tavern_events.SECRET_WRITTEN]: (secret: string) => void;
+  [tavern_events.SECRET_DELETED]: (secret: string) => void;
+  [tavern_events.SECRET_ROTATED]: (secret: string) => void;
+  [tavern_events.SECRET_EDITED]: (secret: string) => void;
+  [tavern_events.PRESET_CHANGED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_DELETED]: (data: { apiId: string; name: string }) => void;
+  [tavern_events.PRESET_RENAMED]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.PRESET_RENAMED_BEFORE]: (data: { apiId: string; oldName: string; newName: string }) => void;
+  [tavern_events.MAIN_API_CHANGED]: (data: { apiId: string }) => void;
   [tavern_events.WORLDINFO_ENTRIES_LOADED]: (lores: {
     globalLore: Record<string, any>[];
     characterLore: Record<string, any>[];

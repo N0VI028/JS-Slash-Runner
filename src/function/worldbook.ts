@@ -1,4 +1,3 @@
-import { reloadEditor, reloadEditorDebounced } from '@/compatibility';
 import {
   getCharLorebooks,
   getChatLorebook,
@@ -6,7 +5,7 @@ import {
   setChatLorebook,
   setCurrentCharLorebooks,
 } from '@/function/lorebook';
-
+import { reloadEditor, reloadEditorDebounced } from '@/util/compatibility';
 import { saveSettingsDebounced } from '@sillytavern/script';
 import {
   createNewWorldInfo,
@@ -18,15 +17,14 @@ import {
   selected_world_info,
   world_names,
 } from '@sillytavern/scripts/world-info';
-
 import { LiteralUnion, PartialDeep } from 'type-fest';
 
 export function getWorldbookNames(): string[] {
-  return structuredClone(world_names);
+  return klona(world_names);
 }
 
 export function getGlobalWorldbookNames(): string[] {
-  return structuredClone((getWorldInfoSettings().world_info as { globalSelect: string[] }).globalSelect);
+  return klona((getWorldInfoSettings().world_info as { globalSelect: string[] }).globalSelect);
 }
 export async function rebindGlobalWorldbooks(worldbook_names: string[]): Promise<void> {
   const $world_info = $('#world_info');
@@ -296,7 +294,7 @@ function fromWorldbookEntry(
     result = result.set('extra', entry.extra);
   }
 
-  result = result.merge(_default_implicit_keys as Object).merge(_.pick(entry, Object.keys(_default_implicit_keys)));
+  result = result.merge(_default_implicit_keys as object).merge(_.pick(entry, Object.keys(_default_implicit_keys)));
 
   return result.value() as _OriginalWorldbookEntry & _ImplicitKeys;
 }
@@ -385,9 +383,7 @@ export async function getWorldbook(worldbook_name: string): Promise<WorldbookEnt
     data => (data! as { entries: { [uid: number]: _OriginalWorldbookEntry & _ImplicitKeys } }) ?? {},
   );
 
-  return structuredClone(
-    _(original_worldbook_entries.entries).values().sortBy('displayIndex').map(toWorldbookEntry).value(),
-  );
+  return klona(_(original_worldbook_entries.entries).values().sortBy('displayIndex').map(toWorldbookEntry).value());
 }
 
 export async function replaceWorldbook(

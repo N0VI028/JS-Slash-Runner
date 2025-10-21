@@ -1,5 +1,4 @@
 import { RawCharacter } from '@/function/raw_character';
-
 import {
   characters,
   chat_metadata,
@@ -12,7 +11,6 @@ import {
   saveSettingsDebounced,
   this_chid,
 } from '@sillytavern/script';
-// @ts-ignore
 import { ensureImageFormatSupported, getCharaFilename } from '@sillytavern/scripts/utils';
 import {
   createNewWorldInfo,
@@ -24,8 +22,6 @@ import {
   world_info,
   world_names,
 } from '@sillytavern/scripts/world-info';
-
-import log from 'loglevel';
 
 type LorebookSettings = {
   selected_global_lorebooks: string[];
@@ -48,9 +44,7 @@ type LorebookSettings = {
 };
 
 async function editCurrentCharacter(): Promise<boolean> {
-  // @ts-ignore
   $('#rm_info_avatar').html('');
-  // @ts-ignore
   const form_data = new FormData(($('#form_create') as JQuery<HTMLFormElement>).get(0));
 
   const raw_file = form_data.get('avatar');
@@ -60,12 +54,10 @@ async function editCurrentCharacter(): Promise<boolean> {
   }
 
   const headers = getRequestHeaders();
-  // @ts-ignore
-  delete headers['Content-Type'];
+  _.unset(headers, 'Content-Type');
 
   // TODO: 这里的代码可以用来修改第一条消息!
   form_data.delete('alternate_greetings');
-  // @ts-ignore
   const chid = $('.open_alternate_greetings').data('chid');
   if (chid && Array.isArray(characters[chid]?.data?.alternate_greetings)) {
     for (const value of characters[chid].data.alternate_greetings) {
@@ -85,9 +77,7 @@ async function editCurrentCharacter(): Promise<boolean> {
   }
 
   await getOneCharacter(form_data.get('avatar_url'));
-  // @ts-ignore
   $('#add_avatar_button').replaceWith($('#add_avatar_button').val('').clone(true));
-  // @ts-ignore
   $('#create_button').attr('value', 'Save');
 
   return true;
@@ -175,12 +165,12 @@ function assignPartialLorebookSettings(settings: Partial<LorebookSettings>): voi
     overflow_alert: (value: LorebookSettings['overflow_alert']) => {
       $changes = $changes.add($('#world_info_overflow_alert').prop('checked', value));
     },
-  };
+  } as const;
 
   Object.entries(settings)
     .filter(([_, value]) => value !== undefined)
     .forEach(([field, value]) => {
-      // @ts-ignore
+      // @ts-expect-error 未知类型报错
       for_eachs[field]?.(value);
     });
   $inputs.trigger('input');
@@ -193,10 +183,7 @@ type GetCharLorebooksOption = {
 };
 
 export function getLorebookSettings(): LorebookSettings {
-  const lorebook_settings = toLorebookSettings(getWorldInfoSettings());
-
-  log.info(`获取世界书全局设置:\n${JSON.stringify(lorebook_settings)}`);
-  return structuredClone(lorebook_settings);
+  return klona(toLorebookSettings(getWorldInfoSettings()));
 }
 
 export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
@@ -210,27 +197,18 @@ export function setLorebookSettings(settings: Partial<LorebookSettings>): void {
   const original_settings = getLorebookSettings();
   settings = _.omitBy(settings, (value, key) => value === original_settings[key as keyof LorebookSettings]);
   assignPartialLorebookSettings(settings);
-
-  log.info(`修改世界书全局设置:\n${JSON.stringify(settings)}`);
 }
 
 export function getLorebooks(): string[] {
-  log.info(`获取世界书列表: ${JSON.stringify(world_names)}`);
-  return structuredClone(world_names);
+  return klona(world_names);
 }
 
 export async function deleteLorebook(lorebook: string): Promise<boolean> {
-  const success = await deleteWorldInfo(lorebook);
-
-  log.info(`移除世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
-  return success;
+  return deleteWorldInfo(lorebook);
 }
 
 export async function createLorebook(lorebook: string): Promise<boolean> {
-  const success = await createNewWorldInfo(lorebook, { interactive: false });
-
-  log.info(`新建世界书 '${lorebook}' ${success ? '成功' : '失败'}`);
-  return success;
+  return createNewWorldInfo(lorebook, { interactive: false });
 }
 
 type CharLorebooks = {
@@ -240,7 +218,6 @@ type CharLorebooks = {
 
 export function getCharLorebooks({
   name = (characters as any)[this_chid as string]?.avatar ?? null,
-  type = 'all',
 }: GetCharLorebooksOption = {}): CharLorebooks {
   const character = RawCharacter.find({ name: name ?? 'current' });
   if (!character) {
@@ -262,8 +239,7 @@ export function getCharLorebooks({
     books.additional = extra_charlore.extraBooks;
   }
 
-  log.info(`获取角色卡绑定的世界书, 选项: ${JSON.stringify({ name, type })}, 获取结果: ${JSON.stringify(books)}`);
-  return structuredClone(books);
+  return klona(books);
 }
 
 export function getCurrentCharPrimaryLorebook(): string | null {
@@ -304,7 +280,7 @@ export async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>)
       throw Error(`尝试为 '${filename}' 绑定主要世界书, 但在访问酒馆后端时出错`);
     }
 
-    // @ts-expect-error
+    // @ts-expect-error 类型是正确的
     setWorldInfoButtonClass(undefined, !!lorebooks.primary);
   }
 
@@ -329,12 +305,6 @@ export async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>)
 
   saveCharacterDebounced();
   saveSettingsDebounced();
-
-  log.info(
-    `修改角色卡绑定的世界书, 要修改的部分: ${JSON.stringify(lorebooks)}${
-      lorebooks.primary === undefined ? ', 主要世界书保持不变' : ''
-    }${lorebooks.additional === undefined ? ', 附加世界书保持不变' : ''}`,
-  );
 }
 
 export function getChatLorebook(): string | null {

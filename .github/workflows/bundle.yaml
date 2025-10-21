@@ -2,10 +2,18 @@ name: bundle
 
 on:
   push:
+    branches:
+      - main
+    paths-ignore:
+      - dist/**
   workflow_dispatch:
 
+permissions:
+  actions: read
+  contents: write
+
 concurrency:
-  group: ${{github.workflow}}
+  group: ${{ github.workflow }}
 
 jobs:
   bundle:
@@ -14,30 +22,24 @@ jobs:
       # checkout
       - uses: actions/checkout@v4
         with:
-          repository: SillyTavern/SillyTavern
-          ref: staging
-      - uses: actions/checkout@v4
-        with:
-          path: public/scripts/extensions/third-party/JS-Slash-Runner
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: JesseTG/rm@v1.0.3
         with:
-          path: public/scripts/extensions/third-party/JS-Slash-Runner/dist
+          path: dist
 
       # build
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with:
+          node-version: 22
       - uses: pnpm/action-setup@v4.1.0
-        with: { version: 10 }
+        with:
+          version: 10
       - run: pnpm i
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
       - run: pnpm build
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
       - name: Merge @types files to a single file
         run: |-
           mkdir -p dist
           cat @types/**/*.d.ts > dist/@types.txt
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
       - name: Compress @types files to a zip
         run: |-
           tar \
@@ -46,11 +48,10 @@ jobs:
             --owner=0 --group=0 --numeric-owner \
             --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
             -caf ../dist/@types.zip .
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner/@types
+        working-directory: '@types'
       # tag if [release...] is in the commit message subject
       - id: autotag_check
         shell: bash
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
         run: |-
           message=$(git log -n 1 --pretty=format:"%s")
           if [[ $message == *"[release]"* || $message == *"[release patch]"* ]]; then
@@ -83,7 +84,7 @@ jobs:
       - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
-          include: 'public/scripts/extensions/third-party/JS-Slash-Runner/manifest.json'
+          include: manifest.json
           find: \d+\.\d+\.\d+
           replace: ${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}
           regex: true
@@ -94,7 +95,7 @@ jobs:
       - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
-          include: 'public/scripts/extensions/third-party/JS-Slash-Runner/package.json'
+          include: package.json
           find: '"version": "\d+\.\d+\.\d+"'
           replace: ${{ steps.package_version.outputs.result }}
           regex: true
@@ -104,16 +105,13 @@ jobs:
         with:
           default_author: github_actions
           message: '[bot] Bundle'
-          cwd: public/scripts/extensions/third-party/JS-Slash-Runner
       - if: ${{ github.ref_type == 'tag' }}
         shell: bash
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
         run: |-
           git tag -d ${{ steps.manual_tag.outputs.result }}
           git push --delete origin ${{ steps.manual_tag.outputs.result }}
       - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         shell: bash
-        working-directory: public/scripts/extensions/third-party/JS-Slash-Runner
         run: |-
           git tag ${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}
           git push --tags

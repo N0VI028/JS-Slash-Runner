@@ -1,10 +1,6 @@
 // TODO: 重新设计这里的接口, set 部分直接访问后端
-import { charsPath } from '@/util/extension_variables';
-
 import { characters, getPastCharacterChats, getRequestHeaders, getThumbnailUrl, this_chid } from '@sillytavern/script';
 import { v1CharData } from '@sillytavern/scripts/char-data';
-
-import log from 'loglevel';
 import { LiteralUnion } from 'type-fest';
 
 export class RawCharacter {
@@ -37,7 +33,7 @@ export class RawCharacter {
 
     const matching_characters = characters.filter(char => char.name === name || (allow_avatar && char.avatar === name));
     if (matching_characters.length > 1) {
-      log.warn(`找到多个符合条件的角色, 返回导入时间最早的角色: ${name}`);
+      console.warn(`找到多个符合条件的角色, 返回导入时间最早的角色: ${name}`);
     }
 
     return matching_characters[0] || null;
@@ -179,11 +175,10 @@ export function getCharData(name: LiteralUnion<'current', string>, allowAvatar: 
     if (!characterData) return null;
 
     const character = new RawCharacter(characterData);
-    log.info(`获取角色卡数据成功, 角色: ${name || '未知'}`);
     return character.getCardData();
-  } catch (error) {
-    log.error(`获取角色卡数据失败, 角色: ${name || '未知'}`, error);
-    return null;
+  } catch (err) {
+    const error = err as Error;
+    throw Error(`获取${name ? ` '${name}' ` : '未知'}角色卡数据失败: ${error.message}`);
   }
 }
 
@@ -199,13 +194,11 @@ export function getCharAvatarPath(name: LiteralUnion<'current', string>, allowAv
   const character = new RawCharacter(characterData);
   const avatarId = character.getAvatarId();
 
-  // 使用getThumbnailUrl获取缩略图URL，然后提取实际文件名
+  // 使用 getThumbnailUrl 获取缩略图URL，然后提取实际文件名
   const thumbnailPath = getThumbnailUrl('avatar', avatarId);
   const targetAvatarImg = thumbnailPath.substring(thumbnailPath.lastIndexOf('=') + 1);
 
-  // 假设charsPath在其他地方定义
-  log.info(`获取角色头像路径成功, 角色: ${name || '未知'}`);
-  return charsPath + targetAvatarImg;
+  return '/characters/' + targetAvatarImg;
 }
 
 export async function getChatHistoryBrief(
@@ -227,7 +220,6 @@ export async function getChatHistoryBrief(
   }
 
   const chats = await getPastCharacterChats(index);
-  log.info(`获取角色聊天历史摘要成功, 角色: ${name || '未知'}`);
   return chats;
 }
 
@@ -236,6 +228,5 @@ export async function getChatHistoryDetail(
   isGroupChat: boolean = false,
 ): Promise<Record<string, any> | null> {
   const result = await RawCharacter.getChatsFromFiles(data, isGroupChat);
-  log.info(`获取聊天文件详情成功`);
   return result;
 }

@@ -1,12 +1,15 @@
 {
   "display_name": "酒馆助手",
-  "loading_order": 100,
+  "loading_order": 50,
   "requires": [],
   "optional": [],
   "js": "dist/index.js",
-  "css": "style.css",
+  "css": "dist/index.css",
   "author": "KAKAA",
-  "version": "3.6.12",
+  "version": "4.0.0",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
-  "auto_update": true
+  "auto_update": true,
+  "i18n": {
+    "en": "i18n/en.json"
+  }
 }

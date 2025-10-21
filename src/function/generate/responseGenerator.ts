@@ -1,22 +1,3 @@
-import {
-  cleanUpMessage,
-  countOccurrences,
-  deactivateSendButtons,
-  eventSource,
-  event_types,
-  isOdd,
-  saveChatConditional,
-  saveSettingsDebounced,
-} from '@sillytavern/script';
-import { t } from '@sillytavern/scripts/i18n';
-import { oai_settings, sendOpenAIRequest } from '@sillytavern/scripts/openai';
-import { power_user } from '@sillytavern/scripts/power-user';
-import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
-
-import log from 'loglevel';
-// @ts-ignore
-declare const toastr: any;
-
 import { CustomApiConfig } from '@/function/generate/types';
 import {
   clearInjectionPrompts,
@@ -24,8 +5,19 @@ import {
   setupImageArrayProcessing,
   unblockGeneration,
 } from '@/function/generate/utils';
-
-const type = 'quiet';
+import { saveChatConditionalDebounced } from '@/util/tavern';
+import {
+  cleanUpMessage,
+  countOccurrences,
+  deactivateSendButtons,
+  eventSource,
+  event_types,
+  isOdd,
+  saveSettingsDebounced,
+} from '@sillytavern/script';
+import { oai_settings, sendOpenAIRequest } from '@sillytavern/scripts/openai';
+import { power_user } from '@sillytavern/scripts/power-user';
+import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
 
 /**
  * 流式处理器类
@@ -55,8 +47,7 @@ class StreamingProcessor {
     // 计算增量文本
     const newText = data.text.slice(this.messageBuffer.length);
     this.messageBuffer = data.text;
-    // 兼容旧版本
-    // @ts-ignore
+    // @ts-expect-error 兼容酒馆旧版本
     let processedText = cleanUpMessage(newText, false, false, !data.isFinal, this.stoppingStrings);
 
     const charsToBalance = ['*', '"', '```'];
@@ -72,10 +63,10 @@ class StreamingProcessor {
 
     if (data.isFinal) {
       // @ts-expect-error 兼容酒馆旧版本
-      const result = { message: cleanUpMessage(data.text, false, false, false, this.stoppingStrings) };
-      eventSource.emit('js_generation_before_end', result, this.generationId);
-      eventSource.emit('js_generation_ended', result.message, this.generationId);
-      data.text = result.message;
+      const message = cleanUpMessage(data.text, false, false, false, this.stoppingStrings);
+      eventSource.emit('js_generation_before_end', { message }, this.generationId);
+      eventSource.emit('js_generation_ended', message, this.generationId);
+      data.text = message;
     }
   }
 
@@ -85,7 +76,7 @@ class StreamingProcessor {
     }
     this.isStopped = true;
     unblockGeneration();
-    saveChatConditional();
+    saveChatConditionalDebounced();
   }
 
   // eslint-disable-next-line require-yield
@@ -96,10 +87,8 @@ class StreamingProcessor {
   async generate() {
     try {
       const sw = new Stopwatch(1000 / power_user.streaming_fps);
-      const timestamps = [];
 
       for await (const { text } of this.generator()) {
-        timestamps.push(Date.now());
         if (this.isStopped) {
           this.messageBuffer = '';
           return;
@@ -114,13 +103,6 @@ class StreamingProcessor {
       } else {
         this.messageBuffer = '';
       }
-
-      const seconds = (timestamps[timestamps.length - 1] - timestamps[0]) / 1000;
-      log.warn(
-        `Stream stats: ${timestamps.length} tokens, ${seconds.toFixed(2)} seconds, rate: ${Number(
-          timestamps.length / seconds,
-        ).toFixed(2)} TPS`,
-      );
     } catch (err) {
       if (!this.isFinished) {
         this.onErrorStreaming();
@@ -146,7 +128,7 @@ async function handleResponse(response: any, generationId: string) {
   }
   if (response.error) {
     if (response?.response) {
-      toastr.error(response.response, t`API Error`, {
+      toastr.error(response.response, t`API 错误`, {
         preventDuplicates: true,
       });
     }
@@ -192,17 +174,8 @@ export async function generateResponse(
         if (customApi.model) {
           data.model = customApi.model;
         } else {
-          toastr.error('[Generate] 自定义API未指定模型');
-          log.error('[Generate] 自定义API未指定模型');
-          throw new Error('[Generate] 自定义API未指定模型');
+          throw Error('[TavernHelper][Generate:自定义API] 自定义API未指定模型');
         }
-
-        log.info('[Generate] API配置修改完成', {
-          newSource: data.chat_completion_source,
-          newProxy: data.reverse_proxy,
-          newModel: data.model,
-          hasKey: data.proxy_password,
-        });
 
         return data;
       };
@@ -214,9 +187,7 @@ export async function generateResponse(
     if (imageProcessingSetup) {
       try {
         await imageProcessingSetup.imageProcessingPromise;
-        log.debug('[Generate:图片数组处理] 图片处理已完成，继续生成流程');
       } catch (imageError: any) {
-        log.error('[Generate:图片数组处理] 图片处理失败:', imageError);
         // 图片处理失败不应该阻止整个生成流程，但需要记录错误
         throw new Error(`图片处理失败: ${imageError?.message || '未知错误'}`);
       }
@@ -232,7 +203,7 @@ export async function generateResponse(
         saveSettingsDebounced();
       }
       const streamingProcessor = new StreamingProcessor(generationId, abortController);
-      // @ts-ignore
+      // @ts-expect-error 类型正确
       streamingProcessor.generator = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
       result = (await streamingProcessor.generate()) as string;
       if (originalStreamSetting !== oai_settings.stream_openai) {
@@ -240,7 +211,7 @@ export async function generateResponse(
         saveSettingsDebounced();
       }
     } else {
-      const response = await sendOpenAIRequest(type, generate_data.prompt, abortController.signal);
+      const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
       result = await handleResponse(response, generationId);
     }
   } catch (error) {
@@ -248,13 +219,11 @@ export async function generateResponse(
     if (imageProcessingSetup) {
       imageProcessingSetup.rejectImageProcessing(error);
     }
-    log.error(error);
     throw error;
   } finally {
     // 清理自定义API事件监听器
     if (customApiEventHandler) {
       eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, customApiEventHandler);
-      log.debug('[Generate:自定义API] 已清理事件监听器');
     }
 
     //unblockGeneration();

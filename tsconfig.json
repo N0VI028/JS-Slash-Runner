@@ -5,12 +5,12 @@
     "outDir": "dist",
     "baseUrl": "src",
     "types": [
-      "highlight.js",
       "jquery",
       "jqueryui",
       "lodash",
       "toastr",
       "type-fest",
+      "vite/client",
     ],
     "paths": {
       "@sillytavern/*": [
@@ -39,6 +39,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
+    "*.d.ts",
     "src/**/*.ts",
     "../../../../**/*.js" // for intelligence
   ],

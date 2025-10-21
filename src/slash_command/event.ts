@@ -3,19 +3,17 @@ import { SlashCommand } from '@sillytavern/scripts/slash-commands/SlashCommand';
 import { ARGUMENT_TYPE, SlashCommandNamedArgument } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 
-import log from 'loglevel';
-
+/** @deprecated 酒馆助手脚本已自带按钮，不再需要 /STScript */
 export async function slashEventEmit(named_args: any): Promise<any> {
   const event: string = named_args.event;
   const data: string[] = named_args.data ?? [];
 
-  eventSource.emit(event, ...data);
-
-  log.info(`[Event][/event-emit] 发送 '${event}' 事件, 携带数据: ${JSON.stringify(data)}`);
+  await eventSource.emit(event, ...data);
 
   return event;
 }
 
+/** @deprecated 酒馆助手脚本已自带按钮，不再需要 /STScript */
 export function initSlashEventEmit() {
   SlashCommandParser.addCommandObject(
     SlashCommand.fromProps({

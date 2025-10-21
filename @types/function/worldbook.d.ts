@@ -1,12 +1,12 @@
 /**
- * 获取世界书列表
+ * 获取世界书名称列表
  *
  * @returns 世界书名称列表
  */
 declare function getWorldbookNames(): string[];
 
 /**
- * 获取当前全局开启的世界书列表
+ * 获取当前全局开启的世界书名称列表
  *
  * @returns 全局世界书名称列表
  */
@@ -236,8 +236,20 @@ type WorldbookUpdater =
  * @returns 更新后的世界书条目
  *
  * @example
- * // 删除所有名字中包含 `'神乐光'` 的条目
- * await updateWorldbookWith("eramgt少女歌剧", worldbook => worldbook.filter(entry => entry.name.includes('神乐光')));
+ * // 禁止所有条目递归, 保持其他设置不变
+ * await updateWorldbookWith('eramgt少女歌剧', worldbook => {
+ *   return worldbook.map(entry => ({
+ *     ...entry,
+ *     recursion: { prevent_incoming: true, prevent_outgoing: true, delay_until: null },
+ *   }));
+ * });
+ *
+ * @example
+ * // 删除所有名字中包含 "神乐光" 的条目
+ * await updateWorldbookWith('eramgt少女歌剧', worldbook => {
+ *   _.remove(worldbook, entry => entry.name.includes('神乐光'));
+ *   return worldbook;
+ * });
  */
 declare function updateWorldbookWith(
   worldbook_name: string,

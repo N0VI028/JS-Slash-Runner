@@ -7,13 +7,13 @@ import {
   removeTemporaryUserMessage,
 } from '@/function/generate/utils';
 import { injectPrompts } from '@/function/inject';
-
 import {
   baseChatReplace,
   characters,
   chat,
   chat_metadata,
   extension_prompt_types,
+  extension_prompts,
   getBiasStrings,
   getCharacterCardFields,
   getExtensionPromptRoleByName,
@@ -24,7 +24,7 @@ import {
   this_chid,
 } from '@sillytavern/script';
 import { metadata_keys, NOTE_MODULE_NAME, shouldWIAddPrompt } from '@sillytavern/scripts/authors-note';
-import { extension_settings, getContext } from '@sillytavern/scripts/extensions';
+import { extension_settings } from '@sillytavern/scripts/extensions';
 import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
 import { setOpenAIMessageExamples, setOpenAIMessages } from '@sillytavern/scripts/openai';
 import { persona_description_positions, power_user } from '@sillytavern/scripts/power-user';
@@ -63,19 +63,11 @@ export async function prepareAndOverrideData(
     setPersonaDescriptionExtensionPrompt();
   }
 
+  const character = characters.at(this_chid as unknown as number);
+
   // 4. 获取角色卡基础字段
-  const charDepthPrompt = baseChatReplace(
-    // @ts-ignore
-    characters[this_chid]?.data?.extensions?.depth_prompt?.prompt?.trim(),
-    name1,
-    name2,
-  );
-  const creatorNotes = baseChatReplace(
-    // @ts-ignore
-    characters[this_chid]?.data?.creator_notes?.trim(),
-    name1,
-    name2,
-  );
+  const charDepthPrompt = baseChatReplace(character?.data?.extensions?.depth_prompt?.prompt?.trim(), name1, name2);
+  const creatorNotes = baseChatReplace(character?.data?.creator_notes?.trim(), name1, name2);
   const {
     description: rawDescription,
     personality: rawPersonality,
@@ -110,7 +102,7 @@ export async function prepareAndOverrideData(
   oaiMessageExamples = setOpenAIMessageExamples(mesExamplesArray);
 
   // 5. 获取偏置字符串
-  const { promptBias } = getBiasStrings(processedUserInput, 'quiet');
+  const { promptBias } = getBiasStrings(processedUserInput, 'normal');
 
   // 6. 处理自定义注入的提示词
   if (config.inject) {
@@ -170,21 +162,17 @@ export async function prepareAndOverrideData(
  * 处理角色卡中的深度提示词
  */
 function handleCharDepthPrompt() {
+  const character = characters.at(this_chid as unknown as number);
   const depthPromptText =
-    // @ts-ignore
-    baseChatReplace(characters[this_chid]?.data?.extensions?.depth_prompt?.prompt?.trim(), name1, name2) || '';
-  // @ts-ignore
-  const depthPromptDepth = characters[this_chid]?.data?.extensions?.depth_prompt?.depth ?? '4';
-  const depthPromptRole = getExtensionPromptRoleByName(
-    // @ts-ignore
-    characters[this_chid]?.data?.extensions?.depth_prompt?.role ?? 'system',
-  );
+    baseChatReplace(character?.data?.extensions?.depth_prompt?.prompt?.trim(), name1, name2) || '';
+  const depthPromptDepth = character?.data?.extensions?.depth_prompt?.depth ?? 4;
+  const depthPromptRole = getExtensionPromptRoleByName(character?.data?.extensions?.depth_prompt?.role ?? 'system');
   setExtensionPrompt(
     'DEPTH_PROMPT',
     depthPromptText,
     extension_prompt_types.IN_CHAT,
     depthPromptDepth,
-    // @ts-ignore
+    // @ts-expect-error 类型正确
     extension_settings.note.allowWIScan,
     depthPromptRole,
   );
@@ -195,19 +183,18 @@ function handleCharDepthPrompt() {
  */
 function setAuthorNotePrompt(config: detail.GenerateParams) {
   const authorNoteOverride = config?.overrides?.author_note;
-  // @ts-ignore
   const prompt = authorNoteOverride ?? ($('#extension_floating_prompt').val() as string);
 
   setExtensionPrompt(
     NOTE_MODULE_NAME,
     prompt,
-    // @ts-ignore
+    // @ts-expect-error 类型正确
     chat_metadata[metadata_keys.position],
-    // @ts-ignore
+    // @ts-expect-error 类型正确
     chat_metadata[metadata_keys.depth],
-    // @ts-ignore
+    // @ts-expect-error 类型正确
     extension_settings.note.allowWIScan,
-    // @ts-ignore
+    // @ts-expect-error 类型正确
     chat_metadata[metadata_keys.role],
   );
 }
@@ -228,8 +215,7 @@ function setPersonaDescriptionExtensionPrompt() {
   const promptPositions = [persona_description_positions.BOTTOM_AN, persona_description_positions.TOP_AN];
 
   if (promptPositions.includes(power_user.persona_description_position) && shouldWIAddPrompt) {
-    // @ts-ignore
-    const originalAN = getContext().extensionPrompts[NOTE_MODULE_NAME].value;
+    const originalAN = _.get(extension_prompts, NOTE_MODULE_NAME) as any;
     const ANWithDesc =
       power_user.persona_description_position === persona_description_positions.TOP_AN
         ? `${description}\n${originalAN}`
@@ -238,13 +224,13 @@ function setPersonaDescriptionExtensionPrompt() {
     setExtensionPrompt(
       NOTE_MODULE_NAME,
       ANWithDesc,
-      // @ts-ignore
+      // @ts-expect-error 类型正确
       chat_metadata[metadata_keys.position],
-      // @ts-ignore
+      // @ts-expect-error 类型正确
       chat_metadata[metadata_keys.depth],
-      // @ts-ignore
+      // @ts-expect-error 类型正确
       extension_settings.note.allowWIScan,
-      // @ts-ignore
+      // @ts-expect-error 类型正确
       chat_metadata[metadata_keys.role],
     );
   }
@@ -331,8 +317,7 @@ async function processWorldInfo(
     creatorNotes: characterInfo.creatorNotes,
   };
   const { worldInfoString, worldInfoBefore, worldInfoAfter, worldInfoExamples, worldInfoDepth } =
-    // globalScanData只在新的酒馆版本中存在
-    // @ts-ignore
+    // @ts-expect-error 不考虑新的 trigger 字段
     await getWorldInfoPrompt(chatForWI, this_max_context, false, globalScanData);
 
   await clearInjectionPrompts(['customDepthWI']);
