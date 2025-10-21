@@ -6,8 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { getChangelogHtml } from '@/panel/main/update';
-import { make_TODO } from '@/todo';
+import { getChangelogHtml, update } from '@/panel/main/update';
 
 const changelog = ref<string>(t`<div>更新日志加载中...</div>`);
 onMounted(async () => {
@@ -15,8 +14,7 @@ onMounted(async () => {
 });
 
 async function onConfirm(close: () => void) {
-  make_TODO('更新功能做好了但现在不能测, 之后应该实际接上更新功能并测试');
-  // await update();
+  await update();
   close();
 }
 </script>

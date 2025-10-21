@@ -83,6 +83,7 @@ export async function update() {
 
   const extension_id = getTavernHelperExtensionId();
 
+  toastr.info(t`正在更新酒馆助手...`, t`酒馆助手`);
   const update_response = await updateExtension(extension_id);
   if (update_response.ok) {
     if ((await update_response.json()).isUpToDate) {
@@ -102,6 +103,7 @@ export async function update() {
     return;
   }
 
+  toastr.info(t`正在卸载重装酒馆助手...`, t`酒馆助手`);
   const reinstall_response = await reinstallExtension(extension_id);
   if (!reinstall_response.ok) {
     const text = await reinstall_response.text();

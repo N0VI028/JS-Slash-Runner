@@ -10,9 +10,11 @@
   "获取更新日志失败": "Failed to get the changelog",
   "无法找到版本 '${0}' 的日志": "Cannot find the changelog for version '${0}'",
   "酒馆助手更新成功, 准备刷新页面以生效...": "Tavern Helper updated successfully, preparing to refresh the page to take effect...",
+  "正在更新酒馆助手...": "Updating Tavern Helper...",
   "酒馆助手已是最新版本, 无需更新": "Tavern Helper is already the latest version, no need to update",
   "更新失败: ${0}": "Update failed: ${0}",
   "是否尝试通过卸载重装来更新? (以防由于网络问题重装没能成功, 请先复制 `https://gitlab.com/novi028/JS-Slash-Runner`": "Whether to try to update by uninstalling and reinstalling? (In case that the reinstalling failed due to network issues, please copy `https://gitlab.com/novi028/JS-Slash-Runner` first)",
+  "正在卸载重装酒馆助手...": "Uninstalling and reinstalling Tavern Helper...",
   "更新酒馆助手失败": "Failed to update Tavern Helper",
 
   "路径已复制": "Path copied",
