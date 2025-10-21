@@ -19,7 +19,7 @@ export async function getLatestVersion(): Promise<string> {
 }
 
 export async function hasUpdate(): Promise<boolean> {
-  return compare(await getLatestVersion(), getTavernHelperVersion(), '>=');
+  return compare(await getLatestVersion(), getTavernHelperVersion(), '>');
 }
 
 async function getFullChangelog(): Promise<string> {
