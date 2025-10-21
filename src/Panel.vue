@@ -55,13 +55,6 @@ import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { ModalsContainer } from 'vue-final-modal';
 import { getSmartThemeQuoteTextColor } from './util/color';
 
-z.config(getCurrentLocale().includes('zh') ? z.locales.zhCN() : z.locales.en());
-disableIncompatibleOption();
-registerMacros();
-initTavernHelperObject();
-initThirdPartyObject();
-initSlashCommands();
-
 const tabs = [
   { name: t`主设置`, icon: 'fa-solid fa-gear', component: Main },
   { name: t`渲染器`, icon: 'fa-solid fa-magic-wand-sparkles', component: Render },
@@ -72,6 +65,12 @@ const active_tab = useLocalStorage<number>('TH-Panel:active_tab', 0);
 
 const has_update = ref(false);
 onMounted(async () => {
+  z.config(getCurrentLocale().includes('zh') ? z.locales.zhCN() : z.locales.en());
+  disableIncompatibleOption();
+  registerMacros();
+  initTavernHelperObject();
+  initThirdPartyObject();
+  initSlashCommands();
   has_update.value = await hasUpdate();
 });
 </script>
