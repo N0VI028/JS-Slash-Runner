@@ -15,11 +15,15 @@ function getSettings(id: string | undefined): CharacterSettings {
     (backward_scripts !== undefined || backward_variables !== undefined) &&
     !_.has(character, `data.extensions.${setting_field}`)
   ) {
-    const converted = BackwardCharacterSettings.parse({
+    const parsed = BackwardCharacterSettings.safeParse({
       scripts: backward_scripts ?? [],
       variables: backward_variables ?? {},
     } satisfies z.infer<typeof BackwardCharacterSettings>);
-    saveSettingsDebounced(id as string, converted);
+    if (parsed.success) {
+      saveSettingsDebounced(id as string, parsed.data);
+    } else {
+      toastr.warning(parsed.error.message, t`[酒馆助手]迁移旧数据失败, 将使用空数据`);
+    }
   }
 
   return CharacterSettings.parse(Object.fromEntries(_.get(character, `data.extensions.${setting_field}`, [])));

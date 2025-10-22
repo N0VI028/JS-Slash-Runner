@@ -7,10 +7,15 @@ function getSettings() {
   const backward_settings = _.get(extension_settings, 'TavernHelper');
   // TODO: 等 4.0 稳定后去掉 `&& !_.has(extension_settings, setting_field)`
   if (backward_settings !== undefined && !_.has(extension_settings, setting_field)) {
-    _.set(extension_settings, setting_field, BackwardGlobalSettings.parse(backward_settings));
-    // TODO: 等 4.0 稳定后移除旧配置
-    // _.unset(extension_settings, 'TavernHelper');
-    saveSettingsDebounced();
+    const parsed = BackwardGlobalSettings.safeParse(backward_settings);
+    if (parsed.success) {
+      _.set(extension_settings, setting_field, parsed.data);
+      // TODO: 等 4.0 稳定后移除旧配置
+      // _.unset(extension_settings, 'TavernHelper');
+      saveSettingsDebounced();
+    } else {
+      toastr.warning(parsed.error.message, t`[酒馆助手]迁移旧数据失败, 将使用空数据`);
+    }
   }
   return GlobalSettings.parse(_.get(extension_settings, setting_field));
 }

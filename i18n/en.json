@@ -4,6 +4,8 @@
 
   "API 错误": "API Error",
 
+  "[酒馆助手]迁移旧数据失败, 将使用空数据": "[Tavern Helper] Failed to migrate old data, using empty data",
+
   "[酒馆助手]连接实时监听功能出错, 尝试重连...": "[Tavern Helper] Error connecting to Real-time Editing Listener, trying to reconnect...",
   "[酒馆助手]实时监听器断开连接": "[Tavern Helper] Real-time Editing Listener disconnected",
 
