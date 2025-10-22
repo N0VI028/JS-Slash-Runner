@@ -16,11 +16,17 @@ function updateModel(updated: Content) {
   prevent_updating_content = true;
   if (_.get(updated, 'text') !== undefined) {
     if (editor_instance.validate() === undefined) {
-      content.value = destr(_.get(updated, 'text'));
+      const new_content = destr(_.get(updated, 'text'));
+      if (_.isPlainObject(new_content)) {
+        content.value = new_content as Record<string, any>;
+      }
     }
     return;
   }
-  content.value = _.get(updated, 'json') as Record<string, any>;
+  const new_content = _.get(updated, 'json');
+  if (_.isPlainObject(new_content)) {
+    content.value = new_content as Record<string, any>;
+  }
 }
 const updateModelDebounced = _.debounce(updateModel, 300);
 

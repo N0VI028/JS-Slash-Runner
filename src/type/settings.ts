@@ -81,7 +81,7 @@ export type ChatSettings = z.infer<typeof ChatSettings>;
 
 export const PresetSettings = z
   .object({
-    scripts: z.array(ScriptTree).default([]),
+    scripts: z.array(ScriptTree).default([]).catch([]),
     variables: z.record(z.string(), z.any()).default({}).catch({}),
   })
   .prefault({});
@@ -89,7 +89,7 @@ export type PresetSettings = z.infer<typeof CharacterSettings>;
 
 export const CharacterSettings = z
   .object({
-    scripts: z.array(ScriptTree).default([]),
+    scripts: z.array(ScriptTree).default([]).catch([]),
     variables: z.record(z.string(), z.any()).default({}).catch({}),
   })
   .prefault({});
