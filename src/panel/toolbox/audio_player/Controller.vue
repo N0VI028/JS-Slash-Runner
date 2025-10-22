@@ -99,7 +99,6 @@
 <script setup lang="ts">
 import PlayListEditor from '@/panel/toolbox/audio_player/PlayListEditor.vue';
 import { audio_mode_enum, AudioMode } from '@/type/settings';
-import _ from 'lodash';
 import { useTemplateRef } from 'vue';
 import { useModal } from 'vue-final-modal';
 
