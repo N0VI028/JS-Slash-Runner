@@ -23,7 +23,7 @@ declare namespace SillyTavern {
   type FlattenedWorldInfoEntry = {
     uid: number;
     displayIndex: number;
-    comment: string;
+    comment?: string;
     disable: boolean;
 
     constant: boolean;
