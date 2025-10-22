@@ -5,6 +5,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
   return defineStore(`${type}_scripts`, () => {
     let enabled: Ref<boolean>;
     let script_trees: Ref<ScriptTree[]>;
+    let source: Readonly<Ref<string>>;
 
     switch (type) {
       case 'global': {
@@ -21,6 +22,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
             store.settings.script.scripts = value;
           },
         });
+        source = ref('global');
         break;
       }
       case 'preset': {
@@ -46,6 +48,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
             preset_store.settings.scripts = value;
           },
         });
+        source = computed(() => preset_store.name);
         break;
       }
       case 'character': {
@@ -72,6 +75,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
             character_store.settings.scripts = value;
           },
         });
+        source = computed(() => character_store.name ?? 'unknown');
         break;
       }
     }
@@ -81,13 +85,15 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
         ? _(script_trees.value)
             .filter(item => item.enabled)
             .flatMap(item => {
-              return isScript(item) ? item : item.scripts.filter(script => script.enabled);
+              return isScript(item)
+                ? { source, ...item }
+                : item.scripts.filter(script => script.enabled).map(script => ({ source, ...script }));
             })
             .value()
         : [];
     });
 
-    return { enabled, script_trees, enabled_scripts };
+    return { enabled, script_trees, source, enabled_scripts };
   });
 }
 

@@ -22,9 +22,13 @@
     />
   </template>
 
-  <template v-for="script in runtimes" :key="script.id + script.reload_memo">
-    <Iframe :id="script.id" :content="script.content" :use-blob-url="use_blob_url" />
-  </template>
+  <Iframe
+    v-for="script in runtimes"
+    :id="script.id"
+    :key="script.source + script.id + script.reload_memo"
+    :content="script.content"
+    :use-blob-url="use_blob_url"
+  />
 
   <Teleport v-if="button_element" :to="button_element">
     <div
