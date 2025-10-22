@@ -54,7 +54,7 @@ export function useButtonDestinationElement(
   );
 
   watch(force_key, () => {
-    const $possible_qr_bar = $send_form.children('#qr--bar');
+    const $possible_qr_bar = $send_form.find('#qr--bar');
     const $qr_bar =
       $possible_qr_bar.length > 0
         ? $possible_qr_bar
