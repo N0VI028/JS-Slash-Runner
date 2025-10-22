@@ -268,8 +268,8 @@ export async function setChatMessages(
       _.set(data, 'variables', chat_message.swipes_data);
       _.set(data, 'swipes_info', chat_message.swipes_info);
       _.set(data, 'swipe_id', chat_message.swipe_id);
-      _.set(data, 'mes', data.swipes[data.swipe_id]);
-      _.set(data, 'extra', data.swipes_info[data.swipe_id]);
+      _.set(data, 'mes', chat_message.swipes[chat_message.swipe_id as number]);
+      _.set(data, 'extra', chat_message.swipes_info[chat_message.swipe_id as number]);
     }
   };
 
