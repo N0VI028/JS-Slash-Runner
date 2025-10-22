@@ -36,7 +36,7 @@
   </Item>
 
   <template v-for="{ message_id, reload_memo, elements } in runtimes" :key="message_id + reload_memo">
-    <Teleport v-for="(element, index) in elements" :key="index" :to="element">
+    <Teleport v-for="(element, index) in elements" :key="index" defer :to="element">
       <Iframe :id="`${message_id}-${index}`" :element="element" :use-blob-url="use_blob_url" />
     </Teleport>
   </template>
@@ -58,12 +58,15 @@
 
 <script setup lang="ts">
 import Iframe from '@/panel/render/Iframe.vue';
+import { useMacroLike } from '@/panel/render/macro_like';
 import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
 
-const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(useGlobalSettingsStore().settings.render);
+const global_settings = useGlobalSettingsStore();
+const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(global_settings.settings.render);
+const { enabled: macro_enabled } = toRefs(global_settings.settings.macro);
 
 const collapse_code_block_options = [
   {
@@ -82,6 +85,7 @@ const collapse_code_block_options = [
 
 useOptimizeHljs(enabled);
 useCollapseCodeBlock(collapse_code_block);
+useMacroLike(macro_enabled);
 const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
 </script>
 
