@@ -25,7 +25,7 @@ function demacroOnPrompt(event_data: { prompt: { role: string; content: string }
   }
 }
 
-function demacroOnRender($mes: JQuery<HTMLDivElement>) {
+function demacroOnRender($mes: JQuery<HTMLDivElement>, should_remove_iframe: boolean) {
   const $mes_text = $mes.find('.mes_text');
   if ($mes_text.length === 0 || !macros.some(macro => macro.regex.test($mes_text.text()))) {
     return;
@@ -41,7 +41,9 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
   };
 
   // 因未知原因, 一些设备上在初次进入角色卡时会 '渲染前端界面-替换助手宏-渲染前端界面', 因此需要移除额外渲染的 iframe
-  $mes_text.find('iframe').remove();
+  if (should_remove_iframe) {
+    $mes_text.find('iframe').remove();
+  }
 
   $mes_text.html((_index, html) => replace_html(html));
   $mes_text
@@ -54,19 +56,23 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
     });
 }
 
-function demacroOnRenderOne(message_id: number) {
-  demacroOnRender($(`div.mes[mesid="${message_id}"]`));
+function demacroOnRenderOne(message_id: number, should_remove_iframe: boolean) {
+  demacroOnRender($(`div.mes[mesid="${message_id}"]`), should_remove_iframe);
 }
 
-function demacroOnRenderAll() {
+function demacroOnRenderAll(should_remove_iframe: boolean) {
   $('div.mes').each((_index, node) => {
-    demacroOnRender($(node as HTMLDivElement));
+    demacroOnRender($(node as HTMLDivElement), should_remove_iframe);
   });
 }
 
 export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
   watch(enabled, (value, old_value) => {
-    if (value !== old_value) {
+    if (value) {
+      demacroOnRenderAll(false);
+      return;
+    }
+    if (!value && old_value) {
       reloadAndRenderChatWithoutEvents();
     }
   });
@@ -78,9 +84,10 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
       demacroOnPrompt(event_data, dry_run);
     }
   });
+
   eventSource.on('chatLoaded', () => {
     if (enabled.value) {
-      demacroOnRenderAll();
+      demacroOnRenderAll(true);
     }
   });
   [
@@ -91,7 +98,7 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
   ].forEach(event => {
     eventSource.on(event, (message_id: number | string) => {
       if (enabled.value) {
-        demacroOnRenderOne(Number(message_id));
+        demacroOnRenderOne(Number(message_id), false);
       }
     });
   });
