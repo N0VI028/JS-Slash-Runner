@@ -40,7 +40,7 @@ useEventSourceOn(
     event_types.USER_MESSAGE_RENDERED,
   ],
   message_id => {
-    if (message_id === normalized_message_id.value) {
+    if (Number(message_id) === normalized_message_id.value) {
       internal_refresh_key.value = Symbol();
     }
   },

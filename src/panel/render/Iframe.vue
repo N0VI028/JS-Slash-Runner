@@ -22,10 +22,6 @@ const props = defineProps<{
 
 const $div = $(props.element);
 const $pre = $div.children('pre');
-// 某些
-onBeforeMount(() => {
-  $div.children('iframe').remove();
-});
 
 const iframe_ref = useTemplateRef<HTMLIFrameElement>('iframe');
 

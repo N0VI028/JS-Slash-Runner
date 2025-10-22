@@ -35,12 +35,10 @@
     </template>
   </Item>
 
-  <template v-for="(runtime, message_id) in runtimes" :key="message_id">
-    <template v-for="(element, index) in runtime" :key="element">
-      <Teleport :to="element">
-        <Iframe :id="`${message_id}-${index}`" :element="element" :use-blob-url="use_blob_url" />
-      </Teleport>
-    </template>
+  <template v-for="{ message_id, reload_memo, elements } in runtimes" :key="message_id + reload_memo">
+    <Teleport v-for="(element, index) in elements" :key="index" :to="element">
+      <Iframe :id="`${message_id}-${index}`" :element="element" :use-blob-url="use_blob_url" />
+    </Teleport>
   </template>
 
   <Teleport defer to="#extensionsMenu">
