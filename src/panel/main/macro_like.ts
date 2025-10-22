@@ -25,8 +25,7 @@ function demacroOnPrompt(event_data: { prompt: { role: string; content: string }
   }
 }
 
-function demacroOnRender(message_id: string) {
-  const $mes = $(`div.mes[mesid="${message_id}"]`);
+function demacroOnRender($mes: JQuery<HTMLDivElement>) {
   const $mes_text = $mes.find('.mes_text');
   if ($mes_text.length === 0 || !macros.some(macro => macro.regex.test($mes_text.text()))) {
     return;
@@ -35,16 +34,13 @@ function demacroOnRender(message_id: string) {
   const replace_html = (html: string) => {
     for (const macro of macros) {
       html = html.replace(macro.regex, (substring: string, ...args: any[]) =>
-        macro.replace(
-          { message_id: Number(message_id), role: $mes.attr('is_user') === 'true' ? 'user' : 'assistant' },
-          substring,
-          ...args,
-        ),
+        macro.replace({ role: $mes.attr('is_user') === 'true' ? 'user' : 'assistant' }, substring, ...args),
       );
     }
     return html;
   };
 
+  $mes_text.find('iframe').remove();
   $mes_text.html((_index, html) => replace_html(html));
   $mes_text
     .find('code')
@@ -56,9 +52,13 @@ function demacroOnRender(message_id: string) {
     });
 }
 
+function demacroOnRenderOne(message_id: number) {
+  demacroOnRender($(`div.mes[mesid="${message_id}"]`));
+}
+
 function demacroOnRenderAll() {
   $('div.mes').each((_index, node) => {
-    demacroOnRender($(node).attr('mesid')!);
+    demacroOnRender($(node as HTMLDivElement));
   });
 }
 
@@ -73,16 +73,16 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
     }
   });
 
-  eventSource.on('chatLoaded', () => {
-    if (enabled.value) {
-      demacroOnRenderAll();
-    }
-  });
   eventSource.on(event_types.GENERATE_AFTER_COMBINE_PROMPTS, checkDryRun);
   eventSource.on(event_types.GENERATION_ENDED, resetDryRun);
   eventSource.on(event_types.GENERATE_AFTER_DATA, (event_data: any, dry_run?: boolean) => {
     if (enabled.value) {
       demacroOnPrompt(event_data, dry_run);
+    }
+  });
+  eventSource.on('chatLoaded', () => {
+    if (enabled.value) {
+      demacroOnRenderAll();
     }
   });
   [
@@ -91,9 +91,9 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
     event_types.MESSAGE_UPDATED,
     event_types.MESSAGE_SWIPED,
   ].forEach(event => {
-    eventSource.on(event, (message_id: string) => {
+    eventSource.on(event, (message_id: number | string) => {
       if (enabled.value) {
-        demacroOnRender(message_id);
+        demacroOnRenderOne(Number(message_id));
       }
     });
   });
