@@ -64,11 +64,7 @@ function demacroOnRenderAll() {
 
 export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
   watch(enabled, (value, old_value) => {
-    if (value) {
-      demacroOnRenderAll();
-      return;
-    }
-    if (!value && old_value) {
+    if (value !== old_value) {
       reloadAndRenderChatWithoutEvents();
     }
   });
