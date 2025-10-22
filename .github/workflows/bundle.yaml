@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths-ignore:
       - dist/**
   workflow_dispatch:
@@ -45,32 +46,32 @@ jobs:
             echo "should_tag=false" >> "$GITHUB_OUTPUT"
             echo "bump=" >> "$GITHUB_OUTPUT"
           fi
-      - if: ${{ github.ref_type != 'tag' && steps.autotag_check.outputs.should_tag == 'true' }}
+      - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type != 'tag' && steps.autotag_check.outputs.should_tag == 'true' }}
         id: autotag
         uses: phish108/autotag-action@v1.1.64
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           bump: ${{ steps.autotag_check.outputs.bump }}
           dry-run: true
-      - if: ${{ github.ref_type == 'tag' }}
+      - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' }}
         id: manual_tag
         env:
           VALUE: ${{ github.ref }}
         run: |-
           export TAG=${VALUE##refs/tags/}
           echo result=$TAG >> "$GITHUB_OUTPUT"
-      - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+      - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           include: manifest.json
           find: '"version": "\d+\.\d+\.\d+"'
           replace: ${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}
           regex: true
-      - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+      - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         id: package_version
         run: |-
           echo 'result="version": "${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}"' >> "$GITHUB_OUTPUT"
-      - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+      - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           include: package.json
