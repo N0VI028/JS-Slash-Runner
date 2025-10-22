@@ -1,6 +1,5 @@
 import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward';
 import { CharacterSettings, setting_field } from '@/type/settings';
-import { validateInplace } from '@/util/zod';
 import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
 
@@ -23,10 +22,7 @@ function getSettings(id: string | undefined): CharacterSettings {
     saveSettingsDebounced(id as string, converted);
   }
 
-  return validateInplace(
-    CharacterSettings,
-    Object.fromEntries(_.get(character, `data.extensions.${setting_field}`, [])),
-  );
+  return CharacterSettings.parse(Object.fromEntries(_.get(character, `data.extensions.${setting_field}`, [])));
 }
 
 const writeExtensionFieldDebounced = _.debounce(writeExtensionField, 1000);

@@ -1,11 +1,9 @@
 import { PresetSettings, setting_field } from '@/type/settings';
 import { preset_manager } from '@/util/tavern';
-import { validateInplace } from '@/util/zod';
 import { eventSource, event_types, saveSettingsDebounced } from '@sillytavern/script';
 
 function getSettings(id: string): PresetSettings {
-  return validateInplace(
-    PresetSettings,
+  return PresetSettings.parse(
     _.get(preset_manager.getPresetList().presets[Number(id)], 'extensions.tavern_helper', {}),
   );
 }

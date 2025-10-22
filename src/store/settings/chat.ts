@@ -1,10 +1,9 @@
 import { ChatSettings, setting_field } from '@/type/settings';
-import { validateInplace } from '@/util/zod';
 import { chat_metadata, eventSource, event_types, getCurrentChatId } from '@sillytavern/script';
 import { saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 
 function getSettings(): ChatSettings {
-  return validateInplace(ChatSettings, _.get(chat_metadata, setting_field, {}));
+  return ChatSettings.parse(_.get(chat_metadata, setting_field, {}));
 }
 
 export const useChatSettingsStore = defineStore('chat_settings', () => {

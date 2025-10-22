@@ -28,7 +28,6 @@ import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { ScriptData as BackwardScriptData } from '@/type/backward';
 import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts';
-import { validateInplace } from '@/util/zod';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useFileDialog } from '@vueuse/core';
 
@@ -71,11 +70,11 @@ function getStoreFormType(target: 'global' | 'character' | 'preset'): ReturnType
 }
 
 function onScriptEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptForm) {
-  getStoreFormType(target).script_trees.push(validateInplace(Script, result));
+  getStoreFormType(target).script_trees.push(Script.parse(result));
 }
 
 function onFolderEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptFolderForm) {
-  getStoreFormType(target).script_trees.push(validateInplace(ScriptFolder, result));
+  getStoreFormType(target).script_trees.push(ScriptFolder.parse(result));
 }
 
 const { open: openFileDialog, onChange } = useFileDialog({
@@ -93,7 +92,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
     Array.from(files_list).map(async (file: File) => {
       try {
         const data = JSON.parse(await file.text());
-        const script_tree = validateInplace(_.has(data, 'buttons') ? BackwardScriptData : ScriptTree, data);
+        const script_tree = (_.has(data, 'buttons') ? BackwardScriptData : ScriptTree).parse(data);
         script_tree.enabled = false;
         script_tree.id = uuidv4();
         if (isScriptFolder(script_tree)) {

@@ -1,7 +1,6 @@
 import { GlobalSettings as BackwardGlobalSettings } from '@/type/backward';
 import { GlobalSettings, setting_field } from '@/type/settings';
 import { APP_READY_EVENTS } from '@/util/tavern';
-import { validateInplace } from '@/util/zod';
 import { eventSource, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
@@ -14,7 +13,7 @@ function getSettings() {
     // _.unset(extension_settings, 'TavernHelper');
     saveSettingsDebounced();
   }
-  return validateInplace(GlobalSettings, _.get(extension_settings, setting_field));
+  return GlobalSettings.parse(_.get(extension_settings, setting_field));
 }
 
 export const useGlobalSettingsStore = defineStore('global_settings', () => {
