@@ -45,6 +45,10 @@ interface Window {
     readonly generate: typeof generate;
     readonly generateRaw: typeof generateRaw;
 
+    // global
+    readonly initializeGlobal: typeof initializeGlobal;
+    readonly waitGlobalInitialized: typeof waitGlobalInitialized;
+
     // import_raw
     readonly importRawCharacter: typeof importRawCharacter;
     readonly importRawChat: typeof importRawChat;

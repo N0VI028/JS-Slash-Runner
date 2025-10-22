@@ -45,7 +45,7 @@ import {
 } from '@/function/extension';
 import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
 import { builtin_prompt_default_order } from '@/function/generate/types';
-import { _initializeGlobal, _waitGlobalInitialized } from '@/function/global';
+import { _initializeGlobal, _waitGlobalInitialized, initializeGlobal, waitGlobalInitialized } from '@/function/global';
 import {
   importRawCharacter,
   importRawChat,
@@ -271,6 +271,10 @@ function getTavernHelper() {
     generateRaw,
     stopGenerationById,
     stopAllGeneration,
+
+    // global
+    initializeGlobal,
+    waitGlobalInitialized,
 
     // lorebook_entry
     getLorebookEntries,

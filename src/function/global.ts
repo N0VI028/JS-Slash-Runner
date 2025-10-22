@@ -1,22 +1,37 @@
 import { _eventEmit, _eventOnce } from '@/function/event';
+import { eventSource } from '@sillytavern/script';
 import { LiteralUnion } from 'type-fest';
+
+export function initializeGlobal(global: LiteralUnion<'Mvu', string>, value: any): void {
+  _.set(window, global, value);
+  eventSource.emit(`global_${global}_initialized`);
+}
 
 export function _initializeGlobal(this: Window, global: LiteralUnion<'Mvu', string>, value: any): void {
   _.set(window, global, value);
   _eventEmit.call(this, `global_${global}_initialized`);
 }
 
-export async function _waitGlobalInitialized<T>(this: Window, global: LiteralUnion<'Mvu', string>): Promise<T> {
+export async function waitGlobalInitialized(global: LiteralUnion<'Mvu', string>): Promise<void> {
   if (_.has(window, global)) {
-    const value = _.get(window, global);
-    _.set(this, global, value);
-    return value as T;
+    return;
+  }
+  return new Promise(resolve => {
+    eventSource.once(`global_${global}_initialized`, () => {
+      resolve();
+    });
+  });
+}
+
+export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<'Mvu', string>): Promise<void> {
+  if (_.has(window, global)) {
+    _.set(this, global, _.get(window, global));
+    return;
   }
   return new Promise(resolve => {
     _eventOnce.call(this, `global_${global}_initialized`, () => {
-      const value = _.get(window, global);
-      _.set(this, global, value);
-      resolve(value as T);
+      _.set(this, global, _.get(window, global));
+      resolve();
     });
   });
 }
