@@ -35,7 +35,7 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
     return _(enabled_scripts.value)
       .map(script => ({
         id: script.id,
-        source: script.source,
+        source: script.source.value,
         content: script.content,
         reload_memo: _.get(reload_memos.value, script.id, ''),
       }))
