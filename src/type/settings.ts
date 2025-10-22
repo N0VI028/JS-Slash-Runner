@@ -49,10 +49,10 @@ export const GlobalSettings = z
     render: z
       .object({
         enabled: z.boolean().default(true),
-        // TODO: 过一段时间移除 .catch
         collapse_code_block: CollapseCodeBlock.default('frontend_only').catch('frontend_only'),
         use_blob_url: z.boolean().default(false),
-        depth: z.number().default(0),
+        // 之前没做判定, depth 可能被设置成 "", 因此 .catch
+        depth: z.number().default(0).catch(0),
       })
       .prefault({}),
     script: z
