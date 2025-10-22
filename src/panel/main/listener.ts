@@ -59,8 +59,6 @@ export function useListener(
     socket.on('iframe_updated', () => refreshAllDebounced());
     socket.on('script_iframe_updated', () => refreshScriptDebounced());
     socket.on('message_iframe_updated', () => refreshMessageDebounced());
-
-    return result;
   });
 
   return connected;
