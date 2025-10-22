@@ -30,7 +30,7 @@
     :use-blob-url="use_blob_url"
   />
 
-  <Teleport v-if="button_element" :to="button_element">
+  <Teleport v-if="!!button_element" defer :to="button_element">
     <div
       v-for="(buttons, script_id) in button_map"
       :id="`script_container_${script_id}`"
@@ -79,5 +79,5 @@ useCheckEnablementPopup(preset_name, character_name, global_settings, preset_scr
 const { runtimes, button_map } = toRefs(useScriptIframeRuntimesStore());
 const use_blob_url = toRef(useGlobalSettingsStore().settings.render, 'use_blob_url');
 
-const button_element = useButtonDestinationElement();
+const button_element = useButtonDestinationElement(global_settings);
 </script>

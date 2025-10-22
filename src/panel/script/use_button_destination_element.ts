@@ -1,51 +1,58 @@
-import { APP_READY_EVENTS } from '@/util/tavern';
-import { eventSource } from '@sillytavern/script';
+import { useGlobalSettingsStore } from '@/store/settings';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
-export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>> {
+export function useButtonDestinationElement(
+  global_settings: ReturnType<typeof useGlobalSettingsStore>,
+): Readonly<Ref<HTMLElement | null>> {
+  const element = shallowRef<HTMLElement | null>(null);
   const force_key = ref<symbol>(Symbol());
-  APP_READY_EVENTS.forEach(event =>
-    eventSource.once(event, () => {
-      force_key.value = Symbol();
-    }),
-  );
 
   const $send_form = $('#send_form');
 
-  const observer = new MutationObserver(mutations => {
-    const should_update = mutations.some(mutation => {
-      if (mutation.type !== 'childList') {
-        return false;
-      }
-
-      return (
-        mutation.addedNodes
-          .values()
-          .filter(node => node.nodeType === Node.ELEMENT_NODE)
-          .some(node => {
-            const element = node as Element;
-            return (
-              (element.id === 'qr--bar' && element.children.length > 0) ||
-              element.classList?.contains('qr--button') ||
-              element.classList?.contains('qr--buttons')
-            );
-          }) ||
-        mutation.removedNodes
-          .values()
-          .filter(node => node.nodeType === Node.ELEMENT_NODE)
-          .some(node => {
-            const element = node as Element;
-            return element.id === 'qr--bar' || element.classList?.contains('qr--buttons');
-          })
-      );
-    });
-    if (should_update) {
+  watch(
+    () => global_settings.app_ready,
+    () => {
       force_key.value = Symbol();
-    }
-  });
-  observer.observe($send_form[0], { childList: true });
+      $(document)
+        .off('change.qrCombined', '#qr--isCombined')
+        .on('change.qrCombined', '#qr--isCombined', () => {
+          force_key.value = Symbol();
+        });
 
-  const element = shallowRef<HTMLElement | null>(null);
+      new MutationObserver(mutations => {
+        const should_update = mutations.some(mutation => {
+          if (mutation.type !== 'childList') {
+            return false;
+          }
+
+          return (
+            mutation.addedNodes
+              .values()
+              .filter(node => node.nodeType === Node.ELEMENT_NODE)
+              .some(node => {
+                const element = node as Element;
+                return (
+                  (element.id === 'qr--bar' && element.children.length > 0) ||
+                  element.classList?.contains('qr--button') ||
+                  element.classList?.contains('qr--buttons')
+                );
+              }) ||
+            mutation.removedNodes
+              .values()
+              .filter(node => node.nodeType === Node.ELEMENT_NODE)
+              .some(node => {
+                const element = node as Element;
+                return element.id === 'qr--bar' || element.classList?.contains('qr--buttons');
+              })
+          );
+        });
+        if (should_update) {
+          force_key.value = Symbol();
+        }
+      }).observe($send_form[0], { childList: true });
+    },
+  );
+
   watch(force_key, () => {
     const $possible_qr_bar = $send_form.children('#qr--bar');
     const $qr_bar =

@@ -1,7 +1,6 @@
 import { GlobalSettings as BackwardGlobalSettings } from '@/type/backward';
 import { GlobalSettings, setting_field } from '@/type/settings';
-import { APP_READY_EVENTS } from '@/util/tavern';
-import { eventSource, saveSettingsDebounced } from '@sillytavern/script';
+import { event_types, eventSource, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
 function getSettings() {
@@ -18,9 +17,11 @@ function getSettings() {
 
 export const useGlobalSettingsStore = defineStore('global_settings', () => {
   const app_ready = ref<boolean>(false);
-  APP_READY_EVENTS.forEach(event =>
+  [event_types.APP_READY, 'chatLoaded', event_types.SETTINGS_UPDATED].forEach(event =>
     eventSource.once(event, () => {
-      app_ready.value = true;
+      if (!app_ready.value) {
+        app_ready.value = true;
+      }
     }),
   );
 
