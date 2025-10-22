@@ -63,7 +63,7 @@ jobs:
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           include: manifest.json
-          find: \d+\.\d+\.\d+
+          find: '"version": "\d+\.\d+\.\d+"'
           replace: ${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}
           regex: true
       - if: ${{ github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
