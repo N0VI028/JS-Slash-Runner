@@ -38,7 +38,7 @@ export const GlobalSettings = z
         enabled: z.boolean().default(false),
         enable_echo: z.boolean().default(true),
         url: z.string().default('http://localhost:6621'),
-        duration: z.number().default(1000),
+        duration: z.number().default(1000).catch(1000),
       })
       .prefault({}),
     macro: z
