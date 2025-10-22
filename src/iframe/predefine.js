@@ -1,4 +1,3 @@
-window._ = window.parent._;
 let result = _(window);
 result = result.set('SillyTavern', _.get(window.parent, 'SillyTavern').getContext());
 result = result.merge(_.pick(window.parent, ['EjsTemplate', 'Mvu', 'TavernHelper', 'YAML', 'toastr', 'z']));
