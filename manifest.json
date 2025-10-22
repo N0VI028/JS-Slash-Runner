@@ -9,7 +9,6 @@
   "version": "4.0.10",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
   "auto_update": true,
-  "minimum_client_version": "4.0.10",
   "i18n": {
     "en": "i18n/en.json"
   }
