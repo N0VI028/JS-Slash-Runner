@@ -55,6 +55,9 @@ import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { ModalsContainer } from 'vue-final-modal';
 import { getSmartThemeQuoteTextColor } from './util/color';
 
+// 暴露 Vue 从而让 vue devtool 能正确识别
+useScriptTag('https://testingcf.jsdelivr.net/npm/vue/dist/vue.runtime.global.prod.min.js');
+
 const tabs = [
   { name: t`主设置`, icon: 'fa-solid fa-gear', component: Main },
   { name: t`渲染器`, icon: 'fa-solid fa-magic-wand-sparkles', component: Render },
