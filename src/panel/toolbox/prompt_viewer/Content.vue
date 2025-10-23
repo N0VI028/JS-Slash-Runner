@@ -11,7 +11,7 @@
             v-if="is_collapsible[index]"
             class="
               my-0.5 flex cursor-pointer items-center justify-center gap-0.5 rounded-sm border
-              border-(--SmartThemeBorderColor) px-1 py-0.5 text-sm text-(--SmartThemeQuoteColor)
+              border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
             "
             @click="is_expanded[index] = false"
           >
@@ -23,7 +23,7 @@
           <div
             class="
               my-0.5 flex cursor-pointer items-center justify-center gap-0.5 rounded-sm border
-              border-(--SmartThemeBorderColor) px-1 py-0.5 text-sm text-(--SmartThemeQuoteColor)
+              border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
             "
           >
             展开 {{ (item.match(/\n/g)?.length ?? 0) + 1 }} 行隐藏内容<i class="fa-solid fa-chevron-down"></i>

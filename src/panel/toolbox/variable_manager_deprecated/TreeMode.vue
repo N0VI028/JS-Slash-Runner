@@ -22,7 +22,7 @@
     v-if="isRoot"
     class="
       flex flex-wrap items-center justify-between gap-0.5 rounded border border-(--SmartThemeQuoteColor)/40
-      bg-(--SmartThemeBGColor)/60 px-0.5 py-0.25 text-sm
+      bg-(--SmartThemeBGColor)/60 px-0.5 py-0.25 th-text-sm
     "
   >
     <div
@@ -32,7 +32,7 @@
       <template v-if="breadcrumbSegments.length">
         <template v-for="(segment, index) in breadcrumbSegments" :key="`${segment}-${index}`">
           <span class="font-medium">{{ segment }}</span>
-          <span v-if="index !== breadcrumbSegments.length - 1" class="text-xs text-(--SmartThemeBodyColor)"> > </span>
+          <span v-if="index !== breadcrumbSegments.length - 1" class="th-text-xs text-(--SmartThemeBodyColor)"> > </span>
         </template>
       </template>
       <span v-else class="text-(--SmartThemeBodyColor)/70">单击任意键名以查看路径</span>
@@ -40,7 +40,7 @@
     <div class="inline-flex items-center gap-0.25">
       <div
         class="
-          inline-flex shrink-0 items-center gap-0.25 py-0.25 text-sm text-(--SmartThemeQuoteColor) transition-colors
+          inline-flex shrink-0 items-center gap-0.25 py-0.25 th-text-sm text-(--SmartThemeQuoteColor) transition-colors
           hover:bg-(--SmartThemeQuoteColor)/15
           disabled:cursor-not-allowed disabled:opacity-60
         "
@@ -55,11 +55,11 @@
 
     </div>
   </div>
-  <div v-if="shouldRender" class="text-sm select-text">
+  <div v-if="shouldRender" class="th-text-sm select-text">
     <div :class="nodeRowClass" :style="indentStyle">
       <span
         v-if="!isPrimitive"
-        class="inline-flex shrink-0 cursor-pointer items-center justify-center text-sm leading-none select-none"
+        class="inline-flex shrink-0 cursor-pointer items-center justify-center th-text-sm leading-none select-none"
         @click="toggleCollapse()"
       >
         <svg
@@ -76,7 +76,7 @@
       <span v-else class="inline-block shrink-0 pl-[12px]"></span>
       <span
         v-if="nodeKey !== null"
-        class="flex flex-shrink-0 items-center gap-0.25 self-start text-(--SmartThemeQuoteColor)"
+        class="flex shrink-0 items-center gap-0.25 self-start text-(--SmartThemeQuoteColor)"
       >
         <template v-if="!isEditingKey">
           <span
@@ -102,7 +102,7 @@
             v-model="keyDraft"
             :style="keyInputInlineStyle"
             class="
-              rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 text-sm!
+              rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm!
               text-(--SmartThemeQuoteColor)
               focus:border-(--SmartThemeQuoteColor) focus:outline-none
             "
@@ -137,7 +137,7 @@
           v-model="valueDraft"
           :style="valueInputInlineStyle"
           class="
-            resize-none rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 text-sm!
+            resize-none rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm!
             text-(--SmartThemeBodyColor)
             focus:border-(--SmartThemeQuoteColor) focus:outline-none
           "

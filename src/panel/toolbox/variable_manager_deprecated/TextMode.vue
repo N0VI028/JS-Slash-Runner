@@ -6,7 +6,7 @@
       v-show="!isSearching"
       ref="textareaRef"
       v-model="textContent"
-      class="absolute inset-0 h-full w-full resize-none! text-sm!"
+      class="absolute inset-0 h-full w-full resize-none! th-text-sm!"
       spellcheck="false"
       @blur="handleSave"
     ></textarea>

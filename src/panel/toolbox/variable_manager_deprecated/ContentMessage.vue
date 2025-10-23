@@ -1,5 +1,5 @@
 <template>
-  <div class="my-0.75 rounded-sm bg-(--SmartThemeQuoteColor) p-0.75 text-sm">
+  <div class="my-0.75 rounded-sm bg-(--SmartThemeQuoteColor) p-0.75 th-text-sm">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-between gap-0.75">
         <div class="flex flex-1 items-center">
@@ -22,7 +22,7 @@
         <!-- prettier-ignore-attribute -->
         <button
           class="
-            flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25 text-sm
+            flex items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75 py-0.25 th-text-sm
             text-(--SmartThemeTextColor)
           "
         >
@@ -30,7 +30,7 @@
           <span>确认</span>
         </button>
       </div>
-      <div class="py-0.25 text-sm text-(--warning)">最大楼层不能小于最小楼层</div>
+      <div class="py-0.25 th-text-sm text-(--warning)">最大楼层不能小于最小楼层</div>
     </div>
   </div>
 

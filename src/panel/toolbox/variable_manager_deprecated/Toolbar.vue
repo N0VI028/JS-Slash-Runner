@@ -18,14 +18,14 @@
     </div>
   </DefineIconButton>
   <!-- prettier-ignore -->
-  <div class="mx-0.75 flex flex-col flex-wrap rounded-sm bg-(--SmartThemeQuoteColor)/50 p-0.5 pr-0.75 text-sm">
+  <div class="mx-0.75 flex flex-col flex-wrap rounded-sm bg-(--SmartThemeQuoteColor)/50 p-0.5 pr-0.75 th-text-sm">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-1">
         <div class="inline-flex overflow-hidden rounded border border-white">
           <div
             v-for="option in viewOptions"
             :key="option.value"
-            class="min-w-3 px-0.5 py-[3px] text-center text-sm! transition-colors duration-200"
+            class="min-w-3 px-0.5 py-[3px] text-center th-text-sm! transition-colors duration-200"
             :style="
               option.value === currentView
                 ? 'background-color: white; color: var(--SmartThemeQuoteColor);'

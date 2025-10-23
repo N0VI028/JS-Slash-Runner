@@ -144,9 +144,9 @@ function downloadSlashCommands(event: Event) {
 </script>
 
 <style lang="scss" scoped>
-@reference 'tailwindcss';
+@reference '../../global.css';
 .TH-reference-button {
-  @apply cursor-pointer flex items-center justify-center bg-(--grey5020a) rounded-sm p-0.5 text-xs text-(--SmartThemeBodyColor) gap-0.5;
+  @apply cursor-pointer flex items-center justify-center bg-(--grey5020a) rounded-sm p-0.5 th-text-xs text-(--SmartThemeBodyColor) gap-0.5;
   margin-top: 5px;
 
   a {
@@ -155,6 +155,6 @@ function downloadSlashCommands(event: Event) {
 }
 
 .list-group-item {
-  @apply p-0.5 text-sm cursor-pointer;
+  @apply p-0.5 th-text-sm cursor-pointer;
 }
 </style>

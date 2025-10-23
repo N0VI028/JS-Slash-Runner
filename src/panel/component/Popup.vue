@@ -1,7 +1,7 @@
 <template>
   <VueFinalModal
     v-model="visible"
-    class="TH-popup absolute! flex h-full w-full items-center justify-center"
+    class="TH-popup TH-custom-tailwind absolute! flex h-full w-full items-center justify-center"
     :teleport-to="'body'"
     :z-index-fn="() => 10000"
     :hide-overlay="true"

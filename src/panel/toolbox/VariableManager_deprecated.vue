@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="flex h-full w-full flex-col overflow-hidden py-0.5">
-    <div class="relative flex h-4 flex-shrink-0 justify-start py-0.5">
+    <div class="relative flex h-4 shrink-0 justify-start py-0.5">
       <template v-for="({ name }, index) in tabs" :key="index">
         <div :class="['TH-tab-item', { 'TH-tab-active': active_tab === index }]" @click="active_tab = index">
           <div class="TH-tab-item-text">{{ name }}</div>
@@ -8,7 +8,7 @@
       </template>
     </div>
 
-    <div class="flex-shrink-0">
+    <div class="shrink-0">
       <Toolbar
         v-model:search_input="search_input"
         v-model:filters="filters"
@@ -120,7 +120,7 @@ const expandAllTree = () => {
   @apply px-0.75 cursor-pointer relative flex items-center z-1 h-full;
 
   &-text {
-    @apply text-base transition-all duration-300 ease-in-out relative inline-block;
+    @apply th-text-base transition-all duration-300 ease-in-out relative inline-block;
   }
 
   &-text::after {
@@ -130,7 +130,7 @@ const expandAllTree = () => {
   }
 
   &.TH-tab-active &-text {
-    @apply font-bold text-md;
+    @apply font-bold th-text-md;
   }
   &.TH-tab-active &-text::after {
     transform: scaleX(1);

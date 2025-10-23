@@ -30,9 +30,9 @@
     <div
       v-show="!isCollapsed"
       class="
-        mt-0.25 text-xs leading-snug break-words break-all whitespace-normal text-(--SmartThemeBodyColor)
-        sm:text-sm sm:leading-relaxed
-        md:text-base md:leading-normal
+        mt-0.25 th-text-xs leading-snug break-words break-all whitespace-normal text-(--SmartThemeBodyColor)
+        sm:th-text-sm sm:leading-relaxed
+        md:th-text-base md:leading-normal
       "
     >
       <template v-if="!isEditingValue">
@@ -51,11 +51,11 @@
           v-model="valueDraft"
           :style="valueInputInlineStyle"
           class="
-            w-full resize-none rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.5 py-0.25 text-xs
+            w-full resize-none rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.5 py-0.25 th-text-xs
             text-(--SmartThemeQuoteColor)
             focus:border-(--SmartThemeQuoteColor) focus:outline-none
-            sm:text-sm
-            md:text-base
+            sm:th-text-sm
+            md:th-text-base
           "
           @keydown="handleValueInputKeydown"
         ></textarea>

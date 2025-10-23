@@ -1,6 +1,8 @@
 <template>
   <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]">
-    <div class="my-0.5 text-md font-bold">{{ props.scriptFolder !== undefined ? t`编辑文件夹` : t`创建新文件夹` }}</div>
+    <div class="my-0.5 th-text-md font-bold">
+      {{ props.scriptFolder !== undefined ? t`编辑文件夹` : t`创建新文件夹` }}
+    </div>
     <div class="flex w-full flex-col justify-center gap-0.5 p-1">
       <div class="flex flex-col items-start">
         <div class="font-bold">{{ t`文件夹名称:` }}</div>

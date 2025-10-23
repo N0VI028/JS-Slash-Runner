@@ -13,7 +13,7 @@
           <div
             class="
               flex items-center justify-center gap-0.5 rounded border border-(--SmartThemeQuoteColor)/40
-              bg-(--SmartThemeBGColor)/60 px-0.5 py-0.25 text-sm
+              bg-(--SmartThemeBGColor)/60 px-0.5 py-0.25 th-text-sm
             "
           >
             <div
@@ -58,7 +58,7 @@
             v-else
             class="
               flex items-center justify-center rounded border border-dashed border-(--SmartThemeQuoteColor)/40 py-1
-              text-sm text-(--SmartThemeBodyColor)/70
+              th-text-sm text-(--SmartThemeBodyColor)/70
             "
           >
             {{ t`暂无变量，点击上方“新增变量”创建` }}

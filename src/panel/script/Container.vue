@@ -5,7 +5,7 @@
         <div class="font-bold">{{ title }}</div>
       </div>
       <!-- prettier-ignore-attribute -->
-      <div class="mt-0.25 text-sm opacity-70">{{ description }}</div>
+      <div class="mt-0.25 th-text-sm opacity-70">{{ description }}</div>
     </div>
     <Toggle :id="`${title}-script-enable-toggle`" v-model="store.enabled" />
   </div>

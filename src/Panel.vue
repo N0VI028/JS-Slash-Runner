@@ -1,13 +1,13 @@
 <template>
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
-      <b>{{ t`酒馆助手` }} <span v-if="has_update" class="text-xs font-bold text-red-500">New!</span></b>
+      <b>{{ t`酒馆助手` }} <span v-if="has_update" class="th-text-xs font-bold text-red-500">New!</span></b>
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
     </div>
-    <div class="inline-drawer-content">
+    <div class="inline-drawer-content TH-custom-tailwind">
       <div class="mt-0.5 mb-0.75">
         <!-- prettier-ignore-attribute -->
-        <div class="flex w-full items-center rounded-full border border-(--grey5050a) p-0.5 text-base">
+        <div class="flex w-full items-center rounded-full border border-(--grey5050a) p-0.5 th-text-base">
           <div
             v-for="({ name, icon }, index) in tabs"
             :key="index"
@@ -24,7 +24,7 @@
                 color: active_tab === index ? getSmartThemeQuoteTextColor() : 'inherit',
               }"
             >
-              <i class="flex-shrink-0 text-[80%]" :class="icon"></i>
+              <i class="shrink-0 text-[80%]" :class="icon"></i>
               <span class="flex-grow text-center">{{ name }}</span>
             </div>
           </div>

@@ -50,7 +50,7 @@ const selectOption = (value: string | number) => {
 @reference "../../global.css";
 
 .TH-radio-button {
-  @apply relative p-[3px_5px] border border-(--grey5050a) cursor-pointer transition-all duration-200 ease-in-out text-sm whitespace-nowrap text-(--SmartThemeBodyColor);
+  @apply relative p-[3px_5px] border border-(--grey5050a) cursor-pointer transition-all duration-200 ease-in-out th-text-sm whitespace-nowrap text-(--SmartThemeBodyColor);
 
   &--selected {
     @apply border-(--SmartThemeQuoteColor) bg-(--SmartThemeQuoteColor);

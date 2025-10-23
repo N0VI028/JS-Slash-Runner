@@ -10,11 +10,11 @@
     <DefineNonDetailPart>
       <div class="flex min-w-0 flex-1 flex-col">
         <!-- prettier-ignore-attribute -->
-        <div class="TH-Item--title text-base font-bold">
+        <div class="TH-Item--title th-text-base font-bold">
           <slot name="title" />
         </div>
         <!-- prettier-ignore-attribute -->
-        <div class="mt-0.25 text-sm opacity-70">
+        <div class="mt-0.25 th-text-sm opacity-70">
           <slot name="description" />
         </div>
       </div>

@@ -3,17 +3,41 @@
 @import 'tailwindcss/utilities.css' layer(utilities);
 /* 避免 tailwindcss 扫描 dist 中的打包结果, 导致打包变慢 */
 @source not "../dist";
-:root {
+
+@theme {
+  --spacing: var(--th-spacing, 0.25rem);
+}
+
+:where(.TH-custom-tailwind) {
   --spacing: var(--mainFontSize);
 }
-@theme {
-  --text-base: var(--mainFontSize);
-  --text-xs: calc(var(--mainFontSize) * 0.7);
-  --text-sm: calc(var(--mainFontSize) * 0.8);
-  --text-md: calc(var(--mainFontSize) * 1.2);
-  --text-lg: calc(var(--mainFontSize) * 1.5);
-  --text-xl: calc(var(--mainFontSize) * 2);
-  --text-2xl: calc(var(--mainFontSize) * 2.5);
+
+@utility th-text-base {
+  font-size: var(--mainFontSize);
+}
+
+@utility th-text-xs {
+  font-size: calc(var(--mainFontSize) * 0.7);
+}
+
+@utility th-text-sm {
+  font-size: calc(var(--mainFontSize) * 0.8);
+}
+
+@utility th-text-md {
+  font-size: calc(var(--mainFontSize) * 1.2);
+}
+
+@utility th-text-lg {
+  font-size: calc(var(--mainFontSize) * 1.5);
+}
+
+@utility th-text-xl {
+  font-size: calc(var(--mainFontSize) * 2);
+}
+
+@utility th-text-2xl {
+  font-size: calc(var(--mainFontSize) * 2.5);
 }
 
 /* 模拟overlay: 使用 CSS 伪元素自动创建全局唯一的 overlay */

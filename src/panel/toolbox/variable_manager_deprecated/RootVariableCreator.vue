@@ -1,7 +1,7 @@
 ﻿<template>
   <Popup v-model="isVisible" :buttons="popupButtons">
-    <div class="flex w-full flex-col gap-0.75 text-sm text-(--SmartThemeBodyColor)">
-      <div class="text-md font-bold">新建变量</div>
+    <div class="flex w-full flex-col gap-0.75 th-text-sm text-(--SmartThemeBodyColor)">
+      <div class="th-text-md font-bold">新建变量</div>
       <div class="flex flex-col gap-0.25">
         <label class="font-semibold">键名</label>
         <input v-model="form.key" type="text" class="text_pole" placeholder="请输入键名" />

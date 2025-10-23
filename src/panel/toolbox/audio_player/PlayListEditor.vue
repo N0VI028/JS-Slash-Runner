@@ -10,7 +10,7 @@
       <div v-if="playlist.length === 0" class="text-center opacity-50">暂无音频</div>
       <VueDraggable v-model="playlist" handle=".TH-handle" class="flex flex-col" direction="vertical" item-key="id">
         <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center gap-0.5">
-          <span class="TH-handle flex-shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
+          <span class="TH-handle shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
           <!-- prettier-ignore-attribute -->
           <div
             class="
@@ -22,7 +22,7 @@
               {{ item.title }}
             </span>
           </div>
-          <div class="flex flex-shrink-0 items-center gap-0.5">
+          <div class="flex shrink-0 items-center gap-0.5">
             <button class="menu_button interactable" @click="editItem(index)">
               <i class="fa-solid fa-pencil" />
             </button>

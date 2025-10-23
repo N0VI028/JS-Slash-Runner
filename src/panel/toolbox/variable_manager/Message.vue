@@ -1,12 +1,12 @@
 <template>
   <div class="flex h-full flex-col">
-    <div class="mb-0.5 flex flex-wrap items-center gap-0.5 rounded-sm bg-(--grey5020a) p-0.25 text-sm">
-      <div class="mr-1 flex grow flex-wrap items-center gap-0.5 text-sm">
+    <div class="mb-0.5 flex flex-wrap items-center gap-0.5 rounded-sm bg-(--grey5020a) p-0.25 th-text-sm">
+      <div class="mr-1 flex grow flex-wrap items-center gap-0.5 th-text-sm">
         <!-- prettier-ignore-attribute -->
         <button
           class="
             flex h-2 cursor-pointer items-center gap-0.5 rounded-sm border-none bg-(--SmartThemeQuoteColor) px-0.75
-            py-0.25 text-sm!
+            py-0.25 th-text-sm!
           "
           :style="{ color: text_color }"
           @click="sync_bottom = !sync_bottom"
@@ -120,8 +120,8 @@ const messages = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@reference "tailwindcss";
+@reference '../../../global.css';
 .TH-floor-input {
-  @apply rounded-sm h-2 bg-(--SmartThemeBlurTintColor)! grow min-w-0 px-0.5 cursor-pointer text-(--SmartThemeBodyColor) border-none! text-sm!;
+  @apply rounded-sm h-2 bg-(--SmartThemeBlurTintColor)! grow min-w-0 px-0.5 cursor-pointer text-(--SmartThemeBodyColor) border-none! th-text-sm!;
 }
 </style>

@@ -1,12 +1,12 @@
 <template>
   <div class="flex h-full flex-col overflow-hidden p-1">
-    <div class="z-1 flex-shrink-0 text-wrap">
+    <div class="z-1 shrink-0 text-wrap">
       <div class="mb-0.75 flex items-center justify-between p-0.5">
         <div class="flex flex-col gap-0.25">
-          <div class="text-base font-bold text-(--SmartThemeQuoteColor)">
+          <div class="th-text-base font-bold text-(--SmartThemeQuoteColor)">
             {{ t`总token数` }}: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
           </div>
-          <div class="text-sm text-(--SmartThemeQuoteColor)">
+          <div class="th-text-sm text-(--SmartThemeQuoteColor)">
             {{ t`${filtered_prompts.length}/${prompts.length} 条消息` }}
           </div>
         </div>
@@ -14,7 +14,7 @@
           <div class="fa-solid fa-expand cursor-pointer" title="展开全部" @click="toggleAll(true)" />
           <div class="fa-solid fa-compress cursor-pointer" title="收起全部" @click="toggleAll(false)" />
           <div
-            class="fa-solid fa-rotate-right cursor-pointer text-base duration-200"
+            class="fa-solid fa-rotate-right cursor-pointer th-text-base duration-200"
             :class="{ 'animate-spin': is_refreshing }"
             title="刷新"
             @click="triggerRefresh"
@@ -32,13 +32,13 @@
           <!-- prettier-ignore-attribute -->
           <SearchBar
             v-model="search_input"
-            class="grow rounded-sm bg-transparent text-base text-(--mainTextColor)"
+            class="grow rounded-sm bg-transparent th-text-base text-(--mainTextColor)"
             :placeholder="t`搜索消息内容...`"
           />
           <!-- prettier-ignore-attribute -->
           <div
             class="
-              pointer-events-auto mr-0.5 flex flex-shrink-0 items-center rounded-sm text-sm whitespace-nowrap
+              pointer-events-auto mr-0.5 flex shrink-0 items-center rounded-sm th-text-sm whitespace-nowrap
               text-(--SmartThemeBodyColor)
             "
           >

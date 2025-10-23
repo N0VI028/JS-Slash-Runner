@@ -3,7 +3,7 @@
   <div
     class="
       flex cursor-pointer items-center justify-between rounded-t-sm bg-(--SmartThemeQuoteColor)/20 px-0.5 py-0.25
-      text-sm
+      th-text-sm
     "
     @click="is_collapsed = !is_collapsed"
   >

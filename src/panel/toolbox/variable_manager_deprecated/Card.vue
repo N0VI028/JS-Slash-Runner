@@ -10,7 +10,7 @@
     "
     :class="depthClass"
   >
-    <div class="flex-shrink-0 transition-all duration-200 ease-in-out" :style="depthIndicatorStyle"></div>
+    <div class="shrink-0 transition-all duration-200 ease-in-out" :style="depthIndicatorStyle"></div>
 
     <div class="min-w-0 flex-1 p-0.5">
       <div class="flex items-center justify-between gap-2 select-none" :class="{ 'cursor-pointer': collapsible }">
@@ -18,7 +18,7 @@
           <div
             v-if="collapsible"
             class="
-              inline-flex flex-shrink-0 cursor-pointer items-center justify-center rounded border-none bg-none text-xs
+              inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-none bg-none th-text-xs
               text-[var(--SmartThemeBodyColor)] transition-all duration-200 ease-in-out
             "
             type="button"
@@ -49,7 +49,7 @@
               v-model="nameDraft"
               :style="nameInputInlineStyle"
               class="
-                inline-flex min-w-0 rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 text-sm
+                inline-flex min-w-0 rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm
                 text-[var(--SmartThemeQuoteColor)]
                 focus:border-(--SmartThemeQuoteColor) focus:outline-none
               "
@@ -82,7 +82,7 @@
             </div>
             <template #content>
               <div
-                class="flex flex-col items-start justify-center gap-0.5 rounded-sm bg-(--grey30) px-1 py-0.5 text-sm"
+                class="flex flex-col items-start justify-center gap-0.5 rounded-sm bg-(--grey30) px-1 py-0.5 th-text-sm"
               >
                 <div
                   v-if="allowAddChild"

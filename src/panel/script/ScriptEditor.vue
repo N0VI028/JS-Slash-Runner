@@ -4,7 +4,7 @@
       <i class="fa-solid fa-maximize interactable cursor-pointer" @click="activate"></i>
     </DefineMaximizeButton>
     <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
-      <div class="my-0.5 text-md font-bold">{{ props.script !== undefined ? t`编辑脚本` : t`创建新脚本` }}</div>
+      <div class="th-text-md my-0.5 font-bold">{{ props.script !== undefined ? t`编辑脚本` : t`创建新脚本` }}</div>
       <div class="TH-script-editor-container">
         <strong>{{ t`脚本名称` }}</strong>
         <input v-model="script.name" type="text" class="text_pole" />

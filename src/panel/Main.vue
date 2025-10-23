@@ -5,7 +5,7 @@
         <span>{{ t`版本更新` }}</span>
         <div
           v-if="has_update"
-          class="rounded-full bg-(--SmartThemeQuoteColor) px-0.5 text-xs font-medium"
+          class="rounded-full bg-(--SmartThemeQuoteColor) px-0.5 th-text-xs font-medium"
           :style="{ color: getSmartThemeQuoteTextColor() }"
         >
           {{ t`最新：Ver ${latest_version}` }}

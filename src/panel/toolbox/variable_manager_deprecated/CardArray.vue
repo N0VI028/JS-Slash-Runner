@@ -33,7 +33,7 @@
       >
         <div
           class="
-            inline-flex flex-shrink-0 cursor-grab items-center justify-center rounded text-sm
+            inline-flex shrink-0 cursor-grab items-center justify-center rounded th-text-sm
             text-[var(--SmartThemeBodyColor)] transition-colors duration-200 ease-in-out select-none
             hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)]
             hover:text-[var(--SmartThemeQuoteColor)]

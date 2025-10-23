@@ -25,7 +25,7 @@
         <div class="ml-0.5 flex-grow overflow-hidden text-left! text-ellipsis! whitespace-nowrap!">
           {{ builtin.name }}
         </div>
-        <div class="flex flex-shrink-0! flex-nowrap! items-center gap-0.5">
+        <div class="flex shrink-0! flex-nowrap! items-center gap-0.5">
           <DefineToolButton v-slot="{ name, icon }">
             <div class="menu_button interactable my-0! mr-0.5" :title="name">
               <i class="fa-solid" :class="icon"></i>

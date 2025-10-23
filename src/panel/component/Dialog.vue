@@ -2,7 +2,7 @@
   <Teleport :to="teleport_target">
     <div ref="dialog_ref" :style="dialog_style" :class="dialog_classes">
       <div
-        class="flex h-full flex-col overflow-hidden bg-(--SmartThemeBlurTintColor) shadow-lg"
+        class="TH-custom-tailwind flex h-full flex-col overflow-hidden bg-(--SmartThemeBlurTintColor) shadow-lg"
         role="dialog"
         aria-modal="true"
         :class="is_mobile ? '' : 'rounded-sm'"
@@ -10,7 +10,7 @@
         <!-- prettier-ignore-attribute -->
         <div
           ref="header_ref"
-          class="flex flex-shrink-0 items-center justify-between bg-(--SmartThemeQuoteColor) px-1 select-none"
+          class="flex shrink-0 items-center justify-between bg-(--SmartThemeQuoteColor) px-1 select-none"
         >
           <div
             class="flex-1 cursor-move font-bold"
@@ -19,11 +19,11 @@
           >
             {{ title }}
           </div>
-          <div class="flex flex-shrink-0 gap-1" :style="{ color: getSmartThemeQuoteTextColor() }">
+          <div class="flex shrink-0 gap-1" :style="{ color: getSmartThemeQuoteTextColor() }">
             <!-- prettier-ignore-attribute -->
             <div
               v-if="showGuide"
-              class="flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-base!"
+              class="flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent th-text-base!"
               @click="openGuidePopup"
             >
               <i class="fa-solid fa-question"></i>
@@ -32,7 +32,7 @@
             <div
               class="
                 relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent
-                text-base!
+                th-text-base!
               "
               :title="is_collapsed ? t`展开` : t`折叠`"
               @click="toggleCollapse"
@@ -43,7 +43,7 @@
             <div
               class="
                 fa-solid fa-close relative z-20 flex cursor-pointer items-center justify-center rounded-md border-none
-                bg-transparent text-base!
+                bg-transparent th-text-base!
               "
               :title="t`关闭`"
               @click="emit('close')"
