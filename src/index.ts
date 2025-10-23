@@ -1,5 +1,11 @@
+import { initTavernHelperObject } from '@/function/index';
 import '@/global.css';
+import { disableIncompatibleOption } from '@/incompatible_option';
+import { registerMacros } from '@/macro';
 import Panel from '@/Panel.vue';
+import { initSlashCommands } from '@/slash_command/index';
+import { initThirdPartyObject } from '@/third_party_object';
+import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { App } from 'vue';
 import { createVfm } from 'vue-final-modal';
 import 'vue-final-modal/style.css';
@@ -28,6 +34,13 @@ const i18n = {
 app.use(i18n);
 
 $(() => {
+  z.config(getCurrentLocale().includes('zh') ? z.locales.zhCN() : z.locales.en());
+  disableIncompatibleOption();
+  registerMacros();
+  initTavernHelperObject();
+  initThirdPartyObject();
+  initSlashCommands();
+
   const $app = $('<div id="tavern_helper">').appendTo('#extensions_settings');
   app.mount($app[0]);
 });
