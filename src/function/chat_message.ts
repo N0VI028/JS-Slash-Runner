@@ -380,6 +380,10 @@ export async function createChatMessages(
     converted.forEach(message => addOneMessage(message));
     converted.forEach(async (message, index) => {
       await eventSource.emit(
+        message.is_user ? event_types.MESSAGE_SENT : event_types.MESSAGE_RECEIVED,
+        chat.length - converted.length + index,
+      );
+      await eventSource.emit(
         message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
         chat.length - converted.length + index,
       );
