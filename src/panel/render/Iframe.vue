@@ -1,18 +1,19 @@
 <template>
   <iframe
-    :id="`TH-message-${id}`"
+    :id="prefixed_id"
     ref="iframe_ref"
     loading="lazy"
     v-bind="src_prop"
     class="w-full"
     frameborder="0"
-    @load="$event => adjustIframeHeight($event.target as HTMLIFrameElement)"
+    @load="onLoad"
   />
 </template>
 
 <script setup lang="ts">
 import { createSrcContent } from '@/panel/render/iframe';
 import { adjustIframeHeight, useHeightObserver } from '@/panel/render/use_height_observer';
+import { eventSource } from '@sillytavern/script';
 
 const props = defineProps<{
   id: string;
@@ -57,6 +58,16 @@ onUnmounted(() => {
     URL.revokeObjectURL(src_prop.value.src);
   }
 });
+
+// 相关事件
+const prefixed_id = computed(() => `TH-message-${props.id}`);
+onMounted(() => {
+  eventSource.emit('message_iframe_render_started', prefixed_id.value);
+});
+function onLoad(event: Event) {
+  eventSource.emit('message_iframe_render_ended', prefixed_id.value);
+  adjustIframeHeight(event.target as HTMLIFrameElement);
+}
 
 // 与折叠代码块的兼容性
 onMounted(() => {
