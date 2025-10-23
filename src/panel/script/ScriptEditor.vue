@@ -1,13 +1,12 @@
 <template>
   <Popup
     :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]"
-    class="text-left"
   >
     <DefineMaximizeButton v-slot="{ activate }">
       <i class="fa-solid fa-maximize interactable cursor-pointer" @click="activate"></i>
     </DefineMaximizeButton>
-    <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto">
-      <div class="th-text-md my-0.5 font-bold">{{ props.script !== undefined ? t`编辑脚本` : t`创建新脚本` }}</div>
+    <div class="flex h-full flex-col flex-wrap items-center gap-0.25 overflow-y-auto text-left">
+      <div class="my-0.5 th-text-md font-bold">{{ props.script !== undefined ? t`编辑脚本` : t`创建新脚本` }}</div>
       <div class="TH-script-editor-container">
         <strong>{{ t`脚本名称` }}</strong>
         <input v-model="script.name" type="text" class="text_pole" />
