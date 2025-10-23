@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.0.12
 
+### 📕脚本库
+
+- 将预设脚本库挪到了角色脚本库下面, 因为不常用
+
 ### 📦函数
 
 - 将 `initializeGlobal` 和 `waitGlobalInitialized` 函数加入到 `TavernHelper` 接口中, 而不只是前端界面或脚本中可用, 便于扩展用它与脚本分享接口 (如 `waitGlobalInitialized('Mvu')` 来等待 `Mvu` 接口初始化完毕)

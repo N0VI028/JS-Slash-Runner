@@ -9,9 +9,6 @@
 
   <Container v-model="global_scripts" :title="t`全局脚本`" :description="t`酒馆全局可用`" store-type="global" />
 
-  <Divider />
-  <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" store-type="preset" />
-
   <template v-if="character_name !== undefined">
     <Divider />
     <Container
@@ -21,6 +18,9 @@
       store-type="character"
     />
   </template>
+
+  <Divider />
+  <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" store-type="preset" />
 
   <Iframe
     v-for="script in runtimes"
