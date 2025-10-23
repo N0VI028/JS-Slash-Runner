@@ -18,7 +18,7 @@
           v-model="script.content"
           :placeholder="t`JavaScript 代码`"
           rows="3"
-          class="text_pole font-[family-name:var(--monoFontFamily)]!"
+          class="text_pole font-(family-name:--monoFontFamily)!"
         />
       </div>
       <div class="TH-script-editor-container">
@@ -30,7 +30,7 @@
           v-model="script.info"
           placeholder="脚本备注, 例如作者名、版本和注意事项等, 支持简单的 markdown 和 html"
           rows="3"
-          class="text_pole font-[family-name:var(--monoFontFamily)]!"
+          class="text_pole font-(family-name:--monoFontFamily)!"
         />
       </div>
       <div class="TH-script-editor-container">
@@ -41,7 +41,10 @@
         <small>{{ t`绑定到脚本的变量, 会随脚本一同导出` }}</small>
         <div
           :class="[
-            'my-[5px] h-[150px] w-full rounded-[5px] border border-(--SmartThemeBorderColor) bg-(--black30a) p-[3px]',
+            `
+              my-[5px] h-[150px] w-full overflow-hidden rounded-[5px] border border-(--SmartThemeBorderColor)
+              bg-(--black30a)
+            `,
             { 'pointer-events-none': hideInlineDataEditor },
           ]"
           :aria-hidden="hideInlineDataEditor"
