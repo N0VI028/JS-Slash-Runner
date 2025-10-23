@@ -141,7 +141,7 @@ export function replaceVariables(variables: Record<string, any>, option: Variabl
       }
       const script = useScriptIframeRuntimesStore().get(option.script_id);
       if (!script) {
-        throw Error(`保存变量失败, '${option.script_id}' 脚本不存在`);
+        return;
       }
       script.data = variables;
       break;
