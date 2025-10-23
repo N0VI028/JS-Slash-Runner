@@ -26,7 +26,13 @@ function getSettings(id: string | undefined): CharacterSettings {
     }
   }
 
-  return CharacterSettings.parse(Object.fromEntries(_.get(character, `data.extensions.${setting_field}`, [])));
+  const settings = Object.fromEntries(_.get(character, `data.extensions.${setting_field}`, []));
+  const parsed = CharacterSettings.safeParse(settings);
+  if (!parsed.success) {
+    toastr.warning(parsed.error.message, t`[酒馆助手]读取角色卡数据失败, 将使用空数据`);
+    return CharacterSettings.parse({});
+  }
+  return CharacterSettings.parse(parsed.data);
 }
 
 const writeExtensionFieldDebounced = _.debounce(writeExtensionField, 1000);

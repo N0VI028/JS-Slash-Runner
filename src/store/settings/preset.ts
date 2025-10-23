@@ -3,9 +3,13 @@ import { preset_manager } from '@/util/tavern';
 import { eventSource, event_types, saveSettingsDebounced } from '@sillytavern/script';
 
 function getSettings(id: string): PresetSettings {
-  return PresetSettings.parse(
-    _.get(preset_manager.getPresetList().presets[Number(id)], 'extensions.tavern_helper', {}),
-  );
+  const settings = _.get(preset_manager.getPresetList().presets[Number(id)], 'extensions.tavern_helper', {});
+  const parsed = PresetSettings.safeParse(settings);
+  if (!parsed.success) {
+    toastr.warning(parsed.error.message, t`[酒馆助手]读取预设数据失败, 将使用空数据`);
+    return PresetSettings.parse({});
+  }
+  return PresetSettings.parse(parsed.data);
 }
 
 function saveSettingsToMemoryDebounced(id: string, settings: PresetSettings) {
