@@ -1,6 +1,7 @@
 @layer theme, base, components, utilities;
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
+/* 避免 tailwindcss 扫描 dist 中的打包结果, 导致打包变慢 */
 @source not "../dist";
 :root {
   --spacing: var(--mainFontSize);
