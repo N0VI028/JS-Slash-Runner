@@ -41,15 +41,11 @@
 </template>
 
 <script setup lang="ts">
-import { initTavernHelperObject } from '@/function';
-import { registerMacros } from '@/macro';
 import Main from '@/panel/Main.vue';
 import { hasUpdate } from '@/panel/main/update';
 import Render from '@/panel/Render.vue';
 import Script from '@/panel/Script.vue';
-import { initThirdPartyObject } from '@/third_party_object';
 import Toolbox from '@/panel/Toolbox.vue';
-import { initSlashCommands } from '@/slash_command/index';
 import { ModalsContainer } from 'vue-final-modal';
 import { getSmartThemeQuoteTextColor } from './util/color';
 
@@ -66,7 +62,6 @@ const active_tab = useLocalStorage<number>('TH-Panel:active_tab', 0);
 
 const has_update = ref(false);
 onMounted(async () => {
-
   has_update.value = await hasUpdate();
 });
 </script>
