@@ -3,7 +3,7 @@
     <template v-if="props.searchInput !== null && props.matchedOnly">
       <template v-for="(item, index) in parsed_content" :key="index">
         <div v-if="is_expanded[index]">
-          <div class="break-words whitespace-pre-wrap">
+          <div class="wrap-break-word whitespace-pre-wrap">
             {{ item }}
           </div>
           <!-- prettier-ignore-attribute -->

@@ -95,7 +95,7 @@
               <!-- prettier-ignore-attribute -->
               <div
                 class="
-                  mt-0.5 max-h-[40%] overflow-x-hidden overflow-y-auto rounded-b-md leading-[1.4] break-words
+                  mt-0.5 max-h-[40%] overflow-x-hidden overflow-y-auto rounded-b-md leading-[1.4] wrap-break-word
                   whitespace-pre-wrap text-(--mainFontSize)
                 "
               >
@@ -110,8 +110,9 @@
 </template>
 
 <script setup lang="ts">
+import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
-import { version } from '@/util/tavern';
+import { getImageTokenCost, getVideoTokenCost, version } from '@/util/tavern';
 import {
   event_types,
   eventSource,
@@ -191,7 +192,7 @@ function triggerRefresh(): void {
   Generate('normal');
 }
 
-function collectPrompts(data: { role: string; content: string }[], dry_run: boolean) {
+function collectPrompts(data: SendingMessage[], dry_run: boolean) {
   if (dry_run) {
     return;
   }
@@ -207,8 +208,24 @@ function collectPrompts(data: { role: string; content: string }[], dry_run: bool
         return {
           id: index,
           role,
-          content: content,
-          token: await getTokenCountAsync(content),
+          content: typeof content === 'string' ? content : JSON.stringify(content, null, 2),
+          token:
+            typeof content === 'string'
+              ? await getTokenCountAsync(content)
+              : _.sum(
+                  await Promise.all(
+                    content.map(async item => {
+                      switch (item.type) {
+                        case 'text':
+                          return await getTokenCountAsync(item.text);
+                        case 'image_url':
+                          return await getImageTokenCost(item.image_url.url, item.image_url.detail);
+                        case 'video_url':
+                          return await getVideoTokenCost(item.video_url.url);
+                      }
+                    }),
+                  ),
+                ),
         };
       }),
     );
@@ -218,19 +235,13 @@ function collectPrompts(data: { role: string; content: string }[], dry_run: bool
 }
 
 if (compare(version, '1.13.4', '<=')) {
-  useEventSourceOn(
-    event_types.CHAT_COMPLETION_PROMPT_READY,
-    (data: { chat: { role: string; content: string }[]; dryRun: boolean }) => {
-      collectPrompts(data.chat, data.dryRun);
-    },
-  );
+  useEventSourceOn(event_types.CHAT_COMPLETION_PROMPT_READY, (data: { chat: any; dryRun: boolean }) => {
+    collectPrompts(data.chat, data.dryRun);
+  });
 } else {
-  useEventSourceOn(
-    event_types.GENERATE_AFTER_DATA,
-    (data: { prompt: { role: string; content: string }[] }, dry_run: boolean) => {
-      collectPrompts(data.prompt, dry_run);
-    },
-  );
+  useEventSourceOn(event_types.GENERATE_AFTER_DATA, (data: { prompt: any }, dry_run: boolean) => {
+    collectPrompts(data.prompt, dry_run);
+  });
 }
 </script>
 
