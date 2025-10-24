@@ -7,12 +7,12 @@
     width="wide"
     @closed="() => emit('closed')"
   >
-    <div class="flex h-full max-h-[80vh] w-full flex-col gap-1 overflow-y-auto">
+    <div class="flex h-full max-h-[80vh] w-full flex-col gap-1 overflow-y-auto text-left">
       <template v-if="props.target === 'content' || props.target === 'info'">
         <textarea
           v-model="text"
           :placeholder="props.target === 'content' ? t`JavaScript 代码` : t`备注文本`"
-          class="text_pole h-dvh! min-h-[50vh] font-[family-name:var(--monoFontFamily)]!"
+          class="text_pole h-dvh! min-h-[50vh] font-(family-name:--monoFontFamily)!"
         />
       </template>
       <template v-else>
