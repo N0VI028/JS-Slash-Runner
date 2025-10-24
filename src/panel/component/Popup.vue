@@ -15,7 +15,7 @@
       :class="width === 'normal' ? `w-[500px]` : width === 'wide' ? `h-dvh w-dvw!` : width === 'fit' ? `w-fit!` : ''"
       :style="width !== 'normal' && width !== 'wide' && width !== 'fit' ? `width: ${width} !important;` : ''"
     >
-      <div class="max-h-[80vh] overflow-y-auto">
+      <div class="h-full max-h-[80vh] overflow-y-auto">
         <slot></slot>
       </div>
       <div v-if="buttons.length" class="flex items-center justify-center gap-[20px]">
