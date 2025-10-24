@@ -75,12 +75,6 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
     { immediate: true },
   );
 
-  eventSource.on('chatLoaded', () => {
-    if (collapse_code_block.value !== 'none') {
-      collapseCodeBlockForAll(collapse_code_block.value);
-    }
-  });
-
   // 流式过程监听变化并应用折叠代码块功能
   const observer = new MutationObserver(() => {
     const chat_length = chat.length;
@@ -108,19 +102,22 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
     });
   });
 
-  eventSource.on(event_types.MESSAGE_UPDATED, (message_id: string | number) => {
+  eventSource.on('chatLoaded', () => {
     if (collapse_code_block.value !== 'none') {
-      collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value);
+      collapseCodeBlockForAll(collapse_code_block.value);
     }
   });
-  eventSource.on(event_types.USER_MESSAGE_RENDERED, (message_id: string | number) => {
-    if (collapse_code_block.value !== 'none') {
-      collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value);
-    }
-  });
-  eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: string | number) => {
-    if (collapse_code_block.value !== 'none') {
-      collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value);
-    }
+
+  [
+    event_types.CHARACTER_MESSAGE_RENDERED,
+    event_types.USER_MESSAGE_RENDERED,
+    event_types.MESSAGE_UPDATED,
+    event_types.MESSAGE_SWIPED,
+  ].forEach(event => {
+    eventSource.on(event, (message_id: number | string) => {
+      if (collapse_code_block.value !== 'none') {
+        collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value);
+      }
+    });
   });
 }
