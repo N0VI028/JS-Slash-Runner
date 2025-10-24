@@ -64,6 +64,10 @@ export const GlobalSettings = z
             characters: z.array(z.string()).default([]),
           })
           .prefault({}),
+        popuped: z.object({
+          presets: z.array(z.string()).default([]),
+          characters: z.array(z.string()).default([]),
+        }).prefault({}),
         scripts: z.array(ScriptTree).default([]),
       })
       .prefault({}),
