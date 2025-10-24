@@ -3577,15 +3577,15 @@ declare namespace SillyTavern {
 declare const SillyTavern: {
   readonly accountStorage: any;
   readonly chat: Array<SillyTavern.ChatMessage>;
-  readonly characters: any;
+  readonly characters: SillyTavern.v1CharData[];
   readonly groups: any;
-  readonly name1: any;
-  readonly name2: any;
+  readonly name1: string;
+  readonly name2: string;
   /* this_chid */
-  readonly characterId: any;
-  readonly groupId: any;
-  readonly chatId: any;
-  readonly getCurrentChatId: () => any;
+  readonly characterId: string;
+  readonly groupId: string;
+  readonly chatId: string;
+  readonly getCurrentChatId: () => string;
   readonly getRequestHeaders: () => {
     'Content-Type': string;
     'X-CSRF-TOKEN': string;
