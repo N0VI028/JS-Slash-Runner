@@ -29,7 +29,7 @@ const saveSettingsToFileDebounced = _.debounce(saveSettingsToFile, 1000);
 export const usePresetSettingsStore = defineStore('preset_settings', () => {
   const id = ref<string>(preset_manager.getSelectedPreset());
   // 切换预设时刷新 id 和 settings
-  eventSource.on(event_types.OAI_PRESET_CHANGED_AFTER, () => {
+  eventSource.makeFirst(event_types.OAI_PRESET_CHANGED_AFTER, () => {
     const new_id = preset_manager.getSelectedPreset();
     if (id.value !== new_id) {
       id.value = new_id;

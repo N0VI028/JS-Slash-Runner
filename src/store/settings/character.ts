@@ -46,7 +46,7 @@ function saveSettingsDebounced(id: string, settings: CharacterSettings) {
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
   // 切换角色卡时刷新 id
-  eventSource.on(event_types.CHAT_CHANGED, () => {
+  eventSource.makeFirst(event_types.CHAT_CHANGED, () => {
     if (id.value !== this_chid) {
       id.value = this_chid;
     }

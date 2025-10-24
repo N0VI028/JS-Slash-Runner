@@ -15,7 +15,7 @@ function getSettings(): ChatSettings {
 export const useChatSettingsStore = defineStore('chat_settings', () => {
   const id = ref<string | undefined>(getCurrentChatId());
   // 切换聊天时刷新 id 和 settings
-  eventSource.on(event_types.CHAT_CHANGED, (new_chat_id: string | undefined) => {
+  eventSource.makeFirst(event_types.CHAT_CHANGED, (new_chat_id: string | undefined) => {
     if (id.value !== new_chat_id) {
       id.value = new_chat_id;
     }
