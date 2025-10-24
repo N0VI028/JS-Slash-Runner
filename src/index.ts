@@ -44,3 +44,7 @@ $(() => {
   const $app = $('<div id="tavern_helper">').appendTo('#extensions_settings');
   app.mount($app[0]);
 });
+
+$(window).on('pagehide', () => {
+  app.unmount();
+})
