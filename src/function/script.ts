@@ -12,7 +12,12 @@ export function _getButtonEvent(this: Window, button_name: string): string {
 }
 
 export function _getScriptButtons(this: Window): ScriptButton[] {
-  return klona(useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.button.buttons);
+  const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this));
+  // TODO: 对于预设脚本、角色脚本, $(window).on('pagehide') 时已经切换了角色卡, get 会失败
+  if (!script) {
+    return [];
+  }
+  return klona(script.button.buttons);
 }
 
 export function getAllEnabledScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] } {
@@ -23,6 +28,10 @@ export function _replaceScriptButtons(this: Window, script_id: string, buttons: 
 export function _replaceScriptButtons(this: Window, buttons: ScriptButton[]): void;
 export function _replaceScriptButtons(this: Window, param1: string | ScriptButton[], param2?: ScriptButton[]): void {
   const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this))!;
+  // TODO: 对于预设脚本、角色脚本, $(window).on('pagehide') 时已经切换了角色卡, get 会失败
+  if (!script) {
+    return;
+  }
   script.button.buttons = typeof param1 === 'string' ? param2! : param1;
 }
 
@@ -43,10 +52,18 @@ export function _appendInexistentScriptButtons(
 }
 
 export function _getScriptInfo(this: Window): string {
-  return useScriptIframeRuntimesStore().get(_getScriptId.call(this))!.info;
+  // TODO: 对于预设脚本、角色脚本, $(window).on('pagehide') 时已经切换了角色卡, get 会失败
+  const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this));
+  if (!script) {
+    return '';
+  }
+  return script.info;
 }
 
 export function _replaceScriptInfo(this: Window, info: string): void {
   const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this))!;
+  if (!script) {
+    return;
+  }
   script.info = info;
 }

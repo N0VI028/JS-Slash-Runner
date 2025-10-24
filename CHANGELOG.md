@@ -9,6 +9,10 @@
 
 - 将 `initializeGlobal` 和 `waitGlobalInitialized` 函数加入到 `TavernHelper` 接口中, 而不只是前端界面或脚本中可用, 便于扩展用它与脚本分享接口 (如 `waitGlobalInitialized('Mvu')` 来等待 `Mvu` 接口初始化完毕)
 
+### 🔧杂项
+
+- 将全局 `TavernHelper` 接口的注册时间提前, 从而尝试解决一些设备、网络环境使用依赖于酒馆助手的插件时的问题
+
 ## 4.0.11
 
 ### 🎨渲染器

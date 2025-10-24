@@ -3,7 +3,13 @@ import { chat_metadata, eventSource, event_types, getCurrentChatId } from '@sill
 import { saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 
 function getSettings(): ChatSettings {
-  return ChatSettings.parse(_.get(chat_metadata, setting_field, {}));
+  const settings = _.get(chat_metadata, setting_field, {});
+  const parsed = ChatSettings.safeParse(settings);
+  if (!parsed.success) {
+    toastr.warning(parsed.error.message, t`[酒馆助手]读取聊天数据失败, 将使用空数据`);
+    return ChatSettings.parse({});
+  }
+  return ChatSettings.parse(parsed.data);
 }
 
 export const useChatSettingsStore = defineStore('chat_settings', () => {

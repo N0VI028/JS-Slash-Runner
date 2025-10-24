@@ -17,7 +17,14 @@ function getSettings() {
       toastr.warning(parsed.error.message, t`[酒馆助手]迁移旧数据失败, 将使用空数据`);
     }
   }
-  return GlobalSettings.parse(_.get(extension_settings, setting_field));
+
+  const settings = _.get(extension_settings, setting_field, {});
+  const parsed = GlobalSettings.safeParse(settings);
+  if (!parsed.success) {
+    toastr.warning(parsed.error.message, t`[酒馆助手]读取全局数据失败, 将使用空数据`);
+    return GlobalSettings.parse({});
+  }
+  return GlobalSettings.parse(parsed.data);
 }
 
 export const useGlobalSettingsStore = defineStore('global_settings', () => {
