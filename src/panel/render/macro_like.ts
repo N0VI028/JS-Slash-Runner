@@ -1,3 +1,4 @@
+import { SendingMessage } from '@/function/event';
 import { macros } from '@/function/macro_like';
 import { highlight_code, reloadAndRenderChatWithoutEvents } from '@/util/tavern';
 import { event_types, eventSource } from '@sillytavern/script';
@@ -10,7 +11,12 @@ function resetDryRun() {
   check_dry_run = false;
 }
 
-function demacroOnPrompt(event_data: { prompt: { role: string; content: string }[] }, dry_run?: boolean) {
+function demacroOnPrompt(
+  event_data: {
+    prompt: SendingMessage[];
+  },
+  dry_run?: boolean,
+) {
   // 1.13.4 及之前 GENERATE_AFTER_DATA 没有 dry_run 参数
   if (dry_run ?? check_dry_run) {
     return;
@@ -18,9 +24,19 @@ function demacroOnPrompt(event_data: { prompt: { role: string; content: string }
 
   for (const message of event_data.prompt) {
     for (const macro of macros) {
-      message.content = message.content.replace(macro.regex, (substring: string, ...args: any[]) =>
-        macro.replace({ role: message.role as 'user' | 'assistant' | 'system' }, substring, ...args),
-      );
+      if (typeof message.content === 'string') {
+        message.content = message.content.replace(macro.regex, (substring: string, ...args: any[]) =>
+          macro.replace({ role: message.role }, substring, ...args),
+        );
+      } else {
+        message.content
+          .filter(item => item.type === 'text')
+          .forEach(item => {
+            item.text = item.text.replace(macro.regex, (substring: string, ...args: any[]) =>
+              macro.replace({ role: message.role }, substring, ...args),
+            );
+          });
+      }
     }
   }
 }

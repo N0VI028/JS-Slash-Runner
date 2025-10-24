@@ -1,11 +1,11 @@
 import { get_variables_without_clone } from '@/function/variables';
 
-interface MacroLike {
+export interface MacroLike {
   regex: RegExp;
   replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string;
 }
 
-interface MacroLikeContext {
+export interface MacroLikeContext {
   message_id?: number;
   role?: 'user' | 'assistant' | 'system';
 }

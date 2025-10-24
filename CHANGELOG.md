@@ -1,4 +1,14 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.1.0
+
+### 🐛修复
+
+- 修复酒馆消息中有图片时, 酒馆助手宏会失效的问题
+
+### 📦函数
+
+- 调整 `tavern_events.GENERATE_AFTER_DATA` 等事件的参数[类型定义](https://github.com/N0VI028/JS-Slash-Runner/blob/main/%40types/iframe/exported.sillytavern.d.ts#L23), 现在能正确反映酒馆发送图片、视频给 AI 的情况
+
 ## 4.0.12
 
 ### 📕脚本库

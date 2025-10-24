@@ -349,14 +349,14 @@ interface ListenerType {
   [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
   /** dry_run 只在 SillyTavern 1.13.15 及以后有 */
   [tavern_events.GENERATE_AFTER_DATA]: (
-    generate_data: { prompt: { role: string; content: string }[] },
+    generate_data: { prompt: SillyTavern.SendingMessage[] },
     dry_run: boolean,
   ) => void;
   [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
   [tavern_events.WORLD_INFO_ACTIVATED]: (entries: ({ world: string } & SillyTavern.FlattenedWorldInfoEntry)[]) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
   [tavern_events.CHAT_COMPLETION_SETTINGS_READY]: (generate_data: {
-    messages: { role: 'user' | 'assistant' | 'system'; content: string }[];
+    messages: SillyTavern.SendingMessage[];
     model: string;
     temprature: number;
     frequency_penalty: number;
@@ -382,7 +382,7 @@ interface ListenerType {
     [others: string]: any;
   }) => void;
   [tavern_events.CHAT_COMPLETION_PROMPT_READY]: (event_data: {
-    chat: { role: string; content: string }[];
+    chat: SillyTavern.SendingMessage[];
     dryRun: boolean;
   }) => void;
   [tavern_events.CHARACTER_FIRST_MESSAGE_SELECTED]: (event_args: {

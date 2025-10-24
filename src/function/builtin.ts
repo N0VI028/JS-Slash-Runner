@@ -1,10 +1,17 @@
 import { reloadEditor, reloadEditorDebounced } from '@/util/compatibility';
-import { reloadAndRenderChatWithoutEvents, reloadChatWithoutEvents } from '@/util/tavern';
+import {
+  getImageTokenCost,
+  getVideoTokenCost,
+  reloadAndRenderChatWithoutEvents,
+  reloadChatWithoutEvents,
+} from '@/util/tavern';
 import { addOneMessage, saveSettings } from '@sillytavern/script';
 import { promptManager } from '@sillytavern/scripts/openai';
 
 export const builtin = {
   addOneMessage,
+  getImageTokenCost,
+  getVideoTokenCost,
   saveSettings,
   promptManager,
   reloadEditor,

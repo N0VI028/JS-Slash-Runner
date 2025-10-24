@@ -191,6 +191,17 @@ export const tavern_events = {
   WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded',
 } as const;
 
+export type SendingMessage = {
+  role: 'user' | 'assistant' | 'system';
+  content:
+    | string
+    | Array<
+        | { type: 'text'; text: string }
+        | { type: 'image_url'; image_url: { url: string; detail: 'auto' | 'low' | 'high' } }
+        | { type: 'video_url'; video_url: { url: string } }
+      >;
+};
+
 export type ListenerType = {
   [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
   [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
@@ -281,14 +292,16 @@ export type ListenerType = {
   [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
   /** dry_run 只在 SillyTavern 1.13.15 及以后有 */
   [tavern_events.GENERATE_AFTER_DATA]: (
-    generate_data: { prompt: { role: string; content: string }[] },
+    generate_data: {
+      prompt: SendingMessage[];
+    },
     dry_run: boolean,
   ) => void;
   [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
   [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
   [tavern_events.CHAT_COMPLETION_SETTINGS_READY]: (generate_data: {
-    messages: { role: string; content: string }[];
+    messages: SendingMessage[];
     model: string;
     temprature: number;
     frequency_penalty: number;
@@ -313,10 +326,7 @@ export type ListenerType = {
     };
     [others: string]: any;
   }) => void;
-  [tavern_events.CHAT_COMPLETION_PROMPT_READY]: (event_data: {
-    chat: { role: string; content: string }[];
-    dryRun: boolean;
-  }) => void;
+  [tavern_events.CHAT_COMPLETION_PROMPT_READY]: (event_data: { chat: SendingMessage[]; dryRun: boolean }) => void;
   [tavern_events.CHARACTER_FIRST_MESSAGE_SELECTED]: (event_args: {
     input: string;
     output: string;

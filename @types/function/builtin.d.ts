@@ -22,6 +22,8 @@ declare const builtin: {
       showSwipes?: boolean;
     },
   ) => void;
+  getImageTokenCost: (data_url: string, quality: 'low' | 'auto' | 'high') => Promise<number>;
+  getVideoTokenCost: (data_url: string) => Promise<number>;
   saveSettings: () => Promise<void>;
   promptManager: {
     messages: Array<{
