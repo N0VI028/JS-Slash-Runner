@@ -61,16 +61,16 @@ jobs:
           export TAG=${VALUE##refs/tags/}
           echo result=$TAG >> "$GITHUB_OUTPUT"
       - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
+        id: package_version
+        run: |-
+          echo 'result="version": "${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}"' >> "$GITHUB_OUTPUT"
+      - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           include: manifest.json
           find: '"version": "\d+\.\d+\.\d+"'
-          replace: ${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}
+          replace: ${{ steps.package_version.outputs.result }}
           regex: true
-      - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
-        id: package_version
-        run: |-
-          echo 'result="version": "${{ github.ref_type == 'tag' && steps.manual_tag.outputs.result || steps.autotag.outputs.new-tag }}"' >> "$GITHUB_OUTPUT"
       - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' || steps.autotag_check.outputs.should_tag == 'true' }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
