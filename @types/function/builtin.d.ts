@@ -22,9 +22,9 @@ declare const builtin: {
       showSwipes?: boolean;
     },
   ) => void;
+  duringGenerating: () => boolean;
   getImageTokenCost: (data_url: string, quality: 'low' | 'auto' | 'high') => Promise<number>;
   getVideoTokenCost: (data_url: string) => Promise<number>;
-  saveSettings: () => Promise<void>;
   promptManager: {
     messages: Array<{
       collection: Array<{
@@ -59,6 +59,10 @@ declare const builtin: {
     };
     [key: string]: any;
   };
+  /** 刷新当前聊天并触发 CHARACTER_MESSAGE_RENDERED 和 USER_MESSAGE_RENDERED 事件从而重新渲染 */
+  reloadAndRenderChatWithoutEvents: () => Promise<void>;
+  /** 刷新当前聊天但不触发任何事件 */
+  reloadChatWithoutEvents: () => Promise<void>;
   /** 刷新世界书编辑器的显示 */
   reloadEditor: (file: string, load_if_not_selected?: boolean) => void;
   /** 刷新世界书编辑器的显示 (防抖) */
@@ -67,8 +71,5 @@ declare const builtin: {
   renderPromptManager: (after_try_generate?: boolean) => void;
   /** 刷新预设提示词列表 (防抖) */
   renderPromptManagerDebounced: (after_try_generate?: boolean) => void;
-  /** 刷新当前聊天但不触发任何事件 */
-  reloadChatWithoutEvents: () => Promise<void>;
-  /** 刷新当前聊天并触发 CHARACTER_MESSAGE_RENDERED 和 USER_MESSAGE_RENDERED 事件从而重新渲染 */
-  reloadAndRenderChatWithoutEvents: () => Promise<void>;
+  saveSettings: () => Promise<void>;
 };
