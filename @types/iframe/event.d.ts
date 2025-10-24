@@ -268,7 +268,7 @@ interface ListenerType {
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
   [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
   [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
-  [tavern_events.MESSAGE_RECEIVED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_RECEIVED]: (message_id: number, type?: string) => void;
   [tavern_events.MESSAGE_EDITED]: (message_id: number) => void;
   [tavern_events.MESSAGE_DELETED]: (message_id: number) => void;
   [tavern_events.MESSAGE_UPDATED]: (message_id: number) => void;
@@ -339,7 +339,7 @@ interface ListenerType {
   [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_BEFORE]: (state: number) => void;
   [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_AFTER]: (state: number) => void;
   [tavern_events.USER_MESSAGE_RENDERED]: (message_id: number) => void;
-  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number) => void;
+  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number, type?: string) => void;
   [tavern_events.FORCE_SET_BACKGROUND]: (background: { url: string; path: string }) => void;
   [tavern_events.CHAT_DELETED]: (chat_file_name: string) => void;
   [tavern_events.CHAT_CREATED]: () => void;
