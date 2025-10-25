@@ -3,13 +3,23 @@
  */
 type CustomApiConfig = {
   /** 自定义API地址 */
-  apiurl?: string;
+  apiurl: string;
   /** API密钥 */
   key?: string;
   /** 模型名称 */
-  model?: string;
+  model: string;
   /** API源，默认为 'openai' */
   source?: string;
+
+  /** 最大回复 tokens 度 */
+  max_tokens?: number;
+  /** 温度 */
+  temperature?: number;
+  /** 频率惩罚 */
+  frequency_penalty?: number;
+  /** 存在惩罚 */
+  presence_penalty?: number;
+  top_p?: number;
 };
 
 type GenerateConfig = {

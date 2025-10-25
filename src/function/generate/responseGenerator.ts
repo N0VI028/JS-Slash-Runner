@@ -167,15 +167,26 @@ export async function generateResponse(
     // 如果有自定义API配置，设置单次事件拦截
     if (customApi?.apiurl) {
       customApiEventHandler = (data: any) => {
-        data.chat_completion_source = customApi.source || 'openai';
         data.reverse_proxy = customApi.apiurl;
-        data.proxy_password = customApi.key;
-
-        if (customApi.model) {
-          data.model = customApi.model;
-        } else {
-          throw Error('[TavernHelper][Generate:自定义API] 自定义API未指定模型');
+        data.chat_completion_source = customApi.source || 'openai';
+        data.proxy_password = customApi.key || '';
+        data.model = customApi.model;
+        if (customApi.max_tokens) {
+          data.max_tokens = customApi.max_tokens;
         }
+        if (customApi.temperature) {
+          data.temperature = customApi.temperature;
+        }
+        if (customApi.frequency_penalty) {
+          data.frequency_penalty = customApi.frequency_penalty;
+        }
+        if (customApi.presence_penalty) {
+          data.presence_penalty = customApi.presence_penalty;
+        }
+        if (customApi.top_p) {
+          data.top_p = customApi.top_p;
+        }
+        console.info(data);
 
         return data;
       };

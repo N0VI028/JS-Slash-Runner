@@ -1,5 +1,5 @@
 <!-- markdownlint-disable MD041 MD036 -->
-## 4.0.14
+## 4.1.0
 
 ### 📕脚本库
 
@@ -7,6 +7,7 @@
 
 ### 📦函数
 
+- 为 `generate` 和 `generateRaw` 的自定义 API 新增 `temperator` 等参数
 - 导出 `builtin.duringGenerating` 函数, 用于判断酒馆是否正在请求生成
 - 导出 `builtin.renderMarkdown` 函数, 用于将 markdown 字符串转换为 HTML
 - 导出 `builtin.uuidv4` 函数, 用于生成 UUID

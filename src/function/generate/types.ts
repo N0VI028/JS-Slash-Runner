@@ -17,6 +17,11 @@ export type CustomApiConfig = {
   key?: string;
   model?: string;
   source?: string;
+  max_tokens?: number;
+  temperature?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  top_p?: number;
 };
 
 /**
