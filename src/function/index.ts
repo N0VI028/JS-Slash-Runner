@@ -123,6 +123,7 @@ import {
   _getCurrentMessageId,
   _getIframeName,
   _getScriptId,
+  _reloadIframe,
   errorCatched,
   getLastMessageId,
   getMessageId,
@@ -202,6 +203,7 @@ function getTavernHelper() {
       _deleteVariable,
 
       // util
+      _reloadIframe,
       _getIframeName,
       _getScriptId,
       _getCurrentMessageId,
