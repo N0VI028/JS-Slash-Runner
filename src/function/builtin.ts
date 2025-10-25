@@ -8,6 +8,7 @@ import {
 } from '@/util/tavern';
 import { addOneMessage, is_send_press, saveSettings } from '@sillytavern/script';
 import { promptManager } from '@sillytavern/scripts/openai';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
 export const builtin = {
   addOneMessage,
@@ -23,4 +24,5 @@ export const builtin = {
   renderPromptManager: promptManager.render,
   renderPromptManagerDebounced: promptManager.renderDebounced,
   saveSettings,
+  uuidv4,
 };
