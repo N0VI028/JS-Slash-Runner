@@ -70,8 +70,12 @@ const { open: openScriptEditor } = useModal({
   attrs: {
     script: script.value,
     onSubmit: (result: ScriptForm) => {
+      const should_reload =
+        script.value.enabled && !_.isEqual(_.pick(script.value, 'content', 'data'), _.pick(result, 'content', 'data'));
       _.assign(script.value, result);
-      useScriptIframeRuntimesStore().reload(script.value.id);
+      if (should_reload) {
+        useScriptIframeRuntimesStore().reload(script.value.id);
+      }
     },
   },
 });
