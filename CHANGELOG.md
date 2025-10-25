@@ -8,6 +8,18 @@
 ### 📦函数
 
 - 导出 `builtin.duringGenerating` 函数, 用于判断酒馆是否正在请求生成
+- 新增 `reloadIframe` 函数, 便于在前端界面或脚本内重新加载该前端界面或脚本. 如在聊天文件切换时:
+
+  ```ts
+  // 当聊天文件变更时, 重新加载前端界面或脚本
+  let current_chat_id = SillyTavern.getCurrentChatId();
+  eventOn(tavern_events.CHAT_CHANGED, chat_id => {
+    if (current_chat_id !== chat_id) {
+      current_chat_id = chat_id;
+      reloadIframe();
+    }
+  })
+  ```
 
 ## 4.0.13
 

@@ -1,5 +1,9 @@
 import { substituteParamsExtended } from '@sillytavern/script';
 
+export function _reloadIframe(this: Window): void {
+  this.location.reload();
+}
+
 export function substitudeMacros(text: string): string {
   return substituteParamsExtended(text);
 }
