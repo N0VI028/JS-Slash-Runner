@@ -52,6 +52,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           bump: ${{ steps.autotag_check.outputs.bump }}
+          release-branch: ''
           dry-run: true
       - if: ${{ github.ref != 'refs/heads/dev' && github.ref_type == 'tag' }}
         id: manual_tag
