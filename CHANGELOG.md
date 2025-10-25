@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.0.14
 
+### 📕脚本库
+
+- 选择 "包含数据导出" 时无法导出变量的问题
+
 ### 📦函数
 
 - 导出 `builtin.duringGenerating` 函数, 用于判断酒馆是否正在请求生成

@@ -191,7 +191,7 @@ const exportFolder = async () => {
         {
           name: t`包含数据导出`,
           onClick: close => {
-            void downloadExport({ should_strip_data: true });
+            void downloadExport({ should_strip_data: false });
             close();
           },
         },
