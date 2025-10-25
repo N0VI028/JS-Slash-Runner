@@ -41,7 +41,7 @@ export function _getScriptId(this: Window): string {
   if (!iframe_name.startsWith('TH-script-')) {
     throw new Error('你只能在脚本 iframe 内获取 getScriptId!');
   }
-  return iframe_name.replace('TH-script-', '');
+  return iframe_name.replace('TH-script-', '').split('-')[1];
 }
 
 export function _getCurrentMessageId(this: Window): number {

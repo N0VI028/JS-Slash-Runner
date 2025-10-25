@@ -26,6 +26,7 @@
     v-for="script in runtimes"
     :id="script.id"
     :key="script.source + script.id + script.reload_memo"
+    :name="script.name"
     :content="script.content"
     :use-blob-url="use_blob_url"
   />
