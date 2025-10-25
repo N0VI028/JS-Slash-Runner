@@ -14,14 +14,14 @@
       aria-modal="true"
       :class="{
         'w-[500px]': width === 'normal',
-        'h-dvh w-dvw!': width === 'wider',
+        'h-dvh w-dvw!': width === 'full',
         'w-fit!': width === 'fit',
       }"
       :style="
-        ['normal', 'wider', 'fit'].includes(width)
+        ['normal', 'full', 'fit'].includes(width)
           ? ''
           : width === 'wide'
-            ? 'width: 50vw !important'
+            ? 'min-width: 50vw !important'
             : `width: ${width} !important;`
       "
     >
@@ -63,7 +63,7 @@ withDefaults(
       shouldEmphasize?: boolean;
       class?: string;
     }[];
-    width?: string | 'normal' | 'wide' | 'wider' | 'fit';
+    width?: string | 'normal' | 'wide' | 'full' | 'fit';
   }>(),
   {
     buttons: () => [{ name: '取消' }],
