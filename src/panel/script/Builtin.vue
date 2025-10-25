@@ -43,8 +43,8 @@
 import Popup from '@/panel/component/Popup.vue';
 import { useGlobalScriptsStore } from '@/store/scripts';
 import { Script } from '@/type/scripts';
+import { renderMarkdown } from '@/util/tavern';
 import { uuidv4 } from '@sillytavern/scripts/utils';
-import { marked } from 'marked';
 
 const [DefineToolButton, ToolButton] = createReusableTemplate<{
   name: string;
@@ -148,13 +148,14 @@ async function openInfo(builtin: BuiltinScript) {
   useModal({
     component: Popup,
     attrs: {
+      width: 'wide',
       buttons: [{ name: t`关闭` }],
       onOpened: () => {
         toastr.clear();
       },
     },
     slots: {
-      default: `<div class="p-1.5 text-left">${marked.parse(await getInfo(builtin))}</div>`,
+      default: `<div class="p-1.5 text-left">${renderMarkdown(await getInfo(builtin))}</div>`,
     },
   }).open();
 }

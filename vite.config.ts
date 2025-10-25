@@ -10,6 +10,7 @@ const externals = {
   jquery: '$',
   hljs: 'hljs',
   lodash: '_',
+  showdown: 'showdown',
   toastr: 'toastr',
   '@popperjs/core': 'Popper',
 } as const;

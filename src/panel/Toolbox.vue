@@ -69,8 +69,8 @@ import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
 import VariableManager from '@/panel/toolbox/VariableManager.vue';
 import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
 import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
+import { renderMarkdown } from '@/util/tavern';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
-import { marked } from 'marked';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
@@ -80,8 +80,11 @@ const enable_variable_manager = ref<boolean>(false);
  */
 const { open: showPromptViewerHelp } = useModal({
   component: Popup,
+  attrs: {
+    width: 'wide',
+  },
   slots: {
-    default: `<div class="text-left p-1.5">${marked.parse(getCurrentLocale().includes('zh') ? help_zh : help_en)}</div>`,
+    default: `<div class="text-left p-1.5">${renderMarkdown(getCurrentLocale().includes('zh') ? help_zh : help_en)}</div>`,
   },
 });
 </script>

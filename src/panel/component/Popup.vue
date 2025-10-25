@@ -12,8 +12,18 @@
       class="popup box-border justify-between px-1.5! focus:outline-none"
       role="dialog"
       aria-modal="true"
-      :class="width === 'normal' ? `w-[500px]` : width === 'wide' ? `h-dvh w-dvw!` : width === 'fit' ? `w-fit!` : ''"
-      :style="width !== 'normal' && width !== 'wide' && width !== 'fit' ? `width: ${width} !important;` : ''"
+      :class="{
+        'w-[500px]': width === 'normal',
+        'h-dvh w-dvw!': width === 'wider',
+        'w-fit!': width === 'fit',
+      }"
+      :style="
+        ['normal', 'wider', 'fit'].includes(width)
+          ? ''
+          : width === 'wide'
+            ? 'width: 50vw !important'
+            : `width: ${width} !important;`
+      "
     >
       <div class="h-full max-h-[80vh] overflow-y-auto">
         <slot></slot>
@@ -53,7 +63,7 @@ withDefaults(
       shouldEmphasize?: boolean;
       class?: string;
     }[];
-    width?: string | 'normal' | 'wide' | 'fit';
+    width?: string | 'normal' | 'wide' | 'wider' | 'fit';
   }>(),
   {
     buttons: () => [{ name: '取消' }],

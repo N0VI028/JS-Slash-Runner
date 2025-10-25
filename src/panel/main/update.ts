@@ -1,8 +1,8 @@
 import { getTavernHelperExtensionId, reinstallExtension, updateExtension } from '@/function/extension';
 import { getTavernHelperVersion } from '@/function/version';
+import { renderMarkdown } from '@/util/tavern';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { compare } from 'compare-versions';
-import { marked } from 'marked';
 
 let max_version: string;
 export async function getLatestVersion(): Promise<string> {
@@ -72,7 +72,7 @@ async function getChangelogBetween(min_version: string, max_version: string): Pr
 }
 
 export async function getChangelogHtml(): Promise<string> {
-  return marked.parse(await getChangelogBetween(getTavernHelperVersion(), await getLatestVersion()));
+  return renderMarkdown(await getChangelogBetween(getTavernHelperVersion(), await getLatestVersion()));
 }
 
 export async function update() {

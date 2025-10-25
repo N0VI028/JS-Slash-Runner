@@ -4,6 +4,7 @@ import {
   getVideoTokenCost,
   reloadAndRenderChatWithoutEvents,
   reloadChatWithoutEvents,
+  renderMarkdown,
 } from '@/util/tavern';
 import { addOneMessage, is_send_press, saveSettings } from '@sillytavern/script';
 import { promptManager } from '@sillytavern/scripts/openai';
@@ -18,6 +19,7 @@ export const builtin = {
   reloadChatWithoutEvents,
   reloadEditor,
   reloadEditorDebounced,
+  renderMarkdown,
   renderPromptManager: promptManager.render,
   renderPromptManagerDebounced: promptManager.renderDebounced,
   saveSettings,

@@ -5,6 +5,7 @@ import {
   eventSource,
   getThumbnailUrl,
   printMessages,
+  reloadMarkdownProcessor,
   saveChatConditional,
   this_chid,
   user_avatar,
@@ -110,4 +111,8 @@ export async function getVideoTokenCost(_data_url: string): Promise<number> {
   // Convservative estimate for video token cost without knowing duration
   // Using Gemini calculation (263 tokens per second)
   return 1000; // // ~40 second video (60 seconds max)
+}
+
+export function renderMarkdown(markdown: string) {
+  return reloadMarkdownProcessor().makeHtml(markdown);
 }

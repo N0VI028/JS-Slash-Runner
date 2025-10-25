@@ -8,6 +8,8 @@
 ### 📦函数
 
 - 导出 `builtin.duringGenerating` 函数, 用于判断酒馆是否正在请求生成
+- 导出 `builtin.renderMarkdown` 函数, 用于将 markdown 字符串转换为 HTML
+- 为前端界面和脚本直接提供酒馆内置的 `showdown` 库, 并在编写模板中更新它的类型定义从而让 AI 知道
 - 新增 `reloadIframe` 函数, 便于在前端界面或脚本内重新加载该前端界面或脚本. 如在聊天文件切换时:
 
   ```ts
@@ -20,6 +22,10 @@
     }
   })
   ```
+
+### 🔧杂项
+
+- 更换解析 markdown 所使用的库, 便于支持 raw html
 
 ## 4.0.13
 

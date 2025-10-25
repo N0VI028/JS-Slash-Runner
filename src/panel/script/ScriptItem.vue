@@ -44,9 +44,9 @@ import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
+import { renderMarkdown } from '@/util/tavern';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
-import { marked } from 'marked';
 
 const [DefineToolButton, ToolButton] = createReusableTemplate<{
   name: string;
@@ -84,10 +84,11 @@ const openScriptInfo = () =>
   useModal({
     component: Popup,
     attrs: {
+      width: 'wide',
       buttons: [{ name: t`关闭` }],
     },
     slots: {
-      default: `<div class='p-1.5 text-left'>${script.value.info ? marked.parse(script.value.info) : t`未填写作者备注`}</div>`,
+      default: `<div class='p-1.5 text-left'>${script.value.info ? renderMarkdown(script.value.info) : t`未填写作者备注`}</div>`,
     },
   }).open();
 
