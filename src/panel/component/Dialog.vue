@@ -23,7 +23,9 @@
             <!-- prettier-ignore-attribute -->
             <div
               v-if="showGuide"
-              class="flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent th-text-base!"
+              class="
+                flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent th-text-base!
+              "
               @click="openGuidePopup"
             >
               <i class="fa-solid fa-question"></i>
@@ -226,10 +228,11 @@ function openGuidePopup() {
 /**
  * 统一的单位转换函数 - 将任何单位转换为像素值
  * @param {string | number} value - 需要转换的值，支持px、vw、vh、%、rem等单位
+ * @param {'width' | 'height'} dimension - 维度类型，用于百分比计算的参考维度
  * @returns {number} 转换后的像素值
  * @description 支持多种CSS单位转换为像素值，包括视口单位、百分比、rem等
  */
-const convertToPixels = (value: string | number): number => {
+const convertToPixels = (value: string | number, dimension: 'width' | 'height' = 'width'): number => {
   if (typeof value === 'number') return value;
   if (value.endsWith('vw')) {
     return (parseFloat(value) * window_width.value) / 100;
@@ -241,7 +244,8 @@ const convertToPixels = (value: string | number): number => {
     return parseFloat(value);
   }
   if (value.endsWith('%')) {
-    return (parseFloat(value) * window_width.value) / 100;
+    const reference = dimension === 'width' ? window_width.value : window.innerHeight;
+    return (parseFloat(value) * reference) / 100;
   }
   if (value.endsWith('rem')) {
     const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
@@ -250,7 +254,8 @@ const convertToPixels = (value: string | number): number => {
   return parseFloat(value) || 400;
 };
 
-const is_mobile = isMobile();
+// const is_mobile = isMobile();
+const is_mobile = true;
 const mobile_top_offset = computed(() => mobile_dialog_index.value * header_height.value);
 const MOBILE_STACK_KEY = '__TH_MOBILE_DIALOG_STACK__' as const;
 const MOBILE_STACK_EVENT = 'th-mobile-dialog-stack-change' as const;
@@ -298,8 +303,8 @@ const initizeSize = () => {
   const target_width = is_mobile ? '100%' : props.width;
   const target_height = is_mobile ? (props.mobileHeight ?? '80%') : props.height;
 
-  dialog_size.value.width = convertToPixels(target_width);
-  dialog_size.value.height = convertToPixels(target_height);
+  dialog_size.value.width = convertToPixels(target_width, 'width');
+  dialog_size.value.height = convertToPixels(target_height, 'height');
 
   initial_aspect_ratio.value = dialog_size.value.width / dialog_size.value.height;
 };
@@ -322,19 +327,19 @@ const throttledAdjustBounds = useThrottleFn(() => {
  * @description 根据props中的初始位置设置计算浮窗的初始位置，支持函数、字符串和数值格式
  */
 const getinitPosition = () => {
-  const getInitValue = (value: number | string | (() => number)): number => {
+  const getInitValue = (value: number | string | (() => number), dimension: 'width' | 'height'): number => {
     if (typeof value === 'function') {
       return value();
     }
     if (typeof value === 'string') {
-      return convertToPixels(value);
+      return convertToPixels(value, dimension);
     }
     return value;
   };
 
   return {
-    x: getInitValue(props.initialX) || Math.max(0, window_width.value * 0.1),
-    y: getInitValue(props.initialY) || Math.max(20, window.innerHeight * 0.15),
+    x: getInitValue(props.initialX, 'width') || Math.max(0, window_width.value * 0.1),
+    y: getInitValue(props.initialY, 'height') || Math.max(20, window.innerHeight * 0.15),
   };
 };
 
@@ -509,7 +514,7 @@ function checkAndAdjustBounds() {
   const max_height = viewport_height * 0.95;
 
   if (is_mobile) {
-    const full_width = convertToPixels('100%');
+    const full_width = convertToPixels('100%', 'width');
     if (dialog_size.value.width !== full_width) {
       dialog_size.value.width = full_width;
       adjusted = true;
@@ -872,8 +877,8 @@ const startMobileResize = (direction: string, event: PointerEvent) => {
   const startY = event.clientY;
   const start_height = dialog_size.value.height;
 
-  const min_height_px = convertToPixels(props.minHeight);
-  const max_height_px = props.maxHeight ? convertToPixels(props.maxHeight) : Infinity;
+  const min_height_px = convertToPixels(props.minHeight, 'height');
+  const max_height_px = props.maxHeight ? convertToPixels(props.maxHeight, 'height') : Infinity;
 
   emit('activated');
 
@@ -960,10 +965,10 @@ const startResize = (direction: string, event: PointerEvent) => {
     const delta_x = e.clientX - startX;
     const delta_y = e.clientY - startY;
 
-    const min_width_px = convertToPixels(props.minWidth);
-    const max_width_px = props.maxWidth ? convertToPixels(props.maxWidth) : Infinity;
-    const min_height_px = convertToPixels(props.minHeight);
-    const max_height_px = props.maxHeight ? convertToPixels(props.maxHeight) : Infinity;
+    const min_width_px = convertToPixels(props.minWidth, 'width');
+    const max_width_px = props.maxWidth ? convertToPixels(props.maxWidth, 'width') : Infinity;
+    const min_height_px = convertToPixels(props.minHeight, 'height');
+    const max_height_px = props.maxHeight ? convertToPixels(props.maxHeight, 'height') : Infinity;
 
     let new_width = start_width;
     let new_height = start_height;
