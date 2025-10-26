@@ -31,9 +31,7 @@ export const useGlobalSettingsStore = defineStore('global_settings', () => {
   const app_ready = ref<boolean>(false);
   [event_types.APP_READY, 'chatLoaded', event_types.SETTINGS_UPDATED].forEach(event =>
     eventSource.once(event, () => {
-      if (!app_ready.value) {
-        app_ready.value = true;
-      }
+      app_ready.value = true;
     }),
   );
 
