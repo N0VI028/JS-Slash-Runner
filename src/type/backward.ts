@@ -73,7 +73,7 @@ const ScriptFolder = z
     } satisfies NewScriptFolder);
   });
 
-const ScriptTree = z.discriminatedUnion('type', [ScriptItem, ScriptFolder]);
+const ScriptTree = z.union([z.discriminatedUnion('type', [ScriptItem, ScriptFolder]), ScriptData]);
 
 export const GlobalSettings = z
   .object({
@@ -119,6 +119,10 @@ export const GlobalSettings = z
           global: settings.script.global_script_enabled,
           presets: [],
           characters: settings.script.characters_with_scripts,
+        },
+        popuped: {
+          presets: [],
+          characters: [],
         },
         scripts: settings.script.scriptsRepository,
       },
