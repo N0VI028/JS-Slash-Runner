@@ -5,10 +5,10 @@ import third_party from '@/iframe/third_party_script.html?raw';
 export function createSrcContent(content: string, use_blob_url: boolean) {
   return `<html>
 <head>
+<script src="${parent_jquery_url}"></script>
 ${third_party}
 ${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
 <script src="${predefine_url}"></script>
-<script src="${parent_jquery_url}"></script>
 </head>
 <body>
 <script type="module">
