@@ -5,11 +5,7 @@ import { chat, event_types, eventSource } from '@sillytavern/script';
 
 function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: CollapseCodeBlock) {
   const $possible_div = $pre.parent('div.TH-render');
-  if ($possible_div.length === 0) {
-    $pre.wrap('<div class="TH-render">');
-  }
-  const $div = $pre.parent('div.TH-render');
-  if ($div.children('div.TH-collapse-code-block-button').length > 0) {
+  if ($possible_div.children('div.TH-collapse-code-block-button').length > 0) {
     return;
   }
 
@@ -17,6 +13,11 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
   if (collapse_code_block === 'frontend_only' && !is_frontend) {
     return;
   }
+
+  if ($possible_div.length === 0) {
+    $pre.wrap('<div class="TH-render">');
+  }
+  const $div = $pre.parent('div.TH-render');
 
   const $button = $('<div class="TH-collapse-code-block-button">')
     .text(is_frontend ? '显示前端代码块' : '显示代码块')
