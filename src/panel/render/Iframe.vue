@@ -60,7 +60,7 @@ onUnmounted(() => {
 });
 
 // 相关事件
-const prefixed_id = computed(() => `TH-message-${props.id}`);
+const prefixed_id = computed(() => `TH-message--${props.id}`);
 onMounted(() => {
   eventSource.emit('message_iframe_render_started', prefixed_id.value);
 });

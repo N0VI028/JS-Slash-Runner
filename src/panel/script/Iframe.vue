@@ -1,5 +1,5 @@
 <template>
-  <iframe v-show="false" :id="`TH-script-${name}-${id}`" v-bind="src_prop" />
+  <iframe v-show="false" :id="`TH-script--${name}--${id}`" v-bind="src_prop" />
 </template>
 
 <script setup lang="ts">

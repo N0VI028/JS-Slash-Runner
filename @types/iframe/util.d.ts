@@ -32,7 +32,7 @@ declare function reloadIframe(): void;
 /**
  * 获取前端界面或脚本的标识名称
  *
- * @returns 对于前端界面是 `TH-message-楼层号-前端界面是该楼层第几个界面`, 对于脚本库是 `TH-script-脚本名称-脚本id`
+ * @returns 对于前端界面是 `TH-message--楼层号--前端界面是该楼层第几个界面`, 对于脚本库是 `TH-script--脚本名称--脚本id`
  */
 declare function getIframeName(): string;
 
