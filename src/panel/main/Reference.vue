@@ -53,6 +53,7 @@ import {
   SlashCommandNamedArgument,
 } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
+import { download } from '@sillytavern/scripts/utils';
 
 function open(url: string) {
   window.open(url, '_blank');
@@ -133,13 +134,8 @@ onMounted(() => {
   });
 });
 
-function downloadSlashCommands(event: Event) {
-  const target = event.target as HTMLAnchorElement;
-
-  const url = URL.createObjectURL(new Blob([formatSlashCommands()], { type: 'text/plain' }));
-  target.href = url;
-  target.download = 'slash_command.txt';
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+function downloadSlashCommands() {
+  download(new Blob([formatSlashCommands()]), 'slash_command.txt', 'text/plain');
 }
 </script>
 

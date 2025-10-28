@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.0.18
+
+### 🐛修复
+
+- 编写参考中的 "酒馆 /STScript" 参考文件无法下载的问题; 当然更建议你直接使用[酒馆助手前端界面或脚本编写教程](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html)
+
 ## 4.0.17
 
 ### 🐛修复
