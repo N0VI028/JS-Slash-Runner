@@ -254,8 +254,7 @@ const convertToPixels = (value: string | number, dimension: 'width' | 'height' =
   return parseFloat(value) || 400;
 };
 
-// const is_mobile = isMobile();
-const is_mobile = true;
+const is_mobile = isMobile();
 const mobile_top_offset = computed(() => mobile_dialog_index.value * header_height.value);
 const MOBILE_STACK_KEY = '__TH_MOBILE_DIALOG_STACK__' as const;
 const MOBILE_STACK_EVENT = 'th-mobile-dialog-stack-change' as const;
