@@ -32,9 +32,9 @@ export const useChatSettingsStore = defineStore('chat_settings', () => {
 
   // 在某聊天内修改 settings 时保存
   const { ignoreUpdates } = watchIgnorable(
-    [id, settings],
-    ([new_id, new_settings], [old_id]) => {
-      if (new_id !== undefined && new_id === old_id) {
+    settings,
+    new_settings => {
+      if (id.value !== undefined) {
         _.set(chat_metadata, setting_field, klona(new_settings));
         saveMetadataDebounced();
       }
