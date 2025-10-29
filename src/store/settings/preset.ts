@@ -28,12 +28,14 @@ const saveSettingsToFileDebounced = _.debounce(saveSettingsToFile, 1000);
 
 export const usePresetSettingsStore = defineStore('preset_settings', () => {
   const id = ref<string>(preset_manager.getSelectedPreset());
+  const name = ref<string>(Object.keys(preset_manager.getPresetList().preset_names)[Number(id.value)]);
   // 切换预设时刷新 id 和 settings
   eventSource.makeFirst(event_types.OAI_PRESET_CHANGED_AFTER, () => {
     const new_id = preset_manager.getSelectedPreset();
-    const preset_names = Object.keys(preset_manager.getPresetList().preset_names);
-    if (preset_names.at(Number(id.value)) !== preset_names.at(Number(new_id))) {
+    const new_name = Object.keys(preset_manager.getPresetList().preset_names)[Number(new_id)];
+    if (name.value !== new_name) {
       id.value = new_id;
+      name.value = new_name;
     }
   });
 
@@ -56,8 +58,6 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
     },
     { deep: true },
   );
-
-  const name = computed(() => Object.keys(preset_manager.getPresetList().preset_names)[Number(id.value)]);
 
   return { id: readonly(id), settings, name };
 });

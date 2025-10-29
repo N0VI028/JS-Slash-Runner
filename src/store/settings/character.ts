@@ -45,10 +45,13 @@ function saveSettingsDebounced(id: string, settings: CharacterSettings) {
 
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
+  const name = ref<string | undefined>(characters?.[id.value as unknown as number]?.name);
   // 切换角色卡时刷新 id
   eventSource.makeFirst(event_types.CHAT_CHANGED, () => {
-    if (characters.at(Number(id.value))?.name !== characters.at(Number(this_chid))?.name) {
+    const new_name = characters?.[this_chid as unknown as number]?.name;
+    if (name.value !== new_name) {
       id.value = this_chid;
+      name.value = new_name;
     }
   });
 
@@ -71,8 +74,6 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     },
     { deep: true },
   );
-
-  const name = computed(() => characters?.[id.value as unknown as number]?.name);
 
   return { id: readonly(id), settings, name };
 });
