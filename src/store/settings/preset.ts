@@ -46,12 +46,14 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
 
   // 在某预设内修改 settings 时保存
   const { ignoreUpdates } = watchIgnorable(
-    settings,
-    new_settings => {
-      if (id.value === preset_manager.getSelectedPreset()) {
-        saveSettingsToMemoryDebounced(id.value, klona(new_settings));
+    [id, settings],
+    ([new_id, new_settings], [old_id]) => {
+      if (new_id !== undefined && new_id === old_id) {
+        if (new_id === preset_manager.getSelectedPreset()) {
+          saveSettingsToMemoryDebounced(new_id, klona(new_settings));
+        }
+        saveSettingsToFileDebounced(new_id, klona(new_settings));
       }
-      saveSettingsToFileDebounced(id.value, klona(new_settings));
     },
     { deep: true },
   );

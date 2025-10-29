@@ -63,10 +63,10 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
 
   // 在某角色卡内修改 settings 时保存
   const { ignoreUpdates } = watchIgnorable(
-    settings,
-    new_settings => {
-      if (id.value !== undefined) {
-        saveSettingsDebounced(id.value, klona(new_settings));
+    [id, settings],
+    ([new_id, new_settings], [old_id]) => {
+      if (new_id !== undefined && new_id === old_id) {
+        saveSettingsDebounced(new_id, klona(new_settings));
       }
     },
     { deep: true },
