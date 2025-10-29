@@ -116,6 +116,7 @@
 <script setup lang="ts">
 import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
+import { usePresetSettingsStore } from '@/store/settings';
 import { getImageTokenCost, getVideoTokenCost, version } from '@/util/tavern';
 import {
   event_types,
@@ -127,7 +128,6 @@ import {
   stopGeneration,
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
-import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
 import { Teleport } from 'vue';
@@ -145,18 +145,12 @@ export interface PromptData {
 
 const virt_list_ref = useTemplateRef('virt_list');
 
-// TODO：或许有更好的方法？
 const model = ref<string>(getChatCompletionModel());
-const preset = ref<string>(getPresetManager().getSelectedPresetName());
 useEventSourceOn(event_types.CHATCOMPLETION_MODEL_CHANGED, () => {
   model.value = getChatCompletionModel();
 });
-useEventSourceOn(event_types.OAI_PRESET_CHANGED_AFTER, () => {
-  preset.value = getPresetManager().getSelectedPresetName();
-});
-useEventSourceOn(event_types.PRESET_CHANGED, () => {
-  preset.value = getPresetManager().getSelectedPresetName();
-});
+
+const preset = toRef(usePresetSettingsStore(), 'name');
 
 const prompts = shallowRef<PromptData[]>([]);
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
