@@ -17,7 +17,7 @@
         :style="{ color: script_folder.color || 'var(--SmartThemeQuoteColor)' }"
       />
       <span
-        class="ml-0.5 w-0 flex-grow overflow-hidden"
+        class="ml-0.5 w-0 grow overflow-hidden"
         :style="{
           textDecoration: script_folder.enabled ? 'none' : 'line-through',
           filter: script_folder.enabled ? 'none' : 'grayscale(0.5)',
@@ -49,9 +49,20 @@
     <VueDraggable
       v-show="is_expanded"
       v-model="script_folder.scripts"
-      group="TH-scripts"
+      :group="{
+        name: 'TH-scripts',
+        pull: true,
+        put: (_to, _from, draggedEl) => {
+          const getType = (containerEl: HTMLElement) => {
+            return containerEl?.dataset?.type;
+          };
+          const targetType = getType(draggedEl.querySelector('[data-type]') as HTMLElement);
+          if (targetType === 'folder') return false;
+          return true;
+        },
+      }"
       handle=".TH-handle"
-      class="flex flex-grow flex-col gap-[5px] overflow-y-auto p-0.5"
+      class="flex grow flex-col gap-[5px] overflow-y-auto p-0.5"
       :force-fallback="true"
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"

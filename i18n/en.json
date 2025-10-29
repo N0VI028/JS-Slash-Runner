@@ -49,7 +49,7 @@
   "启用加载动画": "Enable Loading Animation",
   "在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面": "Show loading animation instead of incomplete interface before fonts, images and other resources in frontend are loaded",
   "启用 Blob URL 渲染": "Enable Blob URL Rendering",
-  "使用 Blob URL 渲染前端界面，可能存在样式问题且某些国产浏览器不可用，但更方便 f12 开发者工具调试": "Use Blob URL to render frontend interface, may have style issues and not available on some browsers, but easier for F12 developer tool debugging",
+  "使用 Blob URL 渲染前端界面，更方便 f12 开发者工具调试，若界面出现渲染问题请尝试关闭此选项": "Use Blob URL to render frontend interface, easier for F12 developer tool debugging, if the interface rendering problem occurs, try to close this option",
   "渲染深度": "Rendering Depth",
   "设置需要渲染的楼层数，从最新楼层开始计数。为 0 时，将渲染所有楼层": "Set the number of floors to render, counting from the latest floor. When 0, all floors will be rendered",
   "全部": "All",

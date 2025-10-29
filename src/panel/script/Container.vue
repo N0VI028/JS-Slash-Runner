@@ -15,7 +15,7 @@
       v-model="script_trees"
       group="TH-scripts"
       handle=".TH-handle"
-      class="flex flex-grow flex-col gap-[5px] overflow-y-auto py-0.5"
+      class="flex grow flex-col gap-[5px] overflow-y-auto py-0.5"
       :class="{ 'min-h-2': script_trees.length === 0 }"
       :force-fallback="true"
       :fallback-offset="{ x: 0, y: 0 }"
