@@ -104,6 +104,7 @@
                 "
               >
                 <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
+                <ImageGallery v-if="item_data.images && item_data.images.length" :images="item_data.images" />
               </div>
             </template>
           </div>
@@ -131,6 +132,7 @@ import { getChatCompletionModel } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
 import { Teleport } from 'vue';
+import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
 import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
@@ -140,6 +142,7 @@ export interface PromptData {
   id: number;
   role: string;
   content: string;
+  images?: { url: string }[];
   token: number;
 }
 
@@ -218,33 +221,91 @@ function collectPrompts(data: SendingMessage[], dry_run: boolean) {
   setTimeout(async () => {
     prompts.value = await Promise.all(
       data.map(async ({ role, content }, index) => {
+        if (typeof content === 'string') {
+          return {
+            id: index,
+            role,
+            content,
+            images: [],
+            token: await getTokenCountAsync(content),
+          } as PromptData;
+        }
+
+        const parsed = await parseJsonContent(content as any);
         return {
           id: index,
           role,
-          content: typeof content === 'string' ? content : JSON.stringify(content, null, 2),
-          token:
-            typeof content === 'string'
-              ? await getTokenCountAsync(content)
-              : _.sum(
-                  await Promise.all(
-                    content.map(async item => {
-                      switch (item.type) {
-                        case 'text':
-                          return await getTokenCountAsync(item.text);
-                        case 'image_url':
-                          return await getImageTokenCost(item.image_url.url, item.image_url.detail);
-                        case 'video_url':
-                          return await getVideoTokenCost(item.video_url.url);
-                      }
-                    }),
-                  ),
-                ),
-        };
+          content: parsed.text,
+          images: parsed.images,
+          token: _.sum(
+            await Promise.all(
+              content.map(async item => {
+                switch (item.type) {
+                  case 'text':
+                    return await getTokenCountAsync(item.text);
+                  case 'image_url':
+                    return await getImageTokenCost(item.image_url.url, item.image_url.detail);
+                  case 'video_url':
+                    // TODO： 用户附加的视频文件似乎根本不计入？content中没有，AI回复的视频未知
+                    return await getVideoTokenCost(item.video_url.url);
+                }
+              }),
+            ),
+          ),
+        } as PromptData;
       }),
     );
     is_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
     virt_list_ref.value?.forceUpdate();
   });
+}
+
+/**
+ * 解析多模态内容
+ * @param content 内容
+ * @returns 纯文本和图片列表
+ */
+async function parseJsonContent(content: any): Promise<{ text: string; images: { url: string }[] }> {
+  try {
+    const textParts: string[] = [];
+    const images: { url: string }[] = [];
+    for (const item of content) {
+      if (!item || typeof item !== 'object') {
+        continue;
+      }
+
+      switch (item.type) {
+        case 'text': {
+          const text = item.text ?? '';
+          textParts.push(String(text));
+          break;
+        }
+        case 'image_url': {
+          const url: string = _.get(item, 'image_url.url', '');
+          if (!url) {
+            break;
+          }
+          images.push({ url });
+          break;
+        }
+        case 'video_url': {
+          // TODO: 视频如何处理？
+          const url: string = _.get(item, 'video_url.url', '');
+          if (url) {
+            textParts.push(`[Video] ${url}`);
+          }
+          break;
+        }
+        default: {
+          textParts.push(JSON.stringify(item));
+        }
+      }
+    }
+    // TODO: 有没有必要严格按照显示的顺序图文穿插显示？目前把图片全部放在最后了
+    return { text: textParts.join('\n\n'), images };
+  } catch (e) {
+    return { text: JSON.stringify(content, null, 2), images: [] };
+  }
 }
 
 if (compare(version, '1.13.4', '<=')) {
