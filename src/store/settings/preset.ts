@@ -31,7 +31,8 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
   // 切换预设时刷新 id 和 settings
   eventSource.makeFirst(event_types.OAI_PRESET_CHANGED_AFTER, () => {
     const new_id = preset_manager.getSelectedPreset();
-    if (id.value !== new_id) {
+    const preset_names = Object.keys(preset_manager.getPresetList().preset_names);
+    if (preset_names.at(Number(id.value)) !== preset_names.at(Number(new_id))) {
       id.value = new_id;
     }
   });

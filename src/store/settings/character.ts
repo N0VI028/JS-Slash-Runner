@@ -47,7 +47,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   const id = ref<string | undefined>(this_chid);
   // 切换角色卡时刷新 id
   eventSource.makeFirst(event_types.CHAT_CHANGED, () => {
-    if (id.value !== this_chid) {
+    if (characters.at(Number(id.value))?.name !== characters.at(Number(this_chid))?.name) {
       id.value = this_chid;
     }
   });
