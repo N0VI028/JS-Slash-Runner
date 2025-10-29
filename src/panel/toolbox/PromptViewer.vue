@@ -117,6 +117,7 @@
 <script setup lang="ts">
 import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
+import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
 import { usePresetSettingsStore } from '@/store/settings';
 import { getImageTokenCost, getVideoTokenCost, version } from '@/util/tavern';
 import {
@@ -132,7 +133,6 @@ import { getChatCompletionModel } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
 import { Teleport } from 'vue';
-import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
 import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
@@ -231,7 +231,7 @@ function collectPrompts(data: SendingMessage[], dry_run: boolean) {
           } as PromptData;
         }
 
-        const parsed = await parseJsonContent(content as any);
+        const parsed = parseJsonContent(content as any);
         return {
           id: index,
           role,
@@ -265,9 +265,9 @@ function collectPrompts(data: SendingMessage[], dry_run: boolean) {
  * @param content 内容
  * @returns 纯文本和图片列表
  */
-async function parseJsonContent(content: any): Promise<{ text: string; images: { url: string }[] }> {
+function parseJsonContent(content: any): { text: string; images: { url: string }[] } {
   try {
-    const textParts: string[] = [];
+    const text_parts: string[] = [];
     const images: { url: string }[] = [];
     for (const item of content) {
       if (!item || typeof item !== 'object') {
@@ -277,7 +277,7 @@ async function parseJsonContent(content: any): Promise<{ text: string; images: {
       switch (item.type) {
         case 'text': {
           const text = item.text ?? '';
-          textParts.push(String(text));
+          text_parts.push(String(text));
           break;
         }
         case 'image_url': {
@@ -292,17 +292,17 @@ async function parseJsonContent(content: any): Promise<{ text: string; images: {
           // TODO: 视频如何处理？
           const url: string = _.get(item, 'video_url.url', '');
           if (url) {
-            textParts.push(`[Video] ${url}`);
+            text_parts.push(`[Video] ${url}`);
           }
           break;
         }
         default: {
-          textParts.push(JSON.stringify(item));
+          text_parts.push(JSON.stringify(item));
         }
       }
     }
     // TODO: 有没有必要严格按照显示的顺序图文穿插显示？目前把图片全部放在最后了
-    return { text: textParts.join('\n\n'), images };
+    return { text: text_parts.join('\n\n'), images };
   } catch (e) {
     return { text: JSON.stringify(content, null, 2), images: [] };
   }
