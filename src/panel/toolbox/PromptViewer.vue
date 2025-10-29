@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full flex-col overflow-hidden p-1">
-    <div class="z-1 shrink-0 text-wrap">
-      <div class="mb-0.75 flex items-center justify-between p-0.5">
+    <div class="z-1 mb-0.5 flex shrink-0 flex-col gap-0.75 text-wrap">
+      <div class="flex items-center justify-between">
         <div class="flex flex-col gap-0.25">
           <div class="th-text-base font-bold text-(--SmartThemeQuoteColor)">
             {{ t`总token数` }}: {{ filtered_prompts.reduce((result, prompt) => result + prompt.token, 0) }}
@@ -21,7 +21,7 @@
           />
         </div>
       </div>
-      <div class="my-0.75 flex flex-col gap-0.5 bg-(--grey5020a) p-0.5">
+      <div class="flex flex-col gap-0.5 bg-(--grey5020a) p-0.5">
         <div class="flex items-center gap-0.5">
           <div
             class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
@@ -63,6 +63,10 @@
             </div>
           </div>
         </Teleport>
+      </div>
+      <div class="flex items-center justify-between gap-1 border-b border-(--SmartThemeBorderColor) py-0.25">
+        <span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`模型` }}: {{ model }}</span
+        ><span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`预设` }}: {{ preset }}</span>
       </div>
     </div>
     <template v-if="during_generation_when_opening">
@@ -122,6 +126,8 @@ import {
   online_status,
   stopGeneration,
 } from '@sillytavern/script';
+import { getChatCompletionModel } from '@sillytavern/scripts/openai';
+import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { compare } from 'compare-versions';
 import { Teleport } from 'vue';
@@ -138,6 +144,19 @@ export interface PromptData {
 }
 
 const virt_list_ref = useTemplateRef('virt_list');
+
+// TODO：或许有更好的方法？
+const model = ref<string>(getChatCompletionModel());
+const preset = ref<string>(getPresetManager().getSelectedPresetName());
+useEventSourceOn(event_types.CHATCOMPLETION_MODEL_CHANGED, () => {
+  model.value = getChatCompletionModel();
+});
+useEventSourceOn(event_types.OAI_PRESET_CHANGED_AFTER, () => {
+  preset.value = getPresetManager().getSelectedPresetName();
+});
+useEventSourceOn(event_types.PRESET_CHANGED, () => {
+  preset.value = getPresetManager().getSelectedPresetName();
+});
 
 const prompts = shallowRef<PromptData[]>([]);
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
