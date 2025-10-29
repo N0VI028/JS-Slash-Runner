@@ -41,9 +41,9 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
 
   const settings = ref<PresetSettings>(getSettings(id.value));
   // 切换预设时刷新 settings, 但不触发 settings 保存
-  watch(id, () => {
+  watch([id, name], ([new_id]) => {
     ignoreUpdates(() => {
-      settings.value = getSettings(id.value);
+      settings.value = getSettings(new_id);
     });
   });
 
@@ -59,5 +59,6 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
     { deep: true },
   );
 
-  return { id: readonly(id), settings, name };
+    // 监听 id 不能正确反映导入新预设时的情况, 在外应该监听 name
+  return { id: readonly(id), name: readonly(name), settings };
 });

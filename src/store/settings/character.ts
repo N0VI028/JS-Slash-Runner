@@ -45,7 +45,7 @@ function saveSettingsDebounced(id: string, settings: CharacterSettings) {
 
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
-  const name = ref<string | undefined>(characters?.[id.value as unknown as number]?.name);
+  const name = ref<string | undefined>(characters?.[this_chid as unknown as number]?.name);
   // 切换角色卡时刷新 id
   eventSource.makeFirst(event_types.CHAT_CHANGED, () => {
     const new_name = characters?.[this_chid as unknown as number]?.name;
@@ -58,9 +58,9 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   const settings = ref<CharacterSettings>(getSettings(id.value));
 
   // 切换角色卡时刷新 settings, 但不触发 settings 保存
-  watch(id, () => {
+  watch([id, name], ([new_id]) => {
     ignoreUpdates(() => {
-      settings.value = getSettings(id.value);
+      settings.value = getSettings(new_id);
     });
   });
 
@@ -75,5 +75,6 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     { deep: true },
   );
 
-  return { id: readonly(id), settings, name };
+  // 监听 id 不能正确反映导入新角色卡时的情况, 在外应该监听 name
+  return { id: readonly(id), name: readonly(name), settings };
 });

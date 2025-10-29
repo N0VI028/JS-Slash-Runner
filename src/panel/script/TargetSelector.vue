@@ -17,11 +17,11 @@ function submit(close: () => void) {
 
 const target = ref<'global' | 'character' | 'preset'>('global');
 
-const character_id = toRef(useCharacterSettingsStore(), 'id');
+const character_name = toRef(useCharacterSettingsStore(), 'name');
 const options = computed(() => {
   let result = _<{ label: string; value: 'global' | 'character' | 'preset' }>([]);
   result = result.push({ label: t`全局脚本库`, value: 'global' });
-  if (character_id.value !== undefined) {
+  if (character_name.value !== undefined) {
     result = result.push({ label: t`角色脚本库`, value: 'character' });
   }
   result = result.push({ label: t`预设脚本库`, value: 'preset' });
