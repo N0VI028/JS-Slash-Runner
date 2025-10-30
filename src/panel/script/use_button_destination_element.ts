@@ -46,6 +46,7 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
       }
 
       return (
+        (mutation.target.nodeType === Node.ELEMENT_NODE && (mutation.target as Element).id === 'qr--bar') ||
         mutation.addedNodes
           .values()
           .filter(node => node.nodeType === Node.ELEMENT_NODE)
@@ -69,7 +70,7 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
     if (should_update) {
       force_key.value = Symbol();
     }
-  }).observe($send_form[0], { childList: true });
+  }).observe($send_form[0], { childList: true, subtree: true });
 
   return element;
 }
