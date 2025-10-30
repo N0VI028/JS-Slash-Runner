@@ -80,5 +80,5 @@ useCheckEnablementPopup(preset_name, character_name, global_settings, preset_scr
 const { runtimes, button_map } = toRefs(useScriptIframeRuntimesStore());
 const use_blob_url = toRef(useGlobalSettingsStore().settings.render, 'use_blob_url');
 
-const button_element = useButtonDestinationElement(global_settings);
+const button_element = useButtonDestinationElement();
 </script>
