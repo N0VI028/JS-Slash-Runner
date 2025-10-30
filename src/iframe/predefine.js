@@ -1,6 +1,8 @@
 window._ = window.parent._;
+Object.defineProperty(window, 'SillyTavern', {
+  get: () => _.get(window.parent, 'SillyTavern').getContext(),
+});
 let result = _(window);
-result = result.set('SillyTavern', _.get(window.parent, 'SillyTavern').getContext());
 result = result.merge(_.pick(window.parent, ['EjsTemplate', 'Mvu', 'TavernHelper', 'YAML', 'showdown', 'toastr', 'z']));
 result = result.merge(_.get(window.parent, 'TavernHelper'));
 result = result.merge(

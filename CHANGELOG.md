@@ -1,4 +1,9 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.0.21
+
+### 🐛修复
+
+- 按 getter 将 `window.parent.SillyTavern.getContext()` 导入到前端界面或脚本的 `window.SillyTavern` 中, 从而让前端界面或脚本的 `window.SillyTavern` 始终指向酒馆的最新上下文
 
 ## 4.0.20
 
