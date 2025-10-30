@@ -16,15 +16,25 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
   watch(
     force_key,
     () => {
-      const $possible_qr_bar = $send_form.find('#qr--bar');
+      let $possible_qr_bar = $send_form.find('div').filter(function () {
+        return $(this).attr('id') === 'qr--bar';
+      });
+      if ($possible_qr_bar.length > 1) {
+        $possible_qr_bar.filter('.TH--qr--bar').remove();
+        $possible_qr_bar = $send_form.find('div').filter(function () {
+          return $(this).attr('id') === 'qr--bar';
+        });
+      }
       const $qr_bar =
         $possible_qr_bar.length > 0
-          ? $possible_qr_bar
-          : $('<div id="qr--bar" class="flex-container flexGap5">').prependTo($send_form);
+          ? $possible_qr_bar.first()
+          : $('<div id="qr--bar" class="TH--qr--bar flex-container flexGap5">').prependTo($send_form);
       if (_.get(extension_settings, 'quickReplyV2.isCombined')) {
         const $possible_qr_buttons = $qr_bar.children('.qr--buttons');
         const $qr_buttons =
-          $possible_qr_buttons.length > 0 ? $possible_qr_buttons : $('<div class="qr--buttons">').appendTo($qr_bar);
+          $possible_qr_buttons.length > 0
+            ? $possible_qr_buttons.first()
+            : $('<div class="qr--buttons">').appendTo($qr_bar);
         element.value = $qr_buttons[0];
         return;
       }
@@ -46,7 +56,6 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
       }
 
       return (
-        (mutation.target.nodeType === Node.ELEMENT_NODE && (mutation.target as Element).id === 'qr--bar') ||
         mutation.addedNodes
           .values()
           .filter(node => node.nodeType === Node.ELEMENT_NODE)
