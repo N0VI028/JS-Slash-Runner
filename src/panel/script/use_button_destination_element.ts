@@ -1,19 +1,17 @@
-import { useGlobalSettingsStore } from '@/store/settings';
+import { APP_READY_EVENTS } from '@/util/tavern';
+import { eventSource } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 
-export function useButtonDestinationElement(
-  global_settings: ReturnType<typeof useGlobalSettingsStore>,
-): Readonly<Ref<HTMLElement | null>> {
+export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>> {
   const element = shallowRef<HTMLElement | null>(null);
   const force_key = ref<symbol>(Symbol());
 
   const $send_form = $('#send_form');
 
-  watch(
-    () => global_settings.app_ready,
-    () => {
+  APP_READY_EVENTS.forEach(event =>
+    eventSource.once(event, () => {
       force_key.value = Symbol();
-    },
+    }),
   );
   watch(
     force_key,
