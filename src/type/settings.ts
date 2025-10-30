@@ -37,7 +37,7 @@ export const GlobalSettings = z
       .object({
         enabled: z.boolean().default(false),
         enable_echo: z.boolean().default(true),
-        url: z.string().default('http://localhost:6621'),
+        url: z.string().default('http://localhost:6621').catch('http://localhost:6621'),
         duration: z.number().default(1000).catch(1000),
       })
       .prefault({}),
@@ -60,14 +60,16 @@ export const GlobalSettings = z
         enabled: z
           .object({
             global: z.boolean().default(true),
-            presets: z.array(z.string()).default([]),
-            characters: z.array(z.string()).default([]),
+            presets: z.array(z.coerce.string()).default([]),
+            characters: z.array(z.coerce.string()).default([]),
           })
           .prefault({}),
-        popuped: z.object({
-          presets: z.array(z.string()).default([]),
-          characters: z.array(z.string()).default([]),
-        }).prefault({}),
+        popuped: z
+          .object({
+            presets: z.array(z.coerce.string()).default([]),
+            characters: z.array(z.coerce.string()).default([]),
+          })
+          .prefault({}),
         scripts: z.array(ScriptTree).default([]),
       })
       .prefault({}),
@@ -77,8 +79,8 @@ export type GlobalSettings = z.infer<typeof GlobalSettings>;
 
 export const ChatSettings = z
   .object({
-    bgm: z.array(z.object({ url: z.string(), title: z.string() })).default([]),
-    ambient: z.array(z.object({ url: z.string(), title: z.string() })).default([]),
+    bgm: z.array(z.object({ url: z.string(), title: z.coerce.string() })).default([]),
+    ambient: z.array(z.object({ url: z.string(), title: z.coerce.string() })).default([]),
   })
   .prefault({});
 export type ChatSettings = z.infer<typeof ChatSettings>;

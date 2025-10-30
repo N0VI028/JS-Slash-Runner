@@ -2,7 +2,7 @@ import { getSmartThemeQuoteColor } from '@/util/color';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 export const ScriptButton = z.object({
-  name: z.string(),
+  name: z.coerce.string(),
   visible: z.boolean(),
 });
 export type ScriptButton = z.infer<typeof ScriptButton>;
@@ -10,25 +10,25 @@ export type ScriptButton = z.infer<typeof ScriptButton>;
 export const Script = z.object({
   type: z.literal('script').default('script'),
   enabled: z.boolean().default(false),
-  name: z.string().default(''),
-  id: z.string().default(() => uuidv4()),
-  content: z.string().default(''),
-  info: z.string().default(''),
+  name: z.coerce.string().default(''),
+  id: z.coerce.string().default(() => uuidv4()),
+  content: z.coerce.string().default(''),
+  info: z.coerce.string().default(''),
   button: z
     .object({
       enabled: z.boolean().default(true),
       buttons: z.array(ScriptButton).default([]),
     })
     .prefault({}),
-  data: z.record(z.string(), z.any()).default({}),
+  data: z.record(z.string(), z.any()).default({}).catch({}),
 });
 export type Script = z.infer<typeof Script>;
 
 export const ScriptFolder = z.object({
   type: z.literal('folder').default('folder'),
   enabled: z.boolean().default(false),
-  name: z.string().default(''),
-  id: z.string().default(() => uuidv4()),
+  name: z.coerce.string().default(''),
+  id: z.coerce.string().default(() => uuidv4()),
   icon: z.string().default('fa-solid fa-folder'),
   color: z.string().default(getSmartThemeQuoteColor),
   scripts: z.array(Script).default([]),
