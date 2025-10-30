@@ -3,7 +3,8 @@
 
 ### 🐛修复
 
-- 按 getter 将 `window.parent.SillyTavern.getContext()` 导入到前端界面或脚本的 `window.SillyTavern` 中, 从而让前端界面或脚本的 `window.SillyTavern` 始终指向酒馆的最新上下文
+- 让前端界面或脚本的 `window.SillyTavern` 始终指向酒馆的最新上下文而非前端界面或脚本初始化时的上下文
+- 假设脚本通过 `initializeGlobal` 向其他脚本共享出了接口, 而其他脚本通过 `waitGlobalInitialized` 等待了共享; 则之后即使共享接口的脚本重启, 它所共享出的接口依旧有效.
 
 ## 4.0.20
 
