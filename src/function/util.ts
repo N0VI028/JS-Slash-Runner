@@ -1,4 +1,5 @@
 import { substituteParamsExtended } from '@sillytavern/script';
+import isPromise from 'is-promise';
 
 export function _reloadIframe(this: Window): void {
   this.location.reload();
@@ -20,8 +21,8 @@ export function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...arg
   return (...args: T): U => {
     try {
       const result = fn(...args);
-      if (result instanceof Promise) {
-        return result.catch(error => {
+      if (isPromise(result)) {
+        return result.then(undefined, error => {
           onError(error);
         }) as U;
       }
