@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.1.1
+
+### 🐛修复
+
+- `errorCatched` 函数处理 Promise 的方式
+
 ## 4.1.0
 
 ### 📕脚本库
