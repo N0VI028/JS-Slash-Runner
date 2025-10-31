@@ -76,7 +76,7 @@
     "vue-router": "^4.6.3",
     "vue-tippy": "^6.7.1",
     "vue-virt-list": "^1.6.1",
-    "vue-word-highlighter": "^1.2.5",
+    "vue-word-highlighter": "^1.2.6",
     "zod": "^4.1.12"
   }
 }
