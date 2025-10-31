@@ -15,7 +15,16 @@ function submit(close: () => void) {
   close();
 }
 
-const target = ref<'global' | 'character' | 'preset'>('global');
+const props = withDefaults(
+  defineProps<{
+    target?: 'global' | 'character' | 'preset';
+  }>(),
+  {
+    target: 'global',
+  },
+);
+
+const target = ref<'global' | 'character' | 'preset'>(props.target);
 
 const character_name = toRef(useCharacterSettingsStore(), 'name');
 const options = computed(() => {

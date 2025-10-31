@@ -17,20 +17,27 @@
       handle=".TH-handle"
       class="flex grow flex-col gap-[5px] overflow-y-auto py-0.5"
       :class="{ 'min-h-2': script_trees.length === 0 }"
+      :animation="150"
+      :data-container-type="target"
+      direction="vertical"
+      :disabled="search_input !== null"
       :force-fallback="true"
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
-      :data-container-type="storeType"
-      direction="vertical"
-      :disabled="search_input !== null"
       :invert-swap="true"
-      :inverted-swap-threshold="0.8"
-      @start="during_sorting = true"
-      @end="during_sorting = false"
+      :inverted-swap-threshold="0.9"
+      @start="onSortingItemStart"
+      @end="during_sorting_item = false"
     >
       <div v-for="(script, index) in script_trees" :key="script.id">
-        <ScriptItem v-if="isScript(script_trees[index])" v-model="script_trees[index]" @delete="handleDelete" />
-        <FolderItem v-else v-model="script_trees[index]" @delete="handleDelete" />
+        <ScriptItem
+          v-if="isScript(script_trees[index])"
+          v-model="script_trees[index]"
+          :target="target"
+          @delete="handleDelete"
+          @move="handleMove"
+        />
+        <FolderItem v-else v-model="script_trees[index]" :target="target" @delete="handleDelete" @move="handleMove" />
       </div>
       <div v-if="script_trees.length === 0" class="text-center opacity-50">{{ t`暂无脚本` }}</div>
     </VueDraggable>
@@ -40,24 +47,47 @@
 <script setup lang="ts">
 import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
-import { useGlobalScriptsStore } from '@/store/scripts';
+import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
-import { VueDraggable } from 'vue-draggable-plus';
+import { SortableEvent, VueDraggable } from 'vue-draggable-plus';
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
 
 defineProps<{
   title: string;
   description: string;
-  storeType: 'global' | 'character' | 'preset';
+  target: 'global' | 'character' | 'preset';
+}>();
+
+const emit = defineEmits<{
+  move: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
-const during_sorting = inject<Ref<boolean>>('during_sorting', ref(false));
+
+const during_sorting_item = inject<Ref<boolean>>('during_sorting_item', ref(false));
+function onSortingItemStart(event: SortableEvent) {
+  during_sorting_item.value = $(event.item).children('[data-type="script"]').length > 0;
+}
 
 const script_trees = toRef(store.value, 'script_trees');
 
 const handleDelete = (id: string) => {
   _.remove(store.value.script_trees, script => script.id === id);
+};
+
+const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
+  const removed = _.remove(store.value.script_trees, script => script.id === id);
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(...removed);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(...removed);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(...removed);
+      break;
+  }
 };
 </script>

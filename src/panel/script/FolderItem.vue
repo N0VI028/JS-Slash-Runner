@@ -41,6 +41,7 @@
           </div>
         </DefineScriptFolderButton>
         <ScriptFolderButton name="编辑文件夹" icon="fa-pencil" @click.stop="openFolderEditor" />
+        <ScriptFolderButton name="移动文件夹" icon="fa-arrow-right-arrow-left" @click.stop="openMoveConfirm" />
         <ScriptFolderButton name="导出文件夹" icon="fa-file-export" @click.stop="exportFolder" />
         <ScriptFolderButton name="删除文件夹" icon="fa-trash" @click.stop="openDeleteConfirm" />
         <ScriptFolderButton name="展开或折叠文件夹" :icon="is_expanded ? 'fa-chevron-up' : 'fa-chevron-down'" />
@@ -63,16 +64,23 @@
       }"
       handle=".TH-handle"
       class="flex grow flex-col gap-[5px] overflow-y-auto p-0.5"
+      :animation="150"
+      direction="vertical"
+      :disabled="search_input !== null"
       :force-fallback="true"
       :fallback-offset="{ x: 0, y: 0 }"
       :fallback-on-body="true"
-      direction="vertical"
-      :disabled="search_input !== null"
-      @start="during_sorting = true"
-      @end="during_sorting = false"
+      @start="during_sorting_item = true"
+      @end="during_sorting_item = false"
     >
       <div v-for="(_script, index) in script_folder.scripts" :key="script_folder.scripts[index].id">
-        <ScriptItem v-model="script_folder.scripts[index]" :search-input="search_input" @delete="handleScriptDelete" />
+        <ScriptItem
+          v-model="script_folder.scripts[index]"
+          :target="props.target"
+          :search-input="search_input"
+          @delete="handleScriptDelete"
+          @move="handleMove"
+        />
       </div>
     </VueDraggable>
   </div>
@@ -82,7 +90,9 @@
 import Popup from '@/panel/component/Popup.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
+import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
+import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { ScriptFolder } from '@/type/scripts';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
@@ -95,12 +105,17 @@ const [DefineScriptFolderButton, ScriptFolderButton] = createReusableTemplate<{
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
 
+const props = defineProps<{
+  target: 'global' | 'character' | 'preset';
+}>();
+
 const emit = defineEmits<{
   delete: [id: string];
+  move: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
-const during_sorting = inject<Ref<boolean>>('during_sorting', ref(false));
+const during_sorting_item = inject<Ref<boolean>>('during_sorting_item', ref(false));
 
 const is_expanded = ref<boolean>(false);
 
@@ -110,11 +125,14 @@ const { isOutside: is_outside } = useMouseInElement(folder_item_ref, {
   windowResize: false,
   windowScroll: false,
 });
-const is_sorting_target = computed(() => during_sorting.value && !is_outside.value);
+const is_sorting_target = computed(() => during_sorting_item.value && !is_outside.value);
 watch(is_sorting_target, value => {
   if (value) {
-    // TODO: 仅当鼠标在文件夹上停留了一段时间才判定为展开?
-    is_expanded.value = value;
+    _.delay(() => {
+      if (is_sorting_target.value) {
+        is_expanded.value = true;
+      }
+    }, 500);
   }
 });
 
@@ -161,6 +179,34 @@ const { open: openDeleteConfirm } = useModal({
     default: t`<div>确定要删除文件夹及其中所有脚本吗？此操作无法撤销</div>`,
   },
 });
+
+const { open: openMoveConfirm } = useModal({
+  component: TargetSelector,
+  attrs: {
+    target: props.target,
+    onSubmit: (target: 'global' | 'character' | 'preset') => {
+      if (props.target === target) {
+        return;
+      }
+      emit('move', script_folder.value.id, target);
+    },
+  },
+});
+
+const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
+  const removed = _.remove(script_folder.value.scripts, script => script.id === id);
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(...removed);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(...removed);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(...removed);
+      break;
+  }
+};
 
 type ScriptExportOptions = {
   should_strip_data: boolean;

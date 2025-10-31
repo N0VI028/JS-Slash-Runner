@@ -7,20 +7,15 @@
     clearable
   />
 
-  <Container v-model="global_scripts" :title="t`全局脚本`" :description="t`酒馆全局可用`" store-type="global" />
+  <Container v-model="global_scripts" :title="t`全局脚本`" :description="t`酒馆全局可用`" target="global" />
 
   <template v-if="character_name !== undefined">
     <Divider />
-    <Container
-      v-model="character_scripts"
-      :title="t`角色脚本`"
-      :description="t`绑定到当前角色卡`"
-      store-type="character"
-    />
+    <Container v-model="character_scripts" :title="t`角色脚本`" :description="t`绑定到当前角色卡`" target="character" />
   </template>
 
   <Divider />
-  <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" store-type="preset" />
+  <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" target="preset" />
 
   <Iframe
     v-for="script in runtimes"
@@ -64,7 +59,7 @@ import { eventSource } from '@sillytavern/script';
 
 const search_input = ref<RegExp | null>(null);
 provide('search_input', search_input);
-provide('during_sorting', ref(false));
+provide('during_sorting_item', ref(false));
 
 const { name: preset_name } = storeToRefs(usePresetSettingsStore());
 const { name: character_name } = storeToRefs(useCharacterSettingsStore());

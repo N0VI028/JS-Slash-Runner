@@ -8,15 +8,19 @@
         </div>
       </div>
       <div v-if="playlist.length === 0" class="text-center opacity-50">暂无音频</div>
-      <VueDraggable v-model="playlist" handle=".TH-handle" class="flex flex-col" direction="vertical" item-key="id">
+      <VueDraggable
+        v-model="playlist"
+        handle=".TH-handle"
+        class="flex flex-col"
+        :animation="150"
+        direction="vertical"
+        item-key="id"
+      >
         <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center gap-0.5">
           <span class="TH-handle shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
           <!-- prettier-ignore-attribute -->
           <div
-            class="
-              flex min-w-0 grow items-center gap-0.5 rounded border border-[var(--SmartThemeBorderColor)] px-0.5
-              py-[1px]
-            "
+            class="flex min-w-0 grow items-center gap-0.5 rounded border border-(--SmartThemeBorderColor) px-0.5 py-px"
           >
             <span class="overflow-hidden break-all text-ellipsis whitespace-nowrap hover:whitespace-normal">
               {{ item.title }}

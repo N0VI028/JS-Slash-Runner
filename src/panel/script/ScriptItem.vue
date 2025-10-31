@@ -32,6 +32,7 @@
       </DefineToolButton>
       <ToolButton name="查看作者备注" icon="fa-info-circle" @click="openScriptInfo" />
       <ToolButton name="编辑脚本" icon="fa-pencil" @click="openScriptEditor" />
+      <ToolButton name="移动脚本" icon="fa-arrow-right-arrow-left" @click="openMoveConfirm" />
       <ToolButton name="导出脚本" icon="fa-file-export" @click="exportScript" />
       <ToolButton name="删除脚本" icon="fa-trash" @click="openDeleteConfirm" />
     </div>
@@ -41,6 +42,7 @@
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
+import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
@@ -54,9 +56,13 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
 }>();
 
 const script = defineModel<Script>({ required: true });
+const props = defineProps<{
+  target: 'global' | 'character' | 'preset';
+}>();
 
 const emit = defineEmits<{
   delete: [id: string];
+  move: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
@@ -109,6 +115,19 @@ const { open: openDeleteConfirm } = useModal({
   },
   slots: {
     default: t`<div>确定要删除脚本吗? 此操作无法撤销</div>`,
+  },
+});
+
+const { open: openMoveConfirm } = useModal({
+  component: TargetSelector,
+  attrs: {
+    target: props.target,
+    onSubmit: (target: 'global' | 'character' | 'preset') => {
+      if (props.target === target) {
+        return;
+      }
+      emit('move', script.value.id, target);
+    },
   },
 });
 

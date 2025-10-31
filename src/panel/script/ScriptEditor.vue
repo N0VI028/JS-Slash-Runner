@@ -1,7 +1,5 @@
 <template>
-  <Popup
-    :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]"
-  >
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]">
     <DefineMaximizeButton v-slot="{ activate }">
       <i class="fa-solid fa-maximize interactable cursor-pointer" @click="activate"></i>
     </DefineMaximizeButton>
@@ -72,9 +70,10 @@
             v-model="script.button.buttons"
             handle=".TH-handle"
             class="flex flex-col"
+            :animation="150"
             direction="vertical"
-            item-key="id"
             :force-fallback="true"
+            item-key="id"
           >
             <div
               v-for="(button, index) in script.button.buttons"
