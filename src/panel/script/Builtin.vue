@@ -128,8 +128,8 @@ const builtins: BuiltinScript[] = [
   },
   {
     name: t`压缩系统消息: 让 AI 对内容理解更连贯`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/自动添加提示词/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/自动添加提示词/README.md',
+    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/压缩相邻消息/index.js',
+    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/压缩相邻消息/README.md',
   },
   {
     name: t`token数过多提醒: 防止玩傻子AI`,
