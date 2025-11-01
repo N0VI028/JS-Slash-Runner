@@ -12,7 +12,7 @@
     "defaults and partially supports es6-module"
   ],
   "devDependencies": {
-    "@eslint/js": "^9.38.0",
+    "@eslint/js": "^9.39.0",
     "@popperjs/core": "^2.11.8",
     "@tailwindcss/postcss": "^4.1.16",
     "@types/jquery": "^3.5.33",
@@ -25,7 +25,7 @@
     "@typescript-eslint/utils": "^8.46.2",
     "@vitejs/plugin-vue": "^6.0.1",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9.38.0",
+    "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-better-tailwindcss": "^3.7.10",
