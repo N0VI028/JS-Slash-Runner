@@ -309,13 +309,8 @@ function parseJsonContent(content: any): { text: string; images: { url: string }
 }
 
 if (compare(version, '1.13.4', '<=')) {
-  let check_dry_run = false;
-  useEventSourceOn(event_types.CHAT_COMPLETION_PROMPT_READY, (data: { dryRun: boolean }) => {
-    check_dry_run = data.dryRun;
-  });
-  useEventSourceOn(event_types.GENERATE_AFTER_DATA, (data: { prompt: any }) => {
-    collectPrompts(data.prompt, check_dry_run);
-    check_dry_run = false;
+  useEventSourceOn(event_types.CHAT_COMPLETION_PROMPT_READY, (data: { chat: any; dryRun: boolean }) => {
+    collectPrompts(data.chat, data.dryRun);
   });
 } else {
   useEventSourceOn(event_types.GENERATE_AFTER_DATA, (data: { prompt: any }, dry_run: boolean) => {
