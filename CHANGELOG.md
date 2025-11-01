@@ -1,9 +1,13 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.1.1
 
+### 🎨渲染器
+
+- 让折叠代码块功能只在启用渲染器时生效
+
 ### 🐛修复
 
-- `errorCatched` 函数处理 Promise 的方式
+- 让 `errorCatched` 函数处理 Promise 的方式更正确
 
 ## 4.1.0
 

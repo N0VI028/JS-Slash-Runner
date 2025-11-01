@@ -84,7 +84,13 @@ const collapse_code_block_options = [
 ];
 
 useOptimizeHljs(enabled);
-useCollapseCodeBlock(collapse_code_block);
+const enable_collapse_code_block = computed(() => {
+  if (!enabled.value) {
+    return 'none';
+  }
+  return collapse_code_block.value;
+});
+useCollapseCodeBlock(enable_collapse_code_block);
 useMacroLike(macro_enabled);
 const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
 </script>
