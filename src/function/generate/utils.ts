@@ -36,6 +36,8 @@ export async function convertFileToBase64(img: File | string): Promise<string | 
     } catch (err) {
       return undefined;
     }
+  } else {
+    processedImg = img
   }
   return processedImg;
 }
