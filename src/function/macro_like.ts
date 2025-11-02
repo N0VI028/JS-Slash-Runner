@@ -32,5 +32,13 @@ export function registerMacroLike(
   regex: RegExp,
   replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string,
 ) {
+  if (macros.some(macro => macro.regex.source === regex.source)) {
+    return;
+  }
   macros.push({ regex, replace });
+}
+
+export function unregisterMacroLike(regex: RegExp) {
+  const index = macros.findIndex(macro => macro.regex.source === regex.source);
+  macros.splice(index, 1);
 }

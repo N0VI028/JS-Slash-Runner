@@ -1,7 +1,7 @@
 type MacroLikeContext = {
   message_id?: number;
   role?: 'user' | 'assistant' | 'system';
-}
+};
 
 /**
  * 注册一个新的助手宏
@@ -20,3 +20,10 @@ declare function registerMacroLike(
   regex: RegExp,
   replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string,
 ): void;
+
+/**
+ * 取消注册一个助手宏
+ *
+ * @param regex 助手宏的正则表达式
+ */
+declare function unregisterMacroLike(regex: RegExp): void;

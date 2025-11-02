@@ -5,6 +5,11 @@
 
 - 让折叠代码块功能只在启用渲染器时生效
 
+### 📦函数
+
+- 现在 `registerMacroLike` 对于同样的正则表达式只会注册一次
+- 补充 `unregisterMacroLike` 用于取消注册酒馆助手宏
+
 ### 🐛修复
 
 - 让 `errorCatched` 函数处理 Promise 的方式更正确
