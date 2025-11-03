@@ -37,5 +37,7 @@ declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...ar
  *
  * @param iframe_name 前端界面的 iframe 标识名称
  * @returns 楼层号
+ *
+ * @throws 如果提供的 `iframe_name` 不是前端界面 iframe 标识名称, 将会抛出错误
  */
 declare function getMessageId(iframe_name: string): number;

@@ -168,6 +168,8 @@ declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
  * @param preset 预设内容; 不填则使用默认内容
  *
  * @returns 是否成功创建, 如果已经存在同名预设或尝试创建名为 `'in_use'` 的预设会失败
+ *
+ * @throws 如果创建的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  */
 declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: Preset): Promise<boolean>;
 
@@ -212,6 +214,8 @@ declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: 
  * @param preset_name 预设名称
  *
  * @returns 预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
  */
 declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
 
@@ -226,6 +230,9 @@ type ReplacePresetOptions = {
  * @param preset 预设内容
  * @param options 可选选项
  *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ * @throws 如果替换的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输
@@ -269,6 +276,9 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ * @throws 如果替换的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输
@@ -314,6 +324,9 @@ declare function updatePresetWith(
  *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ * @throws 如果替换的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输

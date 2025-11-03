@@ -1,5 +1,5 @@
 /**
- * 获取消息楼层号对应的消息内容 JQuery
+ * 获取消息楼层号对应的消息内容 JQuery 实例
  *
  * 相比于一个实用函数, 这更像是一个告诉你可以用 JQuery 的示例
  *
@@ -36,6 +36,8 @@ type FormatAsDisplayedMessageOption = {
  *   - `message_id?:number`: 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, getLastMessageId()]` 范围内; 默认为最新楼层
  *
  * @returns 处理结果
+ *
+ * @throws 如果提供的消息楼层号 `message_id` 不在 `[0, getLastMessageId()]` 范围内, 将会抛出错误
  *
  * @example
  * const text = formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");

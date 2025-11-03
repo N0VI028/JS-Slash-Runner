@@ -17,6 +17,8 @@ declare function importRawCharacter(filename: string, content: Blob): Promise<Re
  * @param filename 聊天文件名, 由于酒馆限制, 它实际不会作为最终导入的聊天文件名称
  * @param content 聊天文件内容
  *
+ * @throws 如果未选择角色卡, 将会抛出错误
+ *
  * @example
  * // 从网络链接导入聊天文件
  * const response = await fetch(聊天文件网络链接);

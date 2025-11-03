@@ -184,6 +184,8 @@ declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
  * @param worldbook_name 世界书名称
  *
  * @returns 世界书内容
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
  */
 declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
 
@@ -198,6 +200,8 @@ interface ReplaceWorldbookOptions {
  * @param worldbook 世界书内容
  * @param options 可选选项
  *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
  *
  * @example
  * // 禁止所有条目递归, 保持其他设置不变
@@ -235,6 +239,8 @@ type WorldbookUpdater =
  *
  * @returns 更新后的世界书条目
  *
+ * @throws 如果世界书不存在, 将会抛出错误
+ *
  * @example
  * // 禁止所有条目递归, 保持其他设置不变
  * await updateWorldbookWith('eramgt少女歌剧', worldbook => {
@@ -267,6 +273,8 @@ declare function updateWorldbookWith(
  *
  * @returns 更新后的世界书条目, 以及新增条目补全字段后的结果
  *
+ * @throws 如果世界书不存在, 将会抛出错误
+ *
  * @example
  * // 创建两个条目, 一个标题叫 `'神乐光'`, 一个留白
  * const { worldbook, new_entries } = await createWorldbookEntries('eramgt少女歌剧', [{ name: '神乐光' }, {}]);
@@ -286,6 +294,8 @@ declare function createWorldbookEntries(
  *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目, 以及被删除的条目
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
  *
  * @example
  * // 删除所有名字中包含 `'神乐光'` 的条目

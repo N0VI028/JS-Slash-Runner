@@ -39,6 +39,8 @@ type GetChatMessagesOption = {
  *
  * @returns 一个 `ChatMessage` 数组, 依据 message_id 从低到高排序
  *
+ * @throws 如果提供的范围 `range` 无效, 将会抛出错误
+ *
  * @example
  * // 仅获取第 10 楼被 AI 使用的消息页
  * const chat_messages = getChatMessages(10);

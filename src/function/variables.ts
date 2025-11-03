@@ -119,8 +119,8 @@ export function replaceVariables(variables: Record<string, any>, option: Variabl
     }
     case 'character': {
       const store = useCharacterSettingsStore();
-      if (store.id === undefined) {
-        throw new Error('保存变量失败，当前角色为空');
+      if (store.name === undefined) {
+        throw new Error('当前没有打开角色卡，保存角色卡变量失败');
       }
       toRef(store.settings, 'variables').value = variables;
       break;

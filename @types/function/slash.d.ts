@@ -6,6 +6,8 @@
  * @param command 要运行的 Slash 命令
  * @returns Slash 管道结果, 如果命令出错或执行了 `/abort` 则返回 `undefined`
  *
+ * @throws Slash 命令出错时, 将会抛出错误
+ *
  * @example
  * // 在酒馆界面弹出提示语 `运行成功!`
  * triggerSlash('/echo severity=success 运行成功!');

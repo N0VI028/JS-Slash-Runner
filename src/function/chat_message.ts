@@ -336,9 +336,7 @@ export async function createChatMessages(
   { insert_at = 'end', refresh = 'affected' }: CreateChatMessagesOption = {},
 ): Promise<void> {
   if (insert_at !== 'end') {
-    if (inUnnormalizedMessageRange(insert_at)) {
-      throw Error(`提供的 insert_at 无效超出了允许范围 [${-chat.length}, ${chat.length}), 你提供的是: '${insert_at}'`);
-    }
+    insert_at = _.clamp(insert_at, -chat.length, chat.length);
   }
 
   const convert = async (chat_message: ChatMessageCreating): Promise<Record<string, any>> => {

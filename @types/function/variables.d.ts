@@ -1,11 +1,23 @@
 type VariableOptionNormal = {
-  /** 对聊天变量 (`'chat'`)、当前角色卡 (`'character'`)、当前预设 (`'preset'`) 或全局变量 (`'global'`) 进行操作 */
-  type: 'chat' | 'character' | 'preset' | 'global';
+  /** 对聊天变量 (`'chat'`)、当前预设 (`'preset'`) 或全局变量 (`'global'`) 进行操作 */
+  type: 'chat' | 'preset' | 'global';
+};
+type VariableOptionCharacter = {
+  /**
+   * 对当前角色卡 (`'character'`) 进行操作
+   *
+   * @throws 如果没有打开角色卡, 将会抛出错误
+   */
+  type: 'character';
 };
 type VariableOptionMessage = {
   /** 对消息楼层变量 (`message`) 进行操作 */
   type: 'message';
-  /** 指定要获取变量的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'` */
+  /**
+   * 指定要获取变量的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+   *
+   * @throws 如果提供的消息楼层号 `message_id` 超出了范围 `[-chat.length, chat.length)`, 将会抛出错误
+   */
   message_id?: number | 'latest';
 };
 type VariableOptionScript = {
@@ -20,7 +32,7 @@ type VariableOptionExtension = {
   /** 指定要操作变量的扩展 ID */
   extension_id: string;
 };
-type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
+type VariableOption = VariableOptionNormal | VariableOptionCharacter | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
 
 /**
  * 获取变量表

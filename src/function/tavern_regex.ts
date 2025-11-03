@@ -212,10 +212,11 @@ export async function replaceTavernRegexes(
   }
 
   // TODO: `trimStrings` and `substituteRegex` are not considered
-  const emptied_regexes = regexes.filter(regex => regex.script_name == '');
-  if (emptied_regexes.length > 0) {
-    throw Error(`不能将酒馆正则的名称设置为空字符串:\n${JSON.stringify(emptied_regexes.map(regex => regex.id))}`);
-  }
+  regexes
+    .filter(regex => regex.script_name == '')
+    .forEach(regex => {
+      regex.script_name = `未命名-${regex.id}`;
+    });
   const [global_regexes, character_regexes] = _.partition(regexes, regex => regex.scope === 'global').map(paritioned =>
     paritioned.map(fromTavernRegex),
   );

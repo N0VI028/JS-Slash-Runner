@@ -9,10 +9,12 @@
 
 - 现在 `registerMacroLike` 对于同样的正则表达式只会注册一次
 - 补充 `unregisterMacroLike` 用于取消注册酒馆助手宏
+- 在文档中指出函数可能抛出的异常, 在类型定义文件中也用 `@throws` 来标注函数可能抛出的异常
 
 ### 🐛修复
 
 - 让 `errorCatched` 函数处理 Promise 的方式更正确
+- `createChatMessages` 在一些边界情况下出错的问题
 - `generate` 和 `generateRaw` 不能将存在惩罚和频率惩罚自定义为 0 的问题
 
 ## 4.1.0
