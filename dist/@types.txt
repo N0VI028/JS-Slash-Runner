@@ -221,6 +221,8 @@ type GetChatMessagesOption = {
  *
  * @returns 一个 `ChatMessage` 数组, 依据 message_id 从低到高排序
  *
+ * @throws 如果提供的范围 `range` 无效, 将会抛出错误
+ *
  * @example
  * // 仅获取第 10 楼被 AI 使用的消息页
  * const chat_messages = getChatMessages(10);
@@ -434,7 +436,7 @@ declare function rotateChatMessages(
   { refresh }?: RotateChatMessagesOption,
 ): Promise<void>;
 /**
- * 获取消息楼层号对应的消息内容 JQuery
+ * 获取消息楼层号对应的消息内容 JQuery 实例
  *
  * 相比于一个实用函数, 这更像是一个告诉你可以用 JQuery 的示例
  *
@@ -471,6 +473,8 @@ type FormatAsDisplayedMessageOption = {
  *   - `message_id?:number`: 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, getLastMessageId()]` 范围内; 默认为最新楼层
  *
  * @returns 处理结果
+ *
+ * @throws 如果提供的消息楼层号 `message_id` 不在 `[0, getLastMessageId()]` 范围内, 将会抛出错误
  *
  * @example
  * const text = formatAsDisplayedMessage("{{char}} speaks in {{lastMessageId}}");
@@ -917,6 +921,8 @@ declare function importRawCharacter(filename: string, content: Blob): Promise<Re
  *
  * @param filename 聊天文件名, 由于酒馆限制, 它实际不会作为最终导入的聊天文件名称
  * @param content 聊天文件内容
+ *
+ * @throws 如果未选择角色卡, 将会抛出错误
  *
  * @example
  * // 从网络链接导入聊天文件
@@ -1501,6 +1507,8 @@ declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
  * @param preset 预设内容; 不填则使用默认内容
  *
  * @returns 是否成功创建, 如果已经存在同名预设或尝试创建名为 `'in_use'` 的预设会失败
+ *
+ * @throws 如果创建的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  */
 declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: Preset): Promise<boolean>;
 
@@ -1545,6 +1553,8 @@ declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: 
  * @param preset_name 预设名称
  *
  * @returns 预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
  */
 declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
 
@@ -1559,6 +1569,9 @@ type ReplacePresetOptions = {
  * @param preset 预设内容
  * @param options 可选选项
  *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ * @throws 如果替换的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输
@@ -1602,6 +1615,9 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ * @throws 如果替换的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输
@@ -1647,6 +1663,9 @@ declare function updatePresetWith(
  *   - `render:'debounced'|'immediate'`: 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ * @throws 如果替换的预设内容中存在重复的系统/占位提示词, 将会抛出异常
  *
  * @example
  * // 为酒馆正在使用的预设开启流式传输
@@ -1809,6 +1828,8 @@ declare function getAllEnabledScriptButtons(): { [script_id: string]: { button_i
  *
  * @param command 要运行的 Slash 命令
  * @returns Slash 管道结果, 如果命令出错或执行了 `/abort` 则返回 `undefined`
+ *
+ * @throws Slash 命令出错时, 将会抛出错误
  *
  * @example
  * // 在酒馆界面弹出提示语 `运行成功!`
@@ -1985,16 +2006,30 @@ declare function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...ar
  *
  * @param iframe_name 前端界面的 iframe 标识名称
  * @returns 楼层号
+ *
+ * @throws 如果提供的 `iframe_name` 不是前端界面 iframe 标识名称, 将会抛出错误
  */
 declare function getMessageId(iframe_name: string): number;
 type VariableOptionNormal = {
-  /** 对聊天变量 (`'chat'`)、当前角色卡 (`'character'`)、当前预设 (`'preset'`) 或全局变量 (`'global'`) 进行操作 */
-  type: 'chat' | 'character' | 'preset' | 'global';
+  /** 对聊天变量 (`'chat'`)、当前预设 (`'preset'`) 或全局变量 (`'global'`) 进行操作 */
+  type: 'chat' | 'preset' | 'global';
+};
+type VariableOptionCharacter = {
+  /**
+   * 对当前角色卡 (`'character'`) 进行操作
+   *
+   * @throws 如果没有打开角色卡, 将会抛出错误
+   */
+  type: 'character';
 };
 type VariableOptionMessage = {
   /** 对消息楼层变量 (`message`) 进行操作 */
   type: 'message';
-  /** 指定要获取变量的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'` */
+  /**
+   * 指定要获取变量的消息楼层号, 如果为负数则为深度索引, 例如 `-1` 表示获取最新的消息楼层; 默认为 `'latest'`
+   *
+   * @throws 如果提供的消息楼层号 `message_id` 超出了范围 `[-chat.length, chat.length)`, 将会抛出错误
+   */
   message_id?: number | 'latest';
 };
 type VariableOptionScript = {
@@ -2009,7 +2044,7 @@ type VariableOptionExtension = {
   /** 指定要操作变量的扩展 ID */
   extension_id: string;
 };
-type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
+type VariableOption = VariableOptionNormal | VariableOptionCharacter | VariableOptionMessage | VariableOptionScript | VariableOptionExtension;
 
 /**
  * 获取变量表
@@ -2355,6 +2390,8 @@ declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
  * @param worldbook_name 世界书名称
  *
  * @returns 世界书内容
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
  */
 declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
 
@@ -2369,6 +2406,8 @@ interface ReplaceWorldbookOptions {
  * @param worldbook 世界书内容
  * @param options 可选选项
  *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
  *
  * @example
  * // 禁止所有条目递归, 保持其他设置不变
@@ -2406,6 +2445,8 @@ type WorldbookUpdater =
  *
  * @returns 更新后的世界书条目
  *
+ * @throws 如果世界书不存在, 将会抛出错误
+ *
  * @example
  * // 禁止所有条目递归, 保持其他设置不变
  * await updateWorldbookWith('eramgt少女歌剧', worldbook => {
@@ -2438,6 +2479,8 @@ declare function updateWorldbookWith(
  *
  * @returns 更新后的世界书条目, 以及新增条目补全字段后的结果
  *
+ * @throws 如果世界书不存在, 将会抛出错误
+ *
  * @example
  * // 创建两个条目, 一个标题叫 `'神乐光'`, 一个留白
  * const { worldbook, new_entries } = await createWorldbookEntries('eramgt少女歌剧', [{ name: '神乐光' }, {}]);
@@ -2457,6 +2500,8 @@ declare function createWorldbookEntries(
  *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
  *
  * @returns 更新后的世界书条目, 以及被删除的条目
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
  *
  * @example
  * // 删除所有名字中包含 `'神乐光'` 的条目
@@ -4050,6 +4095,8 @@ declare function getIframeName(): string;
  * 获取本消息楼层 iframe 所在楼层的楼层 id, **只能对楼层消息 iframe** 使用
  *
  * @returns 楼层 id
+ *
+ * @throws 如果不在楼层消息 iframe 内使用, 将会抛出错误
  */
 declare function getCurrentMessageId(): number;
 
@@ -4057,6 +4104,8 @@ declare function getCurrentMessageId(): number;
  * 获取脚本的脚本库 id, **只能在脚本内使用**
  *
  * @returns 脚本库的 id
+ *
+ * @throws 如果不在脚本内使用, 将会抛出错误
  */
 declare function getScriptId(): string;
 /**
