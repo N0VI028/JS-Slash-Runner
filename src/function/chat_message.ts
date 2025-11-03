@@ -336,7 +336,7 @@ export async function createChatMessages(
   { insert_at = 'end', refresh = 'affected' }: CreateChatMessagesOption = {},
 ): Promise<void> {
   if (insert_at !== 'end') {
-    insert_at = _.clamp(insert_at, -chat.length, chat.length);
+    insert_at = _.clamp(insert_at, -chat.length, chat.length - 1);
   }
 
   const convert = async (chat_message: ChatMessageCreating): Promise<Record<string, any>> => {
