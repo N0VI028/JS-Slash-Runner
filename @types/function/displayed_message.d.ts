@@ -21,7 +21,7 @@
 declare function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement>;
 
 type FormatAsDisplayedMessageOption = {
-  /** 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为 'last' */
+  /** 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, getLastMessageId()]` 范围内; 默认为 'last' */
   message_id?: 'last' | 'last_user' | 'last_char' | number;
 };
 
@@ -33,7 +33,7 @@ type FormatAsDisplayedMessageOption = {
  *
  * @param text 要处理的字符串
  * @param option 可选选项
- *   - `message_id?:number`: 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, await getLastMessageId()]` 范围内; 默认为最新楼层
+ *   - `message_id?:number`: 消息所在的楼层, 要求该楼层已经存在, 即在 `[0, getLastMessageId()]` 范围内; 默认为最新楼层
  *
  * @returns 处理结果
  *
