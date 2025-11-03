@@ -63,10 +63,45 @@ declare namespace Mvu {
  */
 declare const Mvu: {
   events: {
+    /** 新开聊天对变量初始化时触发的事件  */
+    VARIABLE_INITIALIZED: 'mag_variable_initiailized';
+
+    /** 即将对楼层进行更新时触发的事件  */
+    BEFORE_MESSAGE_UPDATE: 'mag_before_message_update';
+
     /** 某轮变量更新开始时触发的事件 */
     VARIABLE_UPDATE_STARTED: 'mag_variable_update_started';
 
-    /** 从文本解析到了命令时触发的事件 */
+    /**
+     * 某轮变量更新过程中, 对文本成功解析了所有更新命令时触发的事件
+     *
+     * @example
+     * // 修复 gemini 在中文间加入的 '-'', 如将 '角色.络-络' 修复为 '角色.络络'
+     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     *   commands.forEach(command => {
+     *     command.args[0] = command.args[0].replace(/-/g, '');
+     *   });
+     * });
+     *
+     * @example
+     * // 修复繁体字, 如将 '絡絡' 修复为 '络络'
+     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     *   commands.forEach(command => {
+     *     command.args[0] = command.args[0].replaceAll('絡絡', '络络');
+     *   });
+     * });
+     *
+     * @example
+     * // 添加新的更新命令
+     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     *   commands.push({
+     *     type: 'set',
+     *     full_match: `_.set('络络.好感度', 5)`,
+     *     args: ['络络.好感度', 5],
+     *     reason: '脚本强行更新',
+     *   });
+     * });
+     */
     COMMAND_PARSED: 'mag_command_parsed';
 
     /**
@@ -221,9 +256,13 @@ declare const Mvu: {
 };
 
 interface ListenerType {
+  [Mvu.events.VARIABLE_INITIALIZED]: (variables: Mvu.MvuData, swipe_id: number) => void;
+
+  [Mvu.events.BEFORE_MESSAGE_UPDATE]: (context: { variables: Mvu.MvuData; message_content: string }) => void;
+
   [Mvu.events.VARIABLE_UPDATE_STARTED]: (variables: Mvu.MvuData) => void;
 
-  [Mvu.events.COMMAND_PARSED]: (variables: Mvu.MvuData, commands: Mvu.CommandInfo[]) => void;
+  [Mvu.events.COMMAND_PARSED]: (variables: Mvu.MvuData, commands: Mvu.CommandInfo[], message_content: string) => void;
 
   [Mvu.events.SINGLE_VARIABLE_UPDATED]: (
     stat_data: Mvu.MvuData['stat_data'],
