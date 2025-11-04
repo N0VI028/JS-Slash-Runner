@@ -13,6 +13,7 @@
 
 ### 🐛修复
 
+- 让 `getChatMessages` 和 `setChatMessages` 仅从 `chat_message.swipes.length` 判断 swipe 数量, 避免其他插件的影响
 - 让 `errorCatched` 函数处理 Promise 的方式更正确
 - `createChatMessages` 在一些边界情况下出错的问题
 - `generate` 和 `generateRaw` 不能将存在惩罚和频率惩罚自定义为 0 的问题

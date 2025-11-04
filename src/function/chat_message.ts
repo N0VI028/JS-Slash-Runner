@@ -124,11 +124,11 @@ export function getChatMessages(
 
     let swipes: string[] = message?.swipes ?? [message.mes];
     let swipes_data: Record<string, any>[] = message?.variables ?? [{}];
-    let swipes_info: Record<string, any>[] = message?.swipes_info ?? [message?.extra ?? {}];
-    const max_length = _.max([swipes.length, swipes_data.length, swipes_info.length]) ?? 1;
-    swipes = _.range(0, max_length).map(i => swipes[i] ?? '');
-    swipes_data = _.range(0, max_length).map(i => swipes_data[i] ?? {});
-    swipes_info = _.range(0, max_length).map(i => swipes_info[i] ?? {});
+    let swipes_info: Record<string, any>[] = message?.swipe_info ?? [message?.extra ?? {}];
+    const swipe_length = swipes.length;
+    swipes = _.range(0, swipe_length).map(i => swipes[i] ?? '');
+    swipes_data = _.range(0, swipe_length).map(i => swipes_data[i] ?? {});
+    swipes_info = _.range(0, swipe_length).map(i => swipes_info[i] ?? {});
 
     const extra = swipes_info[swipe_id];
     const data = swipes_data[swipe_id];
@@ -243,10 +243,10 @@ export async function setChatMessages(
       }
       if (chat_message?.extra !== undefined) {
         if (data?.swipes_info === undefined) {
-          _.set(data, 'swipes_info', _.times(data.swipes?.length ?? 1, _.constant({})));
+          _.set(data, 'swipe_info', _.times(data.swipes?.length ?? 1, _.constant({})));
         }
         _.set(data, 'extra', chat_message?.extra);
-        _.set(data, ['swipes_info', data.swipe_id ?? 0], chat_message?.extra);
+        _.set(data, ['swipe_info', data.swipe_id ?? 0], chat_message?.extra);
       }
     } else if (
       chat_message?.swipe_id !== undefined ||
@@ -254,19 +254,19 @@ export async function setChatMessages(
       chat_message?.swipes_data !== undefined ||
       chat_message?.swipes_info !== undefined
     ) {
+      const max_length =
+        _.max([chat_message.swipes?.length, chat_message.swipes_data?.length, chat_message.swipes_info?.length]) ?? 1;
       _.set(chat_message, 'swipe_id', chat_message.swipe_id ?? data.swipe_id ?? 0);
       _.set(chat_message, 'swipes', chat_message.swipes ?? data.swipes ?? [data.mes]);
       _.set(chat_message, 'swipes_data', chat_message.swipes_data ?? data.variables ?? [{}]);
-      _.set(chat_message, 'swipes_info', chat_message.swipes_info ?? data.swipes_info ?? [{}]);
-      const max_length =
-        _.max([chat_message.swipes?.length, chat_message.swipes_data?.length, chat_message.swipes_info?.length]) ?? 1;
+      _.set(chat_message, 'swipes_info', chat_message.swipes_info ?? data.swipe_info ?? [{}]);
       chat_message.swipes = _.range(0, max_length).map(i => chat_message.swipes?.[i] ?? '');
       chat_message.swipes_data = _.range(0, max_length).map(i => chat_message.swipes_data?.[i] ?? {});
       chat_message.swipes_info = _.range(0, max_length).map(i => chat_message.swipes_info?.[i] ?? {});
 
       _.set(data, 'swipes', chat_message.swipes);
       _.set(data, 'variables', chat_message.swipes_data);
-      _.set(data, 'swipes_info', chat_message.swipes_info);
+      _.set(data, 'swipe_info', chat_message.swipes_info);
       _.set(data, 'swipe_id', chat_message.swipe_id);
       _.set(data, 'mes', chat_message.swipes[chat_message.swipe_id as number]);
       _.set(data, 'extra', chat_message.swipes_info[chat_message.swipe_id as number]);

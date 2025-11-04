@@ -13,11 +13,16 @@ declare namespace SillyTavern {
      * 实际是表示消息是否被隐藏不会发给 llm
      */
     is_system: boolean;
+
     mes: string;
+
     swipe_id?: number;
     swipes?: string[];
-    variables?: Record<string, any>[] | { [swipe_id: number]: Record<string, any> };
+
+    swipe_info?: Record<string, any>[];
     extra?: Record<string, any>;
+
+    variables?: Record<string, any>[] | { [swipe_id: number]: Record<string, any> };
   };
 
   type SendingMessage = {
