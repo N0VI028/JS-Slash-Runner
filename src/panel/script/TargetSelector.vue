@@ -1,5 +1,5 @@
 <template>
-  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]">
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]" width="fit">
     <Selector v-model="target" :title="t`选择创建目标`" :options="options" />
   </Popup>
 </template>

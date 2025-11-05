@@ -28,7 +28,7 @@
       <div class="h-full max-h-[80vh] overflow-y-auto">
         <slot></slot>
       </div>
-      <div v-if="buttons.length" class="flex items-center justify-center gap-[20px]">
+      <div v-if="buttons.length" class="my-0.5 flex items-center justify-center gap-[20px]">
         <button
           v-for="action in buttons"
           :key="action.name"
