@@ -36,6 +36,7 @@
           :target="target"
           @delete="handleDelete"
           @move="handleMove"
+          @copy="handleCopy"
         />
         <FolderItem v-else v-model="script_trees[index]" :target="target" @delete="handleDelete" @move="handleMove" />
       </div>
@@ -49,6 +50,7 @@ import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 import { SortableEvent, VueDraggable } from 'vue-draggable-plus';
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
@@ -87,6 +89,27 @@ const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
       break;
     case 'preset':
       usePresetScriptsStore().script_trees.push(...removed);
+      break;
+  }
+};
+
+const handleCopy = (id: string, target: 'global' | 'character' | 'preset') => {
+  const script = _.find(store.value.script_trees, script => script.id === id);
+  if (!script) {
+    return;
+  }
+  const copied_script = klona(script);
+  copied_script.id = uuidv4();
+  copied_script.enabled = false;
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(copied_script);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(copied_script);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(copied_script);
       break;
   }
 };

@@ -30,11 +30,24 @@
           <i class="fa-solid" :class="icon"></i>
         </div>
       </DefineToolButton>
-      <ToolButton name="查看作者备注" icon="fa-info-circle" @click="openScriptInfo" />
-      <ToolButton name="编辑脚本" icon="fa-pencil" @click="openScriptEditor" />
-      <ToolButton name="移动脚本" icon="fa-arrow-right-arrow-left" @click="openMoveConfirm" />
-      <ToolButton name="导出脚本" icon="fa-file-export" @click="exportScript" />
-      <ToolButton name="删除脚本" icon="fa-trash" @click="openDeleteConfirm" />
+      <ToolButton :name="t`查看作者备注`" icon="fa-info-circle" @click="openScriptInfo" />
+      <ToolButton :name="t`编辑脚本`" icon="fa-pencil" @click="openScriptEditor" />
+      <ToolButton
+        v-show="!showMoreActions"
+        ref="moreActionsRef"
+        :name="t`更多操作`"
+        icon="fa-ellipsis-h"
+        @click="showMoreActions = true"
+      />
+      <ToolButton v-show="showMoreActions" :name="t`复制脚本`" icon="fa-copy" @click="copyScript" />
+      <ToolButton
+        v-show="showMoreActions"
+        :name="t`移动脚本`"
+        icon="fa-arrow-right-arrow-left"
+        @click="openMoveConfirm"
+      />
+      <ToolButton v-show="showMoreActions" :name="t`导出脚本`" icon="fa-file-export" @click="exportScript" />
+      <ToolButton :name="t`删除脚本`" icon="fa-trash" @click="openDeleteConfirm" />
     </div>
   </div>
 </template>
@@ -48,7 +61,13 @@ import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
 import { renderMarkdown } from '@/util/tavern';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
-import { createReusableTemplate } from '@vueuse/core';
+import { createReusableTemplate, onClickOutside } from '@vueuse/core';
+
+const showMoreActions = ref(false);
+const moreActionsRef = useTemplateRef<HTMLDivElement>('moreActionsRef');
+onClickOutside(moreActionsRef, () => {
+  showMoreActions.value = false;
+});
 
 const [DefineToolButton, ToolButton] = createReusableTemplate<{
   name: string;
@@ -63,6 +82,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   delete: [id: string];
   move: [id: string, target: 'global' | 'character' | 'preset'];
+  copy: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
@@ -191,6 +211,17 @@ const exportScript = () => {
     },
     slots: {
       default: t`<div>'${script.value.name}' 脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
+    },
+  }).open();
+};
+
+const copyScript = () => {
+  useModal({
+    component: TargetSelector,
+    attrs: {
+      onSubmit: (target: 'global' | 'character' | 'preset') => {
+        emit('copy', script.value.id, target);
+      },
     },
   }).open();
 };

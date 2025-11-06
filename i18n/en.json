@@ -168,6 +168,12 @@
   "导入脚本文件 '${0}' 失败": "Failed to import script file '${0}'",
   "成功导入脚本文件夹 '${0}'": "Successfully imported script folder '${0}'",
   "成功导入脚本 '${0}'": "Successfully imported script '${0}'",
+  "查看作者备注": "View Author Note",
+  "更多操作": "More Actions",
+  "复制脚本": "Copy Script",
+  "移动脚本": "Move Script",
+  "导出脚本": "Export Script",
+  "删除脚本": "Delete Script",
 
   "<div><h4>此角色包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-角色脚本”中手动启用它们</small></div>": "<div><h4>This character contains embedded scripts available for Tavern Helper</h4><h4>Would you like to enable them now?</h4><small>If you want to do it later, enable them in \"Tavern Helper - Script - Character Script\"</small></div>",
   "<div><h4>此预设包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-预设脚本”中手动启用它们</small></div>": "<div><h4>This preset contains embedded scripts available for Tavern Helper</h4><h4>Would you like to enable them now?</h4><small>If you want to do it later, enable them in \"Tavern Helper - Script - Preset Script\"</small></div>",
