@@ -77,7 +77,12 @@ const { open: openScriptEditor } = useModal({
     script: script.value,
     onSubmit: (result: ScriptForm) => {
       const should_reload =
-        script.value.enabled && !_.isEqual(_.pick(script.value, 'content', 'data'), _.pick(result, 'content', 'data'));
+        script.value.enabled &&
+        (!_.isEqual(_.pick(script.value, 'content', 'data'), _.pick(result, 'content', 'data')) ||
+          !_.isEqual(
+            script.value.button.buttons.map(button => button.name).toSorted(),
+            result.button.buttons.map(button => button.name).toSorted(),
+          ));
       _.assign(script.value, result);
       if (should_reload) {
         useScriptIframeRuntimesStore().reload(script.value.id);
