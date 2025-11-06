@@ -258,7 +258,7 @@ export async function setChatMessages(
         _.max([chat_message.swipes?.length, chat_message.swipes_data?.length, chat_message.swipes_info?.length]) ??
         data.swipes?.length ??
         1;
-      _.set(chat_message, 'swipe_id', chat_message.swipe_id ?? data.swipe_id ?? 0);
+      _.set(chat_message, 'swipe_id', _.clamp(chat_message.swipe_id ?? data.swipe_id ?? 0, 0, max_length - 1));
       _.set(chat_message, 'swipes', chat_message.swipes ?? data.swipes ?? [data.mes]);
       _.set(chat_message, 'swipes_data', chat_message.swipes_data ?? data.variables ?? [{}]);
       _.set(chat_message, 'swipes_info', chat_message.swipes_info ?? data.swipe_info ?? [{}]);
