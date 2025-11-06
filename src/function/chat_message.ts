@@ -255,7 +255,9 @@ export async function setChatMessages(
       chat_message?.swipes_info !== undefined
     ) {
       const max_length =
-        _.max([chat_message.swipes?.length, chat_message.swipes_data?.length, chat_message.swipes_info?.length]) ?? 1;
+        _.max([chat_message.swipes?.length, chat_message.swipes_data?.length, chat_message.swipes_info?.length]) ??
+        data.swipes?.length ??
+        1;
       _.set(chat_message, 'swipe_id', chat_message.swipe_id ?? data.swipe_id ?? 0);
       _.set(chat_message, 'swipes', chat_message.swipes ?? data.swipes ?? [data.mes]);
       _.set(chat_message, 'swipes_data', chat_message.swipes_data ?? data.variables ?? [{}]);
