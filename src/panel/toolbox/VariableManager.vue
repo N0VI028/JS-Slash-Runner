@@ -31,7 +31,7 @@ const tabs = [
   { name: t`全局`, component: Global },
   { name: t`预设`, component: Preset },
 ]
-  .concat(character.name ? [{ name: character.name, component: Character }] : [])
+  .concat(character.name ? [{ name: '角色', component: Character }] : [])
   .concat([
     { name: t`聊天`, component: Chat },
     { name: t`消息楼层`, component: Message },
