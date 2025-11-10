@@ -57,7 +57,7 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
   };
 
   // 因未知原因, 一些设备上在初次进入角色卡时会 '渲染前端界面-替换助手宏-渲染前端界面', 因此需要移除额外渲染的 iframe
-  $mes_text.find('iframe').remove();
+  $mes_text.find('.TH-render > iframe').remove();
 
   $mes_text.html((_index, html) => replace_html(html));
   $mes_text
