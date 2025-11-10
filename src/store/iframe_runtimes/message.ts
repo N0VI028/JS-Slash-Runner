@@ -65,9 +65,13 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
     { immediate: true },
   );
 
-  eventSource.on('chatLoaded', () => {
+  let current_chat_id: string = '';
+  eventSource.on(event_types.CHAT_CHANGED, (chat_id: string) => {
     if (global_settings.settings.render.enabled) {
-      runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
+      if (current_chat_id !== chat_id) {
+        current_chat_id = chat_id;
+        runtimes.value = [];
+      }
     }
   });
 
