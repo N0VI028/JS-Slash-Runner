@@ -82,7 +82,7 @@ export function createSrcContent(content: string, use_blob_url: boolean) {
 <html>
 <head>
   <style>
-  html,body{margin:0;padding:0;overflow:hidden!important;max-width:100%!important;box-sizing:border-box}
+  html,body{margin:0;padding:0;overflow:hidden!important;max-width:100%!important;box-sizing:border-box;height:max-content}
   .user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
   .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
   </style>
