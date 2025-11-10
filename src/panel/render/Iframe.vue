@@ -38,7 +38,9 @@ useEventListener('message', event => {
   }
 });
 onBeforeUnmount(() => {
-  unobserve(iframe_ref.value!);
+  if (iframe_ref.value) {
+    unobserve(iframe_ref.value);
+  }
 });
 
 // 代码内容
