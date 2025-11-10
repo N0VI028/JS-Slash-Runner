@@ -26,8 +26,8 @@ jobs:
       - name: Check if only pnpm-lock.yaml is changed
         id: should_commit
         run: |-
-          changed_files=$(git diff --name-only HEAD | grep -v '^$')
-          num_changed_files=$(echo "$changed_files" | wc -l)
+          export changed_files=$(git diff --name-only HEAD | grep -v '^$')
+          export num_changed_files=$(echo "$changed_files" | wc -l)
           if [ "$num_changed_files" -eq 1 ] && [ "$changed_files" = "pnpm-lock.yaml" ]; then
             echo "result=false" >> "$GITHUB_OUTPUT"
           else
