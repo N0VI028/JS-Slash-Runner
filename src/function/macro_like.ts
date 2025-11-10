@@ -13,11 +13,10 @@ export interface MacroLikeContext {
 
 export const macros: MacroLike[] = [
   {
-    regex: /\{\{(get|format)_(message|chat|character|preset|global)_variable::(.*?)\}\}/gi,
+    regex: /\{\{get_(message|chat|character|preset|global)_variable::(.*?)\}\}/gi,
     replace: (
       context: MacroLikeContext,
       _substring: string,
-      action: 'get' | 'format',
       type: 'message' | 'chat' | 'character' | 'preset' | 'global',
       path: string,
     ) => {
@@ -25,11 +24,29 @@ export const macros: MacroLike[] = [
         type !== 'message' ? { type } : { type, message_id: context.message_id ?? 'latest' },
       );
       const value = _.get(variables, _.unescape(path), null);
-      return typeof value === 'string'
-        ? value
-        : action === 'get'
-          ? JSON.stringify(value)
-          : YAML.stringify(value, { blockQuote: 'literal' }).trimEnd();
+      return typeof value === 'string' ? value : JSON.stringify(value);
+    },
+  },
+  {
+    regex: /^(.*)\{\{format_(message|chat|character|preset|global)_variable::(.*?)\}\}/gim,
+    replace: (
+      context: MacroLikeContext,
+      _substring: string,
+      prefix: string,
+      type: 'message' | 'chat' | 'character' | 'preset' | 'global',
+      path: string,
+    ) => {
+      const variables = get_variables_without_clone(
+        type !== 'message' ? { type } : { type, message_id: context.message_id ?? 'latest' },
+      );
+      const value = _.get(variables, _.unescape(path), null);
+      return (
+        prefix +
+        (typeof value === 'string' ? value : YAML.stringify(value, { blockQuote: 'literal' }).trimEnd()).replaceAll(
+          '\n',
+          '\n' + ' '.repeat(prefix.length),
+        )
+      );
     },
   },
 ];
