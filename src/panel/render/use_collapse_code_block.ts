@@ -103,6 +103,12 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
     });
   });
 
+  eventSource.on('chatLoaded', () => {
+    if (collapse_code_block.value !== 'none') {
+      collapseCodeBlockForAll(collapse_code_block.value);
+    }
+  });
+
   [
     event_types.CHARACTER_MESSAGE_RENDERED,
     event_types.USER_MESSAGE_RENDERED,

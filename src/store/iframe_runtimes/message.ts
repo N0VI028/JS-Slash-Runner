@@ -67,7 +67,7 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
 
   eventSource.on('chatLoaded', () => {
     if (global_settings.settings.render.enabled) {
-      runtimes.value = [];
+      runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
     }
   });
 
