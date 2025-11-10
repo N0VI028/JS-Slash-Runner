@@ -9,12 +9,14 @@ import {
 import { addOneMessage, is_send_press, saveSettings } from '@sillytavern/script';
 import { promptManager } from '@sillytavern/scripts/openai';
 import { uuidv4 } from '@sillytavern/scripts/utils';
+import { parseRegexFromString } from '@sillytavern/scripts/world-info';
 
 export const builtin = {
   addOneMessage,
   duringGenerating: () => is_send_press,
   getImageTokenCost,
   getVideoTokenCost,
+  parseRegexFromString,
   promptManager,
   reloadAndRenderChatWithoutEvents,
   reloadChatWithoutEvents,

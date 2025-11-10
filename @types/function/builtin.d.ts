@@ -25,6 +25,7 @@ declare const builtin: {
   duringGenerating: () => boolean;
   getImageTokenCost: (data_url: string, quality: 'low' | 'auto' | 'high') => Promise<number>;
   getVideoTokenCost: (data_url: string) => Promise<number>;
+  parseRegexFromString: (regex: string) => RegExp | null;
   promptManager: {
     messages: Array<{
       collection: Array<{
