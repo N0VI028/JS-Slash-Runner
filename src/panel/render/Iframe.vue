@@ -25,10 +25,6 @@ const $div = $(props.element);
 const $pre = $div.children('pre');
 
 const iframe_ref = useTemplateRef<HTMLIFrameElement>('iframe');
-onBeforeMount(() => {
-  // 因未知原因, 一些设备上在初次进入角色卡时会 '渲染前端界面-替换助手宏-渲染前端界面', 因此需要移除额外渲染的 iframe
-  $div.find('iframe').remove();
-});
 
 // 高度调整
 const { observe, unobserve } = useHeightObserver();
