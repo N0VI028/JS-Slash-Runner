@@ -22,6 +22,7 @@ async function saveSettingsToFile(id: string, settings: PresetSettings) {
   await preset_manager.savePreset(
     Object.keys(preset_manager.getPresetList().preset_names)[Number(id)],
     preset_manager.getPresetList().presets[Number(id)],
+    { skipUpdate: true },
   );
 }
 const saveSettingsToFileDebounced = _.debounce(saveSettingsToFile, 1000);
@@ -59,6 +60,6 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
     { deep: true },
   );
 
-    // 监听 id 不能正确反映导入新预设时的情况, 在外应该监听 name
+  // 监听 id 不能正确反映导入新预设时的情况, 在外应该监听 name
   return { id: readonly(id), name: readonly(name), settings };
 });
