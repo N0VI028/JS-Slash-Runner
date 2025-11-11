@@ -16,6 +16,14 @@
       </template>
     </Item>
 
+    <Item type="box">
+      <template #title>{{ t`日志查看器` }}</template>
+      <template #description>{{ t`查看控制台日志` }}</template>
+      <template #content>
+        <Button @click="enable_logger = true">{{ t`打开` }}</Button>
+      </template>
+    </Item>
+
     <AudioPlayer />
   </div>
 
@@ -39,6 +47,15 @@
         <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
         <span>{{ t`变量管理器` }}</span>
       </div>
+      <div
+        class="list-group-item flex-container flexGap5 interactable"
+        tabindex="0"
+        role="listitem"
+        @click="enable_logger = true"
+      >
+        <div class="fa-solid fa-log extensionsMenuExtensionButton" />
+        <span>{{ t`日志查看器` }}</span>
+      </div>
     </div>
   </Teleport>
 
@@ -60,6 +77,9 @@
   >
     <VariableManager />
   </Dialog>
+  <Dialog v-if="enable_logger" storage-id="logger" :title="t`日志查看器`" @close="enable_logger = false">
+    <LogViewer />
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -74,6 +94,7 @@ import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
+const enable_logger = ref<boolean>(false);
 
 /**
  * 显示提示词查看器帮助信息
