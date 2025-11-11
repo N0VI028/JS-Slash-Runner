@@ -34,10 +34,7 @@ declare const EjsTemplate: {
    * @param last_message_id 合并消息变量的最大 ID; 默认为所有
    * @returns 执行环境 (上下文)
    */
-  prepareContext: (
-    additional_context?: Record<string, any>,
-    last_message_id?: number,
-  ) => Promise<Record<string, any>>;
+  prepareContext: (additional_context?: Record<string, any>, last_message_id?: number) => Promise<Record<string, any>>;
 
   /**
    * 检查模板是否存在语法错误
@@ -64,20 +61,46 @@ declare const EjsTemplate: {
    */
   setFeatures: (
     features: Partial<{
+      /** 是否启用扩展 */
       enabled: boolean;
+
+      /** 处理生成内容 */
       generate_enabled: boolean;
+      /** 生成时注入 [GENERATE] 世界书条目 */
       generate_loader_enabled: boolean;
+      /** 生成时注入 @INJECT 世界书条目 */
+      inject_loader_enabled: boolean;
+
+      /** 处理楼层消息 */
       render_enabled: boolean;
+      /** 渲染楼层时注入 [RENDER] 世界书条目 */
       render_loader_enabled: boolean;
-      with_context_disabled: boolean;
-      debug_enabled: boolean;
-      autosave_enabled: boolean;
-      preload_worldinfo_enabled: boolean;
+      /** 处理代码块 */
       code_blocks_enabled: boolean;
-      world_active_enabled: boolean;
+      /** 处理原始消息内容 */
       raw_message_evaluation_enabled: boolean;
+      /** 生成时忽略楼层消息处理 */
       filter_message_enabled: boolean;
-      cache_enabled: boolean;
+      /** 处理楼层深度限制 (-1=无限制) */
+      depth_limit: number;
+
+      /** 自动保存变量更新 */
+      autosave_enabled: boolean;
+      /** 立即加载世界书 */
+      preload_worldinfo_enabled: boolean;
+      /** 禁用 with 语句块 */
+      with_context_disabled: boolean;
+      /** 控制台显示详细信息 */
+      debug_enabled: boolean;
+      /** 旧设定兼容模式，世界书中的 GENERATE/RENDER/INJECT 条目禁用时视为启用 */
+      invert_enabled: boolean;
+
+      /** 缓存 (实验性) (0=禁用, 1=全部, 2=仅世界书) */
+      cache_enabled: number;
+      /** 缓存大小 */
+      cache_size: number;
+      /** 缓存 Hash 函数 */
+      cache_hasher: 'h32ToString' | 'h64ToString';
     }>,
   ) => void;
 
