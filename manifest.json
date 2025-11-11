@@ -6,7 +6,7 @@
   "js": "dist/index.js",
   "css": "dist/index.css",
   "author": "KAKAA",
-  "version": "4.1.4",
+  "version": "4.1.5",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
   "auto_update": true,
   "minimum_client_version": "1.12.10",
