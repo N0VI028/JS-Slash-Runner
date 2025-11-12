@@ -18,16 +18,6 @@
   </Item>
   <Divider />
   <Item type="plain">
-    <template #title>{{ t`启用 Blob URL 渲染` }}</template>
-    <template #description>
-      {{ t`使用 Blob URL 渲染前端界面，更方便 f12 开发者工具调试，若界面出现渲染问题请尝试关闭此选项` }}
-    </template>
-    <template #content>
-      <Toggle id="TH-render-use-blob-url" v-model="use_blob_url" />
-    </template>
-  </Item>
-  <Divider />
-  <Item type="plain">
     <template #title>{{ t`渲染深度` }}</template>
     <template #description>{{ t`设置需要渲染的楼层数，从最新楼层开始计数。为 0 时，将渲染所有楼层` }}</template>
     <template #content>
