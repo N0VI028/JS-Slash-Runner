@@ -135,6 +135,10 @@ type SetChatMessagesOption = {
  * await setChatMessages([{message_id: 0, swipe_id: 2}]);
  *
  * @example
+ * // 重新渲染第 4 楼的前端界面 (利用 `{render: 'affected'}`)
+ * await setChatMessages([{message_id: 4}]);
+ *
+ * @example
  * // 补充倒数第二楼的楼层变量
  * const chat_message = getChatMessages(-2)[0];
  * _.set(chat_message.data, '神乐光好感度', 5);
