@@ -10,6 +10,7 @@ import {
   name2,
   reloadCurrentChat,
   saveChatConditional,
+  showSwipeButtons,
   substituteParamsExtended,
   system_message_types,
 } from '@sillytavern/script';
@@ -284,6 +285,9 @@ export async function setChatMessages(
     const chat_message = chat[message_id];
     if (chat_message.swipes) {
       $mes_html.find('.swipes-counter').text(`${chat_message.swipe_id + 1}\u200b/\u200b${chat_message.swipes.length}`);
+      if (message_id === chat.length - 1) {
+        showSwipeButtons();
+      }
     }
     $mes_html
       .find('.mes_text')
@@ -520,8 +524,10 @@ export async function setChatMessage(
     }
 
     if (should_update_swipe && chat_message.swipes) {
-      // TODO: 只有一条消息时, swipes-counter 不会正常显示; 此外还要考虑 swipes-counter 的 "Swipe # for All Messages" 选项
       mes_html.find('.swipes-counter').text(`${swipe_id_to_use_index + 1}\u200b/\u200b${chat_message.swipes.length}`);
+      if (message_id === chat.length - 1) {
+        showSwipeButtons();
+      }
     }
     if (refresh != 'none') {
       mes_html
