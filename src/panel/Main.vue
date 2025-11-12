@@ -25,7 +25,6 @@
     <Listener />
     <Reference />
     <MacroLike />
-    <BlobRender />
   </div>
   <Divider type="major">
     <i class="fa-solid fa-shapes mr-0.5" />
@@ -40,7 +39,6 @@ import Info from '@/panel/main/Info.vue';
 import Listener from '@/panel/main/Listener.vue';
 import MacroLike from '@/panel/main/MacroLike.vue';
 import Reference from '@/panel/main/Reference.vue';
-import BlobRender from '@/panel/main/BlobRender.vue';
 import { getLatestVersion, hasUpdate } from '@/panel/main/update';
 import Update from '@/panel/main/Update.vue';
 import { getSmartThemeQuoteTextColor } from '@/util/color';
