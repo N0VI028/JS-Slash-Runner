@@ -53,7 +53,7 @@
         role="listitem"
         @click="enable_logger = true"
       >
-        <div class="fa-solid fa-log extensionsMenuExtensionButton" />
+        <div class="fa-solid fa-file-invoice extensionsMenuExtensionButton" />
         <span>{{ t`日志查看器` }}</span>
       </div>
     </div>
@@ -78,17 +78,18 @@
     <VariableManager />
   </Dialog>
   <Dialog v-if="enable_logger" storage-id="logger" :title="t`日志查看器`" @close="enable_logger = false">
-    <LogViewer />
+    <Logger />
   </Dialog>
 </template>
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
 import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
-import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
-import VariableManager from '@/panel/toolbox/VariableManager.vue';
+import Logger from '@/panel/toolbox/Logger.vue';
 import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
 import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
+import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
+import VariableManager from '@/panel/toolbox/VariableManager.vue';
 import { renderMarkdown } from '@/util/tavern';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 
