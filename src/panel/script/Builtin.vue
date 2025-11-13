@@ -132,7 +132,7 @@ const builtins: BuiltinScript[] = [
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/压缩相邻消息/README.md',
   },
   {
-    name: t`深度条目排斥器: 让深度条目只能在 D0 或 D999`,
+    name: t`深度条目排斥器: 让深度条目只能在 D0 或 D9999`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/深度条目排斥器/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/深度条目排斥器/README.md',
   },
