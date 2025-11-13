@@ -109,8 +109,10 @@
   "预设条目更多按钮: 一键新增预设条目": "More buttons for preset entries: insert new prompt entries in one click",
   "输入助手": "Input Helper",
   "压缩系统消息: 让 AI 对内容理解更连贯": "Compress system messages: Make AI understand content more coherent",
+  "深度条目排斥器: 让深度条目只能在 D0 或 D999": "Depth entry excluder: Force depth entries to be inserted at either D0 or D999",
   "token数过多提醒: 防止玩傻子AI": "Token count overflow reminder: Prevent playing with stupid AI",
   "取消代码块高亮": "Cancel code block highlight",
+  "世界书繁简互换: 一键将繁体/简体世界书翻译成简体/繁体": "World book Traditional/Simplified Chinese conversion: Translate World Book in one click",
   "正在加载作者备注...": "Loading author note...",
   "正在加载脚本...": "Loading scripts...",
   "成功导入脚本: '${0}'": "Successfully imported script: '${0}'",
@@ -202,6 +204,6 @@
   "楼": "message id",
   "最新楼层号": "latest message id",
   "第 ${0} 楼": "#${0}",
-  
+
   "模型": "Model"
 }

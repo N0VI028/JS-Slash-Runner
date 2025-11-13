@@ -132,6 +132,11 @@ const builtins: BuiltinScript[] = [
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/压缩相邻消息/README.md',
   },
   {
+    name: t`深度条目排斥器: 让深度条目只能在 D0 或 D999`,
+    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/深度条目排斥器/index.js',
+    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/深度条目排斥器/README.md',
+  },
+  {
     name: t`token数过多提醒: 防止玩傻子AI`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/token数过多提醒/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/token数过多提醒/README.md',
@@ -140,6 +145,11 @@ const builtins: BuiltinScript[] = [
     name: t`取消代码块高亮`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/取消代码块高亮/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/取消代码块高亮/README.md',
+  },
+  {
+    name: t`世界书繁简互换: 一键将繁体/简体世界书翻译成简体/繁体`,
+    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书繁简互换/index.js',
+    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书繁简互换/README.md',
   },
 ];
 
