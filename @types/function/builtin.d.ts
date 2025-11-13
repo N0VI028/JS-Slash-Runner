@@ -73,4 +73,5 @@ declare const builtin: {
   /** 刷新预设提示词列表 (防抖) */
   renderPromptManagerDebounced: (after_try_generate?: boolean) => void;
   saveSettings: () => Promise<void>;
+  uuidv4: () => string;
 };
