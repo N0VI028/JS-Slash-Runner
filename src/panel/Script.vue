@@ -38,6 +38,7 @@
         :key="button.button_id"
         class="qr--button menu_button interactable"
         @click.stop.prevent="eventSource.emit(button.button_id)"
+        @pointerdown.prevent
       >
         {{ button.button_name }}
       </div>
