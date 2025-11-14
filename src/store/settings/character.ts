@@ -2,7 +2,12 @@ import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward'
 import { CharacterSettings, setting_field } from '@/type/settings';
 import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
-import { convertCharacterBook, saveWorldInfo, updateWorldInfoList } from '@sillytavern/scripts/world-info';
+import {
+  convertCharacterBook,
+  loadWorldInfo,
+  saveWorldInfo,
+  updateWorldInfoList,
+} from '@sillytavern/scripts/world-info';
 import _ from 'lodash';
 
 function getSettings(id: string | undefined): CharacterSettings {
@@ -85,6 +90,18 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
         }
       });
     });
+  });
+
+  // 导出角色卡前保存最新世界书
+  $('#export_button').on('click', async () => {
+    const character = JSON.parse(String($('#character_json_data').val()));
+
+    const book = character?.data.character_book;
+    if (character?.data?.character_book) {
+      character.data.character_book = { name: book.name, entries: await loadWorldInfo(book.name) };
+    }
+
+    $('#character_json_data').val(JSON.stringify(character));
   });
 
   // 在某角色卡内修改 settings 时保存
