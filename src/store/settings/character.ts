@@ -64,6 +64,13 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     });
   });
 
+  // 替换/更新角色卡时也刷新 settings, 但不触发 settings 保存
+  $('character_replace_file').on('click', () => {
+    ignoreUpdates(() => {
+      settings.value = getSettings(id.value);
+    })
+  });
+
   // 在某角色卡内修改 settings 时保存
   const { ignoreUpdates } = watchIgnorable(
     settings,
