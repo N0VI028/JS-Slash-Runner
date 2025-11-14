@@ -1,4 +1,18 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.1.6
+
+### 📦函数
+
+- 现在 `eventOn` 等监听事件函数将会返回一个 `stop` 函数, 便于取消监听:
+
+  ```ts
+  // 监听消息接收, 当接收到消息时执行 listener
+  const { stop } = eventOn(tavern_events.MESSAGE_RECEIVED, listener);
+
+  // 取消监听
+  stop();
+  ```
+
 ## 4.1.5
 
 ### 🐛修复
