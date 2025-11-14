@@ -32,8 +32,11 @@ type injectPromptsOptions = {
  * @param prompts 要注入的提示词
  * @param options 可选选项
  *   - `once:boolean`: 是否只在下一次请求生成中有效; 默认为 false
+ *
+ * @returns 后续操作
+ *   - `uninject`: 取消这个提示词的注入
  */
-declare function injectPrompts(prompts: InjectionPrompt[], options?: injectPromptsOptions): void;
+declare function injectPrompts(prompts: InjectionPrompt[], options?: injectPromptsOptions): { uninject: () => void };
 
 /**
  * 移除注入的提示词

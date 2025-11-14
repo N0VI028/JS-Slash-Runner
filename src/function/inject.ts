@@ -32,19 +32,24 @@ export function injectPrompts(prompts: InjectionPrompt[], { once = false }: inje
     ),
   );
 
+  let deleted = false;
+  const uninject = () => {
+    if (deleted) {
+      return;
+    }
+    uninjectPrompts(prompts.map(p => p.id));
+    deleted = true;
+  };
+
   if (once) {
-    let deleted = false;
-    const unsetInject = () => {
-      if (deleted) {
-        return;
-      }
-      uninjectPrompts(prompts.map(p => p.id));
-      deleted = true;
-    };
-    eventSource.once(iframe_events.GENERATION_ENDED, unsetInject);
-    eventSource.once(tavern_events.GENERATION_ENDED, unsetInject);
-    eventSource.once(tavern_events.GENERATION_STOPPED, unsetInject);
+    eventSource.once(iframe_events.GENERATION_ENDED, uninject);
+    eventSource.once(tavern_events.GENERATION_ENDED, uninject);
+    eventSource.once(tavern_events.GENERATION_STOPPED, uninject);
   }
+
+  return {
+    uninject,
+  };
 }
 
 export function uninjectPrompts(ids: string[]) {

@@ -35,11 +35,14 @@ type EventOnReturn = {
  * eventOn(tavern_events.MESSAGE_UPDATED, message_id => {
  *   alert(`你刚刚更新了第 ${message_id} 条聊天消息对吧😡`);
  * });
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
  */
 declare function eventOn<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
 
 /** @deprecated 请使用 `eventOn(getButtonEvent('按钮名称'), 函数)` 代替 */
-declare function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
+declare function eventOnButton<T extends EventType>(event_type: T, listener: ListenerType[T]): void;
 
 /**
  * 让 `listener` 监听 `event_type`, 当事件发生时自动在最后运行 `listener`;
@@ -52,6 +55,9 @@ declare function eventOnButton<T extends EventType>(event_type: T, listener: Lis
  *
  * @example
  * eventMakeLast(要监听的事件, 要注册的函数);
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
  */
 declare function eventMakeLast<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
 
@@ -66,6 +72,9 @@ declare function eventMakeLast<T extends EventType>(event_type: T, listener: Lis
  *
  * @example
  * eventMakeFirst(要监听的事件, 要注册的函数);
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
  */
 declare function eventMakeFirst<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
 
@@ -80,6 +89,9 @@ declare function eventMakeFirst<T extends EventType>(event_type: T, listener: Li
  *
  * @example
  * eventOnce(要监听的事件, 要注册的函数);
+ *
+ * @returns 后续操作
+ *   - `stop`: 取消这个监听
  */
 declare function eventOnce<T extends EventType>(event_type: T, listener: ListenerType[T]): EventOnReturn;
 
