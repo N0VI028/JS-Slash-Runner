@@ -21,9 +21,20 @@ function get_map(this: Window): Map<string, Set<Function>> {
   return getOrSet(iframe_event_listeners_map, _getIframeName.call(this), () => new Map<string, Set<Function>>());
 }
 
-export function _eventOn<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+type EventOnReturn = {
+  stop: () => void;
+};
+
+function make_event_on_return<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]) {
+  return {
+    stop: () => _eventRemoveListener.call(this, event_type, listener),
+  };
+}
+
+export function _eventOn<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): EventOnReturn {
   register_listener.call(this, event_type, listener);
   eventSource.on(event_type, listener);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
 /** @deprecated */
@@ -31,17 +42,27 @@ export function _eventOnButton<T extends EventType>(this: Window, event_type: T,
   _eventOn.call(this, _getButtonEvent.call(this, event_type), listener);
 }
 
-export function _eventMakeLast<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+export function _eventMakeLast<T extends EventType>(
+  this: Window,
+  event_type: T,
+  listener: ListenerType[T],
+): EventOnReturn {
   register_listener.call(this, event_type, listener);
   eventSource.makeLast(event_type, listener);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
-export function _eventMakeFirst<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+export function _eventMakeFirst<T extends EventType>(
+  this: Window,
+  event_type: T,
+  listener: ListenerType[T],
+): EventOnReturn {
   register_listener.call(this, event_type, listener);
   eventSource.makeFirst(event_type, listener);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
-export function _eventOnce<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
+export function _eventOnce<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): EventOnReturn {
   // 酒馆自己也支持重复 once, 因此此处不考虑重复的情况
   const once = (...args: any[]) => {
     get_map.call(this).get(event_type)?.delete(once);
@@ -49,6 +70,7 @@ export function _eventOnce<T extends EventType>(this: Window, event_type: T, lis
   };
   register_listener.call(this, event_type, once);
   eventSource.once(event_type, once);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
 export async function _eventEmit<T extends EventType>(
