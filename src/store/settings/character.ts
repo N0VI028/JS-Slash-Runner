@@ -2,6 +2,8 @@ import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward'
 import { CharacterSettings, setting_field } from '@/type/settings';
 import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
+import { convertCharacterBook, saveWorldInfo, updateWorldInfoList } from '@sillytavern/scripts/world-info';
+import _ from 'lodash';
 
 function getSettings(id: string | undefined): CharacterSettings {
   const character = characters.at(id as unknown as number);
@@ -65,10 +67,24 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   });
 
   // 替换/更新角色卡时也刷新 settings, 但不触发 settings 保存
-  $('character_replace_file').on('click', () => {
-    ignoreUpdates(() => {
-      settings.value = getSettings(id.value);
-    })
+  $('#character_replace_file').on('click', () => {
+    eventSource.once(event_types.CHAT_CHANGED, () => {
+      ignoreUpdates(async () => {
+        const current_id = id.value;
+        settings.value = getSettings(current_id);
+
+        // 并且替换世界书
+        if ($('#world_button').hasClass('world_set')) {
+          const book = characters[Number(current_id)]?.data?.character_book;
+          if (book) {
+            const book_name = book.name || `${characters[Number(current_id)]?.name}'s Lorebook`;
+            await saveWorldInfo(book_name, convertCharacterBook(book), true);
+            await updateWorldInfoList();
+            $('#character_world').val(book_name).trigger('change');
+          }
+        }
+      });
+    });
   });
 
   // 在某角色卡内修改 settings 时保存
