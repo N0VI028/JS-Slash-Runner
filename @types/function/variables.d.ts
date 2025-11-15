@@ -24,7 +24,7 @@ type VariableOptionScript = {
   /** 对脚本变量 (`'script'`) 进行操作 */
   type: 'script';
   /** 指定要操作变量的脚本 ID; 如果在脚本内调用, 则无须指定, 当然你也可以用 `getScriptId()` 获取该脚本 ID */
-  script_id: string;
+  script_id?: string;
 };
 type VariableOptionExtension = {
   /** 对扩展变量 (`'extension'`) 进行操作 */
