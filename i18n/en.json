@@ -107,6 +107,7 @@
   "一键禁用条目递归": "Disable recursion of worldbook entries in one click",
   "保存预设条目时直接保存预设": "Save preset when saving preset entries",
   "预设条目更多按钮: 一键新增预设条目": "More buttons for preset entries: insert new prompt entries in one click",
+  "角色卡绑定预设: 切换到某个角色卡时自动切换为对应预设": "Binding preset to character: Automatically switch to the corresponding preset when switching to a character card",
   "输入助手": "Input Helper",
   "压缩系统消息: 让 AI 对内容理解更连贯": "Compress system messages: Make AI understand content more coherent",
   "深度条目排斥器: 让深度条目只能在 D0 或 D9999": "Depth entry excluder: Force depth entries to be inserted at either D0 or D9999",

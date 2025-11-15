@@ -22,7 +22,7 @@
         :key="builtin.name"
         class="flex w-full items-center justify-between rounded-sm border border-(--SmartThemeBorderColor) p-0.25"
       >
-        <div class="ml-0.5 flex-grow overflow-hidden text-left! text-ellipsis! whitespace-nowrap!">
+        <div class="ml-0.5 grow overflow-hidden text-left! text-ellipsis! whitespace-nowrap!">
           {{ builtin.name }}
         </div>
         <div class="flex shrink-0! flex-nowrap! items-center gap-0.5">
@@ -120,6 +120,11 @@ const builtins: BuiltinScript[] = [
     name: t`预设条目更多按钮: 一键新增预设条目`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设条目更多按钮/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设条目更多按钮/README.md',
+  },
+  {
+    name: t`角色卡绑定预设: 切换到某个角色卡时切换为对应预设`,
+    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/角色卡绑定预设/index.js',
+    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/角色卡绑定预设/README.md',
   },
   {
     name: t`输入助手`,
