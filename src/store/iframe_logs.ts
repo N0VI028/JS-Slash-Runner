@@ -11,6 +11,11 @@ type IframeLogs = {
 
 export const useIframeLogsStore = defineStore('iframe_logs', () => {
   const iframe_logs = ref<IframeLogs>({});
+  const init = (iframe_id: string) => {
+    if (!_.has(iframe_logs.value, iframe_id)) {
+      _.set(iframe_logs.value, iframe_id, []);
+    }
+  }
   const log = (iframe_id: string, level: LogLevel, ...args: any[]) => {
     if (!_.has(iframe_logs.value, iframe_id)) {
       _.set(iframe_logs.value, iframe_id, []);
@@ -21,5 +26,5 @@ export const useIframeLogsStore = defineStore('iframe_logs', () => {
   const clear = (iframe_id: string) => {
     _.unset(iframe_logs.value, iframe_id);
   };
-  return { iframe_logs, log, clear };
+  return { iframe_logs, init, log, clear };
 });

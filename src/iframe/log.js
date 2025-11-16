@@ -1,6 +1,8 @@
 (function () {
   const iframe_name = getIframeName();
 
+  _th_impl._init(iframe_name);
+
   function override(level) {
     const original = console[level];
     console[level] = (...args) => {

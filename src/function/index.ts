@@ -169,6 +169,7 @@ import { useIframeLogsStore } from '@/store/iframe_logs';
 function getTavernHelper() {
   return {
     _th_impl: {
+      _init: useIframeLogsStore().init,
       _log: useIframeLogsStore().log,
       _clearLog: useIframeLogsStore().clear,
     },
