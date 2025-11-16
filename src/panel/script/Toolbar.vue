@@ -2,11 +2,11 @@
   <div class="flex gap-0.25">
     <Button type="tavern" @click="openCreator('script')">
       <i class="fa-solid fa-scroll" />
-      <small>{{ t`+ 脚本` }}</small>
+      <small>{{ `+ ` + t`脚本` }}</small>
     </Button>
     <Button type="tavern" @click="openCreator('folder')">
       <i class="fa-solid fa-folder-plus" />
-      <small>{{ t`+ 文件夹` }}</small>
+      <small>{{ `+ ` + t`文件夹` }}</small>
     </Button>
     <Button type="tavern" @click="openImport">
       <i class="fa-solid fa-file-import" />

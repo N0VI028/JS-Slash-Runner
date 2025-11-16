@@ -16,7 +16,7 @@
         </div>
         <textarea
           v-model="script.content"
-          :placeholder="t`JavaScript 代码`"
+          :placeholder="t`脚本的 JavaScript 代码`"
           rows="3"
           class="text_pole font-(family-name:--monoFontFamily)!"
         />
@@ -28,7 +28,7 @@
         </div>
         <textarea
           v-model="script.info"
-          placeholder="脚本备注, 例如作者名、版本和注意事项等, 支持简单的 markdown 和 html"
+          :placeholder="t`脚本备注, 例如作者名、版本和注意事项等, 支持简单的 markdown 和 html`"
           rows="3"
           class="text_pole font-(family-name:--monoFontFamily)!"
         />

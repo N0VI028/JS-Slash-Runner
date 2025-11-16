@@ -16,6 +16,14 @@
       </template>
     </Item>
 
+    <Item type="box">
+      <template #title>{{ t`日志查看器` }}</template>
+      <template #description>{{ t`查看脚本和渲染界面的控制台日志` }}</template>
+      <template #content>
+        <Button @click="enable_logger = true">{{ t`打开` }}</Button>
+      </template>
+    </Item>
+
     <AudioPlayer />
   </div>
 
@@ -39,6 +47,15 @@
         <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
         <span>{{ t`变量管理器` }}</span>
       </div>
+      <div
+        class="list-group-item flex-container flexGap5 interactable"
+        tabindex="0"
+        role="listitem"
+        @click="enable_logger = true"
+      >
+        <div class="fa-solid fa-file-invoice extensionsMenuExtensionButton" />
+        <span>{{ t`日志查看器` }}</span>
+      </div>
     </div>
   </Teleport>
 
@@ -60,20 +77,25 @@
   >
     <VariableManager />
   </Dialog>
+  <Dialog v-if="enable_logger" storage-id="logger" :title="t`日志查看器`" @close="enable_logger = false">
+    <Logger />
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
 import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
-import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
-import VariableManager from '@/panel/toolbox/VariableManager.vue';
+import Logger from '@/panel/toolbox/Logger.vue';
 import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
 import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
+import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
+import VariableManager from '@/panel/toolbox/VariableManager.vue';
 import { renderMarkdown } from '@/util/tavern';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
+const enable_logger = ref<boolean>(false);
 
 /**
  * 显示提示词查看器帮助信息

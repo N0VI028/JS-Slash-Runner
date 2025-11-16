@@ -164,9 +164,16 @@ import {
   updateWorldbookWith,
 } from '@/function/worldbook';
 import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
+import { useIframeLogsStore } from '@/store/iframe_logs';
 
 function getTavernHelper() {
   return {
+    _th_impl: {
+      _init: useIframeLogsStore().init,
+      _log: useIframeLogsStore().log,
+      _clearLog: useIframeLogsStore().clear,
+    },
+
     _bind: {
       // event
       _eventOn,
