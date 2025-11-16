@@ -39,7 +39,7 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
 }
 
 function collapseCodeBlockForMessageId(message_id: number, collapse_code_block: CollapseCodeBlock) {
-  $(`.mes[mesid=${message_id}]`)
+  $(`#chat > .mes[mesid=${message_id}]`)
     .find('pre')
     .each(function () {
       collapseCodeBlock($(this), collapse_code_block);
@@ -92,7 +92,7 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
       return;
     }
     during_observe = true;
-    const $mes = $(`.mes[mesid=${chat.length - 1}]`).find('.mes_text');
+    const $mes = $(`#chat > .mes[mesid=${chat.length - 1}]`).find('.mes_text');
     if ($mes.length === 0) {
       return;
     }

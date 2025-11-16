@@ -28,12 +28,12 @@ function render$mes($mes: JQuery<HTMLElement>, reload_memo: string): Runtime[] {
 }
 
 function renderMessages(ids: number[], reload_memo: string): Runtime[] {
-  const $mes = $('.mes').filter((_index, div) => _.includes(ids, Number($(div).attr('mesid'))));
+  const $mes = $('#chat > .mes').filter((_index, div) => _.includes(ids, Number($(div).attr('mesid'))));
   return render$mes($mes, reload_memo);
 }
 
 function calcToRender(depth: number): number[] {
-  const min_showed_message_id = Number($('.mes').first().attr('mesid'));
+  const min_showed_message_id = Number($('#chat > .mes').first().attr('mesid'));
   return _.range(
     depth === 0 ? min_showed_message_id : Math.max(min_showed_message_id, chat.length - depth),
     chat.length,

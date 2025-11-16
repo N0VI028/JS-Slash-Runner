@@ -71,11 +71,11 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
 }
 
 function demacroOnRenderOne(message_id: number) {
-  demacroOnRender($(`div.mes[mesid="${message_id}"]`));
+  demacroOnRender($(`#chat > .mes[mesid="${message_id}"]`));
 }
 
 function demacroOnRenderAll() {
-  $('div.mes').each((_index, node) => {
+  $('#chat > .mes').each((_index, node) => {
     demacroOnRender($(node as HTMLDivElement));
   });
 }

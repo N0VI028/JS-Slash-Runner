@@ -52,5 +52,5 @@ export function formatAsDisplayedMessage(
 }
 
 export function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement> {
-  return $(`div.mes[mesid = "${message_id}"]`, window.parent.document).find(`div.mes_text`);
+  return $(`#chat > .mes[mesid = "${message_id}"]`, window.parent.document).find(`div.mes_text`);
 }

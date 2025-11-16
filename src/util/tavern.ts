@@ -52,7 +52,7 @@ export async function reloadChatWithoutEvents() {
 }
 
 export function invokeMessageRenders() {
-  $('div .mes').each((_index, element) => {
+  $('#chat > .mes').each((_index, element) => {
     eventSource.emit(
       $(element).attr('is_user') ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
       $(element).attr('mesid'),

@@ -277,7 +277,7 @@ export async function setChatMessages(
   };
 
   const render = async (message_id: number) => {
-    const $mes_html = $(`div.mes[mesid = "${message_id}"]`);
+    const $mes_html = $(`#chat > .mes[mesid = "${message_id}"]`);
     if (!$mes_html) {
       return;
     }
@@ -518,7 +518,7 @@ export async function setChatMessage(
   };
 
   const update_partial_html = async (should_update_swipe: boolean) => {
-    const mes_html = $(`div.mes[mesid = "${message_id}"]`);
+    const mes_html = $(`#chat > .mes[mesid = "${message_id}"]`);
     if (!mes_html) {
       return;
     }
