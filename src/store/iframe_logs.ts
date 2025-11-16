@@ -16,12 +16,12 @@ export const useIframeLogsStore = defineStore('iframe_logs', () => {
       _.set(iframe_logs.value, iframe_id, []);
     }
   }
-  const log = (iframe_id: string, level: LogLevel, ...args: any[]) => {
+  const log = (iframe_id: string, level: LogLevel | 'log', ...args: any[]) => {
     if (!_.has(iframe_logs.value, iframe_id)) {
       _.set(iframe_logs.value, iframe_id, []);
     }
     // TODO: 尽量模拟 console.info 的字符串结果
-    iframe_logs.value[iframe_id].push({ level, message: args.map(String).join('') });
+    iframe_logs.value[iframe_id].push({ level: level === 'log' ? 'info' : level, message: args.map(String).join('') });
   };
   const clear = (iframe_id: string) => {
     _.unset(iframe_logs.value, iframe_id);

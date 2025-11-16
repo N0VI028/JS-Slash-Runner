@@ -10,6 +10,7 @@
       original(...args);
     };
   }
+  override('log');
   override('debug');
   override('info');
   override('warn');
