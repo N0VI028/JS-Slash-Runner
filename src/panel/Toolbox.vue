@@ -18,7 +18,7 @@
 
     <Item type="box">
       <template #title>{{ t`日志查看器` }}</template>
-      <template #description>{{ t`查看控制台日志` }}</template>
+      <template #description>{{ t`查看脚本和渲染界面的控制台日志` }}</template>
       <template #content>
         <Button @click="enable_logger = true">{{ t`打开` }}</Button>
       </template>
