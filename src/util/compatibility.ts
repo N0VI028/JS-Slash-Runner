@@ -1,5 +1,13 @@
-import { getRequestHeaders } from '@sillytavern/script';
-import { selected_world_info, world_names } from '@sillytavern/scripts/world-info';
+import { extension_prompt_roles, getRequestHeaders } from '@sillytavern/script';
+import {
+  DEFAULT_DEPTH,
+  DEFAULT_WEIGHT,
+  newWorldInfoEntryTemplate,
+  selected_world_info,
+  world_info_logic,
+  world_info_position,
+  world_names,
+} from '@sillytavern/scripts/world-info';
 
 export async function updateWorldInfoList() {
   const result = await fetch('/api/settings/get', {
@@ -23,6 +31,58 @@ export async function updateWorldInfoList() {
       $('#world_editor_select').append(`<option value='${i}'>${item}</option>`);
     });
   }
+}
+
+export function fromCharacterBook(character_book: { entries: any[] }) {
+  const result: { entries: Record<string, any> } = { entries: {} };
+
+  character_book.entries.forEach((entry, index) => {
+    // Not in the spec, but this is needed to find the entry in the original data
+    if (entry.id === undefined) {
+      entry.id = index;
+    }
+
+    result.entries[entry.id] = {
+      ...newWorldInfoEntryTemplate,
+      uid: entry.id,
+      key: entry.keys,
+      keysecondary: entry.secondary_keys || [],
+      comment: entry.comment || '',
+      content: entry.content,
+      constant: entry.constant || false,
+      selective: entry.selective || false,
+      order: entry.insertion_order,
+      position:
+        entry.extensions?.position ??
+        (entry.position === 'before_char' ? world_info_position.before : world_info_position.after),
+      excludeRecursion: entry.extensions?.exclude_recursion ?? false,
+      preventRecursion: entry.extensions?.prevent_recursion ?? false,
+      delayUntilRecursion: entry.extensions?.delay_until_recursion ?? false,
+      disable: !entry.enabled,
+      addMemo: !!entry.comment,
+      displayIndex: entry.extensions?.display_index ?? index,
+      probability: entry.extensions?.probability ?? 100,
+      useProbability: entry.extensions?.useProbability ?? true,
+      depth: entry.extensions?.depth ?? DEFAULT_DEPTH,
+      selectiveLogic: entry.extensions?.selectiveLogic ?? world_info_logic.AND_ANY,
+      group: entry.extensions?.group ?? '',
+      groupOverride: entry.extensions?.group_override ?? false,
+      groupWeight: entry.extensions?.group_weight ?? DEFAULT_WEIGHT,
+      scanDepth: entry.extensions?.scan_depth ?? null,
+      caseSensitive: entry.extensions?.case_sensitive ?? null,
+      matchWholeWords: entry.extensions?.match_whole_words ?? null,
+      useGroupScoring: entry.extensions?.use_group_scoring ?? null,
+      automationId: entry.extensions?.automation_id ?? '',
+      role: entry.extensions?.role ?? extension_prompt_roles.SYSTEM,
+      vectorized: entry.extensions?.vectorized ?? false,
+      sticky: entry.extensions?.sticky ?? null,
+      cooldown: entry.extensions?.cooldown ?? null,
+      delay: entry.extensions?.delay ?? null,
+      extensions: entry.extensions ?? {},
+    };
+  });
+
+  return result;
 }
 
 /**

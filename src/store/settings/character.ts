@@ -1,14 +1,9 @@
 import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward';
 import { CharacterSettings, setting_field } from '@/type/settings';
+import { fromCharacterBook, updateWorldInfoList } from '@/util/compatibility';
 import { characters, event_types, eventSource, this_chid } from '@sillytavern/script';
 import { writeExtensionField } from '@sillytavern/scripts/extensions';
-import {
-  convertCharacterBook,
-  loadWorldInfo,
-  saveWorldInfo,
-  updateWorldInfoList,
-} from '@sillytavern/scripts/world-info';
-import _ from 'lodash';
+import { loadWorldInfo, saveWorldInfo } from '@sillytavern/scripts/world-info';
 
 function getSettings(id: string | undefined): CharacterSettings {
   const character = characters.at(id as unknown as number);
@@ -47,7 +42,7 @@ function saveSettingsDebounced(id: string, settings: CharacterSettings) {
   // 酒馆的 `writeExtensionField` 会对对象进行合并, 因此要将对象转换为数组再存储
   const entries = Object.entries(settings);
   _.set(characters[id as unknown as number], `data.extensions.${setting_field}`, entries);
-  writeExtensionFieldDebounced(id, setting_field, entries);
+  writeExtensionFieldDebounced(Number(id), setting_field, entries);
 }
 
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
@@ -83,7 +78,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
           const book = characters[Number(current_id)]?.data?.character_book;
           if (book) {
             const book_name = book.name || `${characters[Number(current_id)]?.name}'s Lorebook`;
-            await saveWorldInfo(book_name, convertCharacterBook(book), true);
+            await saveWorldInfo(book_name, fromCharacterBook(book), true);
             await updateWorldInfoList();
             $('#character_world').val(book_name).trigger('change');
           }
@@ -94,14 +89,10 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
 
   // 导出角色卡前保存最新世界书
   $('#export_button').on('click', async () => {
-    const character = JSON.parse(String($('#character_json_data').val()));
-
-    const book = character?.data.character_book;
-    if (character?.data?.character_book) {
-      character.data.character_book = { name: book.name, entries: await loadWorldInfo(book.name) };
+    const book_name = $('#character_world').val() as string;
+    if (book_name) {
+      await saveWorldInfo(book_name, await loadWorldInfo(book_name), true);
     }
-
-    $('#character_json_data').val(JSON.stringify(character));
   });
 
   // 在某角色卡内修改 settings 时保存
