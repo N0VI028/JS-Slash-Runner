@@ -9,7 +9,7 @@ export function createSrcContent(content: string, use_blob_url: boolean) {
 ${third_party}
 ${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
 <script src="${predefine_url}"></script>
-<script src="/scripts/extensions/third-party/JS-Slash-Runner/src/iframe/node_modules/log.js"></script>
+<script async src="/scripts/extensions/third-party/JS-Slash-Runner/src/iframe/node_modules/log.js"></script>
 </head>
 <body>
 <script type="module">
