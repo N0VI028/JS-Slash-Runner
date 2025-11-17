@@ -89,9 +89,8 @@ const selected_iframe_id = ref<string>('all_iframes');
 
 const iframe_ids = computed(() => _(store.iframe_logs).keys().sort().value());
 
-function computeLogs(iframe_logs: Record<string, Log[]>): { iframe_id: string; log: Log }[] {
+function computeLogs(iframe_logs: [string, Log[]][]): { iframe_id: string; log: Log }[] {
   let result = _(iframe_logs)
-    .entries()
     .flatMap(([iframe_id, logs]) => logs.map(log => ({ iframe_id, log })))
     .sortBy(item => item.log.timestamp);
   if (search_input.value !== null) {
@@ -101,9 +100,9 @@ function computeLogs(iframe_logs: Record<string, Log[]>): { iframe_id: string; l
 }
 const logs = computed(() => {
   if (selected_iframe_id.value === 'all_iframes') {
-    return computeLogs(store.iframe_logs);
+    return computeLogs([...store.iframe_logs.entries()]);
   }
-  return computeLogs(_.pick(store.iframe_logs, selected_iframe_id.value));
+  return computeLogs([[selected_iframe_id.value, store.iframe_logs.get(selected_iframe_id.value) ?? []]]);
 });
 
 /**
@@ -125,11 +124,11 @@ const formatIframeLabel = (id: string): string => {
 
 const clearLogs = () => {
   if (selected_iframe_id.value === 'all_iframes') {
-    Object.keys(store.iframe_logs).forEach(iframe_id => {
-      store.iframe_logs[iframe_id] = [];
+    store.iframe_logs.forEach(logs => {
+      logs.length = 0;
     });
   } else {
-    store.iframe_logs[selected_iframe_id.value] = [];
+    store.iframe_logs.set(selected_iframe_id.value, []);
   }
 };
 </script>
