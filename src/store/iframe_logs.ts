@@ -1,6 +1,5 @@
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-
 export type Log = {
   level: LogLevel;
   message: string;
@@ -17,7 +16,7 @@ export const useIframeLogsStore = defineStore('iframe_logs', () => {
     if (!_.isArray(_.get(iframe_logs.value, iframe_id))) {
       _.set(iframe_logs.value, iframe_id, []);
     }
-  }
+  };
   const log = (iframe_id: string, level: LogLevel | 'log', ...args: any[]) => {
     if (!_.isArray(_.get(iframe_logs.value, iframe_id))) {
       _.set(iframe_logs.value, iframe_id, []);
@@ -32,8 +31,5 @@ export const useIframeLogsStore = defineStore('iframe_logs', () => {
   const clear = (iframe_id: string) => {
     _.unset(iframe_logs.value, iframe_id);
   };
-  const clearAll = () => {
-    iframe_logs.value = {};
-  };
-  return { iframe_logs, init, log, clear, clearAll };
+  return { iframe_logs, init, log, clear };
 });

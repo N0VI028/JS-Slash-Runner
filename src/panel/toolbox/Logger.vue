@@ -125,9 +125,11 @@ const formatIframeLabel = (id: string): string => {
 
 const clearLogs = () => {
   if (selected_iframe_id.value === 'all_iframes') {
-    store.clearAll();
+    Object.keys(store.iframe_logs).forEach(iframe_id => {
+      store.iframe_logs[iframe_id] = [];
+    });
   } else {
-    store.clear(selected_iframe_id.value);
+    store.iframe_logs[selected_iframe_id.value] = [];
   }
 };
 </script>
