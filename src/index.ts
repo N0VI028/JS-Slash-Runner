@@ -47,4 +47,4 @@ $(() => {
 
 $(window).on('pagehide', () => {
   app.unmount();
-})
+});
