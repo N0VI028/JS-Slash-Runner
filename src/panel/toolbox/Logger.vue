@@ -47,19 +47,23 @@
         </div>
       </Teleport>
     </div>
-    <div
-      class="flex flex-1 flex-col gap-(--TH-log--gap) overflow-y-auto"
-      style="--TH-log--gap: calc(var(--mainFontSize) * 0.5)"
-    >
-      <VirtList item-key="timestamp" :list="logs" :min-size="20" item-class="TH-log--item" item-style="">
+    <div class="flex flex-1 flex-col gap-(--TH-log--gap) overflow-y-auto">
+      <VirtList
+        item-key="timestamp"
+        :list="logs"
+        :min-size="20"
+        item-style=""
+        :item-class="
+          (item: Log) => ({
+            'TH-log--item': true,
+            'TH-log--normal': item.level === 'info' || item.level === 'debug',
+            'TH-log--warn': item.level === 'warn',
+            'TH-log--error': item.level === 'error',
+          })
+        "
+      >
         <template #default="{ itemData: item_data }">
-          <div
-            :class="{
-              'TH-log--normal': item_data.level === 'info' || item_data.level === 'debug',
-              'TH-log--warn': item_data.level === 'warn',
-              'TH-log--error': item_data.level === 'error',
-            }"
-          >
+          <div>
             {{ selected_iframe_id === 'all_iframes' ? `【${formatIframeLabel(item_data.iframe_id)}】:` : '' }}
             <Highlighter :query="search_input">{{ item_data.message }}</Highlighter>
           </div>
@@ -140,27 +144,30 @@ const clearLogs = () => {
 .TH-log--item {
   position: relative;
   border-radius: 3px;
-  padding: 3px 5px;
+  margin-block: calc(var(--mainFontSize) * 0.75);
   white-space: pre-wrap;
+  padding-inline: 5px;
 }
 
 /* 仅普通条目之间：在两条之间的间隙中线居中 */
-.TH-log--item:has(.TH-log--normal) + .TH-log--item:has(.TH-log--normal)::before {
+.TH-log--item.TH-log--normal + .TH-log--item.TH-log--normal::before {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(-1 * var(calc(var(--mainFontSize) * 0.5)) / 2);
+  top: calc(var(--mainFontSize) * 0.75 * -0.5);
   height: 1px;
   background: var(--grey5020a);
   pointer-events: none;
 }
 
 /* 级别底色 */
-.TH-log--item > .TH-log--warn {
+.TH-log--item.TH-log--warn {
+  padding-block: 5px;
   background: rgba(255, 208, 0, 0.4);
 }
-.TH-log--item > .TH-log--error {
+.TH-log--item.TH-log--error {
+  padding-block: 5px;
   background: var(--crimson-hover);
 }
 </style>
