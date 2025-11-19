@@ -81,20 +81,23 @@ export function createSrcContent(content: string, use_blob_url: boolean) {
   return `
 <html>
 <head>
-  <style>
-  html,body{margin:0;padding:0;overflow:hidden!important;max-width:100%!important;box-sizing:border-box;height:max-content}
-  .user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
-  .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
-  </style>
-  ${third_party}
-  ${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
-  <script src="${predefine_url}"></script>
-  <script src="https://testingcf.jsdelivr.net/gh/N0VI028/JS-Slash-Runner/src/iframe/node_modules/log.js"></script>
-  <script src="${adjust_viewport_url}"></script>
-  <script src="${adjust_iframe_height_url}"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html,body{margin:0;padding:0;overflow:hidden!important;max-width:100%!important;height:max-content;}
+.user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
+.char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
+</style>
+${third_party}
+<script src="${predefine_url}"></script>
+<script src="https://testingcf.jsdelivr.net/gh/N0VI028/JS-Slash-Runner/src/iframe/node_modules/log.js"></script>
+<script src="${adjust_viewport_url}"></script>
+<script src="${adjust_iframe_height_url}"></script>
 </head>
 <body>
-  ${content}
+${content}
 </body>
 </html>
 `;
