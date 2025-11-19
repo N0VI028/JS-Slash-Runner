@@ -48,23 +48,23 @@
       </Teleport>
     </div>
     <div
-      class="flex flex-1 flex-col gap-(--log-gap) overflow-y-auto"
-      style="--log-gap: calc(var(--mainFontSize) * 0.5)"
+      class="flex flex-1 flex-col gap-(--TH-log--gap) overflow-y-auto"
+      style="--TH-log--gap: calc(var(--mainFontSize) * 0.5)"
     >
-      <div
-        v-for="(item, index) in logs"
-        v-show="level_filters[item.log.level]"
-        :key="item.iframe_id + '-' + index"
-        class="TH-log-item"
-        :class="{
-          'TH-normal': item.log.level === 'info' || item.log.level === 'debug',
-          'TH-warn': item.log.level === 'warn',
-          'TH-error': item.log.level === 'error',
-        }"
-      >
-        {{ selected_iframe_id === 'all_iframes' ? `【${formatIframeLabel(item.iframe_id)}】:` : '' }}
-        <Highlighter :query="search_input">{{ item.log.message }}</Highlighter>
-      </div>
+      <VirtList item-key="timestamp" :list="logs" :min-size="20" item-class="TH-log--item" item-style="">
+        <template #default="{ itemData: item_data }">
+          <div
+            :class="{
+              'TH-log--normal': item_data.level === 'info' || item_data.level === 'debug',
+              'TH-log--warn': item_data.level === 'warn',
+              'TH-log--error': item_data.level === 'error',
+            }"
+          >
+            {{ selected_iframe_id === 'all_iframes' ? `【${formatIframeLabel(item_data.iframe_id)}】:` : '' }}
+            <Highlighter :query="search_input">{{ item_data.message }}</Highlighter>
+          </div>
+        </template>
+      </VirtList>
     </div>
   </div>
 </template>
@@ -72,6 +72,7 @@
 <script setup lang="ts">
 import Highlighter from '@/panel/component/Highlighter.vue';
 import { useIframeLogsStore, type Log, type LogLevel } from '@/store/iframe_logs';
+import { VirtList } from 'vue-virt-list';
 
 const search_input = ref<RegExp | null>(null);
 const level_filters = ref<Record<LogLevel, boolean>>({
@@ -89,12 +90,14 @@ const selected_iframe_id = ref<string>('all_iframes');
 
 const iframe_ids = computed(() => _(store.iframe_logs).keys().sort().value());
 
-function computeLogs(iframe_logs: [string, Log[]][]): { iframe_id: string; log: Log }[] {
+function computeLogs(
+  iframe_logs: [string, Log[]][],
+): { iframe_id: string; level: LogLevel; timestamp: number; message: string }[] {
   let result = _(iframe_logs)
-    .flatMap(([iframe_id, logs]) => logs.map(log => ({ iframe_id, log })))
-    .sortBy(item => item.log.timestamp);
+    .flatMap(([iframe_id, logs]) => logs.map(log => ({ iframe_id, ...log })))
+    .sortBy(item => item.timestamp);
   if (search_input.value !== null) {
-    result = result.filter(item => search_input.value!.test(item.log.message));
+    result = result.filter(item => search_input.value!.test(item.message));
   }
   return result.value();
 }
@@ -133,8 +136,8 @@ const clearLogs = () => {
 };
 </script>
 
-<style scoped>
-.TH-log-item {
+<style>
+.TH-log--item {
   position: relative;
   border-radius: 3px;
   padding: 3px 5px;
@@ -142,22 +145,22 @@ const clearLogs = () => {
 }
 
 /* 仅普通条目之间：在两条之间的间隙中线居中 */
-.TH-log-item.TH-normal + .TH-log-item.TH-normal::before {
+.TH-log--item:has(.TH-log--normal) + .TH-log--item:has(.TH-log--normal)::before {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(-1 * var(--log-gap) / 2);
+  top: calc(-1 * var(calc(var(--mainFontSize) * 0.5)) / 2);
   height: 1px;
   background: var(--grey5020a);
   pointer-events: none;
 }
 
 /* 级别底色 */
-.TH-log-item.TH-warn {
+.TH-log--item > .TH-log--warn {
   background: rgba(255, 208, 0, 0.4);
 }
-.TH-log-item.TH-error {
+.TH-log--item > .TH-log--error {
   background: var(--crimson-hover);
 }
 </style>
