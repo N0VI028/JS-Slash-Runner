@@ -1,4 +1,4 @@
-import { adjust_viewport_url, emit_loaded_event_url, predefine_url } from '@/iframe/script_url';
+import { adjust_iframe_height_url, adjust_viewport_url, predefine_url } from '@/iframe/script_url';
 import third_party from '@/iframe/third_party_message.html?raw';
 import { getCharAvatarPath, getUserAvatarPath } from '@/util/tavern';
 
@@ -90,8 +90,8 @@ export function createSrcContent(content: string, use_blob_url: boolean) {
   ${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
   <script src="${predefine_url}"></script>
   <script src="https://testingcf.jsdelivr.net/gh/N0VI028/JS-Slash-Runner/src/iframe/node_modules/log.js"></script>
-  <script src="${emit_loaded_event_url}"></script>
   <script src="${adjust_viewport_url}"></script>
+  <script src="${adjust_iframe_height_url}"></script>
 </head>
 <body>
   ${content}
