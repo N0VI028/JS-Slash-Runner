@@ -88,7 +88,7 @@ const store = useIframeLogsStore();
 
 const selected_iframe_id = ref<string>('all_iframes');
 
-const iframe_ids = computed(() => _(store.iframe_logs).keys().sort().value());
+const iframe_ids = computed(() => [...store.iframe_logs.keys()].toSorted());
 
 function computeLogs(
   iframe_logs: [string, Log[]][],
