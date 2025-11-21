@@ -1,0 +1,108 @@
+(function () {
+  const IS_BLOB_MODE = window.location.protocol === 'blob:';
+
+  let scheduled = false;
+
+  function measureAndPost() {
+    scheduled = false;
+    try {
+      const doc = window.document;
+      const body = doc.body;
+      const html = doc.documentElement;
+      if (!body || !html) {
+        return;
+      }
+
+      let height = 0;
+      if (IS_BLOB_MODE) {
+        // blob 模式: 使用子元素高度算法
+        const children = Array.from(body.children || []);
+        if (children.length > 0) {
+          const body_rect = body.getBoundingClientRect();
+          let max_top = Infinity;
+          let max_bottom = -Infinity;
+
+          for (const el of children) {
+            if (!(el instanceof HTMLElement)) continue;
+            const rect = el.getBoundingClientRect();
+            const style = window.getComputedStyle(el);
+            const margin_top = parseFloat(style.marginTop) || 0;
+            const margin_bottom = parseFloat(style.marginBottom) || 0;
+
+            const top_with_margin = rect.top - margin_top - body_rect.top;
+            const bottom_with_margin = rect.bottom + margin_bottom - body_rect.top;
+
+            if (Number.isFinite(top_with_margin) && top_with_margin < max_top) {
+              max_top = top_with_margin;
+            }
+            if (Number.isFinite(bottom_with_margin) && bottom_with_margin > max_bottom) {
+              max_bottom = bottom_with_margin;
+            }
+          }
+
+          if (Number.isFinite(max_top) && Number.isFinite(max_bottom) && max_bottom > max_top) {
+            height = max_bottom - max_top;
+          }
+        }
+
+        if (!Number.isFinite(height) || height <= 0) {
+          height = body.scrollHeight;
+        }
+      } else {
+        // srcdoc 模式: 只用 body.scrollHeight
+        height = body.scrollHeight;
+      }
+
+      if (!Number.isFinite(height) || height <= 0) {
+        return;
+      }
+
+      window.parent.postMessage({ type: 'TH_ADJUST_IFRAME_HEIGHT', iframe_name: getIframeName(), height: height }, '*');
+    } catch {
+      //
+    }
+  }
+
+  function postIframeHeight() {
+    if (scheduled) {
+      return;
+    }
+    scheduled = true;
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(measureAndPost);
+    } else {
+      setTimeout(measureAndPost, 500);
+    }
+  }
+
+  function observeHeightChange() {
+    const body = document.body;
+    if (!body) {
+      return;
+    }
+
+    const observer = new ResizeObserver(entries => {
+      postIframeHeight();
+    });
+
+    if (IS_BLOB_MODE) {
+      for (const element of document.body.children) {
+        observer.observe(element);
+      }
+    } else {
+      observer.observe(body);
+    }
+  }
+
+  function init() {
+    postIframeHeight();
+    observeHeightChange();
+  }
+
+  if (window.document.readyState === 'loading') {
+    window.document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();

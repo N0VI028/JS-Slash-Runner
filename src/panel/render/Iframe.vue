@@ -12,7 +12,6 @@
 
 <script setup lang="ts">
 import { createSrcContent } from '@/panel/render/iframe';
-import { adjustIframeHeight, useHeightObserver } from '@/panel/render/use_height_observer';
 import { eventSource } from '@sillytavern/script';
 
 const props = defineProps<{
@@ -31,16 +30,13 @@ onBeforeMount(() => {
 });
 
 // 高度调整
-const { observe, unobserve } = useHeightObserver();
 useEventListener('message', event => {
-  if (event?.data?.type === 'TH_DOM_CONTENT_LOADED' && event?.data?.iframe_name === iframe_ref.value?.id) {
-    observe(iframe_ref.value!);
+  if (event?.data?.type === 'TH_ADJUST_IFRAME_HEIGHT' && event?.data?.iframe_name === iframe_ref.value?.id) {
+    iframe_ref.value!.style.height = `${event.data.height}px`;
   }
 });
-onBeforeUnmount(() => {
-  if (iframe_ref.value) {
-    unobserve(iframe_ref.value);
-  }
+useEventListener(window, 'resize', () => {
+  iframe_ref.value?.contentWindow?.postMessage({ type: 'TH_UPDATE_VIEWPORT_HEIGHT' }, '*');
 });
 
 // 代码内容
@@ -66,9 +62,8 @@ const prefixed_id = computed(() => `TH-message--${props.id}`);
 onMounted(() => {
   eventSource.emit('message_iframe_render_started', prefixed_id.value);
 });
-function onLoad(event: Event) {
+function onLoad() {
   eventSource.emit('message_iframe_render_ended', prefixed_id.value);
-  adjustIframeHeight(event.target as HTMLIFrameElement);
 }
 
 // 与折叠代码块的兼容性
