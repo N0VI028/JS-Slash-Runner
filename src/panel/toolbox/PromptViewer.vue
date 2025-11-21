@@ -13,6 +13,7 @@
         <div class="flex items-center gap-1">
           <div class="fa-solid fa-expand cursor-pointer" title="展开全部" @click="toggleAll(true)" />
           <div class="fa-solid fa-compress cursor-pointer" title="收起全部" @click="toggleAll(false)" />
+          <div class="fa-solid fa-copy cursor-pointer" title="复制全部" @click="copyAll" />
           <div
             class="fa-solid fa-rotate-right cursor-pointer th-text-base duration-200"
             :class="{ 'animate-spin': is_refreshing }"
@@ -92,7 +93,13 @@
               <span>
                 Role: <span>{{ item_data.role }}</span> | Token: <span>{{ item_data.token }}</span>
               </span>
-              <div class="fa-solid fa-circle-chevron-down"></div>
+              <div class="flex gap-1">
+                <div class="fa-solid fa-copy cursor-pointer" title="复制" @click.stop="copyPrompt(item_data.content)" />
+                <div
+                  class="fa-solid"
+                  :class="is_expanded[item_data.id] ? 'fa-circle-chevron-up' : 'fa-circle-chevron-down'"
+                ></div>
+              </div>
             </div>
             <template v-if="is_expanded[item_data.id]">
               <Divider />
@@ -131,6 +138,7 @@ import {
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
+import { copyText } from '@sillytavern/scripts/utils';
 import { compare } from 'compare-versions';
 import { Teleport } from 'vue';
 import { VirtList } from 'vue-virt-list';
@@ -316,6 +324,23 @@ if (compare(version, '1.13.4', '<=')) {
   useEventSourceOn(event_types.GENERATE_AFTER_DATA, (data: { prompt: any }, dry_run: boolean) => {
     collectPrompts(data.prompt, dry_run);
   });
+}
+
+/**
+ * 复制全部提示词内容到剪贴板
+ */
+function copyAll() {
+  const all_prompts = prompts.value.map(prompt => prompt.content).join('\n\n');
+  copyText(all_prompts);
+  toastr.success(t`已复制全部提示词到剪贴板`);
+}
+/**
+ * 复制单个提示词内容到剪贴板
+ * @param content 提示词内容
+ */
+function copyPrompt(content: string) {
+  copyText(content);
+  toastr.success(t`已复制提示词到剪贴板`);
 }
 </script>
 

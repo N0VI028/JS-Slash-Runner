@@ -186,6 +186,8 @@
   "音乐": "Music",
   "音效": "Sound Effect",
 
+  "已复制全部提示词到剪贴板": "All prompts have been copied to the clipboard",
+  "已复制提示词到剪贴板": "Prompt has been copied to the clipboard",
   "总token数": "Token Count",
   "${0}/${1} 条消息": "${0}/${1} messages",
   "搜索消息内容...": "Search message content...",
