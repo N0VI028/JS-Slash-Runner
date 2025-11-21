@@ -95,7 +95,7 @@
                 <span>
                   {{ roleIcons[item_data.role] }} {{ item_data.role }}
                 </span>
-                | Token: <span>{{ item_data.token }}</span>
+                | Tokens: <span>{{ item_data.token }}</span>
               </span>
               <div class="flex gap-1">
                 <div class="fa-solid fa-copy cursor-pointer" title="复制" @click.stop="copyPrompt(item_data.content)" />
