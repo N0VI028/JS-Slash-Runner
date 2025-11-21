@@ -52,15 +52,15 @@
           <div class="flex gap-1">
             <div class="flex items-center gap-0.5">
               <input v-model="roles_to_show" type="checkbox" value="system" />
-              system
+              ⚙️ system
             </div>
             <div class="flex items-center gap-0.5">
               <input v-model="roles_to_show" type="checkbox" value="user" />
-              user
+              👤 user
             </div>
             <div class="flex items-center gap-0.5">
               <input v-model="roles_to_show" type="checkbox" value="assistant" />
-              assistant
+              🤖 assistant
             </div>
           </div>
         </Teleport>
@@ -91,7 +91,11 @@
               @click="is_expanded[item_data.id] = !is_expanded[item_data.id]"
             >
               <span>
-                Role: <span>{{ item_data.role }}</span> | Token: <span>{{ item_data.token }}</span>
+                Role:
+                <span>
+                  {{ roleIcons[item_data.role] }} {{ item_data.role }}
+                </span>
+                | Token: <span>{{ item_data.token }}</span>
               </span>
               <div class="flex gap-1">
                 <div class="fa-solid fa-copy cursor-pointer" title="复制" @click.stop="copyPrompt(item_data.content)" />
@@ -145,6 +149,12 @@ import { VirtList } from 'vue-virt-list';
 
 const is_filter_opened = ref<boolean>(false);
 const teleportTarget = useTemplateRef<HTMLElement>('teleportTarget');
+
+const roleIcons: Record<string, string> = {
+  system: '⚙️',
+  user: '👤',
+  assistant: '🤖',
+};
 
 export interface PromptData {
   id: number;
