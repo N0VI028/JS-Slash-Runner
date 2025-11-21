@@ -130,7 +130,7 @@ import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
 import { usePresetSettingsStore } from '@/store/settings';
-import { getImageTokenCost, getVideoTokenCost, version } from '@/util/tavern';
+import { getImageTokenCost, getVideoTokenCost } from '@/util/tavern';
 import {
   event_types,
   eventSource,
@@ -143,7 +143,6 @@ import {
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { copyText } from '@sillytavern/scripts/utils';
-import { compare } from 'compare-versions';
 import { Teleport } from 'vue';
 import { VirtList } from 'vue-virt-list';
 
@@ -226,11 +225,7 @@ function triggerRefresh(): void {
   Generate('normal');
 }
 
-function collectPrompts(data: SendingMessage[], dry_run: boolean) {
-  if (dry_run) {
-    return;
-  }
-
+function collectPrompts(data: SendingMessage[]) {
   if (is_refreshing.value) {
     stopGeneration();
     is_refreshing.value = false;
@@ -326,15 +321,9 @@ function parseJsonContent(content: any): { text: string; images: { url: string }
   }
 }
 
-if (compare(version, '1.13.4', '<=')) {
-  useEventSourceOn(event_types.CHAT_COMPLETION_PROMPT_READY, (data: { chat: any; dryRun: boolean }) => {
-    collectPrompts(data.chat, data.dryRun);
-  });
-} else {
-  useEventSourceOn(event_types.GENERATE_AFTER_DATA, (data: { prompt: any }, dry_run: boolean) => {
-    collectPrompts(data.prompt, dry_run);
-  });
-}
+useEventSourceOn(event_types.CHAT_COMPLETION_SETTINGS_READY, completion => {
+  collectPrompts(completion.messages);
+});
 
 /**
  * 复制全部提示词内容到剪贴板
