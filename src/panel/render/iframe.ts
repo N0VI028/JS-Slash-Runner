@@ -86,7 +86,7 @@ export function createSrcContent(content: string, use_blob_url: boolean) {
 ${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
 <style>
 *, *::before, *::after { box-sizing: border-box; }
-html,body{margin:0!important;padding:0!important;overflow:hidden!important;max-width:100%!important;}
+html,body{margin:0!important;padding:0;overflow:hidden!important;max-width:100%!important;}
 .user_avatar,.user-avatar{background-image:url('${getUserAvatarPath()}')}
 .char_avatar,.char-avatar{background-image:url('${getCharAvatarPath()}')}
 </style>
