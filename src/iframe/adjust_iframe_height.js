@@ -19,6 +19,10 @@
         const children = Array.from(body.children || []);
         if (children.length > 0) {
           const body_rect = body.getBoundingClientRect();
+          const body_style = window.getComputedStyle(body);
+          const padding_top = parseFloat(body_style.paddingTop) || 0;
+          const padding_bottom = parseFloat(body_style.paddingBottom) || 0;
+
           let max_top = Infinity;
           let max_bottom = -Infinity;
 
@@ -26,6 +30,12 @@
             if (!(el instanceof HTMLElement)) continue;
             const rect = el.getBoundingClientRect();
             const style = window.getComputedStyle(el);
+            const position = style.position;
+            // 只计算正常文档流中占空间的元素，绝对定位/固定定位不参与高度计算
+            if (position === 'absolute' || position === 'fixed') {
+              continue;
+            }
+
             const margin_top = parseFloat(style.marginTop) || 0;
             const margin_bottom = parseFloat(style.marginBottom) || 0;
 
@@ -41,7 +51,11 @@
           }
 
           if (Number.isFinite(max_top) && Number.isFinite(max_bottom) && max_bottom > max_top) {
-            height = max_bottom - max_top;
+            const content_height = max_bottom - max_top;
+            const total_height = content_height + padding_top + padding_bottom;
+            if (Number.isFinite(total_height) && total_height > 0) {
+              height = total_height;
+            }
           }
         }
 
