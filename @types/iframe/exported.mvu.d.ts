@@ -49,7 +49,7 @@ declare namespace Mvu {
     reason: string;
   };
   type AddCommandInfo = {
-    type: 'remove';
+    type: 'add';
     full_match: string;
     args: [path: string, delta_or_toggle_literal: string];
     reason: string;
