@@ -54,8 +54,7 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
       }
 
       return (
-        mutation.addedNodes
-          .values()
+        [...mutation.addedNodes.values()]
           .filter(node => node.nodeType === Node.ELEMENT_NODE)
           .some(node => {
             const element = node as Element;
@@ -65,8 +64,7 @@ export function useButtonDestinationElement(): Readonly<Ref<HTMLElement | null>>
               element.classList?.contains('qr--buttons')
             );
           }) ||
-        mutation.removedNodes
-          .values()
+        [...mutation.removedNodes.values()]
           .filter(node => node.nodeType === Node.ELEMENT_NODE)
           .some(node => {
             const element = node as Element;
