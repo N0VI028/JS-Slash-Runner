@@ -1,15 +1,15 @@
 <template>
   <Popup v-model="isVisible" :buttons="popupButtons">
     <div class="flex flex-col gap-0.5">
-      <h3>编辑音频项</h3>
+      <h3>{{ t`编辑音频项` }}</h3>
       <div class="flex flex-col gap-0.5">
         <label>
-          <strong>标题</strong><small class="block">留空将自动从链接中提取文件名</small>
-          <input v-model="title" type="text" class="text_pole" placeholder="音频标题（可选）" />
+          <strong>{{ t`标题` }}</strong><small class="block">{{ t`留空将自动从链接中提取文件名` }}</small>
+          <input v-model="title" type="text" class="text_pole" :placeholder="t`音频标题（可选）`" />
         </label>
         <label>
-          <strong>链接</strong>
-          <input v-model="url" type="text" class="text_pole" placeholder="音频链接" required />
+          <strong>{{ t`链接` }}</strong>
+          <input v-model="url" type="text" class="text_pole" :placeholder="t`音频链接`" required />
         </label>
       </div>
     </div>
@@ -29,11 +29,11 @@ const title = ref(props.item.title || '');
 
 const popupButtons = computed(() => [
   {
-    name: '确认',
+    name: t`确认`,
     shouldEmphasize: true,
     onClick: submit,
   },
-  { name: '取消' },
+  { name: t`取消` },
 ]);
 
 const isVisible = ref(true);

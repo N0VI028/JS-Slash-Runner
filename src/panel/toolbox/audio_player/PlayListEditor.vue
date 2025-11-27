@@ -2,12 +2,12 @@
   <Popup v-model="isVisible" :buttons="popupButtons">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
-        <h3>列表编辑</h3>
-        <div title="导入音频链接" class="menu_button menu_button_icon" @click="openImporter">
+        <h3>{{ t`列表编辑` }}</h3>
+        <div :title="t`导入音频链接`" class="menu_button menu_button_icon" @click="openImporter">
           <i class="fa-solid fa-file-import" />
         </div>
       </div>
-      <div v-if="playlist.length === 0" class="text-center opacity-50">暂无音频</div>
+      <div v-if="playlist.length === 0" class="text-center opacity-50">{{ t`暂无音频` }}</div>
       <VueDraggable
         v-model="playlist"
         handle=".TH-handle"
@@ -53,11 +53,11 @@ const playlist = ref([...props.playlist]);
 
 const popupButtons = computed(() => [
   {
-    name: '确认',
+    name: t`确认`,
     shouldEmphasize: true,
     onClick: submit,
   },
-  { name: '取消' },
+  { name: t`取消` },
 ]);
 
 const isVisible = ref(true);
@@ -85,7 +85,7 @@ const openDeleteConfirm = (index: number) => {
     attrs: {
       buttons: [
         {
-          name: t`确定`,
+          name: t`确认`,
           shouldEmphasize: true,
           onClick: (close: () => void) => {
             playlist.value.splice(index, 1);

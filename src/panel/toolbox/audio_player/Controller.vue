@@ -15,15 +15,13 @@
         <!-- prettier-ignore-attribute -->
         <div
           class="
-            relative h-[5px] w-4 cursor-pointer rounded-full border border-[var(--SmartThemeBorderColor)]
-            bg-[var(--black30a)]
+            relative h-[5px] w-4 cursor-pointer rounded-full border border-(--SmartThemeBorderColor) bg-(--black30a)
           "
         >
           <!-- prettier-ignore-attribute -->
           <div
             class="
-              pointer-events-none absolute top-0 left-0 h-full rounded-full bg-[var(--SmartThemeBodyColor)]
-              transition-all
+              pointer-events-none absolute top-0 left-0 h-full rounded-full bg-(--SmartThemeBodyColor) transition-all
             "
             :style="{ width: `${model.volume}%` }"
           />
@@ -71,24 +69,15 @@
         </select>
       </div>
       <div class="flex items-center gap-0.25">
-        <div class="menu_button interactable" title="播放列表" @click="openPlayList">
+        <div class="menu_button interactable" :title="t`播放列表`" @click="openPlayList">
           <i class="fa-solid fa-list-ol" />
         </div>
         <div
           class="menu_button interactable"
+          :title="modeTitle"
           @click="model.mode = audio_mode_enum[(audio_mode_enum.indexOf(model.mode) + 1) % audio_mode_enum.length]"
         >
-          <i
-            class="fa-solid"
-            :class="[
-              {
-                repeat_all: 'fa-repeat',
-                repeat_one: 'fa-redo-alt',
-                shuffle: 'fa-random',
-                play_one_and_stop: 'fa-cancel',
-              }[model.mode],
-            ]"
-          />
+          <i class="fa-solid" :class="[modeIconClass]" />
         </div>
       </div>
     </div>
@@ -127,6 +116,28 @@ const model_playing = computed({
   set: value => {
     model.value.playing = value;
   },
+});
+
+const modeTitle = computed(() => {
+  return (
+    {
+      repeat_all: t`重复播放所有曲目`,
+      repeat_one: t`重复播放当前曲目`,
+      shuffle: t`随机播放`,
+      play_one_and_stop: t`播放当前曲目并停止`,
+    }[model.value.mode] ?? ''
+  );
+});
+
+const modeIconClass = computed(() => {
+  return (
+    {
+      repeat_all: 'fa-repeat',
+      repeat_one: 'fa-redo-alt',
+      shuffle: 'fa-random',
+      play_one_and_stop: 'fa-cancel',
+    }[model.value.mode] ?? ''
+  );
 });
 
 {

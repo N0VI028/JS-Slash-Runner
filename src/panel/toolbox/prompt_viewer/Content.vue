@@ -15,7 +15,7 @@
             "
             @click="is_expanded[index] = false"
           >
-            收起内容<i class="fa-solid fa-chevron-up"></i>
+            {{ t`收起内容` }}<i class="fa-solid fa-chevron-up"></i>
           </div>
         </div>
         <div v-else @click="is_expanded[index] = true">
@@ -26,7 +26,7 @@
               border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
             "
           >
-            展开 {{ (item.match(/\n/g)?.length ?? 0) + 1 }} 行隐藏内容<i class="fa-solid fa-chevron-down"></i>
+            {{ t`展开` }} {{ (item.match(/\n/g)?.length ?? 0) + 1 }} {{ t`行隐藏内容` }}<i class="fa-solid fa-chevron-down"></i>
           </div>
         </div>
       </template>

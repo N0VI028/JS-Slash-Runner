@@ -3,7 +3,7 @@
   <Popup v-model="isVisible" :buttons="popupButtons">
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
-        <h3>导入音频链接</h3>
+        <h3>{{ t`导入音频链接` }}</h3>
       </div>
 
       <!-- Tab 切换按钮 -->
@@ -13,14 +13,14 @@
           :class="{ 'bg-(--SmartThemeQuoteColor)! font-bold filter-none!': activeTab === 'single' }"
           @click="activeTab = 'single'"
         >
-          单个添加
+          {{ t`单个添加` }}
         </button>
         <button
           class="menu_button interactable flex-1"
           :class="{ 'bg-(--SmartThemeQuoteColor)! font-bold filter-none!': activeTab === 'batch' }"
           @click="activeTab = 'batch'"
         >
-          批量导入
+          {{ t`批量导入` }}
         </button>
       </div>
 
@@ -31,13 +31,13 @@
             <input
               v-model="item.title"
               type="text"
-              placeholder="标题（可选）"
+              :placeholder="t`标题（可选）`"
               class="text_pole flex-1"
             />
             <input
               v-model="item.url"
               type="text"
-              placeholder="音频链接 URL"
+              :placeholder="t`音频链接 URL`"
               class="text_pole flex-2"
             />
           </div>
@@ -50,20 +50,20 @@
           </button>
         </div>
         <button class="menu_button interactable w-full!" @click="addItem">
-          <i class="fa-solid fa-plus"></i> 添加更多
+          <i class="fa-solid fa-plus"></i> {{ t`添加更多` }}
         </button>
       </div>
 
       <!-- 批量导入模式 -->
       <div v-else-if="activeTab === 'batch'" class="flex flex-col gap-0.5">
         <small>
-          每行一个链接，可选格式：URL 或 URL,标题
+          {{ t`每行一个链接，可选格式：URL 或 URL,标题` }}
         </small>
         <textarea
           v-model="batchText"
-          placeholder="示例：&#10;https://example.com/audio1.mp3&#10;https://example.com/audio2.mp3,我的音乐&#10;https://example.com/audio3.mp3"
+          :placeholder="t`示例：&#10;https://example.com/audio1.mp3&#10;https://example.com/audio2.mp3,我的音乐&#10;https://example.com/audio3.mp3`"
           rows="10"
-          class="text_pole font-[family-name:var(--monoFontFamily)]!"
+          class="text_pole font-(family-name:--monoFontFamily)!"
         />
       </div>
     </div>
@@ -84,11 +84,11 @@ const batchText = ref('');
 
 const popupButtons = computed(() => [
   {
-    name: '确认',
+    name: t`确认`,
     shouldEmphasize: true,
     onClick: submit,
   },
-  { name: '取消' },
+  { name: t`取消` },
 ]);
 
 const isVisible = ref(true);

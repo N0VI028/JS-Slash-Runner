@@ -8,8 +8,8 @@
       "
       @click="expanded = !expanded"
     >
-      <template v-if="expanded">收起图片<i class="fa-solid fa-chevron-up"></i></template>
-      <template v-else>显示图片（{{ props.images.length }}）<i class="fa-solid fa-chevron-down"></i></template>
+      <template v-if="expanded">{{ t`收起图片` }}<i class="fa-solid fa-chevron-up"></i></template>
+      <template v-else>{{ t`显示图片` }}({{ props.images.length }})<i class="fa-solid fa-chevron-down"></i></template>
     </div>
     <div v-if="expanded" class="flex flex-col gap-1">
       <div v-for="(img, idx) in props.images" :key="idx" class="flex flex-col gap-0.25">
