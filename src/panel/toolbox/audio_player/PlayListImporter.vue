@@ -1,6 +1,14 @@
 <template>
-  <!-- prettier-ignore -->
-  <Popup v-model="isVisible" :buttons="popupButtons">
+  <Popup
+    :buttons="[
+      {
+        name: t`确认`,
+        shouldEmphasize: true,
+        onClick: submit,
+      },
+      { name: t`取消` },
+    ]"
+  >
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
         <h3>{{ t`导入音频链接` }}</h3>
@@ -10,36 +18,26 @@
       <div class="mb-0.5 flex items-center gap-0.25">
         <button
           class="menu_button interactable flex-1"
-          :class="{ 'bg-(--SmartThemeQuoteColor)! font-bold filter-none!': activeTab === 'single' }"
-          @click="activeTab = 'single'"
+          :class="{ 'bg-(--SmartThemeQuoteColor)! font-bold filter-none!': active_tab === 'single' }"
+          @click="active_tab = 'single'"
         >
           {{ t`单个添加` }}
         </button>
         <button
           class="menu_button interactable flex-1"
-          :class="{ 'bg-(--SmartThemeQuoteColor)! font-bold filter-none!': activeTab === 'batch' }"
-          @click="activeTab = 'batch'"
+          :class="{ 'bg-(--SmartThemeQuoteColor)! font-bold filter-none!': active_tab === 'batch' }"
+          @click="active_tab = 'batch'"
         >
           {{ t`批量导入` }}
         </button>
       </div>
 
       <!-- 单个添加模式 -->
-      <div v-if="activeTab === 'single'" class="flex flex-col gap-0.5">
+      <div v-if="active_tab === 'single'" class="flex flex-col gap-0.5">
         <div v-for="(item, index) in items" :key="index" class="flex items-center gap-0.25">
           <div class="flex w-full gap-0.25">
-            <input
-              v-model="item.title"
-              type="text"
-              :placeholder="t`标题（可选）`"
-              class="text_pole flex-1"
-            />
-            <input
-              v-model="item.url"
-              type="text"
-              :placeholder="t`音频链接 URL`"
-              class="text_pole flex-2"
-            />
+            <input v-model="item.title" type="text" :placeholder="t`标题（可选）`" class="text_pole flex-1" />
+            <input v-model="item.url" type="text" :placeholder="t`音频链接 URL`" class="text_pole flex-2" />
           </div>
           <button
             v-if="items.length > 1"
@@ -55,13 +53,15 @@
       </div>
 
       <!-- 批量导入模式 -->
-      <div v-else-if="activeTab === 'batch'" class="flex flex-col gap-0.5">
+      <div v-else-if="active_tab === 'batch'" class="flex flex-col gap-0.5">
         <small>
           {{ t`每行一个链接，可选格式：URL 或 URL,标题` }}
         </small>
         <textarea
-          v-model="batchText"
-          :placeholder="t`示例：&#10;https://example.com/audio1.mp3&#10;https://example.com/audio2.mp3,我的音乐&#10;https://example.com/audio3.mp3`"
+          v-model="batch_text"
+          :placeholder="
+            t`示例：&#10;https://example.com/audio1.mp3&#10;https://example.com/audio2.mp3,我的音乐&#10;https://example.com/audio3.mp3`
+          "
           rows="10"
           class="text_pole font-(family-name:--monoFontFamily)!"
         />
@@ -75,28 +75,17 @@ import { handle_url_to_title } from '@/function/audio';
 import Popup from '@/panel/component/Popup.vue';
 
 const props = defineProps<{
-  onSubmit?: (items: { title: string; url: string }[]) => void;
+  onSubmit: (items: { title: string; url: string }[]) => void;
 }>();
 
-const activeTab = ref<'single' | 'batch'>('single');
+const active_tab = ref<'single' | 'batch'>('single');
 const items = ref<{ title: string; url: string }[]>([{ url: '', title: '' }]);
-const batchText = ref('');
-
-const popupButtons = computed(() => [
-  {
-    name: t`确认`,
-    shouldEmphasize: true,
-    onClick: submit,
-  },
-  { name: t`取消` },
-]);
-
-const isVisible = ref(true);
+const batch_text = ref('');
 
 const submit = (close: () => void) => {
   let validItems: { title: string; url: string }[] = [];
 
-  if (activeTab.value === 'single') {
+  if (active_tab.value === 'single') {
     // 单个添加模式：过滤出有效的项（至少有 URL）
     validItems = items.value
       .filter(item => item.url.trim() !== '')
@@ -114,7 +103,7 @@ const submit = (close: () => void) => {
       });
   } else {
     // 批量导入模式：解析多行文本
-    validItems = batchText.value
+    validItems = batch_text.value
       .split('\n')
       .map(line => line.trim())
       .filter(line => line !== '')
@@ -132,7 +121,7 @@ const submit = (close: () => void) => {
   }
 
   if (validItems.length > 0) {
-    props.onSubmit?.(validItems);
+    props.onSubmit(validItems);
   }
   close();
 };

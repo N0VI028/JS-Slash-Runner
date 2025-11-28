@@ -1,5 +1,14 @@
 <template>
-  <Popup v-model="isVisible" :buttons="popupButtons">
+  <Popup
+    :buttons="[
+      {
+        name: t`确认`,
+        shouldEmphasize: true,
+        onClick: submit,
+      },
+      { name: t`取消` },
+    ]"
+  >
     <div class="flex flex-col gap-0.5">
       <div class="flex items-center justify-center gap-0.5">
         <h3>{{ t`列表编辑` }}</h3>
@@ -7,16 +16,16 @@
           <i class="fa-solid fa-file-import" />
         </div>
       </div>
-      <div v-if="playlist.length === 0" class="text-center opacity-50">{{ t`暂无音频` }}</div>
+      <div v-if="model.length === 0" class="text-center opacity-50">{{ t`暂无音频` }}</div>
       <VueDraggable
-        v-model="playlist"
+        v-model="model"
         handle=".TH-handle"
         class="flex flex-col"
         :animation="150"
         direction="vertical"
         item-key="id"
       >
-        <div v-for="(item, index) in playlist" :key="item.url" class="flex items-center gap-0.5">
+        <div v-for="(item, index) in model" :key="item.url" class="flex items-center gap-0.5">
           <span class="TH-handle shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
           <!-- prettier-ignore-attribute -->
           <div
@@ -46,41 +55,30 @@ import PlayListItemEditor from '@/panel/toolbox/audio_player/PlayListItemEditor.
 
 const props = defineProps<{
   playlist: { title: string; url: string }[];
-  onSubmit?: (playlist: { title: string; url: string }[]) => void;
+  onSubmit: (playlist: { title: string; url: string }[]) => void;
 }>();
 
-const playlist = ref([...props.playlist]);
+const model = ref(klona(props.playlist));
 
-const popupButtons = computed(() => [
-  {
-    name: t`确认`,
-    shouldEmphasize: true,
-    onClick: submit,
-  },
-  { name: t`取消` },
-]);
-
-const isVisible = ref(true);
-const submit = (close: () => void) => {
-  props.onSubmit?.(playlist.value);
+function submit(close: () => void) {
+  props.onSubmit(model.value);
   close();
-};
+}
 
-const openImporter = () => {
-  const { open: openImporterModal } = useModal({
+function openImporter() {
+  useModal({
     component: PlayListImporter,
     attrs: {
       onSubmit: (items: { title: string; url: string }[]) => {
         // 将导入的项目添加到播放列表末尾
-        playlist.value.push(...items);
+        model.value.push(...items);
       },
     },
-  });
-  openImporterModal();
-};
+  }).open();
+}
 
-const openDeleteConfirm = (index: number) => {
-  const { open: openDeleteConfirmModal } = useModal({
+function openDeleteConfirm(index: number) {
+  useModal({
     component: Popup,
     attrs: {
       buttons: [
@@ -88,7 +86,7 @@ const openDeleteConfirm = (index: number) => {
           name: t`确认`,
           shouldEmphasize: true,
           onClick: (close: () => void) => {
-            playlist.value.splice(index, 1);
+            model.value.splice(index, 1);
             close();
           },
         },
@@ -98,20 +96,18 @@ const openDeleteConfirm = (index: number) => {
     slots: {
       default: t`<div>确定要删除音频吗? 此操作无法撤销</div>`,
     },
-  });
-  openDeleteConfirmModal();
-};
+  }).open();
+}
 
-const editItem = (index: number) => {
-  const { open: openEditor } = useModal({
+function editItem(index: number) {
+  useModal({
     component: PlayListItemEditor,
     attrs: {
-      item: playlist.value[index],
+      item: model.value[index],
       onSubmit: (value: { title: string; url: string }) => {
-        playlist.value[index] = value;
+        model.value[index] = value;
       },
     },
-  });
-  openEditor();
-};
+  }).open();
+}
 </script>

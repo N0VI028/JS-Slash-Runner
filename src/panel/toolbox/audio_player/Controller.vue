@@ -198,13 +198,15 @@ const onEnded = () => {
   }
 };
 
-const { open: openPlayList } = useModal({
-  component: PlayListEditor,
-  attrs: {
-    playlist: model.value.playlist,
-    onSubmit: (value: { title: string; url: string }[]) => {
-      model.value.playlist = value;
+function openPlayList() {
+  useModal({
+    component: PlayListEditor,
+    attrs: {
+      playlist: model.value.playlist,
+      onSubmit: (value: { title: string; url: string }[]) => {
+        model.value.playlist = value;
+      },
     },
-  },
-});
+  }).open();
+}
 </script>

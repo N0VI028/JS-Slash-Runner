@@ -39,6 +39,7 @@ export function playAudio(type: 'bgm' | 'ambient', audio: AudioWithOptionalTitle
   }
   store.src = audio.url;
   store.progress = 0;
+  store.playing = false;
   store.playing = true;
 }
 

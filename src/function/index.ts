@@ -226,7 +226,7 @@ function getTavernHelper() {
     pauseAudio,
     getAudioList,
     replaceAudioList,
-    insertAudioList: appendAudioList,
+    appendAudioList,
     getAudioSettings,
     setAudioSettings,
 
