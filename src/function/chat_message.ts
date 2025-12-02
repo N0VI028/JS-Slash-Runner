@@ -151,7 +151,7 @@ export function getChatMessages(
       name: message.name,
       role: message_role as 'system' | 'assistant' | 'user',
       is_hidden: message.is_system,
-      message: message.mes,
+      message: message.mes ?? '',
       data: data,
       extra: extra,
 
