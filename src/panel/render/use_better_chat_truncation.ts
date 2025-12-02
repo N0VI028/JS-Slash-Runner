@@ -2,6 +2,7 @@ import { event_types, eventSource } from '@sillytavern/script';
 import { power_user } from '@sillytavern/scripts/power-user';
 
 export function useBetterChatTruncation(enabled: Readonly<Ref<boolean>>) {
+  $('#chat_truncation, #chat_truncation_counter').attr('step', 1);
   [event_types.CHARACTER_MESSAGE_RENDERED, event_types.USER_MESSAGE_RENDERED].forEach(event =>
     eventSource.on(event, () => {
       if (enabled.value && power_user.chat_truncation > 0) {
