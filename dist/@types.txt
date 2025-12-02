@@ -3183,25 +3183,6 @@ declare const Mvu: {
     COMMAND_PARSED: 'mag_command_parsed';
 
     /**
-     * 某轮变量更新过程中, 某个变量更新时触发的事件
-     *
-     * @example
-     * // 检测络络好感度突破 30
-     * eventOn(Mvu.events.SINGLE_VARIABLE_UPDATED, (stat_data, path, old_value, new_value) => {
-     *   // 如果被更新的变量不是 'stat_data.角色.络络.好感度', 则什么都不做直接返回 (return)
-     *   if (path === '角色.络络.好感度') {
-     *     return;
-     *   }
-     *
-     *   // --被更新的变量是 'stat_data.角色.络络.好感度'---
-     *   if (old_value < 30 && new_value >= 30) {
-     *     toaster.success('络络好感度突破 30 了!');
-     *   }
-     * });
-     */
-    SINGLE_VARIABLE_UPDATED: 'mag_variable_updated';
-
-    /**
      * 某轮变量更新结束时触发的事件
      *
      * @example
@@ -3342,14 +3323,7 @@ interface ListenerType {
 
   [Mvu.events.COMMAND_PARSED]: (variables: Mvu.MvuData, commands: Mvu.CommandInfo[], message_content: string) => void;
 
-  [Mvu.events.SINGLE_VARIABLE_UPDATED]: (
-    stat_data: Mvu.MvuData['stat_data'],
-    path: string,
-    old_value: any,
-    new_value: any,
-  ) => void;
-
-  [Mvu.events.VARIABLE_UPDATE_ENDED]: (variables: Mvu.MvuData) => void;
+  [Mvu.events.VARIABLE_UPDATE_ENDED]: (variables: Mvu.MvuData, variables_before_update: Mvu.MvuData) => void;
 }
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 declare namespace SillyTavern {
