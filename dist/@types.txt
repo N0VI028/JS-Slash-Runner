@@ -3187,9 +3187,18 @@ declare const Mvu: {
      *
      * @example
      * // 保持好感度不低于 0
-     * eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, (variables) => {
+     * eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, variables => {
      *   if (_.get(variables, 'stat_data.角色.络络.好感度') < 0) {
      *     _.set(variables, 'stat_data.角色.络络.好感度', 0);
+     *   }
+     * })
+     *
+     * @example
+     * // 保持好感度增幅不超过 3
+     * eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, (variables, variables_before_update) => {
+     *   const delta = _.get(variables, 'stat_data.角色.络络.好感度') - _.get(variables_before_update, 'stat_data.角色.络络.好感度');
+     *   if (Math.abs(delta) > 3) {
+     *     _.set(variables, 'stat_data.角色.络络.好感度', _.get(variables_before_update, 'stat_data.角色.络络.好感度') + Math.sign(delta) * 3);
      *   }
      * });
      */
