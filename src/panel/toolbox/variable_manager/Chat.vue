@@ -1,9 +1,12 @@
 <template>
-  <JsonEditor v-model="variables" />
+  <JsonEditor v-model="variables" :schema="schemas_store.chat" />
 </template>
 
 <script setup lang="ts">
 import { get_variables_without_clone, getVariables, replaceVariables } from '@/function/variables';
+import { useVariableSchemasStore } from '@/store/variable_schemas';
+
+const schemas_store = useVariableSchemasStore();
 
 const variables = shallowRef<Record<string, any>>(getVariables({ type: 'chat' }));
 useIntervalFn(() => {

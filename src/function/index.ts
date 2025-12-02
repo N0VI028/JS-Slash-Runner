@@ -141,6 +141,7 @@ import {
   getVariables,
   insertOrAssignVariables,
   insertVariables,
+  registerVariableSchema,
   replaceVariables,
   updateVariablesWith,
 } from '@/function/variables';
@@ -357,6 +358,7 @@ function getTavernHelper() {
     getMessageId,
 
     // variables
+    registerVariableSchema,
     getVariables,
     replaceVariables,
     updateVariablesWith,

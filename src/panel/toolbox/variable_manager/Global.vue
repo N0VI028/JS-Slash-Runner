@@ -1,10 +1,13 @@
 <template>
-  <JsonEditor v-model="variables" />
+  <JsonEditor v-model="variables" :schema="schemas_store.global" />
 </template>
 
 <script setup lang="ts">
 import { get_variables_without_clone, getVariables, replaceVariables } from '@/function/variables';
+import { useVariableSchemasStore } from '@/store/variable_schemas';
 import { event_types } from '@sillytavern/script';
+
+const schemas_store = useVariableSchemasStore();
 
 const variables = shallowRef<Record<string, any>>(getVariables({ type: 'global' }));
 useEventSourceOn(event_types.SETTINGS_UPDATED, () => {

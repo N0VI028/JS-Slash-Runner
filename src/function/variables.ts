@@ -1,10 +1,40 @@
 import { _getCurrentMessageId, _getIframeName, _getScriptId } from '@/function/util';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterSettingsStore, usePresetSettingsStore } from '@/store/settings';
+import { useVariableSchemasStore } from '@/store/variable_schemas';
 import { saveChatConditionalDebounced } from '@/util/tavern';
 import { chat, chat_metadata, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings, saveMetadataDebounced } from '@sillytavern/scripts/extensions';
 import isPromise from 'is-promise';
+
+export function registerVariableSchema(
+  schema: z.ZodType<any>,
+  { type }: { type: 'global' | 'preset' | 'character' | 'chat' | 'message' },
+) {
+  const store = useVariableSchemasStore();
+  switch (type) {
+    case 'global': {
+      store.global = schema;
+      break;
+    }
+    case 'preset': {
+      store.preset = schema;
+      break;
+    }
+    case 'character': {
+      store.character = schema;
+      break;
+    }
+    case 'chat': {
+      store.chat = schema;
+      break;
+    }
+    case 'message': {
+      store.message = schema;
+      break;
+    }
+  }
+}
 
 type VariableOptionNormal = {
   type: 'chat' | 'character' | 'preset' | 'global';

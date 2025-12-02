@@ -13,12 +13,13 @@
     </div>
   </div>
   <div v-show="!is_collapsed">
-    <JsonEditor v-model="variables" />
+    <JsonEditor v-model="variables" :schema="schemas_store.message" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { get_variables_without_clone, getVariables, replaceVariables } from '@/function/variables';
+import { useVariableSchemasStore } from '@/store/variable_schemas';
 import { event_types } from '@sillytavern/script';
 
 const props = defineProps<{
@@ -26,6 +27,8 @@ const props = defineProps<{
   messageId: number;
   refreshKey: symbol;
 }>();
+
+const schemas_store = useVariableSchemasStore();
 
 const normalized_message_id = computed(() =>
   props.messageId < 0 ? props.chatLength + props.messageId : props.messageId,

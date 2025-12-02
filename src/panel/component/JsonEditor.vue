@@ -6,7 +6,9 @@
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { detailedDiff } from 'deep-object-diff';
 import { destr, safeDestr } from 'destr';
-import { Content, createJSONEditor, JSONEditorPropsOptional, Mode } from 'vanilla-jsoneditor';
+import { Content, createJSONEditor, JSONEditorPropsOptional, Mode, ValidationSeverity } from 'vanilla-jsoneditor';
+
+const props = defineProps<{ schema?: z.ZodType<any> }>();
 
 const content = defineModel<Record<string, any>>({ required: true });
 
@@ -48,6 +50,20 @@ onMounted(() => {
         // @ts-expect-error destr 是可以使用的
         parse: safeDestr,
         stringify: JSON.stringify,
+      },
+      validator: json => {
+        if (!props.schema) {
+          return [];
+        }
+        const result = props.schema.safeParse(json);
+        if (result.success) {
+          return [];
+        }
+        return result.error.issues.map(issue => ({
+          path: issue.path.map(String),
+          message: issue.message,
+          severity: ValidationSeverity.error,
+        }));
       },
       onChangeMode: new_mode => {
         mode = new_mode;
