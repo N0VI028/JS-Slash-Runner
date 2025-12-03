@@ -71,14 +71,14 @@ onMounted(() => {
   $div
     .children()
     .filter((_index, child) => !$(child).is('iframe'))
-    .hide();
+    .addClass('hidden!');
 });
 onBeforeUnmount(() => {
   const $button = $div.children('.TH-collapse-code-block-button');
   if ($button.length === 0) {
-    $pre.show();
+    $pre.removeClass('hidden!');
   } else {
-    $button.text('显示前端代码块').show();
+    $button.text('显示前端代码块').removeClass('hidden!');
   }
 });
 </script>

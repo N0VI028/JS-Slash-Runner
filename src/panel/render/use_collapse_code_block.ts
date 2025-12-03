@@ -24,18 +24,18 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
     .on('click', function () {
       const is_visible = $pre.is(':visible');
       if (is_visible) {
-        $pre.hide();
+        $pre.addClass('hidden!');
         $(this).text(is_frontend ? '显示前端代码块' : '显示代码块');
       } else {
-        $pre.show();
+        $pre.removeClass('hidden!');
         $(this).text(is_frontend ? '隐藏前端代码块' : '隐藏代码块');
       }
     })
     .prependTo($div);
   if ($div.children('iframe').length > 0) {
-    $button.hide();
+    $button.addClass('hidden!');
   }
-  $pre.hide();
+  $pre.addClass('hidden!');
 }
 
 function collapseCodeBlockForMessageId(message_id: number, collapse_code_block: CollapseCodeBlock) {
@@ -59,7 +59,7 @@ function uncollapseCodeBlockForAll() {
   $('#chat')
     .find('pre')
     .filter((_index, pre) => $(pre).siblings('iframe').length === 0)
-    .show();
+    .removeClass('hidden!');
 }
 
 export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseCodeBlock>>) {
