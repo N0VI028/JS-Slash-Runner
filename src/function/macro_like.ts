@@ -1,4 +1,5 @@
 import { get_variables_without_clone } from '@/function/variables';
+import { omitDeepBy } from 'lodash-omitdeep';
 import YAML from 'yaml';
 
 export interface MacroLike {
@@ -23,7 +24,7 @@ export const macros: MacroLike[] = [
       const variables = get_variables_without_clone(
         type !== 'message' ? { type } : { type, message_id: context.message_id ?? 'latest' },
       );
-      const value = _.get(variables, _.unescape(path), null);
+      const value = omitDeepBy(_.get(variables, _.unescape(path), null), (_, key) => key.startsWith('$'));
       return typeof value === 'string' ? value : JSON.stringify(value);
     },
   },
@@ -39,7 +40,7 @@ export const macros: MacroLike[] = [
       const variables = get_variables_without_clone(
         type !== 'message' ? { type } : { type, message_id: context.message_id ?? 'latest' },
       );
-      const value = _.get(variables, _.unescape(path), null);
+      const value = omitDeepBy(_.get(variables, _.unescape(path), null), (_, key) => key.startsWith('$'));
       return (
         prefix +
         (typeof value === 'string' ? value : YAML.stringify(value, { blockQuote: 'literal' }).trimEnd()).replaceAll(
