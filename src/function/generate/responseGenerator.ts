@@ -171,22 +171,21 @@ export async function generateResponse(
         data.chat_completion_source = customApi.source || 'openai';
         data.proxy_password = customApi.key || '';
         data.model = customApi.model;
-        if (customApi.max_tokens !== undefined) {
-          data.max_tokens = customApi.max_tokens;
+
+        const set_param = (param: keyof CustomApiConfig) => {
+          const input = customApi[param] ?? 'same_as_preset';
+          if (input === 'unset') {
+            _.unset(data, param);
+          } else if (input !== 'same_as_preset') {
+            _.set(data, param, input);
+          }
         }
-        if (customApi.temperature !== undefined) {
-          data.temperature = customApi.temperature;
-        }
-        if (customApi.frequency_penalty !== undefined) {
-          data.frequency_penalty = customApi.frequency_penalty;
-        }
-        if (customApi.presence_penalty !== undefined) {
-          data.presence_penalty = customApi.presence_penalty;
-        }
-        if (customApi.top_p !== undefined) {
-          data.top_p = customApi.top_p;
-        }
-        console.info(data);
+        set_param('max_tokens');
+        set_param('temperature');
+        set_param('frequency_penalty');
+        set_param('presence_penalty');
+        set_param('top_p');
+        set_param('top_k');
 
         return data;
       };

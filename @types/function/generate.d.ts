@@ -12,14 +12,15 @@ type CustomApiConfig = {
   source?: string;
 
   /** 最大回复 tokens 度 */
-  max_tokens?: number;
+  max_tokens?: 'same_as_preset' | 'unset' | number;
   /** 温度 */
-  temperature?: number;
+  temperature?: 'same_as_preset' | 'unset' | number;
   /** 频率惩罚 */
-  frequency_penalty?: number;
+  frequency_penalty?: 'same_as_preset' | 'unset' | number;
   /** 存在惩罚 */
-  presence_penalty?: number;
-  top_p?: number;
+  presence_penalty?: 'same_as_preset' | 'unset' | number;
+  top_p?: 'same_as_preset' | 'unset' | number;
+  top_k?: 'same_as_preset' | 'unset' | number;
 };
 
 type GenerateConfig = {

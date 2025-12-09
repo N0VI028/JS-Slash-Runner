@@ -17,11 +17,12 @@ export type CustomApiConfig = {
   key?: string;
   model?: string;
   source?: string;
-  max_tokens?: number;
-  temperature?: number;
-  frequency_penalty?: number;
-  presence_penalty?: number;
-  top_p?: number;
+  max_tokens?: 'same_as_preset' | 'unset' | number;
+  temperature?: 'same_as_preset' | 'unset' | number;
+  frequency_penalty?: 'same_as_preset' | 'unset' | number;
+  presence_penalty?: 'same_as_preset' | 'unset' | number;
+  top_p?: 'same_as_preset' | 'unset' | number;
+  top_k?: 'same_as_preset' | 'unset' | number;
 };
 
 /**
