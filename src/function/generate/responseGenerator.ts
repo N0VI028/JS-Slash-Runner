@@ -183,7 +183,7 @@ export async function generateResponse(
         if (customApi.presence_penalty !== undefined) {
           data.presence_penalty = customApi.presence_penalty;
         }
-        if (customApi.top_p) {
+        if (customApi.top_p !== undefined) {
           data.top_p = customApi.top_p;
         }
         console.info(data);
