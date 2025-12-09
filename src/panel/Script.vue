@@ -17,14 +17,16 @@
   <Divider />
   <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" target="preset" />
 
-  <Iframe
-    v-for="script in runtimes"
-    :id="script.id"
-    :key="script.source + script.id + script.reload_memo"
-    :name="script.name"
-    :content="script.content"
-    :use-blob-url="use_blob_url"
-  />
+  <Teleport to="body">
+    <Iframe
+      v-for="script in runtimes"
+      :id="script.id"
+      :key="script.source + script.id + script.reload_memo"
+      :name="script.name"
+      :content="script.content"
+      :use-blob-url="use_blob_url"
+    />
+  </Teleport>
 
   <Teleport v-if="!!button_element" defer :to="button_element">
     <div
