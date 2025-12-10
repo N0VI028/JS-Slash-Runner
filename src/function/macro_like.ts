@@ -1,4 +1,5 @@
 import { get_variables_without_clone } from '@/function/variables';
+import { chat } from '@sillytavern/script';
 import { omitDeepBy } from 'lodash-omitdeep';
 import YAML from 'yaml';
 
@@ -22,7 +23,13 @@ export const macros: MacroLike[] = [
       path: string,
     ) => {
       const variables = get_variables_without_clone(
-        type !== 'message' ? { type } : { type, message_id: context.message_id ?? 'latest' },
+        type !== 'message'
+          ? { type }
+          : {
+              type,
+              message_id:
+                context.message_id ?? chat.findLastIndex(message => _.isObject(_.get(message, 'variables[0]'))),
+            },
       );
       const value = omitDeepBy(_.get(variables, _.unescape(path), null), (_, key) => key.startsWith('$'));
       return typeof value === 'string' ? value : JSON.stringify(value);
@@ -38,7 +45,13 @@ export const macros: MacroLike[] = [
       path: string,
     ) => {
       const variables = get_variables_without_clone(
-        type !== 'message' ? { type } : { type, message_id: context.message_id ?? 'latest' },
+        type !== 'message'
+          ? { type }
+          : {
+              type,
+              message_id:
+                context.message_id ?? chat.findLastIndex(message => _.isObject(_.get(message, 'variables[0]'))),
+            },
       );
       const value = omitDeepBy(_.get(variables, _.unescape(path), null), (_, key) => key.startsWith('$'));
       return (
