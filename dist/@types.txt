@@ -3260,7 +3260,7 @@ declare const Mvu: {
    * const new_data = await Mvu.parseMessage("_.set('角色.络络.好感度', 30); // 强制修改", old_data);
    * await Mvu.replaceMvuData(new_data, { type: 'message', message_id: 'latest' });
    */
-  parseMessage: (message: string, old_data: Mvu.MvuData) => Promise<Mvu.MvuData | undefined>;
+  parseMessage: (message: string, old_data: Mvu.MvuData) => Promise<Mvu.MvuData>;
 
   /**
    * 重新加载初始变量数据
