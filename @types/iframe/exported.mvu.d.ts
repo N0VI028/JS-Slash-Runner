@@ -48,9 +48,6 @@ declare const Mvu: {
     /** 新开聊天对变量初始化时触发的事件  */
     VARIABLE_INITIALIZED: 'mag_variable_initiailized';
 
-    /** 即将对楼层进行更新时触发的事件  */
-    BEFORE_MESSAGE_UPDATE: 'mag_before_message_update';
-
     /** 某轮变量更新开始时触发的事件 */
     VARIABLE_UPDATE_STARTED: 'mag_variable_update_started';
 
@@ -108,6 +105,9 @@ declare const Mvu: {
      * });
      */
     VARIABLE_UPDATE_ENDED: 'mag_variable_update_ended';
+
+    /** 即将用更新后的变量更新楼层时触发的事件  */
+    BEFORE_MESSAGE_UPDATE: 'mag_before_message_update';
   };
 
   /**
