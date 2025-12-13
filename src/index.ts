@@ -4,6 +4,7 @@ import { disableIncompatibleOption } from '@/incompatible_option';
 import { registerMacros } from '@/macro';
 import Panel from '@/Panel.vue';
 import { initSlashCommands } from '@/slash_command/index';
+import { registerSwipeEvent } from '@/swipe';
 import { initThirdPartyObject } from '@/third_party_object';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { App } from 'vue';
@@ -37,6 +38,7 @@ $(() => {
   z.config(getCurrentLocale().includes('zh') ? z.locales.zhCN() : z.locales.en());
   disableIncompatibleOption();
   registerMacros();
+  registerSwipeEvent();
   initTavernHelperObject();
   initThirdPartyObject();
   initSlashCommands();
