@@ -29,7 +29,7 @@ export const macros: MacroLike[] = [
               type,
               message_id:
                 context.message_id ??
-                chat.findLastIndex(message => _.isObject(_.get(message, ['variables', _.get(message, 'swipe_id', 0)]))),
+                chat.findLastIndex(message => _.isObject(message.variables?.[message.swipe_id ?? 0])),
             },
       );
       const value = omitDeepBy(_.get(variables, _.unescape(path), null), (_, key) => key.startsWith('$'));
@@ -52,7 +52,7 @@ export const macros: MacroLike[] = [
               type,
               message_id:
                 context.message_id ??
-                chat.findLastIndex(message => _.isObject(_.get(message, ['variables', _.get(message, 'swipe_id', 0)]))),
+                chat.findLastIndex(message => _.isObject(message.variables?.[message.swipe_id ?? 0])),
             },
       );
       const value = omitDeepBy(_.get(variables, _.unescape(path), null), (_, key) => key.startsWith('$'));
