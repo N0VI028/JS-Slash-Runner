@@ -147,17 +147,21 @@ export const tavern_events = {
   MESSAGE_DELETED: 'message_deleted',
   MESSAGE_UPDATED: 'message_updated',
   MESSAGE_FILE_EMBEDDED: 'message_file_embedded',
+  MESSAGE_REASONING_EDITED: 'message_reasoning_edited',
+  MESSAGE_REASONING_DELETED: 'message_reasoning_deleted',
+  MESSAGE_SWIPE_DELETED: 'message_swipe_deleted',
+  MORE_MESSAGES_LOADED: 'more_messages_loaded',
   IMPERSONATE_READY: 'impersonate_ready',
   CHAT_CHANGED: 'chat_id_changed',
   GENERATION_AFTER_COMMANDS: 'GENERATION_AFTER_COMMANDS',
   GENERATION_STARTED: 'generation_started',
   GENERATION_STOPPED: 'generation_stopped',
   GENERATION_ENDED: 'generation_ended',
+  SD_PROMPT_PROCESSING: 'sd_prompt_processing',
   EXTENSIONS_FIRST_LOAD: 'extensions_first_load',
   EXTENSION_SETTINGS_LOADED: 'extension_settings_loaded',
   SETTINGS_LOADED: 'settings_loaded',
   SETTINGS_UPDATED: 'settings_updated',
-  GROUP_UPDATED: 'group_updated',
   MOVABLE_PANELS_RESET: 'movable_panels_reset',
   SETTINGS_LOADED_BEFORE: 'settings_loaded_before',
   SETTINGS_LOADED_AFTER: 'settings_loaded_after',
@@ -169,21 +173,17 @@ export const tavern_events = {
   OAI_PRESET_IMPORT_READY: 'oai_preset_import_ready',
   WORLDINFO_SETTINGS_UPDATED: 'worldinfo_settings_updated',
   WORLDINFO_UPDATED: 'worldinfo_updated',
+  CHARACTER_EDITOR_OPENED: 'character_editor_opened',
   CHARACTER_EDITED: 'character_edited',
   CHARACTER_PAGE_LOADED: 'character_page_loaded',
-  CHARACTER_GROUP_OVERLAY_STATE_CHANGE_BEFORE: 'character_group_overlay_state_change_before',
-  CHARACTER_GROUP_OVERLAY_STATE_CHANGE_AFTER: 'character_group_overlay_state_change_after',
   USER_MESSAGE_RENDERED: 'user_message_rendered',
   CHARACTER_MESSAGE_RENDERED: 'character_message_rendered',
   FORCE_SET_BACKGROUND: 'force_set_background',
   CHAT_DELETED: 'chat_deleted',
   CHAT_CREATED: 'chat_created',
-  GROUP_CHAT_DELETED: 'group_chat_deleted',
-  GROUP_CHAT_CREATED: 'group_chat_created',
   GENERATE_BEFORE_COMBINE_PROMPTS: 'generate_before_combine_prompts',
   GENERATE_AFTER_COMBINE_PROMPTS: 'generate_after_combine_prompts',
   GENERATE_AFTER_DATA: 'generate_after_data',
-  GROUP_MEMBER_DRAFTED: 'group_member_drafted',
   WORLD_INFO_ACTIVATED: 'world_info_activated',
   TEXT_COMPLETION_SETTINGS_READY: 'text_completion_settings_ready',
   CHAT_COMPLETION_SETTINGS_READY: 'chat_completion_settings_ready',
@@ -191,13 +191,20 @@ export const tavern_events = {
   CHARACTER_FIRST_MESSAGE_SELECTED: 'character_first_message_selected',
   CHARACTER_DELETED: 'characterDeleted',
   CHARACTER_DUPLICATED: 'character_duplicated',
+  CHARACTER_RENAMED: 'character_renamed',
+  CHARACTER_RENAMED_IN_PAST_CHAT: 'character_renamed_in_past_chat',
+  SMOOTH_STREAM_TOKEN_RECEIVED: 'stream_token_received',
   STREAM_TOKEN_RECEIVED: 'stream_token_received',
+  STREAM_REASONING_DONE: 'stream_reasoning_done',
   FILE_ATTACHMENT_DELETED: 'file_attachment_deleted',
   WORLDINFO_FORCE_ACTIVATE: 'worldinfo_force_activate',
   OPEN_CHARACTER_LIBRARY: 'open_character_library',
   ONLINE_STATUS_CHANGED: 'online_status_changed',
   IMAGE_SWIPED: 'image_swiped',
   CONNECTION_PROFILE_LOADED: 'connection_profile_loaded',
+  CONNECTION_PROFILE_CREATED: 'connection_profile_created',
+  CONNECTION_PROFILE_DELETED: 'connection_profile_deleted',
+  CONNECTION_PROFILE_UPDATED: 'connection_profile_updated',
   TOOL_CALLS_PERFORMED: 'tool_calls_performed',
   TOOL_CALLS_RENDERED: 'tool_calls_rendered',
   CHARACTER_MANAGEMENT_DROPDOWN: 'charManagementDropdown',
@@ -211,6 +218,8 @@ export const tavern_events = {
   PRESET_RENAMED_BEFORE: 'preset_renamed_before',
   MAIN_API_CHANGED: 'main_api_changed',
   WORLDINFO_ENTRIES_LOADED: 'worldinfo_entries_loaded',
+  WORLDINFO_SCAN_DONE: 'worldinfo_scan_done',
+  MEDIA_ATTACHMENT_DELETED: 'media_attachment_deleted',
 } as const;
 
 export type SendingMessage = {
@@ -241,6 +250,14 @@ export type ListenerType = {
   [tavern_events.MESSAGE_DELETED]: (message_id: number | string) => void;
   [tavern_events.MESSAGE_UPDATED]: (message_id: number | string) => void;
   [tavern_events.MESSAGE_FILE_EMBEDDED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_REASONING_EDITED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_REASONING_DELETED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_SWIPE_DELETED]: (event_data: {
+    messageId: number;
+    swipeId: number;
+    newSwipeId: number;
+  }) => void;
+  [tavern_events.MORE_MESSAGES_LOADED]: () => void;
   [tavern_events.IMPERSONATE_READY]: (message: string) => void;
   [tavern_events.CHAT_CHANGED]: (chat_file_name: string) => void;
   [tavern_events.GENERATION_AFTER_COMMANDS]: (
@@ -277,11 +294,16 @@ export type ListenerType = {
   ) => void;
   [tavern_events.GENERATION_STOPPED]: () => void;
   [tavern_events.GENERATION_ENDED]: (message_id: number) => void;
+  [tavern_events.SD_PROMPT_PROCESSING]: (event_data: {
+    prompt: string;
+    generationType: number;
+    message: string;
+    trigger: string;
+  }) => void;
   [tavern_events.EXTENSIONS_FIRST_LOAD]: () => void;
   [tavern_events.EXTENSION_SETTINGS_LOADED]: () => void;
   [tavern_events.SETTINGS_LOADED]: () => void;
   [tavern_events.SETTINGS_UPDATED]: () => void;
-  [tavern_events.GROUP_UPDATED]: () => void;
   [tavern_events.MOVABLE_PANELS_RESET]: () => void;
   [tavern_events.SETTINGS_LOADED_BEFORE]: (settings: object) => void;
   [tavern_events.SETTINGS_LOADED_AFTER]: (settings: object) => void;
@@ -299,17 +321,14 @@ export type ListenerType = {
   [tavern_events.OAI_PRESET_IMPORT_READY]: (result: { data: object; presetName: string }) => void;
   [tavern_events.WORLDINFO_SETTINGS_UPDATED]: () => void;
   [tavern_events.WORLDINFO_UPDATED]: (name: string, data: { entries: object[] }) => void;
+  [tavern_events.CHARACTER_EDITOR_OPENED]: (chid: string) => void;
   [tavern_events.CHARACTER_EDITED]: (result: { detail: { id: string; character: object } }) => void;
   [tavern_events.CHARACTER_PAGE_LOADED]: () => void;
-  [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_BEFORE]: (state: number) => void;
-  [tavern_events.CHARACTER_GROUP_OVERLAY_STATE_CHANGE_AFTER]: (state: number) => void;
   [tavern_events.USER_MESSAGE_RENDERED]: (message_id: number) => void;
   [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number) => void;
   [tavern_events.FORCE_SET_BACKGROUND]: (background: { url: string; path: string }) => void;
   [tavern_events.CHAT_DELETED]: (chat_file_name: string) => void;
   [tavern_events.CHAT_CREATED]: () => void;
-  [tavern_events.GROUP_CHAT_DELETED]: (chat_file_name: string) => void;
-  [tavern_events.GROUP_CHAT_CREATED]: () => void;
   [tavern_events.GENERATE_BEFORE_COMBINE_PROMPTS]: () => void;
   [tavern_events.GENERATE_AFTER_COMBINE_PROMPTS]: (result: { prompt: string; dryRun: boolean }) => void;
   /** dry_run 只在 SillyTavern 1.13.15 及以后有 */
@@ -319,7 +338,6 @@ export type ListenerType = {
     },
     dry_run: boolean,
   ) => void;
-  [tavern_events.GROUP_MEMBER_DRAFTED]: (character_id: string) => void;
   [tavern_events.WORLD_INFO_ACTIVATED]: (entries: any[]) => void;
   [tavern_events.TEXT_COMPLETION_SETTINGS_READY]: () => void;
   [tavern_events.CHAT_COMPLETION_SETTINGS_READY]: (generate_data: {
@@ -356,7 +374,19 @@ export type ListenerType = {
   }) => void;
   [tavern_events.CHARACTER_DELETED]: (result: { id: string; character: object }) => void;
   [tavern_events.CHARACTER_DUPLICATED]: (result: { oldAvatar: string; newAvatar: string }) => void;
+  [tavern_events.CHARACTER_RENAMED]: (old_avatar: string, new_avatar: string) => void;
+  [tavern_events.CHARACTER_RENAMED_IN_PAST_CHAT]: (
+    current_chat: Record<string, any>,
+    old_avatar: string,
+    new_avatar: string,
+  ) => void;
   [tavern_events.STREAM_TOKEN_RECEIVED]: (text: string) => void;
+  [tavern_events.STREAM_REASONING_DONE]: (
+    reasoning: string,
+    duration: number | null,
+    message_id: number,
+    state: 'none' | 'thinking' | 'done' | 'hidden',
+  ) => void;
   [tavern_events.FILE_ATTACHMENT_DELETED]: (url: string) => void;
   [tavern_events.WORLDINFO_FORCE_ACTIVATE]: (entries: object[]) => void;
   [tavern_events.OPEN_CHARACTER_LIBRARY]: () => void;
@@ -367,6 +397,12 @@ export type ListenerType = {
     direction: 'left' | 'right';
   }) => void;
   [tavern_events.CONNECTION_PROFILE_LOADED]: (profile_name: string) => void;
+  [tavern_events.CONNECTION_PROFILE_CREATED]: (profile: Record<string, any>) => void;
+  [tavern_events.CONNECTION_PROFILE_DELETED]: (profile: Record<string, any>) => void;
+  [tavern_events.CONNECTION_PROFILE_UPDATED]: (
+    old_profile: Record<string, any>,
+    new_profile: Record<string, any>,
+  ) => void;
   [tavern_events.TOOL_CALLS_PERFORMED]: (tool_invocations: object[]) => void;
   [tavern_events.TOOL_CALLS_RENDERED]: (tool_invocations: object[]) => void;
   [tavern_events.CHARACTER_MANAGEMENT_DROPDOWN]: (target: JQuery) => void;
@@ -384,6 +420,31 @@ export type ListenerType = {
     characterLore: Record<string, any>[];
     chatLore: Record<string, any>[];
     personaLore: Record<string, any>[];
+  }) => void;
+  [tavern_events.WORLDINFO_SCAN_DONE]: (event_data: {
+    state: {
+      current: number;
+      next: number;
+      loopCount: number;
+    };
+    new: {
+      all: Record<string, any>[];
+      successful: Record<string, any>[];
+    };
+    activated: {
+      entries: Map<`${string}.${string}`, Record<string, any>>;
+      text: string;
+    };
+    sortedEntries: Record<string, any>[];
+    recursionDelay: {
+      availableLevels: number[];
+      currentLevel: number;
+    };
+    budget: {
+      current: number;
+      overflowed: boolean;
+    };
+    timedEffects: Record<string, any>;
   }) => void;
   [custom_event: string]: (...args: any) => any;
 };
