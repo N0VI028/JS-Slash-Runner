@@ -1,5 +1,6 @@
 import { substituteParamsExtended } from '@sillytavern/script';
 import isPromise from 'is-promise';
+import { ZodError } from 'zod';
 
 export function _reloadIframe(this: Window): void {
   this.location.reload();
@@ -16,7 +17,7 @@ export function getLastMessageId(): number {
 export function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U {
   const onError = (error: Error) => {
     toastr.error(
-      `<pre style="white-space: pre-wrap">${error.stack ? [error.message, error.stack].join('\n') : error.message}</pre>`,
+      `<pre style="white-space: pre-wrap">${error.stack ? (error instanceof ZodError ? [error.message, error.stack].join('\n') : error.stack) : error.message}</pre>`,
       error.name,
       {
         escapeHtml: false,
