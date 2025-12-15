@@ -16,9 +16,12 @@ export function getLastMessageId(): number {
 export function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...args: T) => U {
   const onError = (error: Error) => {
     toastr.error(
-      (error.stack ? [error.message, error.stack].join('\n') : error.message).replaceAll('\n', '<br>'),
+      `<pre style="white-space: pre-wrap">${error.stack ? [error.message, error.stack].join('\n') : error.message}</pre>`,
       error.name,
-      { escapeHtml: false },
+      {
+        escapeHtml: false,
+        toastClass: 'toastr w-fit! min-w-[300px]',
+      },
     );
     throw error;
   };
