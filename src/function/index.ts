@@ -120,6 +120,7 @@ import {
   updateTavernRegexesWith,
 } from '@/function/tavern_regex';
 import {
+  _errorCatched,
   _getCurrentMessageId,
   _getIframeName,
   _getScriptId,
@@ -212,6 +213,7 @@ function getTavernHelper() {
 
       // util
       _reloadIframe,
+      _errorCatched,
       _getIframeName,
       _getScriptId,
       _getCurrentMessageId,

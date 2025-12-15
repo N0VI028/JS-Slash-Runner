@@ -40,6 +40,35 @@ export function errorCatched<T extends any[], U>(fn: (...args: T) => U): (...arg
     }
   };
 }
+export function _errorCatched<T extends any[], U>(this: Window, fn: (...args: T) => U): (...args: T) => U {
+  const onError = (error: Error) => {
+    const message = error.stack
+      ? error instanceof ZodError
+        ? [error.message, error.stack].join('\n')
+        : error.stack
+      : error.message;
+    toastr.error(`<pre style="white-space: pre-wrap">${message}</pre>`, error.name, {
+      escapeHtml: false,
+      toastClass: 'toastr w-fit! min-w-[300px]',
+    });
+    // @ts-expect-error _th_impl 是存在的
+    this._th_impl._log(_getIframeName.call(this), 'error', message);
+    throw error;
+  };
+  return (...args: T): U => {
+    try {
+      const result = fn(...args);
+      if (isPromise(result)) {
+        return result.then(undefined, error => {
+          onError(error);
+        }) as U;
+      }
+      return result;
+    } catch (error) {
+      return onError(error as Error);
+    }
+  };
+}
 
 export function _getIframeName(this: Window): string {
   return (this.frameElement as Element).id;
