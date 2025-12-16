@@ -77,7 +77,7 @@ import {
   setLorebookEntries,
   updateLorebookEntriesWith,
 } from '@/function/lorebook_entry';
-import { registerMacroLike, unregisterMacroLike } from '@/function/macro_like';
+import { _registerMacroLike, registerMacroLike, unregisterMacroLike } from '@/function/macro_like';
 import {
   createOrReplacePreset,
   createPreset,
@@ -193,6 +193,9 @@ function getTavernHelper() {
       // global
       _initializeGlobal,
       _waitGlobalInitialized,
+
+      // macro_like
+      _registerMacroLike,
 
       // script
       _getButtonEvent,

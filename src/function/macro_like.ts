@@ -70,14 +70,25 @@ export const macros: MacroLike[] = [
 export function registerMacroLike(
   regex: RegExp,
   replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string,
-) {
-  if (macros.some(macro => macro.regex.source === regex.source)) {
-    return;
+): { unregister: () => void } {
+  if (!macros.some(macro => macro.regex.source === regex.source)) {
+    macros.push({ regex, replace });
   }
-  macros.push({ regex, replace });
+  return { unregister: () => unregisterMacroLike(regex) };
+}
+export function _registerMacroLike(
+  this: Window,
+  regex: RegExp,
+  replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string,
+): { unregister: () => void } {
+  const { unregister } = registerMacroLike(regex, replace);
+  $(this).on('pagehide', unregister);
+  return { unregister };
 }
 
 export function unregisterMacroLike(regex: RegExp) {
   const index = macros.findIndex(macro => macro.regex.source === regex.source);
-  macros.splice(index, 1);
+  if (index !== -1) {
+    macros.splice(index, 1);
+  }
 }

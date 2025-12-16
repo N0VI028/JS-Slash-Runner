@@ -3,6 +3,11 @@ type MacroLikeContext = {
   role?: 'user' | 'assistant' | 'system';
 };
 
+type RegisterMacroLikeReturn = {
+  /** 取消注册 */
+  unregister: () => void;
+};
+
 /**
  * 注册一个新的助手宏
  *
@@ -15,11 +20,14 @@ type MacroLikeContext = {
  *   /<count_lines>(.*?)<count_lines>/gi,
  *   context => content.split('\n').length
  * );
+ *
+ * @returns 后续操作
+ *   - `unregister`: 取消注册
  */
 declare function registerMacroLike(
   regex: RegExp,
   replace: (context: MacroLikeContext, substring: string, ...args: any[]) => string,
-): void;
+): RegisterMacroLikeReturn;
 
 /**
  * 取消注册一个助手宏
