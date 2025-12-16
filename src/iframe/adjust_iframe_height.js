@@ -110,6 +110,7 @@
           resize_observer.observe(element);
         }
         resize_observer.observe(body);
+        postIframeHeight();
       });
       mutation_observer.observe(body, { childList: true, subtree: false, attributes: false });
     }
