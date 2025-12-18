@@ -92,9 +92,7 @@
             >
               <span>
                 Role:
-                <span>
-                  {{ roleIcons[item_data.role] }} {{ item_data.role }}
-                </span>
+                <span> {{ roleIcons[item_data.role] }} {{ item_data.role }} </span>
                 | Tokens: <span>{{ item_data.token }}</span>
               </span>
               <div class="flex gap-1">
@@ -130,6 +128,7 @@ import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
 import { usePresetSettingsStore } from '@/store/settings';
+import { copyText } from '@/util/compatibility';
 import { getImageTokenCost, getVideoTokenCost } from '@/util/tavern';
 import {
   event_types,
@@ -142,7 +141,6 @@ import {
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
-import { copyText } from '@sillytavern/scripts/utils';
 import { Teleport } from 'vue';
 import { VirtList } from 'vue-virt-list';
 

@@ -98,6 +98,22 @@ export function reloadEditor(file: string, load_if_not_selected: boolean = false
   }
 }
 
+export async function copyText(text: string) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const parent = document.querySelector('dialog[open]:last-of-type') ?? document.body;
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  parent.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  document.execCommand('copy');
+  parent.removeChild(textArea);
+}
+
 export const reloadEditorDebounced = _.debounce(reloadEditor, 1000);
 
 export const settingsToUpdate = {
