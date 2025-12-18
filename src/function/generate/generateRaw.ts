@@ -330,10 +330,15 @@ async function populationInjectionPrompts(
 
   // 处理自定义注入
   if (Array.isArray(customInjects)) {
-    injectPrompts(
-      customInjects.map(inject => ({ id: uuidv4(), ...inject })),
-      { once: true },
-    );
+    for (const inject of customInjects) {
+      injectionPrompts.push({
+        identifier: `INJECTION-${inject.role}-${inject.depth}`,
+        role: inject.role,
+        content: inject.content,
+        injection_depth: inject.depth || 0,
+        injected: true,
+      });
+    }
   }
 
   for (let i = 0; i <= MAX_INJECTION_DEPTH; i++) {

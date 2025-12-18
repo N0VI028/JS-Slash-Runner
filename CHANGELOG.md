@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.3.12
+
+### 📦函数
+
+- `generateRaw` 在一些情况下用 `inject` 注入提示词失败的问题
+
 ## 4.3.11
 
 ### 🎨渲染器
