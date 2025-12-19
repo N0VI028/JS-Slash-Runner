@@ -26,7 +26,8 @@
               border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
             "
           >
-            {{ t`展开` }} {{ (item.match(/\n/g)?.length ?? 0) + 1 }} {{ t`行隐藏内容` }}<i class="fa-solid fa-chevron-down"></i>
+            {{ t`展开` }} {{ (item.match(/\n/g)?.length ?? 0) + 1 }} {{ t`行隐藏内容` }}
+            <i class="fa-solid fa-chevron-down" />
           </div>
         </div>
       </template>
@@ -78,7 +79,7 @@ watch(
       return Math.max(0, low - 1);
     };
 
-    const matches = [...props.content.matchAll(search_input)];
+    const matches = [...props.content.matchAll(new RegExp(search_input, search_input.flags + 'g'))];
     if (matches.length === 0) {
       is_expanded.value = [];
       is_collapsible.value = [];

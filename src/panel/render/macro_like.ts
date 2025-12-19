@@ -17,6 +17,7 @@ function demacroOnPrompt(
   for (const message of event_data.prompt) {
     for (const macro of macros) {
       if (typeof message.content === 'string') {
+        macro.regex.lastIndex = 0;
         message.content = message.content.replace(macro.regex, (substring: string, ...args: any[]) =>
           macro.replace({ role: message.role }, substring, ...args),
         );
@@ -24,6 +25,7 @@ function demacroOnPrompt(
         message.content
           .filter(item => item.type === 'text')
           .forEach(item => {
+            macro.regex.lastIndex = 0;
             item.text = item.text.replace(macro.regex, (substring: string, ...args: any[]) =>
               macro.replace({ role: message.role }, substring, ...args),
             );
@@ -35,12 +37,19 @@ function demacroOnPrompt(
 
 function demacroOnRender($mes: JQuery<HTMLDivElement>) {
   const $mes_text = $mes.find('.mes_text');
-  if ($mes_text.length === 0 || !macros.some(macro => macro.regex.test($mes_text.text()))) {
+  if (
+    $mes_text.length === 0 ||
+    !macros.some(macro => {
+      macro.regex.lastIndex = 0;
+      return macro.regex.test($mes_text.text());
+    })
+  ) {
     return;
   }
 
   const replace_html = (html: string) => {
     for (const macro of macros) {
+      macro.regex.lastIndex = 0;
       html = html.replace(macro.regex, (substring: string, ...args: any[]) =>
         macro.replace({ role: $mes.attr('is_user') === 'true' ? 'user' : 'assistant' }, substring, ...args),
       );
@@ -54,7 +63,12 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
   $mes_text.html((_index, html) => replace_html(html));
   $mes_text
     .find('code')
-    .filter((_index, element) => macros.some(macro => macro.regex.test($(element).text())))
+    .filter((_index, element) =>
+      macros.some(macro => {
+        macro.regex.lastIndex = 0;
+        return macro.regex.test($(element).text());
+      }),
+    )
     .text((_index, text) => replace_html(text))
     .removeClass('hljs')
     .each((_index, element) => {
