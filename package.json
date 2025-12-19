@@ -70,7 +70,7 @@
     "pinia": "^3.0.4",
     "socket.io-client": "^4.8.1",
     "type-fest": "^4.41.0",
-    "vue": "^3.5.25",
+    "vue": "^3.5.26",
     "vue-draggable-plus": "^0.6.0",
     "vue-final-modal": "^4.5.5",
     "vue-pick-colors": "^1.8.0",
@@ -78,6 +78,6 @@
     "vue-tippy": "^6.7.1",
     "vue-virt-list": "^1.6.1",
     "vue-word-highlighter": "^1.2.6",
-    "zod": "^4.2.0"
+    "zod": "^4.2.1"
   }
 }
