@@ -71,7 +71,26 @@ export function _errorCatched<T extends any[], U>(this: Window, fn: (...args: T)
 }
 
 export function _getIframeName(this: Window): string {
-  return (this.frameElement as Element).id;
+  const frameElement = this.frameElement as Element | null;
+  const cachedId = (this as typeof window & { __TH_IFRAME_ID?: string }).__TH_IFRAME_ID || this.name;
+
+  if (frameElement?.id) {
+    // Persist id so we can still resolve it after the iframe is removed (Firefox srcdoc teardown).
+    (this as typeof window & { __TH_IFRAME_ID?: string }).__TH_IFRAME_ID = frameElement.id;
+    if (!this.name) {
+      this.name = frameElement.id;
+    }
+    return frameElement.id;
+  }
+
+  if (cachedId) {
+    if (!this.name) {
+      this.name = cachedId;
+    }
+    return cachedId;
+  }
+
+  throw new TypeError('frameElement is null while resolving iframe id');
 }
 
 export function _getScriptId(this: Window): string {
