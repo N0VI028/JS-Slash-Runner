@@ -37,7 +37,7 @@ declare function importRawChat(filename: string, content: string): Promise<Respo
  * const response = await fetch(预设网络链接);
  * await importRawChat(预设名, await response.text());
  */
-declare function importRawPreset(filename: string, content: string): Promise<Response>;
+declare function importRawPreset(filename: string, content: string): Promise<boolean>;
 
 /**
  * 像酒馆界面里那样导入世界书
