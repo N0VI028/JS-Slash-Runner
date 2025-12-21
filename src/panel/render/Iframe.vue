@@ -1,6 +1,7 @@
 <template>
   <iframe
     :id="prefixed_id"
+    :name="prefixed_id"
     ref="iframe_ref"
     loading="lazy"
     v-bind="src_prop"
