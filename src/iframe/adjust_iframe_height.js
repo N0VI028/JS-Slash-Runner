@@ -112,7 +112,7 @@
         resize_observer.observe(body);
         postIframeHeight();
       });
-      mutation_observer.observe(body, { childList: true, subtree: true, attributes: false });
+      mutation_observer.observe(body, { childList: true, subtree: true, attributes: true });
     }
   }
 
