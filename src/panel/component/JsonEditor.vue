@@ -35,10 +35,30 @@ const updateModelDebounced = _.debounce(updateModel, 300);
 let editor_instance: ReturnType<typeof createJSONEditor>;
 let prevent_updating_content = false;
 let mode: Mode = Mode.tree;
-onMounted(() => {
-  const ANIMATION_TIME = 1000;
-  let last_animation_end = 0;
 
+const ANIMATION_TIME = 1000;
+const animation_queue: Array<() => Promise<void>> = [];
+let is_playing_animation = false;
+let is_unmounted = false;
+
+const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
+const runAnimationQueue = async () => {
+  if (is_playing_animation || is_unmounted) {
+    return;
+  }
+  is_playing_animation = true;
+  try {
+    while (animation_queue.length > 0 && !is_unmounted) {
+      const job = animation_queue.shift()!;
+      await job();
+    }
+  } finally {
+    is_playing_animation = false;
+  }
+};
+
+onMounted(() => {
   document.documentElement.style.setProperty('--jse-custom-anim-duration', `${ANIMATION_TIME}ms`);
 
   editor_instance = createJSONEditor({
@@ -114,22 +134,25 @@ onMounted(() => {
       });
     };
 
-    const now = Date.now();
-    const global_delay = last_animation_end > now ? last_animation_end - now : 0;
-    if (has_deletions) {
-      last_animation_end = now + global_delay + ANIMATION_TIME * 2;
-      _.delay(play_deletion, global_delay);
-      _.delay(play_addition_and_update, global_delay + ANIMATION_TIME);
-      _.delay(play_done, global_delay + ANIMATION_TIME * 2);
-    } else {
-      last_animation_end = now + global_delay + ANIMATION_TIME;
-      _.delay(play_addition_and_update, global_delay);
-      _.delay(play_done, global_delay + ANIMATION_TIME);
-    }
+    animation_queue.push(async () => {
+      if (is_unmounted) {
+        return;
+      }
+      if (has_deletions) {
+        play_deletion();
+        await wait(ANIMATION_TIME);
+      }
+      play_addition_and_update();
+      await wait(ANIMATION_TIME);
+      play_done();
+    });
+    void runAnimationQueue();
   });
 });
 onBeforeUnmount(() => {
-  editor_instance.destroy();
+  is_unmounted = true;
+  animation_queue.length = 0;
+  editor_instance?.destroy();
 });
 </script>
 
