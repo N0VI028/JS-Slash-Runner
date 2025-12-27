@@ -37,6 +37,8 @@ let prevent_updating_content = false;
 let mode: Mode = Mode.tree;
 onMounted(() => {
   const ANIMATION_TIME = 1000;
+  let last_animation_end = 0;
+
   document.documentElement.style.setProperty('--jse-custom-anim-duration', `${ANIMATION_TIME}ms`);
 
   editor_instance = createJSONEditor({
@@ -90,7 +92,13 @@ onMounted(() => {
 
     const has_deletions = !_.isEmpty(diff.deleted);
 
-    const play_addition_and_update_animation = () => {
+    const play_deletion = () => {
+      editor_instance.updateProps({
+        onClassName: path => (_.has(diff.deleted, path) ? 'jse-custom-deleted' : undefined),
+      });
+    };
+
+    const play_addition_and_update = () => {
       editor_instance.updateProps({
         content: {
           json: klona(new_content),
@@ -98,23 +106,25 @@ onMounted(() => {
         onClassName: path =>
           _.has(diff.updated, path) ? 'jse-custom-updated' : _.has(diff.added, path) ? 'jse-custom-added' : undefined,
       });
-
-      _.delay(() => {
-        editor_instance.updateProps({
-          onClassName: () => undefined,
-        });
-      }, ANIMATION_TIME);
     };
 
-    if (has_deletions) {
-      // 给将被删除的节点加类，先播放删除动画
+    const play_done = () => {
       editor_instance.updateProps({
-        onClassName: path => (_.has(diff.deleted, path) ? 'jse-custom-deleted' : undefined),
+        onClassName: () => undefined,
       });
-      // 延迟一段时间后播放添加和更新动画
-      _.delay(play_addition_and_update_animation, ANIMATION_TIME);
+    };
+
+    const now = Date.now();
+    const global_delay = last_animation_end > now ? last_animation_end - now : 0;
+    if (has_deletions) {
+      _.delay(play_deletion, global_delay);
+      _.delay(play_addition_and_update, global_delay + ANIMATION_TIME);
+      _.delay(play_done, global_delay + ANIMATION_TIME * 2);
+      last_animation_end = now + global_delay + ANIMATION_TIME * 2;
     } else {
-      play_addition_and_update_animation();
+      _.delay(play_addition_and_update, global_delay);
+      _.delay(play_done, global_delay + ANIMATION_TIME);
+      last_animation_end = now + global_delay + ANIMATION_TIME;
     }
   });
 });
