@@ -36,13 +36,12 @@ let editor_instance: ReturnType<typeof createJSONEditor>;
 let prevent_updating_content = false;
 let mode: Mode = Mode.tree;
 
+let is_unmounted = false;
+
 const ANIMATION_TIME = 1000;
 const animation_queue: Array<() => Promise<void>> = [];
 let is_playing_animation = false;
-let is_unmounted = false;
-
 const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
-
 const runAnimationQueue = async () => {
   if (is_playing_animation || is_unmounted) {
     return;
@@ -146,7 +145,7 @@ onMounted(() => {
       await wait(ANIMATION_TIME);
       play_done();
     });
-    void runAnimationQueue();
+    runAnimationQueue();
   });
 });
 onBeforeUnmount(() => {
