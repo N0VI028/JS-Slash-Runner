@@ -117,14 +117,14 @@ onMounted(() => {
     const now = Date.now();
     const global_delay = last_animation_end > now ? last_animation_end - now : 0;
     if (has_deletions) {
+      last_animation_end = now + global_delay + ANIMATION_TIME * 2;
       _.delay(play_deletion, global_delay);
       _.delay(play_addition_and_update, global_delay + ANIMATION_TIME);
       _.delay(play_done, global_delay + ANIMATION_TIME * 2);
-      last_animation_end = now + global_delay + ANIMATION_TIME * 2;
     } else {
+      last_animation_end = now + global_delay + ANIMATION_TIME;
       _.delay(play_addition_and_update, global_delay);
       _.delay(play_done, global_delay + ANIMATION_TIME);
-      last_animation_end = now + global_delay + ANIMATION_TIME;
     }
   });
 });
