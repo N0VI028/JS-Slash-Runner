@@ -275,7 +275,7 @@ declare const tavern_events: {
   MEDIA_ATTACHMENT_DELETED: 'media_attachment_deleted';
 };
 
-type ListenerType = {
+interface ListenerType {
   [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
   [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
   [iframe_events.GENERATION_STARTED]: (generation_id: string) => void;
