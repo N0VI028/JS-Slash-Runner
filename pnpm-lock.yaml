@@ -42,8 +42,8 @@ importers:
         specifier: ^2.0.6
         version: 2.0.6
       lodash-omitdeep:
-        specifier: ^1.6.4
-        version: 1.6.4(lodash@4.17.21)
+        specifier: ^1.7.0
+        version: 1.7.0(lodash@4.17.21)
       pinia:
         specifier: ^3.0.4
         version: 3.0.4(typescript@6.0.0-dev.20250807)(vue@3.5.26(typescript@6.0.0-dev.20250807))
@@ -1934,8 +1934,8 @@ packages:
   lodash-es@4.17.22:
     resolution: {integrity: sha512-XEawp1t0gxSi9x01glktRZ5HDy0HXqrM0x5pXQM98EaI0NxO6jVM7omDOxsuEo5UIASAnm2bRp1Jt/e0a2XU8Q==}
 
-  lodash-omitdeep@1.6.4:
-    resolution: {integrity: sha512-CahTnpEAd4bagpMZbnnujsaKn/L5tx5xPRmuIthk4INxJU01OwJ/Bc7Z8tFAnvmHgzKEZtz1VS8G2DMAKYLDEQ==}
+  lodash-omitdeep@1.7.0:
+    resolution: {integrity: sha512-NbHdu7+x/93AZA7GVRjlfFrl3GEJDCgWWBf4rINGPNny1it1kvlqL4idMDiXldXivA4k7TZyJ7uWUU7+mmPI2w==}
     peerDependencies:
       lodash: ^4
 
@@ -2367,8 +2367,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  ts-api-utils@2.1.0:
-    resolution: {integrity: sha512-CUgTZL1irw8u29bzrOD/nH85jqyc74D6SshFgujOIA7osm2Rz7dYH77agkx7H4FBNxDq7Cjf+IjaX/8zwFW+ZQ==}
+  ts-api-utils@2.2.0:
+    resolution: {integrity: sha512-L6f5oQRAoLU1RwXz0Ab9mxsE7LtxeVB6AIR1lpkZMsOyg/JXeaxBaXa/FVCBZyNr9S9I4wkHrlZTklX+im+WMw==}
     engines: {node: '>=18.12'}
     peerDependencies:
       typescript: '>=4.8.4'
@@ -3273,7 +3273,7 @@ snapshots:
       eslint: 9.39.2(jiti@2.6.1)
       ignore: 7.0.5
       natural-compare: 1.4.0
-      ts-api-utils: 2.1.0(typescript@6.0.0-dev.20250807)
+      ts-api-utils: 2.2.0(typescript@6.0.0-dev.20250807)
       typescript: 6.0.0-dev.20250807
     transitivePeerDependencies:
       - supports-color
@@ -3315,7 +3315,7 @@ snapshots:
       '@typescript-eslint/utils': 8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@6.0.0-dev.20250807)
       debug: 4.4.3
       eslint: 9.39.2(jiti@2.6.1)
-      ts-api-utils: 2.1.0(typescript@6.0.0-dev.20250807)
+      ts-api-utils: 2.2.0(typescript@6.0.0-dev.20250807)
       typescript: 6.0.0-dev.20250807
     transitivePeerDependencies:
       - supports-color
@@ -3332,7 +3332,7 @@ snapshots:
       minimatch: 9.0.5
       semver: 7.7.3
       tinyglobby: 0.2.15
-      ts-api-utils: 2.1.0(typescript@6.0.0-dev.20250807)
+      ts-api-utils: 2.2.0(typescript@6.0.0-dev.20250807)
       typescript: 6.0.0-dev.20250807
     transitivePeerDependencies:
       - supports-color
@@ -4241,7 +4241,7 @@ snapshots:
 
   lodash-es@4.17.22: {}
 
-  lodash-omitdeep@1.6.4(lodash@4.17.21):
+  lodash-omitdeep@1.7.0(lodash@4.17.21):
     dependencies:
       lodash: 4.17.21
 
@@ -4618,7 +4618,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  ts-api-utils@2.1.0(typescript@6.0.0-dev.20250807):
+  ts-api-utils@2.2.0(typescript@6.0.0-dev.20250807):
     dependencies:
       typescript: 6.0.0-dev.20250807
 
