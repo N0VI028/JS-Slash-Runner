@@ -1,3 +1,48 @@
+declare namespace EjsTemplate {
+  type Features = {
+    /** 是否启用扩展 */
+    enabled: boolean;
+
+    /** 处理生成内容 */
+    generate_enabled: boolean;
+    /** 生成时注入 [GENERATE] 世界书条目 */
+    generate_loader_enabled: boolean;
+    /** 生成时注入 @INJECT 世界书条目 */
+    inject_loader_enabled: boolean;
+
+    /** 处理楼层消息 */
+    render_enabled: boolean;
+    /** 渲染楼层时注入 [RENDER] 世界书条目 */
+    render_loader_enabled: boolean;
+    /** 处理代码块 */
+    code_blocks_enabled: boolean;
+    /** 处理原始消息内容 */
+    raw_message_evaluation_enabled: boolean;
+    /** 生成时忽略楼层消息处理 */
+    filter_message_enabled: boolean;
+    /** 处理楼层深度限制 (-1=无限制) */
+    depth_limit: number;
+
+    /** 自动保存变量更新 */
+    autosave_enabled: boolean;
+    /** 立即加载世界书 */
+    preload_worldinfo_enabled: boolean;
+    /** 禁用 with 语句块 */
+    with_context_disabled: boolean;
+    /** 控制台显示详细信息 */
+    debug_enabled: boolean;
+    /** 旧设定兼容模式，世界书中的 GENERATE/RENDER/INJECT 条目禁用时视为启用 */
+    invert_enabled: boolean;
+
+    /** 缓存 (实验性) (0=禁用, 1=全部, 2=仅世界书) */
+    cache_enabled: number;
+    /** 缓存大小 */
+    cache_size: number;
+    /** 缓存 Hash 函数 */
+    cache_hasher: 'h32ToString' | 'h64ToString';
+  };
+}
+
 /**
  * 提示词模板语法插件所提供的额外功能, 必须额外安装提示词模板语法插件, 具体内容见于 https://github.com/zonde306/ST-Prompt-Template
  * 你也可以在酒馆页面按 f12, 在控制台中输入 `window.EjsTemplate` 来查看当前提示词模板语法所提供的接口
@@ -55,54 +100,18 @@ declare const EjsTemplate: {
   allVariables: (end_message_id?: number) => Record<string, any>;
 
   /**
+   * 获取提示词模板语法插件的设置
+   *
+   * @returns 设置情况
+   */
+  getFeatures: () => EjsTemplate.Features;
+
+  /**
    * 设置提示词模板语法插件的设置
    *
    * @param features 设置
    */
-  setFeatures: (
-    features: Partial<{
-      /** 是否启用扩展 */
-      enabled: boolean;
-
-      /** 处理生成内容 */
-      generate_enabled: boolean;
-      /** 生成时注入 [GENERATE] 世界书条目 */
-      generate_loader_enabled: boolean;
-      /** 生成时注入 @INJECT 世界书条目 */
-      inject_loader_enabled: boolean;
-
-      /** 处理楼层消息 */
-      render_enabled: boolean;
-      /** 渲染楼层时注入 [RENDER] 世界书条目 */
-      render_loader_enabled: boolean;
-      /** 处理代码块 */
-      code_blocks_enabled: boolean;
-      /** 处理原始消息内容 */
-      raw_message_evaluation_enabled: boolean;
-      /** 生成时忽略楼层消息处理 */
-      filter_message_enabled: boolean;
-      /** 处理楼层深度限制 (-1=无限制) */
-      depth_limit: number;
-
-      /** 自动保存变量更新 */
-      autosave_enabled: boolean;
-      /** 立即加载世界书 */
-      preload_worldinfo_enabled: boolean;
-      /** 禁用 with 语句块 */
-      with_context_disabled: boolean;
-      /** 控制台显示详细信息 */
-      debug_enabled: boolean;
-      /** 旧设定兼容模式，世界书中的 GENERATE/RENDER/INJECT 条目禁用时视为启用 */
-      invert_enabled: boolean;
-
-      /** 缓存 (实验性) (0=禁用, 1=全部, 2=仅世界书) */
-      cache_enabled: number;
-      /** 缓存大小 */
-      cache_size: number;
-      /** 缓存 Hash 函数 */
-      cache_hasher: 'h32ToString' | 'h64ToString';
-    }>,
-  ) => void;
+  setFeatures: (features: Partial<EjsTemplate.Features>) => void;
 
   /**
    * 重置提示词模板语法插件的设置
