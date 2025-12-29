@@ -13,7 +13,6 @@ import {
   eventSource,
   event_types,
   isOdd,
-  saveSettingsDebounced,
 } from '@sillytavern/script';
 import { oai_settings, sendOpenAIRequest } from '@sillytavern/scripts/openai';
 import { power_user } from '@sillytavern/scripts/power-user';
@@ -179,7 +178,7 @@ export async function generateResponse(
           } else if (input !== 'same_as_preset') {
             _.set(data, param, input);
           }
-        }
+        };
         set_param('max_tokens');
         set_param('temperature');
         set_param('frequency_penalty');
@@ -206,26 +205,22 @@ export async function generateResponse(
       generationId = uuidv4();
     }
     eventSource.emit('js_generation_started', generationId);
-    if (useStream) {
-      const originalStreamSetting = oai_settings.stream_openai;
-      if (!originalStreamSetting) {
+
+    const original_stream = oai_settings.stream_openai;
+    try {
+      if (useStream) {
         oai_settings.stream_openai = true;
-        saveSettingsDebounced();
+        const streamingProcessor = new StreamingProcessor(generationId, abortController);
+        // @ts-expect-error 类型正确
+        streamingProcessor.generator = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
+        result = (await streamingProcessor.generate()) as string;
+      } else {
+        oai_settings.stream_openai = false;
+        const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
+        result = await handleResponse(response, generationId);
       }
-      const streamingProcessor = new StreamingProcessor(generationId, abortController);
-      // @ts-expect-error 类型正确
-      streamingProcessor.generator = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
-      result = (await streamingProcessor.generate()) as string;
-      if (originalStreamSetting !== oai_settings.stream_openai) {
-        oai_settings.stream_openai = originalStreamSetting;
-        saveSettingsDebounced();
-      }
-    } else {
-      const should_stream = oai_settings.stream_openai;
-      oai_settings.stream_openai = false;
-      const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
-      oai_settings.stream_openai = should_stream;
-      result = await handleResponse(response, generationId);
+    } finally {
+      oai_settings.stream_openai = original_stream;
     }
   } catch (error) {
     // 如果有图片处理设置但生成失败，确保拒绝Promise
