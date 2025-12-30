@@ -59,6 +59,7 @@
     "@vueuse/core": "^13.9.0",
     "@vueuse/integrations": "^13.9.0",
     "@vueuse/shared": "^13.9.0",
+    "async-wait-until": "^2.0.31",
     "compare-versions": "^6.1.1",
     "deep-object-diff": "^1.1.9",
     "destr": "^2.0.5",
