@@ -22,7 +22,7 @@ function getSettings(id: string | undefined): CharacterSettings {
       variables: backward_variables ?? {},
     } satisfies z.infer<typeof BackwardCharacterSettings>);
     if (parsed.success) {
-      saveSettingsDebounced(id as string, characters[id as unknown as number]?.name as string, parsed.data);
+      saveSettings(id as string, characters[id as unknown as number]?.name as string, parsed.data);
     } else {
       toastr.warning(parsed.error.message, t`[酒馆助手]迁移旧数据失败, 将使用空数据`);
     }
