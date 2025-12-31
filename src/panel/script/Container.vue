@@ -65,6 +65,8 @@ const emit = defineEmits<{
   move: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
 
+provide<Ref<boolean>>('container_enabled', toRef(store.value, 'enabled'));
+
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
 
 const during_sorting_item = inject<Ref<boolean>>('during_sorting_item', ref(false));

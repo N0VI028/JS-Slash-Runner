@@ -11,13 +11,7 @@
   >
     <span class="TH-handle cursor-grab select-none active:cursor-grabbing">☰</span>
 
-    <div
-      class="ml-0.5 w-0 grow overflow-hidden"
-      :style="{
-        textDecoration: script.enabled ? 'none' : 'line-through',
-        filter: script.enabled ? 'none' : 'grayscale(0.5)',
-      }"
-    >
+    <div class="ml-0.5 w-0 grow overflow-hidden" :class="{ 'opacity-50': !actually_enabled }">
       <Highlighter :query="search_input">{{ script.name }}</Highlighter>
     </div>
     <div class="flex flex-nowrap items-center gap-[5px]">
@@ -75,15 +69,22 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
 }>();
 
 const script = defineModel<Script>({ required: true });
-const props = defineProps<{
-  target: 'global' | 'character' | 'preset';
-}>();
+const props = withDefaults(
+  defineProps<{
+    target: 'global' | 'character' | 'preset';
+    folderEnabled?: boolean;
+  }>(),
+  { folderEnabled: true },
+);
 
 const emit = defineEmits<{
   delete: [id: string];
   move: [id: string, target: 'global' | 'character' | 'preset'];
   copy: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
+
+const container_enabled = inject<Ref<boolean>>('container_enabled', ref(true));
+const actually_enabled = computed(() => container_enabled.value && props.folderEnabled && script.value.enabled);
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
 

@@ -13,16 +13,10 @@
 
       <i
         class="fa-solid ml-0.5"
-        :class="script_folder.icon || 'fa-folder'"
+        :class="[script_folder.icon || 'fa-folder', { 'opacity-50': !actually_enabled }]"
         :style="{ color: script_folder.color || 'var(--SmartThemeQuoteColor)' }"
       />
-      <span
-        class="ml-0.5 w-0 grow overflow-hidden"
-        :style="{
-          textDecoration: script_folder.enabled ? 'none' : 'line-through',
-          filter: script_folder.enabled ? 'none' : 'grayscale(0.5)',
-        }"
-      >
+      <span class="ml-0.5 w-0 grow overflow-hidden" :class="{ 'opacity-50': !actually_enabled }">
         <Highlighter :query="search_input" :text-to-highlight="script_folder.name" />
       </span>
       <div class="flex shrink-0 flex-wrap items-center gap-0.25">
@@ -77,6 +71,7 @@
         <ScriptItem
           v-model="script_folder.scripts[index]"
           :target="props.target"
+          :folder-enabled="script_folder.enabled"
           :search-input="search_input"
           @delete="handleScriptDelete"
           @move="handleMove"
@@ -113,6 +108,9 @@ const emit = defineEmits<{
   delete: [id: string];
   move: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
+
+const container_enabled = inject<Ref<boolean>>('container_enabled', ref(true));
+const actually_enabled = computed(() => container_enabled.value && script_folder.value.enabled);
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
 const during_sorting_item = inject<Ref<boolean>>('during_sorting_item', ref(false));
