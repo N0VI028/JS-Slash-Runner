@@ -13,18 +13,21 @@ function getSettings(id: string): PresetSettings {
   return PresetSettings.parse(parsed.data);
 }
 
-function saveSettingsToMemoryDebounced(settings: PresetSettings) {
-  _.set(oai_settings, `extensions.${setting_field}`, settings);
-  saveSettingsDebounced();
+function saveSettingsToMemoryDebounced(id: string, name: string, settings: PresetSettings) {
+  if (id === preset_manager.getSelectedPreset() && name === preset_manager.getSelectedPresetName()) {
+    _.set(oai_settings, `extensions.${setting_field}`, settings);
+    saveSettingsDebounced();
+  }
 }
 
-async function saveSettingsToFile(id: string, settings: PresetSettings) {
-  _.set(preset_manager.getPresetList().presets[Number(id)], `extensions.${setting_field}`, settings);
-  await preset_manager.savePreset(
-    Object.keys(preset_manager.getPresetList().preset_names)[Number(id)],
-    preset_manager.getPresetList().presets[Number(id)],
-    { skipUpdate: true },
-  );
+async function saveSettingsToFile(id: string, name: string, settings: PresetSettings) {
+  const preset_list = preset_manager.getPresetList();
+  const preset = preset_list.presets[Number(id)];
+  const preset_name = Object.keys(preset_list.preset_names)[Number(id)];
+  if (name === preset_name) {
+    _.set(preset, `extensions.${setting_field}`, settings);
+    await preset_manager.savePreset(preset_name, preset, { skipUpdate: true });
+  }
 }
 const saveSettingsToFileDebounced = _.debounce(saveSettingsToFile, 1000);
 
@@ -53,10 +56,8 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
   const { ignoreUpdates } = watchIgnorable(
     settings,
     new_settings => {
-      if (id.value === preset_manager.getSelectedPreset()) {
-        saveSettingsToMemoryDebounced(klona(new_settings));
-      }
-      saveSettingsToFileDebounced(id.value, klona(new_settings));
+      saveSettingsToMemoryDebounced(id.value, name.value, klona(new_settings));
+      saveSettingsToFileDebounced(id.value, name.value, klona(new_settings));
     },
     { deep: true },
   );

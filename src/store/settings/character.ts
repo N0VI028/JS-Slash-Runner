@@ -22,7 +22,7 @@ function getSettings(id: string | undefined): CharacterSettings {
       variables: backward_variables ?? {},
     } satisfies z.infer<typeof BackwardCharacterSettings>);
     if (parsed.success) {
-      saveSettingsDebounced(id as string, parsed.data);
+      saveSettingsDebounced(id as string, characters[id as unknown as number]?.name as string, parsed.data);
     } else {
       toastr.warning(parsed.error.message, t`[酒馆助手]迁移旧数据失败, 将使用空数据`);
     }
@@ -37,13 +37,15 @@ function getSettings(id: string | undefined): CharacterSettings {
   return CharacterSettings.parse(parsed.data);
 }
 
-const writeExtensionFieldDebounced = _.debounce(writeExtensionField, 1000);
-function saveSettingsDebounced(id: string, settings: CharacterSettings) {
+function saveSettings(id: string, name: string, settings: CharacterSettings) {
   // 酒馆的 `writeExtensionField` 会对对象进行合并, 因此要将对象转换为数组再存储
-  const entries = Object.entries(settings);
-  _.set(characters[id as unknown as number], `data.extensions.${setting_field}`, entries);
-  writeExtensionFieldDebounced(Number(id), setting_field, entries);
+  if (name === characters[id as unknown as number]?.name) {
+    const entries = Object.entries(settings);
+    _.set(characters[id as unknown as number], `data.extensions.${setting_field}`, entries);
+    writeExtensionField(Number(id), setting_field, entries);
+  }
 }
+const saveSettingsDebounced = _.debounce(saveSettings, 1000);
 
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
@@ -99,8 +101,8 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   const { ignoreUpdates } = watchIgnorable(
     settings,
     new_settings => {
-      if (id.value !== undefined) {
-        saveSettingsDebounced(id.value, klona(new_settings));
+      if (id.value !== undefined && name.value !== undefined) {
+        saveSettingsDebounced(id.value, name.value, klona(new_settings));
       }
     },
     { deep: true },
