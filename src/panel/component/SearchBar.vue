@@ -68,15 +68,15 @@ function regexFromString(input: string): RegExp | null {
     if (!match) {
       return new RegExp(_.escapeRegExp(input), 'i');
     }
-    if (match[3] && !/^(?!.*?(.).*?\1)[gmixXsuUAJ]+$/.test(match[3])) {
+    if (match[2] && !/^(?!.*?(.).*?\1)[gmixXsuUAJ]+$/.test(match[3])) {
       return new RegExp(input, 'i');
     }
-    let flags = match[3];
+    let flags = match[2] ?? '';
     _.pull(flags, 'g');
     if (flags.indexOf('i') === -1) {
       flags = flags + 'i';
     }
-    return new RegExp(match[2], flags);
+    return new RegExp(match[1], flags);
   } catch {
     return null;
   }
