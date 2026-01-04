@@ -230,11 +230,15 @@ type BuiltinPrompt =
  *
  * @example
  * // 流式生成
- * const result = await generate({ user_input: '你好', should_stream: true });
- * // 需要监听事件来接收流式回复
+ *
+ * // 需要预先监听事件来接收流式回复
  * eventOn(iframe_events.STREAM_TOKEN_RECEIVED_FULLY, text => {
  *   console.info('收到流式回复: ', text);
  * });
+ *
+ * // 然后进行生成
+ * const result = await generate({ user_input: '你好', should_stream: true });
+ * console.info('收到最终回复: ', result);
  */
 declare function generate(config: GenerateConfig): Promise<string>;
 
