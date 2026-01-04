@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.3.17
+
+### 🐛修复
+
+- `rebindGlobalWorldbooks` 后立即 `getGlobalWorldbookNames` 不能获取到最新全局世界书启用情况的问题
+
 ## 4.3.16
 
 ### 🐛修复

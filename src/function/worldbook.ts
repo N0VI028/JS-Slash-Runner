@@ -38,6 +38,7 @@ export async function rebindGlobalWorldbooks(worldbook_names: string[]): Promise
 
   selected_world_info.length = 0;
   selected_world_info.push(...worldbook_names);
+  _.set(getWorldInfoSettings().world_info, 'globalSelect', selected_world_info);
   saveSettingsDebounced();
 }
 
