@@ -73,6 +73,11 @@ export const GlobalSettings = z
         scripts: z.array(ScriptTree).default([]),
       })
       .prefault({}),
+    $impl: z
+      .object({
+        已经提醒过查看提示词模板问号: z.boolean().default(false),
+      })
+      .prefault({}),
   })
   .prefault({});
 export type GlobalSettings = z.infer<typeof GlobalSettings>;

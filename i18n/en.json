@@ -218,6 +218,7 @@
   "仅显示匹配": "only-matched",
   "等待已有生成请求完成... (或用刷新按钮强制取消它)": "Waiting for the existing generation request to complete... (or use the refresh button to forcely cancel it)",
   "正在发送虚假生成请求, 从而获取最新提示词...": "Sending a fake generation request to get the latest prompts...",
+  "正在获取生成请求中的提示词...": "Getting prompts from the generation request...",
   "当前 API 不是聊天补全, 无法使用提示词查看器功能": "The current API is not 'chat completion', cannot use the Prompt Viewer",
   "未连接到 API, 提示词查看器将无法获取数据": "Not connected to API, the Prompt Viewer will not retrieve data",
   "收起内容": "Collapse Content",

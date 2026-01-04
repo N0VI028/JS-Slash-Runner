@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.3.17
 
+### 🗣提示词查看器
+
+- 为提示词查看器增加加载动画, 从而更明确提示**提示词查看器开启时, 将始终显示最新提示词**: 输入框的发送按钮、`/gen` 命令、`generate` 函数等所发送出的 AI 请求也会使得提示词查看器被更新
+
 ### 🐛修复
 
 - `rebindGlobalWorldbooks` 后立即 `getGlobalWorldbookNames` 不能获取到最新全局世界书启用情况的问题

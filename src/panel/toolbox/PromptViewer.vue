@@ -16,7 +16,7 @@
           <div class="fa-solid fa-copy cursor-pointer" title="复制全部" @click="copyAll" />
           <div
             class="fa-solid fa-rotate-right cursor-pointer th-text-base duration-200"
-            :class="{ 'animate-spin': is_refreshing }"
+            :class="{ 'animate-spin': state === 'refreshing' }"
             title="刷新"
             @click="triggerRefresh"
           />
@@ -70,16 +70,10 @@
         ><span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`预设` }}: {{ preset }}</span>
       </div>
     </div>
-    <template v-if="during_generation_when_opening">
+    <template v-if="state !== 'idle'">
       <div class="mx-2 flex h-full items-center justify-center gap-1 opacity-70">
         <div class="TH-loading-spinner"></div>
-        <span class="whitespace-normal">{{ t`等待已有生成请求完成... (或用刷新按钮强制取消它)` }}</span>
-      </div>
-    </template>
-    <template v-if="is_refreshing">
-      <div class="mx-2 flex h-full items-center justify-center gap-1 opacity-70">
-        <div class="TH-loading-spinner"></div>
-        <span class="whitespace-normal">{{ t`正在发送虚假生成请求, 从而获取最新提示词...` }}</span>
+        <span class="whitespace-normal">{{ hint_text }}</span>
       </div>
     </template>
     <template v-else>
@@ -188,16 +182,27 @@ function toggleAll(should_expand: boolean) {
   should_expand_by_default.value = should_expand;
 }
 
-const is_refreshing = ref<boolean>(false);
-const during_generation_when_opening = ref<boolean>(false);
+const state = ref<'idle' | 'past_loading' | 'refreshing' | 'loading'>('idle');
+const hint_text = computed(() => {
+  switch (state.value) {
+    case 'past_loading':
+      return t`等待已有生成请求完成... (或用刷新按钮强制取消它)`;
+    case 'refreshing':
+      return t`正在发送虚假生成请求, 从而获取最新提示词...`;
+    case 'loading':
+      return t`正在获取生成请求中的提示词...`;
+    case 'idle':
+      return '';
+  }
+});
+
 if (is_send_press) {
-  during_generation_when_opening.value = true;
+  state.value = 'past_loading';
+  // 在打开提示词查看器时已经进行的生成结束后, 如果提示词查看器仍为空, 则触发刷新
   const triggerRefreshIfNoPrompts = () => {
-    during_generation_when_opening.value = false;
-    if (prompts.value.length !== 0) {
-      return;
+    if (prompts.value.length === 0) {
+      triggerRefresh();
     }
-    triggerRefresh();
   };
   eventSource.on(event_types.GENERATION_ENDED, triggerRefreshIfNoPrompts);
   onBeforeUnmount(() => eventSource.removeListener(event_types.GENERATION_ENDED, triggerRefreshIfNoPrompts));
@@ -205,28 +210,27 @@ if (is_send_press) {
   triggerRefresh();
 }
 function triggerRefresh(): void {
-  if (is_refreshing.value) {
+  if (state.value === 'refreshing') {
     return;
   }
 
   if (main_api !== 'openai') {
-    toastr.error(t`当前 API 不是聊天补全, 无法使用提示词查看器功能`);
+    toastr.error(t`当前 API 不是聊天补全, 无法使用提示词查看器功能`, t`提示词查看器`);
     return;
   }
 
   if (online_status === 'no_connection') {
-    toastr.error(t`未连接到 API, 提示词查看器将无法获取数据`);
+    toastr.error(t`未连接到 API, 提示词查看器将无法获取数据`, t`提示词查看器`);
     return;
   }
 
-  is_refreshing.value = true;
+  state.value = 'refreshing';
   Generate('normal');
 }
 
 function collectPrompts(data: SendingMessage[]) {
-  if (is_refreshing.value) {
+  if (state.value === 'refreshing') {
     stopGeneration();
-    is_refreshing.value = false;
   }
 
   setTimeout(async () => {
@@ -268,14 +272,10 @@ function collectPrompts(data: SendingMessage[]) {
     );
     is_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
     virt_list_ref.value?.forceUpdate();
+    state.value = 'idle';
   });
 }
 
-/**
- * 解析多模态内容
- * @param content 内容
- * @returns 纯文本和图片列表
- */
 function parseJsonContent(content: any): { text: string; images: { url: string }[] } {
   try {
     const text_parts: string[] = [];
@@ -319,22 +319,21 @@ function parseJsonContent(content: any): { text: string; images: { url: string }
   }
 }
 
+useEventSourceOn(event_types.GENERATION_STARTED, (_type, _option, dry_run) => {
+  if (!dry_run && state.value === 'idle') {
+    state.value = 'loading';
+  }
+});
 useEventSourceOn(event_types.CHAT_COMPLETION_SETTINGS_READY, completion => {
   collectPrompts(completion.messages);
 });
 
-/**
- * 复制全部提示词内容到剪贴板
- */
 function copyAll() {
   const all_prompts = prompts.value.map(prompt => prompt.content).join('\n\n');
   copyText(all_prompts);
   toastr.success(t`已复制全部提示词到剪贴板`);
 }
-/**
- * 复制单个提示词内容到剪贴板
- * @param content 提示词内容
- */
+
 function copyPrompt(content: string) {
   copyText(content);
   toastr.success(t`已复制提示词到剪贴板`);
