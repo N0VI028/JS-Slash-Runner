@@ -241,6 +241,12 @@ type ReplacePresetOptions = {
  * await replacePreset('in_use', preset);
  *
  * @example
+ * // 关闭酒馆正在使用的预设中名字包含 "COT" 的条目
+ * const preset = getPreset('in_use');
+ * preset.prompts.filter(prompt => prompt.name.includes('COT')).forEach(prompt => prompt.enabled = false);
+ * await replacePreset('in_use', preset);
+ *
+ * @example
  * // 为酒馆正在使用的预设添加一个提示词条目
  * const preset = getPreset('in_use');
  * preset.prompts.push({
@@ -284,6 +290,13 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  * // 为酒馆正在使用的预设开启流式传输
  * await updatePresetWith('in_use', preset => {
  *   preset.settings.should_stream = true;
+ *   return preset;
+ * });
+ *
+ * @example
+ * // 关闭酒馆正在使用的预设中名字包含 "COT" 的条目
+ * await updatePresetWith('in_use', preset => {
+ *   preset.prompts.filter(prompt => prompt.name.includes('COT')).forEach(prompt => prompt.enabled = false);
  *   return preset;
  * });
  *
