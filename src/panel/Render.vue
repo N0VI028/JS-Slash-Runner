@@ -49,7 +49,7 @@
         role="listitem"
         @click="enabled = !enabled"
       >
-        <div class="fa-solid fa-puzzle-piece extensionsMenuExtensionButton" />
+        <div class="fa-fw fa-solid fa-puzzle-piece extensionsMenuExtensionButton" />
         <span>{{ enabled ? t`关闭前端渲染` : t`开启前端渲染` }}</span>
       </div>
     </div>

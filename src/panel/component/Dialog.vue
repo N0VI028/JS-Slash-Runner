@@ -26,6 +26,7 @@
               class="
                 flex cursor-pointer items-center justify-center rounded-md border-none bg-transparent th-text-base!
               "
+              :class="{ 'th-question-blink': should_show_question_blink }"
               @click="openGuidePopup"
             >
               <i class="fa-solid fa-question"></i>
@@ -81,6 +82,7 @@ import {
   useWindowSize,
 } from '@vueuse/core';
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watchEffect } from 'vue';
+import { useGlobalSettingsStore } from '@/store/settings';
 
 interface ResizeHandle {
   name: string;
@@ -161,6 +163,8 @@ const emit = defineEmits<{
   (e: 'openGuidePopup'): void;
 }>();
 
+const global_settings_store = useGlobalSettingsStore();
+
 const { width: window_width } = useWindowSize();
 
 const dialog_ref = useTemplateRef<HTMLElement>('dialog_ref');
@@ -218,10 +222,22 @@ function toggleCollapse() {
 }
 
 /**
+ * 计算是否应该显示问号闪烁效果
+ * @description 根据全局设置判断用户是否已经查看过提示词模板的指导弹窗，如果没有则显示闪烁效果
+ */
+const should_show_question_blink = computed(() => {
+  return !global_settings_store.settings.$impl.已经提醒过查看提示词模板问号;
+});
+
+/**
  * 打开使用指南弹窗
- * @description 触发使用指南弹窗的显示，通过emit向父组件发送事件
+ * @description 触发使用指南弹窗的显示，通过emit向父组件发送事件，同时标记用户已经查看过，停止闪烁效果
  */
 function openGuidePopup() {
+  // 标记用户已经点击过问号，停止闪烁
+  if (!global_settings_store.settings.$impl.已经提醒过查看提示词模板问号) {
+    global_settings_store.settings.$impl.已经提醒过查看提示词模板问号 = true;
+  }
   emit('openGuidePopup');
 }
 
@@ -1082,3 +1098,21 @@ const dialog_classes = computed(() => ({
   'dialog-teleported': teleport_target.value,
 }));
 </script>
+
+<style scoped>
+@keyframes th-question-blink-animation {
+  0%,
+  100% {
+    opacity: 0.5;
+    color: inherit;
+  }
+  50% {
+    opacity: 1;
+    color: #0059ff;
+  }
+}
+
+.th-question-blink {
+  animation: th-question-blink-animation 2s ease-in-out infinite;
+}
+</style>
