@@ -108,6 +108,20 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     { deep: true },
   );
 
+  const forceReload = () => {
+    ignoreUpdates(() => {
+      if (id.value !== undefined && name.value !== undefined) {
+        settings.value = getSettings(id.value);
+        saveSettings(id.value, name.value, settings.value);
+      }
+    });
+  };
+
   // 监听 id 不能正确反映导入新角色卡时的情况, 在外应该监听 name
-  return { id: readonly(id), name: readonly(name), settings };
+  return {
+    id: readonly(id),
+    name: readonly(name),
+    settings,
+    forceReload,
+  };
 });

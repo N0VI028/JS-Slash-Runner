@@ -1,11 +1,19 @@
 import { render_tavern_regexes_debounced } from '@/function/tavern_regex';
+import { useCharacterSettingsStore } from '@/store/settings';
 import { updateWorldInfoList } from '@/util/compatibility';
-import { characters, getRequestHeaders, name1, this_chid } from '@sillytavern/script';
+import { characters, getOneCharacter, getRequestHeaders, name1, this_chid } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { uuidv4 } from '@sillytavern/scripts/utils';
+import { convertCharacterBook, saveWorldInfo, world_names } from '@sillytavern/scripts/world-info';
 
 export async function importRawCharacter(name: string, content: Blob): Promise<Response> {
+  name = name.replace(/\.(?:png|json)$/, '');
+  const avatar = name + '.png';
+
+  const old_worldbook_name = (characters as any[]).find(character => character.avatar === avatar)?.data?.character_book
+    ?.name;
+
   const file = new File([content], name, { type: 'image/png' });
 
   const form_data = new FormData();
@@ -20,8 +28,21 @@ export async function importRawCharacter(name: string, content: Blob): Promise<R
     headers: headers,
     body: form_data,
     cache: 'no-cache',
-  }).then(result => {
+  }).then(async result => {
     $('#character_search_bar').val('').trigger('input');
+
+    if (old_worldbook_name) {
+      await getOneCharacter(avatar);
+
+      const worldbook = (characters as any[]).find(character => character.avatar === avatar)?.data?.character_book;
+      if (world_names.includes(old_worldbook_name) && worldbook) {
+        await saveWorldInfo(worldbook.name, convertCharacterBook(worldbook), true);
+      }
+      const store = useCharacterSettingsStore();
+      if (store.name === name) {
+        store.forceReload();
+      }
+    }
     return result;
   });
 }
