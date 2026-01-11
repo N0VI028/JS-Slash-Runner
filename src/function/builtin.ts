@@ -1,4 +1,4 @@
-import { reloadEditor, reloadEditorDebounced } from '@/util/compatibility';
+import { copyText, reloadEditor, reloadEditorDebounced } from '@/util/compatibility';
 import {
   getImageTokenCost,
   getVideoTokenCost,
@@ -13,6 +13,7 @@ import { parseRegexFromString } from '@sillytavern/scripts/world-info';
 
 export const builtin = {
   addOneMessage,
+  copyText,
   duringGenerating: () => is_send_press,
   getImageTokenCost,
   getVideoTokenCost,

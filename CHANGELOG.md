@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.3.20
+
+### 📦函数
+
+- 新增 `builtin.copyText` 函数, 用于复制文本到剪贴板
+
 ## 4.3.19
 
 ### 🗣提示词查看器

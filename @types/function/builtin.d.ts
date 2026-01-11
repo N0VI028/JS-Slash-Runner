@@ -22,6 +22,12 @@ declare const builtin: {
       showSwipes?: boolean;
     },
   ) => void;
+  /**
+   * 复制文本到剪贴板
+   *
+   * @param text 要复制的文本
+   */
+  copyText: (text: string) => void;
   duringGenerating: () => boolean;
   getImageTokenCost: (data_url: string, quality: 'low' | 'auto' | 'high') => Promise<number>;
   getVideoTokenCost: (data_url: string) => Promise<number>;
