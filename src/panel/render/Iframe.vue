@@ -1,8 +1,8 @@
 <template>
   <iframe
     :id="prefixed_id"
-    :name="prefixed_id"
     ref="iframe_ref"
+    :name="prefixed_id"
     loading="lazy"
     v-bind="src_prop"
     class="w-full"
@@ -31,11 +31,6 @@ onBeforeMount(() => {
 });
 
 // 高度调整
-useEventListener('message', event => {
-  if (event?.data?.type === 'TH_ADJUST_IFRAME_HEIGHT' && event?.data?.iframe_name === iframe_ref.value?.id) {
-    iframe_ref.value!.style.height = `${event.data.height}px`;
-  }
-});
 useEventListener(window, 'resize', () => {
   iframe_ref.value?.contentWindow?.postMessage({ type: 'TH_UPDATE_VIEWPORT_HEIGHT' }, '*');
 });

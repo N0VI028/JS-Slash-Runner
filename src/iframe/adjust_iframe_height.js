@@ -71,7 +71,7 @@
         return;
       }
 
-      window.parent.postMessage({ type: 'TH_ADJUST_IFRAME_HEIGHT', iframe_name: getIframeName(), height: height }, '*');
+      frameElement.style.height = `${height}px`;
     } catch {
       //
     }
