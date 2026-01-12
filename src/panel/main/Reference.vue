@@ -32,14 +32,17 @@
             </a>
           </div>
         </div>
-        <Divider margin-y="0">{{ t`酒馆 /STScript` }}</Divider>
-        <div class="mb-0.5 flex items-center justify-center gap-0.5">
+        <Divider margin-y="0">{{ t`酒馆 /STScript 与宏` }}</Divider>
+        <div class="mb-0.5 flex flex-wrap items-center gap-0.5">
           <div class="TH-reference-button" @click="open('https://rentry.org/sillytavern-script-book')">
             {{ t`查看手册` }}
             <i class="fa-solid fa-external-link" />
           </div>
           <div class="TH-reference-button" @click="downloadSlashCommands">
-            {{ t`下载参考文件` }}<i class="fa-solid fa-download" />
+            {{ t`下载STScript参考文件` }}<i class="fa-solid fa-download" />
+          </div>
+          <div class="TH-reference-button" @click="downloadMacros">
+            {{ t`下载宏参考文件` }}<i class="fa-solid fa-download" />
           </div>
         </div>
       </div>
@@ -54,6 +57,8 @@ import {
 } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 import { download } from '@sillytavern/scripts/utils';
+import { version } from '@/util/tavern';
+import { compare } from 'compare-versions';
 
 function open(url: string) {
   window.open(url, '_blank');
@@ -121,6 +126,83 @@ function formatSlashCommands(): string {
     .join('\n');
 }
 
+async function formatMacros(): Promise<string> {
+
+  if (compare(version, '1.15.0', '>=')) {
+    // 新版本：使用MacroRegistry
+    const { MacroRegistry } = await import('@sillytavern/scripts/macros/engine/MacroRegistry');
+    const macroList = MacroRegistry.getAllMacros({ excludeAliases: true });
+
+    const transform_description = (description: string) => {
+      if (!description) return 'N/A';
+      const content = $('<span>').html(description);
+      return content
+        .text()
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '')
+        .join(' ');
+    };
+
+    let md = `# SillyTavern Macros Documentation\n\n`;
+
+    macroList
+      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+      .forEach((macro: any) => {
+        const args = (macro.unnamedArgDefs ?? [])
+          .map(
+            (arg: any) =>
+              `${arg.name}${arg.optional ? '?' : ''}${arg.type ? `<${Array.isArray(arg.type) ? arg.type.join('|') : arg.type}>` : ''}`,
+          )
+          .join('::');
+        const sig = `{{${macro.name}${args ? '::' + args : ''}}}`;
+
+        md += `### ${sig}\n`;
+        md += `- **Description**: ${transform_description(macro.description)}\n`;
+        if (macro.returns) md += `- **Returns**: ${macro.returns}\n`;
+        if (macro.aliases?.length)
+          md += `- **Aliases**: ${macro.aliases.map((a: any) => `{{${a.alias}}}`).join(', ')}\n`;
+        md += `\n`;
+      });
+
+    return md;
+  } else {
+    // 旧版本：使用renderTemplateAsync获取模板内容
+    const { renderTemplateAsync } = await import('@sillytavern/scripts/templates');
+    const html = await renderTemplateAsync('macros');
+    const $container = $('<div>').html(html);
+
+    let md = `# SillyTavern Macros Documentation\n\n`;
+
+    $container.children().each((_, el) => {
+      const $el = $(el);
+
+      if ($el.is('div')) {
+        const $small = $el.find('small');
+
+        if ($small.length > 0) {
+          const subtitle = $small.text().trim();
+          md += `${subtitle ? `- ${subtitle}` : ''}\n\n`;
+        } else {
+          const title = $el.text().trim();
+          md += `## ${title}\n\n`;
+        }
+      } else if ($el.is('ul')) {
+        $el.find('li').each((_, li) => {
+          const $li = $(li);
+          const macroName = $li.find('tt').text().trim();
+          const description = $li.find('span').text().trim();
+          if (macroName && description) {
+            md += `### ${macroName}\n- **Description**: ${description}\n\n`;
+          }
+        });
+      }
+    });
+
+    return md;
+  }
+}
+
 const tavern_helper_types_button = useTemplateRef('tavern_helper_types_button');
 const tavern_helper_types_popup = useTemplateRef('tavern_helper_types_popup');
 onMounted(() => {
@@ -137,12 +219,16 @@ onMounted(() => {
 function downloadSlashCommands() {
   download(new Blob([formatSlashCommands()]), 'slash_command.txt', 'text/plain');
 }
+
+async function downloadMacros() {
+  download(new Blob([await formatMacros()]), 'SillyTavern_Macros.txt', 'text/plain');
+}
 </script>
 
 <style lang="scss" scoped>
 @reference '../../global.css';
 .TH-reference-button {
-  @apply cursor-pointer flex items-center justify-center bg-(--grey5020a) rounded-sm p-0.5 th-text-xs text-(--SmartThemeBodyColor) gap-0.5;
+  @apply cursor-pointer flex items-center justify-center bg-(--grey5020a) rounded-sm p-0.5 th-text-xs text-(--SmartThemeBodyColor) gap-0.5 whitespace-nowrap;
   margin-top: 5px;
 
   a {
