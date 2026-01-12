@@ -89,9 +89,11 @@
   "编写脚本的参考文档": "Writing Reference Document",
   "查看教程及文档": "View Tutorial and Documentation",
   "下载参考文件": "Download Reference File",
+  "下载STScript参考文件": "Download STScript Reference File",
+  "下载宏参考文件": "Download Macro Reference File",
   "电脑编写模板用": "Use for computer writing template",
   "手机或 AI 官网用": "Use for mobile or AI official website",
-  "酒馆 /STScript": "Tavern /STScript",
+  "酒馆STScript与宏": "Tavern STScript & Macro",
   "查看手册": "View Manual",
 
   "<div>更新日志加载中...</div>": "<div>Loading Changelog...</div>",

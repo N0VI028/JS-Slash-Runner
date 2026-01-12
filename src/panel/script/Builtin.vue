@@ -122,7 +122,7 @@ const builtins: BuiltinScript[] = [
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设条目更多按钮/README.md',
   },
   {
-    name: t`角色卡绑定预设: 切换到某个角色卡时切换为对应预设`,
+    name: t`角色卡绑定预设: 切换到某个角色卡时自动切换为对应预设`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/角色卡绑定预设/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/角色卡绑定预设/README.md',
   },

@@ -32,7 +32,7 @@
             </a>
           </div>
         </div>
-        <Divider margin-y="0">{{ t`酒馆 /STScript 与宏` }}</Divider>
+        <Divider margin-y="0">{{ t`酒馆STScript与宏` }}</Divider>
         <div class="mb-0.5 flex flex-wrap items-center gap-0.5">
           <div class="TH-reference-button" @click="open('https://rentry.org/sillytavern-script-book')">
             {{ t`查看手册` }}
