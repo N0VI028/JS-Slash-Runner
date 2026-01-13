@@ -113,6 +113,7 @@
   "输入助手": "Input Helper",
   "压缩系统消息: 让 AI 对内容理解更连贯": "Compress system messages: Make AI understand content more coherent",
   "深度条目排斥器: 让深度条目只能在 D0 或 D9999": "Depth entry excluder: Force depth entries to be inserted at either D0 or D9999",
+  "最大化预设上下文长度: 避免酒馆错误地截断本来可以完整发给 AI 的提示词": "Maximize preset context length: Avoid SillyTavern wrongly truncating prompts that should be sent completely",
   "token数过多提醒: 防止玩傻子AI": "Token count overflow reminder: Prevent playing with stupid AI",
   "删除角色卡时删除绑定的主要世界书": "Delete the bound primary world book when deleting the character card",
   "取消代码块高亮": "Cancel code block highlight",

@@ -142,6 +142,11 @@ const builtins: BuiltinScript[] = [
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/深度条目排斥器/README.md',
   },
   {
+    name: t`最大化预设上下文长度: 避免酒馆错误地截断本来可以完整发给 AI 的提示词"`,
+    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/最大化预设上下文长度/index.js',
+    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/最大化预设上下文长度/README.md',
+  },
+  {
     name: t`token数过多提醒: 防止玩傻子AI`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/token数过多提醒/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/token数过多提醒/README.md',
