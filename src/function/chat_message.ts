@@ -1,5 +1,6 @@
+import { refreshOneMessage } from '@/function/displayed_message';
 import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
-import { highlight_code, saveChatConditionalDebounced } from '@/util/tavern';
+import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
   addOneMessage,
   chat,
@@ -173,6 +174,22 @@ type SetChatMessagesOption = {
   refresh?: 'none' | 'affected' | 'all';
 };
 
+async function refreshMessages(refresh: SetChatMessagesOption['refresh'], affected_action: () => Promise<void>) {
+  if (refresh === 'all') {
+    await saveChatConditional();
+    await reloadCurrentChat();
+  } else {
+    saveChatConditionalDebounced();
+    if (refresh === 'affected') {
+      await affected_action();
+
+      const $mes = $('chat > .mes');
+      $mes.removeClass('last_mes');
+      $mes.last().addClass('last_mes');
+    }
+  }
+}
+
 export async function setChatMessages(
   chat_messages: Array<{ message_id: number } & (Partial<ChatMessage> | Partial<ChatMessageSwiped>)>,
   { refresh = 'affected' }: SetChatMessagesOption = {},
@@ -276,51 +293,13 @@ export async function setChatMessages(
     }
   };
 
-  const render = async (message_id: number) => {
-    const $mes_html = $(`#chat > .mes[mesid = "${message_id}"]`);
-    if (!$mes_html) {
-      return;
-    }
-
-    const chat_message = chat[message_id];
-    if (chat_message.swipes) {
-      $mes_html.find('.swipes-counter').text(`${chat_message.swipe_id + 1}\u200b/\u200b${chat_message.swipes.length}`);
-      if (message_id === chat.length - 1) {
-        showSwipeButtons();
-      }
-    }
-    $mes_html
-      .find('.mes_text')
-      .empty()
-      .append(
-        messageFormatting(
-          chat_message.mes,
-          chat_message.name,
-          chat_message.is_system,
-          chat_message.is_user,
-          message_id,
-        ),
-      );
-    $mes_html.find('pre code').each((_index, element) => {
-      highlight_code(element);
-    });
-    await eventSource.emit(
-      chat_message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
-      message_id,
-    );
-  };
-
   chat_messages = convert_and_merge_messages(chat_messages);
+
   await Promise.all(chat_messages.map(modify));
-  if (refresh === 'all') {
-    await saveChatConditional();
-    await reloadCurrentChat();
-  } else {
-    saveChatConditionalDebounced();
-    if (refresh === 'affected') {
-      await Promise.all(chat_messages.map(message => render(message.message_id)));
-    }
-  }
+
+  await refreshMessages(refresh, async () => {
+    await Promise.all(chat_messages.map(message => refreshOneMessage(message.message_id)));
+  });
 }
 
 type ChatMessageCreating = {
@@ -334,16 +313,17 @@ type ChatMessageCreating = {
 
 type CreateChatMessagesOption = {
   insert_at?: number | 'end';
+  insert_before?: number | 'end';
   refresh?: 'none' | 'affected' | 'all';
 };
 
 export async function createChatMessages(
   chat_messages: ChatMessageCreating[],
-  { insert_at = 'end', refresh = 'affected' }: CreateChatMessagesOption = {},
+  { insert_at, insert_before = 'end', refresh = 'affected' }: CreateChatMessagesOption = {},
 ): Promise<void> {
-  if (insert_at !== 'end') {
-    insert_at = _.clamp(insert_at, -chat.length, chat.length - 1);
-  }
+  insert_before = insert_at ?? insert_before;
+  insert_before = insert_before === 'end' ? chat.length : _.clamp(insert_before, -chat.length, chat.length);
+  const is_at_end = insert_before === chat.length;
 
   const convert = async (chat_message: ChatMessageCreating): Promise<Record<string, any>> => {
     let result = _({});
@@ -374,69 +354,96 @@ export async function createChatMessages(
   };
 
   const converted = await Promise.all(chat_messages.map(convert));
-  if (insert_at === 'end') {
-    chat.push(...converted);
-  } else {
-    chat.splice(insert_at, 0, ...converted);
-  }
-  if (refresh === 'affected' && insert_at === 'end') {
-    saveChatConditionalDebounced();
-    converted.forEach(message => addOneMessage(message));
-    converted.forEach(async (message, index) => {
-      await eventSource.emit(
-        message.is_user ? event_types.MESSAGE_SENT : event_types.MESSAGE_RECEIVED,
-        chat.length - converted.length + index,
-      );
-      await eventSource.emit(
-        message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
-        chat.length - converted.length + index,
-      );
-    });
-  } else if (refresh !== 'none') {
-    await saveChatConditional();
-    await reloadCurrentChat();
-  } else {
-    saveChatConditionalDebounced();
-  }
-}
+  console.info(converted);
 
-type DeleteChatMessagesOption = {
-  refresh?: 'none' | 'all';
-};
+  chat.splice(insert_before, 0, ...converted);
+
+  await refreshMessages(refresh, async () => {
+    await Promise.all(
+      converted.map(async (message, index) => {
+        const message_id = insert_before - converted.length + index + 1;
+        addOneMessage(
+          message,
+          is_at_end ? undefined : { insertBefore: insert_before, forceId: message_id, scroll: false },
+        );
+        await eventSource.emit(message.is_user ? event_types.MESSAGE_SENT : event_types.MESSAGE_RECEIVED, message_id);
+        await eventSource.emit(
+          message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
+          message_id,
+        );
+      }),
+    );
+    if (!is_at_end) {
+      const dirty_messages = _.range(insert_before, chat.length - converted.length);
+      await Promise.all(
+        dirty_messages.map(message_id =>
+          refreshOneMessage(message_id + converted.length, $(`#chat > .mes[mesid="${message_id}"]`).last()),
+        ),
+      );
+    }
+  });
+}
 
 export async function deleteChatMessages(
   message_ids: number[],
-  { refresh = 'all' }: DeleteChatMessagesOption = {},
+  { refresh = 'affected' }: SetChatMessagesOption = {},
 ): Promise<void> {
-  message_ids = message_ids.filter(inUnnormalizedMessageRange).map(id => normalizeMessageId(id));
+  message_ids = _(message_ids)
+    .filter(inUnnormalizedMessageRange)
+    .map(id => normalizeMessageId(id))
+    .sort()
+    .sortedUniq()
+    .value();
+  if (message_ids.length === 0) {
+    return;
+  }
 
   _.pullAt(chat, message_ids);
-  if (refresh === 'all') {
-    await saveChatConditional();
-    await reloadCurrentChat();
-  } else {
-    saveChatConditionalDebounced();
-  }
-}
 
-type RotateChatMessagesOption = {
-  refresh?: 'none' | 'all';
-};
+  refreshMessages(refresh, async () => {
+    const min_affected = Math.max(Number($(`#chat > .mes`).first().attr('mesid')), _.min(message_ids)!);
+    const deleted_in_affected = message_ids.filter(message_id => message_id >= min_affected);
+    const before_after: [number, number][] = _(_.range(min_affected, chat.length + message_ids.length))
+      .map(
+        message_id =>
+          [
+            message_id,
+            message_id - deleted_in_affected.reduce((sum, deleted_id) => sum + (deleted_id < message_id ? 1 : 0), 0),
+          ] as [number, number],
+      )
+      .value();
+    await Promise.all(
+      before_after.map(([before, after]) => {
+        const $mes = $(`#chat > .mes[mesid="${before}"]`);
+        if (before === after) {
+          $mes.remove();
+        } else {
+          refreshOneMessage(after, $mes);
+        }
+      }),
+    );
+  });
+}
 
 export async function rotateChatMessages(
   begin: number,
   middle: number,
   end: number,
-  { refresh = 'all' }: RotateChatMessagesOption = {},
+  { refresh = 'affected' }: SetChatMessagesOption = {},
 ): Promise<void> {
+  begin = _.clamp(normalizeMessageId(begin), 0, chat.length);
+  end = _.clamp(normalizeMessageId(end), 0, chat.length);
+  middle = _.clamp(normalizeMessageId(middle), begin, end);
+
   const right_part = chat.splice(middle, end - middle);
   chat.splice(begin, 0, ...right_part);
-  if (refresh === 'all') {
-    await saveChatConditional();
-    await reloadCurrentChat();
-  } else {
-    saveChatConditionalDebounced();
-  }
+  refreshMessages(refresh, async () => {
+    await Promise.all(
+      _.range(Math.max(Number($(`#chat > .mes`).first().attr('mesid')), _.min([begin, middle, end])!), chat.length).map(
+        message_id => refreshOneMessage(message_id),
+      ),
+    );
+  });
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
+import { refreshOneMessage } from '@/function/displayed_message';
 import { macros } from '@/function/macro_like';
-import { reloadAndRenderChatWithoutEvents } from '@/util/tavern';
 import {
   characters,
   chat,
@@ -198,7 +198,11 @@ type ReplaceTavernRegexesOption = {
 
 export async function render_tavern_regexes() {
   await saveSettings();
-  await reloadAndRenderChatWithoutEvents();
+  await Promise.all(
+    $('#chat > .mes').map((_index, element) => {
+      return refreshOneMessage(Number($(element).attr('mesid')));
+    }),
+  );
   await eventSource.emit(event_types.CHAT_CHANGED, getCurrentChatId());
 }
 export const render_tavern_regexes_debounced = _.debounce(render_tavern_regexes, 1000);

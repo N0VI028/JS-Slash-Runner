@@ -44,3 +44,27 @@ type FormatAsDisplayedMessageOption = {
  * => "<p>少女歌剧 speaks in 5</p>";
  */
 declare function formatAsDisplayedMessage(text: string, { message_id }?: FormatAsDisplayedMessageOption): string;
+
+/**
+ * 刷新或替换单个楼层的显示, 如果该楼层并没有显示在网页上则什么也不做
+ *
+ * @param message_id 要刷新的消息楼层号
+ * @param $mes 要刷新的消息楼层对应的 JQuery 实例, 如果未提供则自动通过 `message_id` 获取
+ *
+ * @example
+ * // 刷新第 0 楼的显示
+ * await refreshOneMessage(0);
+ *
+ * @example
+ * // 刷新最新楼层的显示
+ * await refreshOneMessage(getLastMessageId());
+ *
+ * @example
+ * // 强行让第 5 楼显示第 0 楼的消息, 这只会影响网页显示, 不会影响实际聊天记录
+ * await refreshOneMessage(0, $('#chat > .mes[mesid="5"]'));
+ *
+ * @example
+ * // 强行让最后一楼显示第 0 楼的消息, 这只会影响网页显示, 不会影响实际聊天记录
+ * await refreshOneMessage(0, $('#chat > .mes.last_mes'));
+ */
+declare function refreshOneMessage(message_id: number, $mes?: JQuery): Promise<void>;
