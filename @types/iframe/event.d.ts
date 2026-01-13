@@ -370,7 +370,7 @@ interface ListenerType {
   [tavern_events.CHARACTER_EDITED]: (result: { detail: { id: string; character: SillyTavern.v1CharData } }) => void;
   [tavern_events.CHARACTER_PAGE_LOADED]: () => void;
   [tavern_events.USER_MESSAGE_RENDERED]: (message_id: number) => void;
-  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number) => void;
+  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number, type: string) => void;
   [tavern_events.FORCE_SET_BACKGROUND]: (background: { url: string; path: string }) => void;
   [tavern_events.CHAT_DELETED]: (chat_file_name: string) => void;
   [tavern_events.CHAT_CREATED]: () => void;
