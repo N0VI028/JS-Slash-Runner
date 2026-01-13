@@ -16,7 +16,7 @@ import {
   setChatMessage,
   setChatMessages,
 } from '@/function/chat_message';
-import { formatAsDisplayedMessage, retrieveDisplayedMessage } from '@/function/displayed_message';
+import { formatAsDisplayedMessage, retrieveDisplayedMessage, refreshOneMessage } from '@/function/displayed_message';
 import {
   _eventClearAll,
   _eventClearEvent,
@@ -253,6 +253,7 @@ function getTavernHelper() {
     // displayed_message
     formatAsDisplayedMessage,
     retrieveDisplayedMessage,
+    refreshOneMessage,
 
     // event
     tavern_events,
