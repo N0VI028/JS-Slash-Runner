@@ -132,7 +132,7 @@ const builtins: BuiltinScript[] = [
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/输入助手/README.md',
   },
   {
-    name: t`压缩系统消息: 让 AI 对内容理解更连贯`,
+    name: t`压缩相邻消息: 让 AI 对内容理解更连贯`,
     content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/压缩相邻消息/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/压缩相邻消息/README.md',
   },

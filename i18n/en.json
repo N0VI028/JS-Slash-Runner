@@ -111,7 +111,7 @@
   "预设条目更多按钮: 一键新增预设条目": "More buttons for preset entries: insert new prompt entries in one click",
   "角色卡绑定预设: 切换到某个角色卡时自动切换为对应预设": "Binding preset to character: Automatically switch to the corresponding preset when switching to a character card",
   "输入助手": "Input Helper",
-  "压缩系统消息: 让 AI 对内容理解更连贯": "Compress system messages: Make AI understand content more coherent",
+  "压缩相邻消息: 让 AI 对内容理解更连贯": "Compress prompts: Make AI understand content more coherent",
   "深度条目排斥器: 让深度条目只能在 D0 或 D9999": "Depth entry excluder: Force depth entries to be inserted at either D0 or D9999",
   "最大化预设上下文长度: 避免酒馆错误地截断本来可以完整发给 AI 的提示词": "Maximize preset context length: Avoid SillyTavern wrongly truncating prompts that should be sent completely",
   "token数过多提醒: 防止玩傻子AI": "Token count overflow reminder: Prevent playing with stupid AI",
