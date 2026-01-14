@@ -1,3 +1,4 @@
+import { inMessageRange, normalizeMessageId } from '@/util/message';
 import { highlight_code } from '@/util/tavern';
 import {
   characters,
@@ -30,7 +31,7 @@ export function formatAsDisplayedMessage(
 
   const last_message_id = getLastMessageId();
   if (last_message_id === null) {
-    throw Error(`未找到任何消息楼层, 你提供的是: ${message_id}`);
+    throw Error(`未找到任何消息楼层`);
   }
 
   switch (message_id) {
@@ -54,12 +55,19 @@ export function formatAsDisplayedMessage(
       break;
     }
   }
-  if (message_id < 0 || message_id > last_message_id) {
-    throw Error(`提供的 message_id 不在 [0, ${last_message_id}] 内, 你提供的是: ${message_id} `);
+  const normalized_message_id = normalizeMessageId(message_id);
+  if (inMessageRange(normalized_message_id)) {
+    throw Error(`提供的 message_id 不在 [${-last_message_id - 1}, ${last_message_id}] 内, 你提供的是: ${message_id}`);
   }
 
-  const chat_message = chat[message_id];
-  const result = messageFormatting(text, chat_message.name, chat_message.is_system, chat_message.is_user, message_id);
+  const chat_message = chat[normalized_message_id];
+  const result = messageFormatting(
+    text,
+    chat_message.name,
+    chat_message.is_system,
+    chat_message.is_user,
+    normalized_message_id,
+  );
 
   return result;
 }

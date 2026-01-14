@@ -47,19 +47,19 @@ type GetChatMessagesOption = {
 function string_to_range(input: string, min: number, max: number) {
   let start, end;
 
-  const normalize = (value: number) => (value < 0 ? max + value + 1 : value);
+  const clamp = (value: number) => _.clamp(value < 0 ? max + value + 1 : value, min, max);
 
   if (input.match(/^(-?\d+)$/)) {
-    start = end = normalize(Number(input));
+    start = end = clamp(Number(input));
   } else {
     const match = input.match(/^(-?\d+)-(-?\d+)$/);
     if (!match) {
       return null;
     }
-    [start, end] = _.sortBy([match[1], match[2]].map(Number).map(normalize));
+    [start, end] = _.sortBy([match[1], match[2]].map(Number).map(clamp));
   }
 
-  if (isNaN(start) || isNaN(end) || start < min || end > max) {
+  if (isNaN(start) || isNaN(end)) {
     return null;
   }
 
@@ -81,13 +81,7 @@ export function getChatMessages(
   const range_demacroed = substituteParamsExtended(range.toString());
   const range_number = string_to_range(range_demacroed, 0, chat.length - 1);
   if (!range_number) {
-    throw Error(`提供的消息范围 range 无效: ${range}`);
-  }
-  if (!['all', 'system', 'assistant', 'user'].includes(role)) {
-    throw Error(`提供的 role 无效, 请提供 'all', 'system', 'assistant' 或 'user', 你提供的是: ${role}`);
-  }
-  if (!['all', 'hidden', 'unhidden'].includes(hide_state)) {
-    throw Error(`提供的 hide_state 无效, 请提供 'all', 'hidden' 或 'unhidden', 你提供的是: ${hide_state}`);
+    return [];
   }
 
   const { start, end } = range_number;

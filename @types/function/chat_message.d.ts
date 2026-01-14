@@ -37,9 +37,7 @@ type GetChatMessagesOption = {
  *   - `hide_state:'all'|'hidden'|'unhidden'`: 按是否被隐藏筛选消息; 默认为 `'all'`
  *   - `include_swipes:false`: 不包含未被 AI 使用的消息页信息
  *
- * @returns 一个 `ChatMessage` 数组, 依据 message_id 从低到高排序
- *
- * @throws 如果提供的范围 `range` 无效, 将会抛出错误
+ * @returns 一个 `ChatMessage` 数组, 包含指定楼层范围内实际存在的所有楼层, 依据 message_id 从低到高排序; 如果范围内完全不存在楼层 (如目前只有 3 楼, 但范围为 `4-5`), 则返回空数组
  *
  * @example
  * // 仅获取第 10 楼被 AI 使用的消息页
@@ -69,7 +67,7 @@ declare function getChatMessages(
  *   - `hide_state:'all'|'hidden'|'unhidden'`: 按是否被隐藏筛选消息; 默认为 `'all'`
  *   - `include_swipes:true`: 包含未被 AI 使用的消息页信息
  *
- * @returns 一个 `ChatMessageSwiped` 数组, 依据 message_id 从低到高排序
+ * @returns 一个 `ChatMessage` 数组, 包含指定楼层范围内实际存在的所有楼层, 依据 message_id 从低到高排序; 如果范围内完全不存在楼层 (如目前只有 3 楼, 但范围为 `4-5`), 则返回空数组
  *
  * @example
  * // 获取第 10 楼所有的消息页
