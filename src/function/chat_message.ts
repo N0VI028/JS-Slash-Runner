@@ -47,23 +47,22 @@ type GetChatMessagesOption = {
 function string_to_range(input: string, min: number, max: number) {
   let start, end;
 
+  const normalize = (value: number) => (value < 0 ? max + value + 1 : value);
+
   if (input.match(/^(-?\d+)$/)) {
-    const value = Number(input);
-    start = end = value < 0 ? max + value + 1 : value;
+    start = end = normalize(Number(input));
   } else {
     const match = input.match(/^(-?\d+)-(-?\d+)$/);
     if (!match) {
       return null;
     }
-
-    [start, end] = _.sortBy(
-      [match[1], match[2]].map(value => Number(value)).map(value => (value < 0 ? max + value + 1 : value)),
-    );
+    [start, end] = _.sortBy([match[1], match[2]].map(Number).map(normalize));
   }
 
-  if (isNaN(start) || isNaN(end) || start > end || start < min || end > max) {
+  if (isNaN(start) || isNaN(end) || start < min || end > max) {
     return null;
   }
+
   return { start, end };
 }
 
