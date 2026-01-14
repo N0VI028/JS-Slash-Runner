@@ -189,7 +189,7 @@ async function iframeGenerate({
           processedUserInput,
         );
 
-    await eventSource.emit(event_types.GENERATE_AFTER_DATA, generate_data);
+    await eventSource.emit(event_types.GENERATE_AFTER_DATA, generate_data, false);
     // 4. 根据 stream 参数决定生成方式
     const result = await generateResponse(
       generate_data,

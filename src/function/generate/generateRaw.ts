@@ -7,7 +7,7 @@ import {
   detail,
 } from '@/function/generate/types';
 import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
-import { InjectionPrompt, injectPrompts } from '@/function/inject';
+import { InjectionPrompt } from '@/function/inject';
 import {
   MAX_INJECTION_DEPTH,
   eventSource,
@@ -27,7 +27,6 @@ import {
 } from '@sillytavern/scripts/openai';
 import { persona_description_positions, power_user } from '@sillytavern/scripts/power-user';
 import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
-import { uuidv4 } from '@sillytavern/scripts/utils';
 
 /**
  * @fileoverview 原始生成路径处理模块 - 不使用预设的生成逻辑

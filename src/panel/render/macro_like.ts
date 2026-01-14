@@ -93,7 +93,7 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
     }
   });
 
-  if (compare(version, '1.13.4', '>')) {
+  if (compare(version, '1.13.5', '>=')) {
     eventSource.on(event_types.GENERATE_AFTER_DATA, (event_data: any, dry_run: boolean) => {
       if (enabled.value) {
         demacroOnPrompt(event_data, dry_run);
