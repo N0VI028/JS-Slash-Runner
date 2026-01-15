@@ -35,7 +35,7 @@
         role="listitem"
         @click="enable_prompt_viewer = true"
       >
-        <div class="fa-fw fa-solid fa-magnifying-glass extensionsMenuExtensionButton" />
+        <div class="fa-solid fa-magnifying-glass extensionsMenuExtensionButton" />
         <span>{{ t`提示词查看器` }}</span>
       </div>
       <div
@@ -44,7 +44,7 @@
         role="listitem"
         @click="enable_variable_manager = true"
       >
-        <div class="fa-fw fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
+        <div class="fa-solid fa-square-root-variable extensionsMenuExtensionButton" />
         <span>{{ t`变量管理器` }}</span>
       </div>
       <div
@@ -53,7 +53,7 @@
         role="listitem"
         @click="enable_logger = true"
       >
-        <div class="fa-fw fa-solid fa-file-invoice extensionsMenuExtensionButton" />
+        <div class="fa-solid fa-file-invoice extensionsMenuExtensionButton" />
         <span>{{ t`日志查看器` }}</span>
       </div>
     </div>
