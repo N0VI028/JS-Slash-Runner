@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.4.5
+
+### 📦函数
+
+- 让 `formatAsDisplayedMessage` 函数返回的 HTML 字符串更符合酒馆预期, 如代码块将会被着色高亮
+
 ## 4.4.4
 
 ### 🐛修复

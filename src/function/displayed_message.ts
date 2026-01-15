@@ -61,6 +61,7 @@ export function formatAsDisplayedMessage(
   }
 
   const chat_message = chat[normalized_message_id];
+
   const result = messageFormatting(
     text,
     chat_message.name,
@@ -69,7 +70,12 @@ export function formatAsDisplayedMessage(
     normalized_message_id,
   );
 
-  return result;
+  const $div = $('<div>').append(result);
+  $div.find('pre code').each((_index, element) => {
+    highlight_code(element);
+  });
+
+  return $div.html();
 }
 
 export function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElement> {
