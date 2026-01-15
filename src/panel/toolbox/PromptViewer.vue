@@ -182,6 +182,10 @@ function toggleAll(should_expand: boolean) {
   should_expand_by_default.value = should_expand;
 }
 
+watch(() => [filtered_prompts, is_expanded], () => {
+  virt_list_ref.value?.forceUpdate();
+})
+
 const state = ref<'idle' | 'past_loading' | 'refreshing' | 'loading'>('idle');
 const hint_text = computed(() => {
   switch (state.value) {
@@ -271,7 +275,6 @@ function collectPrompts(data: SendingMessage[]) {
       }),
     );
     is_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
-    virt_list_ref.value?.forceUpdate();
     state.value = 'idle';
   });
 }
