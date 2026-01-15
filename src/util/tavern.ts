@@ -22,6 +22,24 @@ export const APP_READY_EVENTS = [event_types.APP_READY, 'chatLoaded', event_type
 
 export const preset_manager = getPresetManager('openai');
 
+export function getCompletionPresetByName(name: string): any {
+  const { presets, preset_names } = preset_manager.getPresetList();
+
+  let preset;
+  if (Array.isArray(preset_names)) {
+    if (preset_names.includes(name)) {
+      preset = presets[preset_names.indexOf(name)];
+    }
+  } else if ((preset_names as Record<string, number>)[name] !== undefined) {
+    preset = presets[(preset_names as Record<string, number>)[name]];
+  }
+
+  if (preset === undefined) {
+    console.error(`Preset ${name} not found`);
+  }
+  return preset;
+}
+
 export function highlight_code(element: HTMLElement) {
   const $node = $(element);
   if ($node.hasClass('hljs') || $node.text().includes('<body')) {

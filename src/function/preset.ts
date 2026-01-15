@@ -1,4 +1,5 @@
 import { settingsToUpdate } from '@/util/compatibility';
+import { getCompletionPresetByName } from '@/util/tavern';
 import { saveSettingsDebounced } from '@sillytavern/script';
 import { oai_settings, promptManager } from '@sillytavern/scripts/openai';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
@@ -637,7 +638,7 @@ export async function createOrReplacePreset(
     );
   } else {
     updateOriginalPresetData(
-      preset_name === 'in_use' ? oai_settings : preset_manager.getCompletionPresetByName(preset_name),
+      preset_name === 'in_use' ? oai_settings : getCompletionPresetByName(preset_name),
       original_preset,
       {
         in_use: preset_name === 'in_use',
@@ -647,7 +648,7 @@ export async function createOrReplacePreset(
   }
 
   if (preset_name !== 'in_use') {
-    await preset_manager.savePreset(preset_name, preset_manager.getCompletionPresetByName(preset_name), {
+    await preset_manager.savePreset(preset_name, getCompletionPresetByName(preset_name), {
       skipUpdate: true,
     });
   }
@@ -669,8 +670,7 @@ export async function renamePreset(preset_name: Exclude<string, 'in_use'>, new_n
 }
 
 export function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset {
-  const original_preset =
-    preset_name === 'in_use' ? oai_settings : preset_manager.getCompletionPresetByName(preset_name);
+  const original_preset = preset_name === 'in_use' ? oai_settings : getCompletionPresetByName(preset_name);
   if (!original_preset) {
     throw Error(`预设 '${preset_name}' 不存在`);
   }
