@@ -56,7 +56,7 @@ export function formatAsDisplayedMessage(
     }
   }
   const normalized_message_id = normalizeMessageId(message_id);
-  if (inMessageRange(normalized_message_id)) {
+  if (!inMessageRange(normalized_message_id)) {
     throw Error(`提供的 message_id 不在 [${-last_message_id - 1}, ${last_message_id}] 内, 你提供的是: ${message_id}`);
   }
 

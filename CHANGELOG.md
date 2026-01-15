@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.4.4
+
+### 🐛修复
+
+- 修复 `formatAsDisplayedMessage` 函数在一些情况可以运行的情况下出错的问题
+
 ## 4.4.3
 
 ### 🐛修复
