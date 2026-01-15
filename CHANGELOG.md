@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.4.3
 
+### 🐛修复
+
+- 修复当同时有多个流式请求生成函数 (`generate` 和 `generateRaw`) 运行时 (当流式 `generate` 和 `generateRaw` 并发时), 运行完成后可能影响预设中流式传输开关的问题.
+
 ### 🔧杂项
 
 - 调整了一些界面的样式

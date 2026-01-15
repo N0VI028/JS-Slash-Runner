@@ -206,7 +206,6 @@ export async function generateResponse(
     }
     eventSource.emit('js_generation_started', generationId);
 
-    const original_stream = oai_settings.stream_openai;
     try {
       if (useStream) {
         oai_settings.stream_openai = true;
@@ -220,7 +219,7 @@ export async function generateResponse(
         result = await handleResponse(response, generationId);
       }
     } finally {
-      oai_settings.stream_openai = original_stream;
+      oai_settings.stream_openai = $('#stream_toggle').is(':checked');
     }
   } catch (error) {
     // 如果有图片处理设置但生成失败，确保拒绝Promise
