@@ -285,12 +285,12 @@ interface ListenerType {
 
   [tavern_events.APP_READY]: () => void;
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
-  [tavern_events.MESSAGE_SWIPED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_SENT]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_RECEIVED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_EDITED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_DELETED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_UPDATED]: (message_id: number | string) => void;
+  [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
+  [tavern_events.MESSAGE_RECEIVED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_EDITED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_DELETED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_UPDATED]: (message_id: number) => void;
   [tavern_events.MESSAGE_FILE_EMBEDDED]: (message_id: number) => void;
   [tavern_events.MESSAGE_REASONING_EDITED]: (message_id: number) => void;
   [tavern_events.MESSAGE_REASONING_DELETED]: (message_id: number) => void;
