@@ -40,20 +40,6 @@
       <Iframe :id="`${message_id}--${index}`" :element="element" :use-blob-url="use_blob_url" />
     </Teleport>
   </template>
-
-  <Teleport defer to="#extensionsMenu">
-    <div class="extension_container">
-      <div
-        class="list-group-item flex-container flexGap5 interactable"
-        tabindex="0"
-        role="listitem"
-        @click="enabled = !enabled"
-      >
-        <div class="fa-fw fa-solid fa-puzzle-piece extensionsMenuExtensionButton" />
-        <span>{{ enabled ? t`关闭前端渲染` : t`开启前端渲染` }}</span>
-      </div>
-    </div>
-  </Teleport>
 </template>
 
 <script setup lang="ts">
