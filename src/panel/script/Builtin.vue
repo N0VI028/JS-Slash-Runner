@@ -3,11 +3,15 @@
     <div class="my-1.25 flex flex-col flex-wrap gap-0.5">
       <h3 class="my-0!">{{ t`内置库` }}</h3>
       <div class="mb-0.75 flex flex-col gap-0.75">
-        <span class="inline-block text-left">{{
-          t`内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区`
-        }}</span>
-        <span class="inline-block text-left"
-          >{{ t`如果需要制作脚本, 建议查看` }}
+        <span class="inline-block text-left">
+          {{ t`内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区` }}
+        </span>
+        <span class="inline-block text-left">
+          {{ t`例如我个人除了内置库外还有` }}
+          <a href="https://stagedog.github.io/青空莉/作品集/" target="_blank">{{ t`这些脚本` }}</a>
+        </span>
+        <span class="inline-block text-left">
+          {{ t`如果需要制作脚本, 建议查看` }}
           <a
             href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html"
             target="_blank"
@@ -105,10 +109,8 @@ const builtins: BuiltinScript[] = [
   },
   {
     name: t`一键禁用条目递归`,
-    content_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/一键禁用条目递归/index.js',
-    info_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/一键禁用条目递归/README.md',
+    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/一键禁用条目递归/index.js',
+    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/一键禁用条目递归/README.md',
   },
   {
     name: t`保存预设条目时直接保存预设`,
@@ -143,7 +145,8 @@ const builtins: BuiltinScript[] = [
   },
   {
     name: t`最大化预设上下文长度: 避免酒馆错误地截断本来可以完整发给 AI 的提示词"`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/最大化预设上下文长度/index.js',
+    content_url:
+      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/最大化预设上下文长度/index.js',
     info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/最大化预设上下文长度/README.md',
   },
   {
@@ -153,8 +156,10 @@ const builtins: BuiltinScript[] = [
   },
   {
     name: t`删除角色卡时删除绑定的主要世界书`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/删除角色卡时删除绑定的主要世界书/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/删除角色卡时删除绑定的主要世界书/README.md',
+    content_url:
+      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/删除角色卡时删除绑定的主要世界书/index.js',
+    info_url:
+      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/删除角色卡时删除绑定的主要世界书/README.md',
   },
   {
     name: t`取消代码块高亮`,

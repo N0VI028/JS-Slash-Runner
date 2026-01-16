@@ -100,6 +100,8 @@
 
   "关闭": "Close",
   "内置库更多是作为脚本能做什么的示例, 更多实用脚本请访问社区的工具区": "Built-in libraries are sort of examples of what scripts can do; to get more practical scripts, please visit the community's tool channel",
+  "例如我个人除了内置库外还有": "For example, besides the built-in libraries, I've written",
+  "这些脚本": "these scripts",
   "如果需要制作脚本, 建议查看": "If you need to write scripts, please refer to",
   "官方编写模板配置教程": "Official writing template configuration tutorial",
   "标签化: 随世界书、预设或链接配置自动开关正则、提示词条目": "Tagify: Automatically toggle regular expressions and prompt entries according to world book, preset or API configuration names",
