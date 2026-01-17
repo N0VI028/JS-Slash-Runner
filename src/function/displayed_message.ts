@@ -1,3 +1,4 @@
+import { isFrontend } from '@/util/is_frontend';
 import { inMessageRange, normalizeMessageId } from '@/util/message';
 import { highlight_code } from '@/util/tavern';
 import {
@@ -72,7 +73,12 @@ export function formatAsDisplayedMessage(
 
   const $div = $('<div>').append(result);
   $div.find('pre code').each((_index, element) => {
-    highlight_code(element);
+    const $node = $(element);
+    if ($node.hasClass('hljs') || isFrontend($node.text())) {
+      return;
+    }
+
+    hljs.highlightElement(element);
   });
 
   return $div.html();

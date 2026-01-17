@@ -1,3 +1,4 @@
+import { isFrontend } from '@/util/is_frontend';
 import {
   characters,
   clearChat,
@@ -42,7 +43,7 @@ export function getCompletionPresetByName(name: string): any {
 
 export function highlight_code(element: HTMLElement) {
   const $node = $(element);
-  if ($node.hasClass('hljs') || $node.text().includes('<body')) {
+  if ($node.hasClass('hljs') || isFrontend($node.text())) {
     return;
   }
 
