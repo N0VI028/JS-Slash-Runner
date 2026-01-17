@@ -1,5 +1,12 @@
 
 type GenerateConfig = {
+  /**
+   * 请求生成的唯一标识符, 不设置则默认生成一个随机标识符.
+   *
+   * 当有多个 generate/generateRaw 同时请求生成时, 可以为每个请求指定唯一标识符, 从而能正确监听对应的生成事件.
+   */
+  generation_id?: string;
+
   /** 用户输入 */
   user_input?: string;
 
@@ -37,13 +44,6 @@ type GenerateConfig = {
 
   /** 自定义API配置 */
   custom_api?: CustomApiConfig;
-
-  /**
-   * 唯一id
-   *
-   * 可以并发生成，并可以通过stopGenerateById停止特定生成，不设置默认生成uuid，在发送的事件中也会返回该id
-   */
-  generation_id?: string;
 };
 
 type GenerateRawConfig = GenerateConfig & {
