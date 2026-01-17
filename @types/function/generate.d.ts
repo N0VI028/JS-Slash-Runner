@@ -3,7 +3,7 @@ type GenerateConfig = {
   /**
    * 请求生成的唯一标识符, 不设置则默认生成一个随机标识符.
    *
-   * 当有多个 generate/generateRaw 同时请求生成时, 可以为每个请求指定唯一标识符, 从而能正确监听对应的生成事件.
+   * 当有多个 generate/generateRaw 同时请求生成时, 可以为每个请求指定唯一标识符, 从而能用 `stopGenerationById` 停止特定生成请求, 或正确监听对应的生成事件.
    */
   generation_id?: string;
 
