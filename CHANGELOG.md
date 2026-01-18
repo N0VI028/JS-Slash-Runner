@@ -3,7 +3,12 @@
 
 ### 📦函数
 
+- 简化 `eventOn` 等事件监听函数对消息接收 (`tavern_events.MESSAGE_RECEIVED`) 等事件的参数处理, 现在监听消息接收等得到的 `message_id` 类型必然是 `number`
 - 让 `formatAsDisplayedMessage` 函数返回的 HTML 字符串更符合酒馆预期, 如代码块将会被着色高亮
+
+### 🐛修复
+
+- 修复在角色卡脚本中用 `eventOn` 监听 `tavern_events.CHAT_CHANGED` 时, 可能会在切换角色卡时额外执行一次的问题
 
 ## 4.4.4
 

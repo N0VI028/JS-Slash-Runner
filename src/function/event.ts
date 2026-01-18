@@ -21,6 +21,36 @@ function get_map(this: Window): Map<string, Set<Function>> {
   return getOrSet(iframe_event_listeners_map, _getIframeName.call(this), () => new Map<string, Set<Function>>());
 }
 
+export function wrap_listener<T extends EventType>(
+  this: Window,
+  event_type: T,
+  listener: ListenerType[T],
+): ListenerType[T] {
+  return (...args: Parameters<ListenerType[T]>): void => {
+    const map = iframe_event_listeners_map.get(_getIframeName.call(this));
+    if (!map) {
+      return;
+    }
+    if (
+      [
+        tavern_events.MESSAGE_SWIPED,
+        tavern_events.MESSAGE_SENT,
+        tavern_events.MESSAGE_RECEIVED,
+        tavern_events.MESSAGE_EDITED,
+        tavern_events.MESSAGE_UPDATED,
+        tavern_events.USER_MESSAGE_RENDERED,
+        tavern_events.CHARACTER_MESSAGE_RENDERED,
+      ].some(event => event === event_type)
+    ) {
+      args[0] = parseInt(args[0]);
+      if (isNaN(args[0])) {
+        return;
+      }
+    }
+    listener(...args);
+  };
+}
+
 type EventOnReturn = {
   stop: () => void;
 };
@@ -32,14 +62,16 @@ function make_event_on_return<T extends EventType>(this: Window, event_type: T, 
 }
 
 export function _eventOn<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): EventOnReturn {
-  register_listener.call(this, event_type, listener);
-  eventSource.on(event_type, listener);
-  return make_event_on_return.call(this, event_type, listener);
+  const wrapped = wrap_listener.call(this, event_type, listener);
+  register_listener.call(this, event_type, wrapped);
+  eventSource.on(event_type, wrapped);
+  return make_event_on_return.call(this, event_type, wrapped);
 }
 
 /** @deprecated */
 export function _eventOnButton<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): void {
-  _eventOn.call(this, _getButtonEvent.call(this, event_type), listener);
+  const wrapped = wrap_listener.call(this, event_type, listener);
+  _eventOn.call(this, _getButtonEvent.call(this, event_type), wrapped);
 }
 
 export function _eventMakeLast<T extends EventType>(
@@ -47,9 +79,10 @@ export function _eventMakeLast<T extends EventType>(
   event_type: T,
   listener: ListenerType[T],
 ): EventOnReturn {
-  register_listener.call(this, event_type, listener);
-  eventSource.makeLast(event_type, listener);
-  return make_event_on_return.call(this, event_type, listener);
+  const wrapped = wrap_listener.call(this, event_type, listener);
+  register_listener.call(this, event_type, wrapped);
+  eventSource.makeLast(event_type, wrapped);
+  return make_event_on_return.call(this, event_type, wrapped);
 }
 
 export function _eventMakeFirst<T extends EventType>(
@@ -57,20 +90,24 @@ export function _eventMakeFirst<T extends EventType>(
   event_type: T,
   listener: ListenerType[T],
 ): EventOnReturn {
-  register_listener.call(this, event_type, listener);
-  eventSource.makeFirst(event_type, listener);
-  return make_event_on_return.call(this, event_type, listener);
+  const wrapped = wrap_listener.call(this, event_type, listener);
+  register_listener.call(this, event_type, wrapped);
+  eventSource.makeFirst(event_type, wrapped);
+  return make_event_on_return.call(this, event_type, wrapped);
 }
 
 export function _eventOnce<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): EventOnReturn {
+  const wrapped = wrap_listener.call(this, event_type, listener);
+
   // 酒馆自己也支持重复 once, 因此此处不考虑重复的情况
-  const once = (...args: any[]) => {
+  const once = (...args: Parameters<ListenerType[T]>) => {
     get_map.call(this).get(event_type)?.delete(once);
-    return listener(...args);
+    return wrapped(...args);
   };
+
   register_listener.call(this, event_type, once);
   eventSource.once(event_type, once);
-  return make_event_on_return.call(this, event_type, listener);
+  return make_event_on_return.call(this, event_type, wrapped);
 }
 
 export async function _eventEmit<T extends EventType>(
@@ -243,12 +280,12 @@ export type ListenerType = {
 
   [tavern_events.APP_READY]: () => void;
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
-  [tavern_events.MESSAGE_SWIPED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_SENT]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_RECEIVED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_EDITED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_DELETED]: (message_id: number | string) => void;
-  [tavern_events.MESSAGE_UPDATED]: (message_id: number | string) => void;
+  [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
+  [tavern_events.MESSAGE_RECEIVED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_EDITED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_DELETED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_UPDATED]: (message_id: number) => void;
   [tavern_events.MESSAGE_FILE_EMBEDDED]: (message_id: number) => void;
   [tavern_events.MESSAGE_REASONING_EDITED]: (message_id: number) => void;
   [tavern_events.MESSAGE_REASONING_DELETED]: (message_id: number) => void;
@@ -325,7 +362,7 @@ export type ListenerType = {
   [tavern_events.CHARACTER_EDITED]: (result: { detail: { id: string; character: object } }) => void;
   [tavern_events.CHARACTER_PAGE_LOADED]: () => void;
   [tavern_events.USER_MESSAGE_RENDERED]: (message_id: number) => void;
-  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number) => void;
+  [tavern_events.CHARACTER_MESSAGE_RENDERED]: (message_id: number, type: string) => void;
   [tavern_events.FORCE_SET_BACKGROUND]: (background: { url: string; path: string }) => void;
   [tavern_events.CHAT_DELETED]: (chat_file_name: string) => void;
   [tavern_events.CHAT_CREATED]: () => void;
