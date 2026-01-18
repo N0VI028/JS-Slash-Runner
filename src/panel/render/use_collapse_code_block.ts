@@ -92,11 +92,11 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
       return;
     }
     during_observe = true;
-    const $mes = $(`#chat > .mes[mesid=${chat.length - 1}]`).find('.mes_text');
-    if ($mes.length === 0) {
+    const $mes_text = $(`#chat > .mes[mesid=${chat.length - 1}]`).find('.mes_text');
+    if ($mes_text.length === 0) {
       return;
     }
-    observer.observe($mes[0], { childList: true });
+    observer.observe($mes_text[0], { childList: true });
     eventSource.once(event_types.MESSAGE_RECEIVED, () => {
       observer.disconnect();
       during_observe = false;
