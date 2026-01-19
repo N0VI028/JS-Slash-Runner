@@ -27,8 +27,9 @@ export function wrap_listener<T extends EventType>(
   listener: ListenerType[T],
 ): ListenerType[T] {
   return (...args: Parameters<ListenerType[T]>): void => {
-    const map = iframe_event_listeners_map.get(_getIframeName.call(this));
-    if (!map) {
+    const event_listeners_map = get_map.call(this);
+    const listeners = event_listeners_map.get(event_type);
+    if (!listeners || listeners.size === 0 || !listeners.has(listener)) {
       return;
     }
     if (
