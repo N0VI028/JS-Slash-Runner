@@ -21,56 +21,20 @@ function get_map(this: Window): Map<string, Set<Function>> {
   return getOrSet(iframe_event_listeners_map, _getIframeName.call(this), () => new Map<string, Set<Function>>());
 }
 
-const listener_wrapper_map = new Map<Function, Function>();
-
-export function wrap_listener(this: Window, event_type: string, listener: Function): Function {
-  const possible_wrapper = listener_wrapper_map.get(listener);
-  if (possible_wrapper !== undefined) {
-    return possible_wrapper;
-  }
-  const wrapper = (...args: any[]): void => {
-    const event_listeners_map = get_map.call(this);
-    const listeners = event_listeners_map.get(event_type);
-    if (!listeners || listeners.size === 0 || !listeners.has(wrapper)) {
-      return;
-    }
-    if (
-      [
-        tavern_events.MESSAGE_SWIPED,
-        tavern_events.MESSAGE_SENT,
-        tavern_events.MESSAGE_RECEIVED,
-        tavern_events.MESSAGE_EDITED,
-        tavern_events.MESSAGE_UPDATED,
-        tavern_events.USER_MESSAGE_RENDERED,
-        tavern_events.CHARACTER_MESSAGE_RENDERED,
-      ].some(event => event === event_type)
-    ) {
-      args[0] = parseInt(args[0]);
-      if (isNaN(args[0])) {
-        return;
-      }
-    }
-    listener(...args);
-  };
-  listener_wrapper_map.set(listener, wrapper);
-  return wrapper;
-}
-
 type EventOnReturn = {
   stop: () => void;
 };
 
-function make_event_on_return(this: Window, event_type: string, listener: Function) {
+function make_event_on_return<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]) {
   return {
-    stop: () => _eventRemoveListener.call(this, event_type, listener as any),
+    stop: () => _eventRemoveListener.call(this, event_type, listener),
   };
 }
 
 export function _eventOn<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): EventOnReturn {
-  const wrapped = wrap_listener.call(this, event_type, listener);
-  register_listener.call(this, event_type, wrapped);
-  eventSource.on(event_type, wrapped);
-  return make_event_on_return.call(this, event_type, wrapped);
+  register_listener.call(this, event_type, listener);
+  eventSource.on(event_type, listener);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
 /** @deprecated */
@@ -83,10 +47,9 @@ export function _eventMakeLast<T extends EventType>(
   event_type: T,
   listener: ListenerType[T],
 ): EventOnReturn {
-  const wrapped = wrap_listener.call(this, event_type, listener);
-  register_listener.call(this, event_type, wrapped);
-  eventSource.makeLast(event_type, wrapped);
-  return make_event_on_return.call(this, event_type, wrapped);
+  register_listener.call(this, event_type, listener);
+  eventSource.makeLast(event_type, listener);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
 export function _eventMakeFirst<T extends EventType>(
@@ -94,24 +57,20 @@ export function _eventMakeFirst<T extends EventType>(
   event_type: T,
   listener: ListenerType[T],
 ): EventOnReturn {
-  const wrapped = wrap_listener.call(this, event_type, listener);
-  register_listener.call(this, event_type, wrapped);
-  eventSource.makeFirst(event_type, wrapped);
-  return make_event_on_return.call(this, event_type, wrapped);
+  register_listener.call(this, event_type, listener);
+  eventSource.makeFirst(event_type, listener);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
 export function _eventOnce<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]): EventOnReturn {
-  const wrapped = wrap_listener.call(this, event_type, listener);
-
   // 酒馆自己也支持重复 once, 因此此处不考虑重复的情况
-  const once = (...args: Parameters<ListenerType[T]>) => {
+  const once = (...args: any[]) => {
     get_map.call(this).get(event_type)?.delete(once);
-    return wrapped(...args);
+    return listener(...args);
   };
-
   register_listener.call(this, event_type, once);
   eventSource.once(event_type, once);
-  return make_event_on_return.call(this, event_type, wrapped);
+  return make_event_on_return.call(this, event_type, listener);
 }
 
 export async function _eventEmit<T extends EventType>(
@@ -135,33 +94,29 @@ export function _eventRemoveListener<T extends EventType>(
   event_type: T,
   listener: ListenerType[T],
 ): void {
-  const wrapped = wrap_listener.call(this, event_type, listener);
-  get_map.call(this).get(event_type)?.delete(wrapped);
-  eventSource.removeListener(event_type, wrapped);
+  get_map.call(this).get(event_type)?.delete(listener);
+  eventSource.removeListener(event_type, listener);
 }
 
 export function _eventClearEvent(this: Window, event_type: EventType): void {
   const event_listeners_map = get_map.call(this);
   event_listeners_map.get(event_type)?.forEach(listener => {
-    const wrapped = wrap_listener.call(this, event_type, listener);
-    eventSource.removeListener(event_type, wrapped);
+    eventSource.removeListener(event_type, listener);
   });
   event_listeners_map.delete(event_type);
 }
 
 export function _eventClearListener(this: Window, listener: Function): void {
   get_map.call(this).forEach((listeners, event_type) => {
-    const wrapped = wrap_listener.call(this, event_type, listener);
-    eventSource.removeListener(event_type, wrapped);
-    listeners.delete(wrapped);
+    eventSource.removeListener(event_type, listener);
+    listeners.delete(listener);
   });
 }
 
 export function _eventClearAll(this: Window): void {
   get_map.call(this).forEach((listeners, event_type) => {
     listeners.forEach(listener => {
-      const wrapped = wrap_listener.call(this, event_type, listener);
-      eventSource.removeListener(event_type, wrapped);
+      eventSource.removeListener(event_type, listener);
     });
   });
   iframe_event_listeners_map.delete(_getIframeName.call(this));
