@@ -88,7 +88,13 @@ const enable_collapse_code_block = computed(() => {
   }
   return collapse_code_block.value;
 });
-useCollapseCodeBlock(enable_collapse_code_block);
+const enable_allow_streaming = computed(() => {
+  if (!enabled.value) {
+    return false;
+  }
+  return allow_streaming.value;
+});
+useCollapseCodeBlock(enable_collapse_code_block, enable_allow_streaming);
 useMacroLike(macro_enabled);
 const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
 </script>
