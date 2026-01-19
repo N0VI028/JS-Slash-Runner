@@ -4,6 +4,7 @@
 ### 🐛修复
 
 - 让流式渲染的行为与普通渲染更一致
+- 修复 4.5.0 起 `waitGlobalInitialized` 在一些情况下无法等待全局变量初始化的问题, 代价是取消对角色卡脚本中用 `eventOn` 监听 `tavern_events.CHAT_CHANGED` 时切换角色卡行为的修复, 我恨酒馆……
 
 ## 4.5.2
 
