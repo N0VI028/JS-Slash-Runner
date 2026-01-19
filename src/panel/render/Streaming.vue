@@ -9,11 +9,11 @@
 </template>
 
 <script setup lang="ts">
+import StreamingOne from '@/panel/render/StreamingOne.vue';
 import { calcToRender } from '@/store/iframe_runtimes/message';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { isFrontendElement } from '@/util/is_frontend';
 import { chat, event_types } from '@sillytavern/script';
-import StreamingOne from './StreamingOne.vue';
 
 const props = defineProps<{ enableAllowStreaming: boolean }>();
 
@@ -34,7 +34,7 @@ const destroyIfInvalid = (message_id: number): boolean => {
   );
   // 查找 .mes_streaming 以兼容流式楼层界面: https://github.com/StageDog/tavern_helper_template/blob/main/util/streaming.ts
   if (
-    $('#chat > .mes[mesid="${message_id}"]').find('.mes_streaming').length > 0 ||
+    $(`#chat > .mes[mesid="${message_id}"]`).find('.mes_streaming').length > 0 ||
     !_.inRange(message_id, min_message_id, length)
   ) {
     destroy(message_id);
@@ -74,8 +74,12 @@ function renderOneMessage(message_id: number) {
   }
 }
 
-function renderAllMessages() {
-  destroyAllInvalid();
+function renderAllMessages(options: { destroy_all?: boolean } = {}) {
+  if (options.destroy_all) {
+    runtimes.value = [];
+  } else {
+    destroyAllInvalid();
+  }
   calcToRender(store.settings.render.depth).forEach(message_id => {
     renderOneMessage(message_id);
   });
@@ -94,7 +98,7 @@ watch(
 );
 
 useEventSourceOn('chatLoaded', () => {
-  renderAllMessages();
+  renderAllMessages({ destroy_all: true });
 });
 
 useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) => {
