@@ -17,21 +17,17 @@
 import StreamingIframe from '@/panel/render/StreamingIframe.vue';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { chunkBy } from '@/util/algorithm';
-import { isFrontend } from '@/util/is_frontend';
+import { isFrontendElement } from '@/util/is_frontend';
 
 const props = defineProps<{ messageId: number; html: string }>();
 
 const store = useGlobalSettingsStore();
 
 const contents = computed(() => {
-  const is_frontend = (element: HTMLElement) => {
-    return $(element).hasClass('TH-render') || ($(element).is('pre') && isFrontend($(element).text()));
-  };
-
   return chunkBy($(props.html.replaceAll('mes_text', 'TH-streaming')).toArray(), (lhs, rhs) => {
-    return !is_frontend(lhs) && !is_frontend(rhs);
+    return !isFrontendElement(lhs) && !isFrontendElement(rhs);
   }).map(elements => {
-    if (elements.length === 1 && is_frontend(elements[0])) {
+    if (elements.length === 1 && isFrontendElement(elements[0])) {
       return {
         type: 'iframe',
         data: $(elements[0]).text(),

@@ -38,7 +38,7 @@ function renderMessages(ids: number[], reload_memo: string): Runtime[] {
   return render$mes($mes, reload_memo);
 }
 
-function calcToRender(depth: number): number[] {
+export function calcToRender(depth: number): number[] {
   const min_showed_message_id = Number($('#chat > .mes').first().attr('mesid'));
   return _.range(
     depth === 0 ? min_showed_message_id : Math.max(min_showed_message_id, chat.length - depth),
