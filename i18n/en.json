@@ -45,6 +45,8 @@
   "启用渲染器": "Enable Renderer",
   "启用后，符合条件的代码块将被渲染": "When enabled, qualified code blocks will be rendered",
   "启用代码折叠": "Enable Code Folding",
+  "允许流式渲染": "Enable Streaming Rendering",
+  "在AI流式输出时就渲染，某些前端界面可能无法这样渲染。此外，这可能与某些脚本、插件、酒馆美化不兼容": "Render during AI streaming output, some frontend interfaces may not be rendered in this way. Also, this may be incompatible with some scripts, plugins, and SillyTavern theme",
   "折叠指定类型的代码块，当选择“仅前端”时，将只折叠可渲染成前端界面但没被渲染的代码块": "Fold specified types of code blocks, when selecting \"Only Frontend\", only code blocks that can be rendered into frontend interface but not rendered will be folded",
   "启用加载动画": "Enable Loading Animation",
   "在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面": "Show loading animation instead of incomplete interface before fonts, images and other resources in frontend are loaded",

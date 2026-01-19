@@ -3,9 +3,17 @@ import { CollapseCodeBlock } from '@/type/settings';
 import { isFrontend } from '@/util/is_frontend';
 import { chat, event_types, eventSource } from '@sillytavern/script';
 
-function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: CollapseCodeBlock) {
+function collapseCodeBlock(
+  $pre: JQuery<HTMLPreElement>,
+  collapse_code_block: CollapseCodeBlock,
+  allow_streaming: boolean,
+) {
   const $possible_div = $pre.parent('div.TH-render');
   if ($possible_div.children('div.TH-collapse-code-block-button').length > 0) {
+    return;
+  }
+
+  if (allow_streaming && $pre.closest('.mes_text, .TH-streaming').length > 0) {
     return;
   }
 
@@ -38,19 +46,23 @@ function collapseCodeBlock($pre: JQuery<HTMLPreElement>, collapse_code_block: Co
   $pre.addClass('hidden!');
 }
 
-function collapseCodeBlockForMessageId(message_id: number, collapse_code_block: CollapseCodeBlock) {
+function collapseCodeBlockForMessageId(
+  message_id: number,
+  collapse_code_block: CollapseCodeBlock,
+  allow_streaming: boolean,
+) {
   $(`#chat > .mes[mesid=${message_id}]`)
     .find('pre')
     .each(function () {
-      collapseCodeBlock($(this), collapse_code_block);
+      collapseCodeBlock($(this), collapse_code_block, allow_streaming);
     });
 }
 
-function collapseCodeBlockForAll(collapse_code_block: CollapseCodeBlock) {
+function collapseCodeBlockForAll(collapse_code_block: CollapseCodeBlock, allow_streaming: boolean) {
   $('#chat')
     .find('pre')
     .each(function () {
-      collapseCodeBlock($(this), collapse_code_block);
+      collapseCodeBlock($(this), collapse_code_block, allow_streaming);
     });
 }
 
@@ -62,15 +74,18 @@ function uncollapseCodeBlockForAll() {
     .removeClass('hidden!');
 }
 
-export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseCodeBlock>>) {
+export function useCollapseCodeBlock(
+  collapse_code_block: Readonly<Ref<CollapseCodeBlock>>,
+  allow_streaming: Readonly<Ref<boolean>>,
+) {
   watch(
-    collapse_code_block,
+    [collapse_code_block.value, allow_streaming.value] as const,
     (value, old_value) => {
-      if (value !== old_value) {
+      if (!_.isEqual(value, old_value)) {
         uncollapseCodeBlockForAll();
       }
-      if (value !== 'none') {
-        collapseCodeBlockForAll(value);
+      if (value[0] !== 'none') {
+        collapseCodeBlockForAll(value[0], value[1]);
       }
     },
     { immediate: true },
@@ -80,7 +95,7 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
   const observer = new MutationObserver(() => {
     const chat_length = chat.length;
     if (chat_length > 0) {
-      collapseCodeBlockForMessageId(chat_length - 1, collapse_code_block.value);
+      collapseCodeBlockForMessageId(chat_length - 1, collapse_code_block.value, allow_streaming.value);
     }
   });
   let during_observe = false;
@@ -105,7 +120,7 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
 
   eventSource.on('chatLoaded', () => {
     if (collapse_code_block.value !== 'none') {
-      collapseCodeBlockForAll(collapse_code_block.value);
+      collapseCodeBlockForAll(collapse_code_block.value, allow_streaming.value);
     }
   });
 
@@ -117,7 +132,7 @@ export function useCollapseCodeBlock(collapse_code_block: Readonly<Ref<CollapseC
   ].forEach(event => {
     eventSource.on(event, (message_id: number | string) => {
       if (collapse_code_block.value !== 'none') {
-        collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value);
+        collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value, allow_streaming.value);
       }
     });
   });

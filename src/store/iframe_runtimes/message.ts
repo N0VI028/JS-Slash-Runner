@@ -12,6 +12,12 @@ function render$mes($mes: JQuery<HTMLElement>, reload_memo: string): Runtime[] {
       const $element = $(div)
         .find('pre')
         .filter((_index, pre) => isFrontend($(pre).text()))
+        .filter((_index, pre) => {
+          if (useGlobalSettingsStore().settings.render.allow_streaming) {
+            return $(pre).closest('.mes_text, .TH-streaming').length === 0;
+          }
+          return true;
+        })
         .map((_index, pre) => {
           const $pre = $(pre);
           const $possible_div = $pre.parent('div.TH-render');
