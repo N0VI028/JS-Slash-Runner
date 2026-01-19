@@ -4,6 +4,7 @@
     :key="runtime.message_id"
     :message-id="runtime.message_id"
     :html="runtime.html"
+    @request-unmount="destroy(runtime.message_id)"
   />
 </template>
 
@@ -21,14 +22,22 @@ const store = useGlobalSettingsStore();
 type Runtime = { message_id: number; html: string };
 const runtimes = ref<Runtime[]>([]);
 
+const destroy = (message_id: number) => {
+  _.remove(runtimes.value, runtime => runtime.message_id === message_id);
+};
+
 const destroyIfInvalid = (message_id: number): boolean => {
   const length = chat.length;
   const min_message_id = Math.max(
     Number($('#chat > .mes').first().attr('mesid')),
     store.settings.render.depth === 0 ? 0 : length - store.settings.render.depth,
   );
-  if (!_.inRange(message_id, min_message_id, length)) {
-    _.remove(runtimes.value, runtime => runtime.message_id === message_id);
+  // 查找 .mes_streaming 以兼容流式楼层界面: https://github.com/StageDog/tavern_helper_template/blob/main/util/streaming.ts
+  if (
+    $('#chat > .mes[mesid="${message_id}"]').find('.mes_streaming').length > 0 ||
+    !_.inRange(message_id, min_message_id, length)
+  ) {
+    destroy(message_id);
     return true;
   }
   return false;
@@ -48,6 +57,7 @@ function renderOneMessage(message_id: number) {
   const $mes_text = $(`.mes[mesid="${message_id}"]`).find('.mes_text');
   $mes_text.find('code[data-highlighted="yes"]').css('position', 'relative');
   if (
+    $mes_text.siblings('.mes_streaming').length > 0 ||
     !$mes_text
       .children()
       .toArray()
@@ -95,7 +105,7 @@ useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) =>
 [event_types.MESSAGE_EDITED, event_types.MESSAGE_SWIPED].forEach(event => {
   useEventSourceOn(event, async (message_id: number) => {
     destroyAllInvalid();
-    _.remove(runtimes.value, runtime => runtime.message_id === message_id);
+    destroy(message_id);
     setTimeout(() => renderOneMessage(message_id));
   });
 });
