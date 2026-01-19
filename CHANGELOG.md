@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.5.2
+
+### 🐛修复
+
+- 修复 `eventOnButton` 函数在一些情况下无法使用的问题, 虽然目前更建议用 `eventOn(getButtonEvent('按钮名'), ...)`
+
 ## 4.5.1
 
 ### 🎨渲染器
