@@ -25,7 +25,7 @@ const store = useGlobalSettingsStore();
 
 const contents = computed(() => {
   const is_frontend = (element: HTMLElement) => {
-    return $(element).is('pre') && isFrontend($(element).text());
+    return $(element).hasClass('TH-render') || ($(element).is('pre') && isFrontend($(element).text()));
   };
 
   return chunkBy($(props.html.replaceAll('mes_text', 'TH-streaming')).toArray(), (lhs, rhs) => {

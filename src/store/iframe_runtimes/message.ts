@@ -60,9 +60,17 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
 
   const runtimes = ref<Runtime[]>([]);
   watch(
-    () => [global_settings.settings.render.enabled, global_settings.settings.render.depth] as const,
-    ([new_enabled, new_depth]) => {
+    () =>
+      [
+        global_settings.settings.render.enabled,
+        global_settings.settings.render.allow_streaming,
+        global_settings.settings.render.depth,
+      ] as const,
+    ([new_enabled, new_allow_streaming, new_depth]) => {
       if (new_enabled) {
+        if (new_allow_streaming) {
+          runtimes.value = [];
+        }
         runtimes.value = auditRuntimes(runtimes.value, new_depth);
       } else {
         runtimes.value = [];
