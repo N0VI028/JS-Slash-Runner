@@ -21,12 +21,14 @@ function get_map(this: Window): Map<string, Set<Function>> {
   return getOrSet(iframe_event_listeners_map, _getIframeName.call(this), () => new Map<string, Set<Function>>());
 }
 
-export function wrap_listener<T extends EventType>(
-  this: Window,
-  event_type: T,
-  listener: ListenerType[T],
-): ListenerType[T] {
-  const wrapper = (...args: Parameters<ListenerType[T]>): void => {
+const listener_wrapper_map = new Map<Function, Function>();
+
+export function wrap_listener(this: Window, event_type: string, listener: Function): Function {
+  const possible_wrapper = listener_wrapper_map.get(listener);
+  if (possible_wrapper !== undefined) {
+    return possible_wrapper;
+  }
+  const wrapper = (...args: any[]): void => {
     const event_listeners_map = get_map.call(this);
     const listeners = event_listeners_map.get(event_type);
     if (!listeners || listeners.size === 0 || !listeners.has(wrapper)) {
@@ -50,6 +52,7 @@ export function wrap_listener<T extends EventType>(
     }
     listener(...args);
   };
+  listener_wrapper_map.set(listener, wrapper);
   return wrapper;
 }
 
@@ -57,9 +60,9 @@ type EventOnReturn = {
   stop: () => void;
 };
 
-function make_event_on_return<T extends EventType>(this: Window, event_type: T, listener: ListenerType[T]) {
+function make_event_on_return(this: Window, event_type: string, listener: Function) {
   return {
-    stop: () => _eventRemoveListener.call(this, event_type, listener),
+    stop: () => _eventRemoveListener.call(this, event_type, listener as any),
   };
 }
 
@@ -132,29 +135,33 @@ export function _eventRemoveListener<T extends EventType>(
   event_type: T,
   listener: ListenerType[T],
 ): void {
-  get_map.call(this).get(event_type)?.delete(listener);
-  eventSource.removeListener(event_type, listener);
+  const wrapped = wrap_listener.call(this, event_type, listener);
+  get_map.call(this).get(event_type)?.delete(wrapped);
+  eventSource.removeListener(event_type, wrapped);
 }
 
 export function _eventClearEvent(this: Window, event_type: EventType): void {
   const event_listeners_map = get_map.call(this);
   event_listeners_map.get(event_type)?.forEach(listener => {
-    eventSource.removeListener(event_type, listener);
+    const wrapped = wrap_listener.call(this, event_type, listener);
+    eventSource.removeListener(event_type, wrapped);
   });
   event_listeners_map.delete(event_type);
 }
 
 export function _eventClearListener(this: Window, listener: Function): void {
   get_map.call(this).forEach((listeners, event_type) => {
-    eventSource.removeListener(event_type, listener);
-    listeners.delete(listener);
+    const wrapped = wrap_listener.call(this, event_type, listener);
+    eventSource.removeListener(event_type, wrapped);
+    listeners.delete(wrapped);
   });
 }
 
 export function _eventClearAll(this: Window): void {
   get_map.call(this).forEach((listeners, event_type) => {
     listeners.forEach(listener => {
-      eventSource.removeListener(event_type, listener);
+      const wrapped = wrap_listener.call(this, event_type, listener);
+      eventSource.removeListener(event_type, wrapped);
     });
   });
   iframe_event_listeners_map.delete(_getIframeName.call(this));
