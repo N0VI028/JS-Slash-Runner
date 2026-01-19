@@ -20,6 +20,7 @@ import { chunkBy } from '@/util/algorithm';
 import { isFrontendElement } from '@/util/is_frontend';
 
 const props = defineProps<{ messageId: number; html: string }>();
+const emits = defineEmits<{ 'request-unmount': [] }>();
 
 const store = useGlobalSettingsStore();
 
@@ -42,7 +43,7 @@ const contents = computed(() => {
 
 let $host: JQuery;
 let $mes_text: JQuery;
-const observer = new MutationObserver(() => {
+const textarea_observer = new MutationObserver(() => {
   const $edit_textarea = $('#chat').find('#curEditTextarea');
   if ($edit_textarea.parent().is($mes_text)) {
     $mes_text.removeClass('hidden!');
@@ -52,14 +53,24 @@ const observer = new MutationObserver(() => {
     $host.removeClass('hidden!');
   }
 });
+const mes_streaming_observer = new MutationObserver(() => {
+  const $mes_streaming = $mes_text.siblings('.mes_streaming');
+  if ($mes_streaming.length > 0) {
+    emits('request-unmount');
+  }
+});
 onBeforeMount(() => {
   $mes_text = $(`.mes[mesid="${props.messageId}"]`).find('.mes_text').addClass('hidden!');
   $host = $('<div class="TH-streaming w-full">').insertAfter($mes_text);
-  observer.observe($mes_text[0] as HTMLElement, { childList: true });
+  textarea_observer.observe($mes_text[0], { childList: true });
+  mes_streaming_observer.observe($mes_text.parent()[0], { childList: true });
 });
 onUnmounted(() => {
-  observer.disconnect();
+  mes_streaming_observer.disconnect();
+  textarea_observer.disconnect();
   $host.remove();
-  $mes_text.removeClass('hidden!');
+  if ($mes_text.siblings('.mes_streaming').length === 0) {
+    $mes_text.removeClass('hidden!');
+  }
 });
 </script>
