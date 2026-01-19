@@ -50,6 +50,7 @@ export const GlobalSettings = z
       .object({
         enabled: z.boolean().default(true),
         collapse_code_block: CollapseCodeBlock.default('frontend_only').catch('frontend_only'),
+        allow_streaming: z.boolean().default(false),
         use_blob_url: z.boolean().default(false),
         // 之前没做判定, depth 可能被设置成 "", 因此 .catch
         depth: z.number().default(0).catch(0),

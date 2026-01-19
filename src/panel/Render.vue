@@ -18,6 +18,16 @@
   </Item>
   <Divider />
   <Item type="plain">
+    <template #title>{{ t`允许流式渲染` }}</template>
+    <template #description>
+      {{ t`在AI流式输出时就渲染，某些前端界面可能无法这样渲染。此外，这可能与某些脚本、插件、酒馆美化不兼容` }}
+    </template>
+    <template #content>
+      <Toggle id="TH-render-allow-streaming" v-model="allow_streaming" />
+    </template>
+  </Item>
+  <Divider />
+  <Item type="plain">
     <template #title>{{ t`启用 Blob URL 渲染` }}</template>
     <template #description>
       {{ t`使用 Blob URL 渲染前端界面，更方便 f12 开发者工具调试，若界面出现渲染问题请尝试关闭此选项` }}
