@@ -25,9 +25,16 @@ const emits = defineEmits<{ 'request-unmount': [] }>();
 const store = useGlobalSettingsStore();
 
 const contents = computed(() => {
-  return chunkBy($(props.html.replaceAll('mes_text', 'TH-streaming')).toArray(), (lhs, rhs) => {
-    return !isFrontendElement(lhs) && !isFrontendElement(rhs);
-  }).map(elements => {
+  return chunkBy(
+    $(
+      props.html
+        .replaceAll('mes_text', 'TH-streaming')
+        .replaceAll(/<div class="TH-collapse-code-block-button">(?:显示|隐藏)(?:前端)?代码块<\/div>/g, ''),
+    ).toArray(),
+    (lhs, rhs) => {
+      return !isFrontendElement(lhs) && !isFrontendElement(rhs);
+    },
+  ).map(elements => {
     if (elements.length === 1 && isFrontendElement(elements[0])) {
       return {
         type: 'iframe',
