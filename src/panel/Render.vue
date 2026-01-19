@@ -50,10 +50,13 @@
       <Iframe :id="`${message_id}--${index}`" :element="element" :use-blob-url="use_blob_url" />
     </Teleport>
   </template>
+
+  <Streaming v-if="enable_allow_streaming" :enable-allow-streaming="enable_allow_streaming" />
 </template>
 
 <script setup lang="ts">
 import Iframe from '@/panel/render/Iframe.vue';
+import Streaming from '@/panel/render/Streaming.vue';
 import { useMacroLike } from '@/panel/render/macro_like';
 import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
@@ -62,7 +65,7 @@ import { useGlobalSettingsStore } from '@/store/settings';
 import { useBetterChatTruncation } from './render/use_better_chat_truncation';
 
 const global_settings = useGlobalSettingsStore();
-const { enabled, collapse_code_block, use_blob_url, depth } = toRefs(global_settings.settings.render);
+const { enabled, collapse_code_block, allow_streaming, use_blob_url, depth } = toRefs(global_settings.settings.render);
 const { enabled: macro_enabled } = toRefs(global_settings.settings.macro);
 
 const collapse_code_block_options = [

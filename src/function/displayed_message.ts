@@ -144,6 +144,9 @@ export async function refreshOneMessage(message_id: number, $mes?: JQuery<HTMLEl
     );
   $mes.find('pre code').each((_index, element) => {
     highlight_code(element);
+    if ($(element).is('[data-highlighted="yes"]')) {
+      $(element).css('position', 'relative');
+    }
   });
 
   await eventSource.emit(
