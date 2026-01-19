@@ -8,7 +8,9 @@
 </template>
 
 <script setup lang="ts">
+import { calcToRender } from '@/store/iframe_runtimes/message';
 import { useGlobalSettingsStore } from '@/store/settings';
+import { isFrontendElement } from '@/util/is_frontend';
 import { chat, event_types } from '@sillytavern/script';
 import StreamingOne from './StreamingOne.vue';
 
@@ -45,6 +47,14 @@ function renderOneMessage(message_id: number) {
 
   const $mes_text = $(`.mes[mesid="${message_id}"]`).find('.mes_text');
   $mes_text.find('code[data-highlighted="yes"]').css('position', 'relative');
+  if (
+    !$mes_text
+      .children()
+      .toArray()
+      .some(element => isFrontendElement(element))
+  ) {
+    return;
+  }
   const html = $mes_text.html();
 
   if (runtime) {
@@ -56,14 +66,9 @@ function renderOneMessage(message_id: number) {
 
 function renderAllMessages() {
   destroyAllInvalid();
-  $('#chat')
-    .children(".mes[is_user='false'][is_system='false']")
-    .each((_index, node) => {
-      const message_id = Number($(node).attr('mesid') ?? 'NaN');
-      if (!isNaN(message_id) && !destroyIfInvalid(message_id)) {
-        renderOneMessage(message_id);
-      }
-    });
+  calcToRender(store.settings.render.depth).forEach(message_id => {
+    renderOneMessage(message_id);
+  });
 }
 
 watch(
