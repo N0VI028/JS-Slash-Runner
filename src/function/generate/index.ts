@@ -5,12 +5,36 @@ import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
 import { detail, GenerateConfig, GenerateRawConfig, Overrides } from '@/function/generate/types';
 import { setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
-import { event_types, eventSource, stopGeneration } from '@sillytavern/script';
+import { event_types, eventSource, getRequestHeaders, stopGeneration } from '@sillytavern/script';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 declare const $: any;
 
 const generationControllers = new Map<string, AbortController>();
+
+export async function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]> {
+  const response = await fetch('/api/backends/chat-completions/status', {
+    method: 'POST',
+    headers: getRequestHeaders(),
+    body: JSON.stringify({
+      reverse_proxy: custom_api?.apiurl,
+      custom_url: custom_api?.apiurl,
+      proxy_password: custom_api.key ?? '',
+      chat_completion_source: 'custom',
+      custom_include_headers: '',
+    }),
+    cache: 'no-cache',
+  });
+
+  const json = await response.json();
+
+  return _(json?.data ?? [])
+    .map((model: any) => String(model?.id ?? model?.name ?? '').trim())
+    .filter(Boolean)
+    .sort()
+    .sortedUniq()
+    .value();
+}
 
 /**
  * 中断指定的生成请求

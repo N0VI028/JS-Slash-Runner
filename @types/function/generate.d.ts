@@ -1,3 +1,149 @@
+/**
+ * 使用酒馆当前启用的预设, 让 AI 生成一段文本.
+ *
+ * 该函数在执行过程中将会发送以下事件:
+ * - `iframe_events.GENERATION_STARTED`: 生成开始
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+ * - `iframe_events.GENERATION_ENDED`: 生成结束, 监听它可以得到生成的最终文本 (当然也能通过函数返回值获得)
+ *
+ * @param config 提示词和生成方式设置
+ *   - `user_input?:string`: 用户输入
+ *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
+ *   - `image?:File|string`: 图片输入
+ *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
+ *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
+ *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
+ * @returns 生成的最终文本
+ *
+ * @example
+ * // 请求生成
+ * const result = await generate({ user_input: '你好' });
+ * console.info('收到回复: ', result);
+ *
+ * @example
+ * // 图片输入
+ * const result = await generate({ user_input: '你好', image: 'https://example.com/image.jpg' });
+ * console.info('收到回复: ', result);
+ *
+ * @example
+ * // 注入、覆盖提示词
+ * const result = await generate({
+ *   user_input: '你好',
+ *   injects: [{ role: 'system', content: '思维链...', position: 'in_chat', depth: 0, should_scan: true, }]
+ *   overrides: {
+ *     char_personality: '温柔',
+ *     world_info_before: '',
+ *     chat_history: {
+ *       prompts: [],
+ *     }
+ *   }
+ * });
+ * console.info('收到回复: ', result);
+ *
+ * @example
+ * // 使用自定义API
+ * const result = await generate({
+ *   user_input: '你好',
+ *   custom_api: {
+ *     apiurl: 'https://your-proxy-url.com',
+ *     key: 'your-api-key',
+ *     model: 'gpt-4',
+ *     source: 'openai'
+ *   }
+ * });
+ * console.info('收到回复: ', result);
+ *
+ * @example
+ * // 流式生成
+ *
+ * // 需要预先监听事件来接收流式回复
+ * eventOn(iframe_events.STREAM_TOKEN_RECEIVED_FULLY, text => {
+ *   console.info('收到流式回复: ', text);
+ * });
+ *
+ * // 然后进行生成
+ * const result = await generate({ user_input: '你好', should_stream: true });
+ * console.info('收到最终回复: ', result);
+ */
+declare function generate(config: GenerateConfig): Promise<string>;
+
+/**
+ * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
+ *
+ * 该函数在执行过程中将会发送以下事件:
+ * - `iframe_events.GENERATION_STARTED`: 生成开始
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
+ * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
+ * - `iframe_events.GENERATION_ENDED`: 生成结束, 监听它可以得到生成的最终文本 (当然也能通过函数返回值获得)
+ *
+ * @param config 提示词和生成方式设置
+ *   - `user_input?:string`: 用户输入
+ *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
+ *   - `image?:File|string`: 图片输入
+ *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
+ *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
+ *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
+ *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设
+ * @returns 生成的最终文本
+ *
+ * @example
+ * // 自定义内置提示词顺序, 未在 ordered_prompts 中给出的将不会被使用
+ * const result = await generateRaw({
+ *   user_input: '你好',
+ *   ordered_prompts: [
+ *     'char_description',
+ *     { role: 'system', content: '系统提示' },
+ *     'chat_history',
+ *     'user_input',
+ *   ]
+ * })
+ * console.info('收到回复: ', result);
+ *
+ * @example
+ * // 使用自定义API和自定义提示词顺序
+ * const result = await generateRaw({
+ *   user_input: '你好',
+ *   custom_api: {
+ *     apiurl: 'https://your-proxy-url.com',
+ *     key: 'your-api-key',
+ *     model: 'gpt-4',
+ *     source: 'openai'
+ *   },
+ *   ordered_prompts: [
+ *     'char_description',
+ *     'chat_history',
+ *     'user_input',
+ *   ]
+ * })
+ * console.info('收到回复: ', result);
+ */
+declare function generateRaw(config: GenerateRawConfig): Promise<string>;
+
+/**
+ * 获取模型列表
+ *
+ * @param custom_api 自定义API配置
+ * @returns Promise<string[]> 模型列表
+ * @throws 获取模型列表失败
+ */
+declare function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]>;
+
+/**
+ * 根据生成请求唯一标识符停止特定的生成请求
+ *
+ * @param generation_id 生成请求唯一标识符, 用于标识要停止的生成请求
+ * @returns Promise<boolean> 是否成功停止生成
+ */
+declare function stopGenerationById(generation_id: string): Promise<boolean>;
+
+/**
+ * 停止所有正在进行的生成请求
+ *
+ * @returns Promise<boolean> 是否成功停止所有生成
+ */
+declare function stopAllGeneration(): Promise<boolean>;
+
 type GenerateConfig = {
   /**
    * 请求生成的唯一标识符, 不设置则默认生成一个随机标识符.
@@ -123,140 +269,3 @@ type CustomApiConfig = {
   top_p?: 'same_as_preset' | 'unset' | number;
   top_k?: 'same_as_preset' | 'unset' | number;
 };
-
-/**
- * 使用酒馆当前启用的预设, 让 AI 生成一段文本.
- *
- * 该函数在执行过程中将会发送以下事件:
- * - `iframe_events.GENERATION_STARTED`: 生成开始
- * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
- * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
- * - `iframe_events.GENERATION_ENDED`: 生成结束, 监听它可以得到生成的最终文本 (当然也能通过函数返回值获得)
- *
- * @param config 提示词和生成方式设置
- *   - `user_input?:string`: 用户输入
- *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
- *   - `image?:File|string`: 图片输入
- *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
- *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
- *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
- * @returns 生成的最终文本
- *
- * @example
- * // 请求生成
- * const result = await generate({ user_input: '你好' });
- * console.info('收到回复: ', result);
- *
- * @example
- * // 图片输入
- * const result = await generate({ user_input: '你好', image: 'https://example.com/image.jpg' });
- * console.info('收到回复: ', result);
- *
- * @example
- * // 注入、覆盖提示词
- * const result = await generate({
- *   user_input: '你好',
- *   injects: [{ role: 'system', content: '思维链...', position: 'in_chat', depth: 0, should_scan: true, }]
- *   overrides: {
- *     char_personality: '温柔',
- *     world_info_before: '',
- *     chat_history: {
- *       prompts: [],
- *     }
- *   }
- * });
- * console.info('收到回复: ', result);
- *
- * @example
- * // 使用自定义API
- * const result = await generate({
- *   user_input: '你好',
- *   custom_api: {
- *     apiurl: 'https://your-proxy-url.com',
- *     key: 'your-api-key',
- *     model: 'gpt-4',
- *     source: 'openai'
- *   }
- * });
- * console.info('收到回复: ', result);
- *
- * @example
- * // 流式生成
- *
- * // 需要预先监听事件来接收流式回复
- * eventOn(iframe_events.STREAM_TOKEN_RECEIVED_FULLY, text => {
- *   console.info('收到流式回复: ', text);
- * });
- *
- * // 然后进行生成
- * const result = await generate({ user_input: '你好', should_stream: true });
- * console.info('收到最终回复: ', result);
- */
-declare function generate(config: GenerateConfig): Promise<string>;
-
-/**
- * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
- *
- * 该函数在执行过程中将会发送以下事件:
- * - `iframe_events.GENERATION_STARTED`: 生成开始
- * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
- * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
- * - `iframe_events.GENERATION_ENDED`: 生成结束, 监听它可以得到生成的最终文本 (当然也能通过函数返回值获得)
- *
- * @param config 提示词和生成方式设置
- *   - `user_input?:string`: 用户输入
- *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
- *   - `image?:File|string`: 图片输入
- *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
- *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
- *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
- *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设
- * @returns 生成的最终文本
- *
- * @example
- * // 自定义内置提示词顺序, 未在 ordered_prompts 中给出的将不会被使用
- * const result = await generateRaw({
- *   user_input: '你好',
- *   ordered_prompts: [
- *     'char_description',
- *     { role: 'system', content: '系统提示' },
- *     'chat_history',
- *     'user_input',
- *   ]
- * })
- * console.info('收到回复: ', result);
- *
- * @example
- * // 使用自定义API和自定义提示词顺序
- * const result = await generateRaw({
- *   user_input: '你好',
- *   custom_api: {
- *     apiurl: 'https://your-proxy-url.com',
- *     key: 'your-api-key',
- *     model: 'gpt-4',
- *     source: 'openai'
- *   },
- *   ordered_prompts: [
- *     'char_description',
- *     'chat_history',
- *     'user_input',
- *   ]
- * })
- * console.info('收到回复: ', result);
- */
-declare function generateRaw(config: GenerateRawConfig): Promise<string>;
-
-/**
- * 根据生成请求唯一标识符停止特定的生成请求
- *
- * @param generation_id 生成请求唯一标识符, 用于标识要停止的生成请求
- * @returns Promise<boolean> 是否成功停止生成
- */
-declare function stopGenerationById(generation_id: string): Promise<boolean>;
-
-/**
- * 停止所有正在进行的生成请求
- *
- * @returns Promise<boolean> 是否成功停止所有生成
- */
-declare function stopAllGeneration(): Promise<boolean>;
