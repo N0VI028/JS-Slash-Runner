@@ -36,6 +36,12 @@ declare namespace Mvu {
     args: [path: string, delta_or_toggle_literal: string];
     reason: string;
   };
+  type MoveCommandInfo = {
+    type: 'move';
+    full_match: string;
+    args: [from: string, to: string];
+    reason: string;
+  };
 }
 
 /**
