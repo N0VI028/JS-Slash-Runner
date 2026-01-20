@@ -20,10 +20,8 @@ export async function getModelList(custom_api: { apiurl: string; key?: string })
     headers: getRequestHeaders(),
     body: JSON.stringify({
       reverse_proxy: url,
-      custom_url: url,
       proxy_password: custom_api.key ?? '',
-      chat_completion_source: 'custom',
-      custom_include_headers: '',
+      chat_completion_source: 'openai',
     }),
     cache: 'no-cache',
   });
