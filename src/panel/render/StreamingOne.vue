@@ -29,7 +29,7 @@ const contents = computed(() => {
     $(
       props.html
         .replaceAll('mes_text', 'TH-streaming')
-        .replaceAll(/<div class="TH-collapse-code-block-button">(?:显示|隐藏)(?:前端)?代码块<\/div>/g, ''),
+        .replace(/<div class="TH-collapse-code-block-button">(?:显示|隐藏)(?:前端)?代码块<\/div>/g, ''),
     ).toArray(),
     (lhs, rhs) => {
       return !isFrontendElement(lhs) && !isFrontendElement(rhs);
