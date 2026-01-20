@@ -4,7 +4,7 @@ import { handleCustomPath } from '@/function/generate/generateRaw';
 import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
 import { detail, GenerateConfig, GenerateRawConfig, Overrides } from '@/function/generate/types';
-import { setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
+import { normalizeBaseURL, setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
 import { event_types, eventSource, getRequestHeaders, stopGeneration } from '@sillytavern/script';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
@@ -13,12 +13,14 @@ declare const $: any;
 const generationControllers = new Map<string, AbortController>();
 
 export async function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]> {
+  const url  = normalizeBaseURL(custom_api?.apiurl);
+
   const response = await fetch('/api/backends/chat-completions/status', {
     method: 'POST',
     headers: getRequestHeaders(),
     body: JSON.stringify({
-      reverse_proxy: custom_api?.apiurl,
-      custom_url: custom_api?.apiurl,
+      reverse_proxy: url,
+      custom_url: url,
       proxy_password: custom_api.key ?? '',
       chat_completion_source: 'custom',
       custom_include_headers: '',

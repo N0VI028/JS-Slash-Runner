@@ -2,6 +2,7 @@ import { CustomApiConfig } from '@/function/generate/types';
 import {
   clearInjectionPrompts,
   extractMessageFromData,
+  normalizeBaseURL,
   setupImageArrayProcessing,
   unblockGeneration,
 } from '@/function/generate/utils';
@@ -166,7 +167,7 @@ export async function generateResponse(
     // 如果有自定义API配置，设置单次事件拦截
     if (customApi?.apiurl) {
       customApiEventHandler = (data: any) => {
-        data.reverse_proxy = customApi.apiurl;
+        data.reverse_proxy = normalizeBaseURL(customApi.apiurl!);
         data.chat_completion_source = customApi.source || 'openai';
         data.proxy_password = customApi.key || '';
         data.model = customApi.model;

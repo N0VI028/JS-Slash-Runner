@@ -4,6 +4,7 @@
 ### 📦函数
 
 - 新增 `getModelList` 函数, 用于获取自定义 API 的模型列表
+- 现在 `generate` 和 `generateRaw` 的 `custom_api` 参数支持自动处理一些 API 地址, 如 `https://api.example.com` 将会被自动处理为 `https://api.example.com/v1`
 
 ## 4.5.4
 
