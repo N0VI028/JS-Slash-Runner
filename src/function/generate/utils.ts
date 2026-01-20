@@ -351,14 +351,11 @@ export function normalizeBaseURL(api_url: string): string {
   if (!api_url) {
     return '';
   }
-  if (api_url.endsWith('/v1')) {
-    return api_url;
-  }
   if (api_url.endsWith('/models')) {
-    return api_url.replace(/\/models$/, '');
+    api_url.replace(/\/models$/, '');
   }
   if (api_url.endsWith('/chat/completions')) {
-    return api_url.replace(/\/chat\/completions$/, '');
+    api_url.replace(/\/chat\/completions$/, '');
   }
-  return `${api_url}/v1`;
+  return api_url.endsWith('/v1') ? api_url : `${api_url}/v1`;
 }
