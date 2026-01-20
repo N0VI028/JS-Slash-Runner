@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.5.5
+
+### 📦函数
+
+- 新增 `getModelList` 函数, 用于获取自定义 API 的模型列表
+
 ## 4.5.4
 
 ### 🐛修复
