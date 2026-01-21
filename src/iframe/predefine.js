@@ -1,6 +1,9 @@
 window._ = window.parent._;
 Object.defineProperty(window, 'SillyTavern', {
-  get: () => _.get(window.parent, 'SillyTavern').getContext(),
+  get: () => {
+    const SillyTavern = _.get(window.parent, 'SillyTavern');
+    return { ...SillyTavern.getContext(), ...SillyTavern };
+  },
 });
 const iframeId = window.frameElement?.id || window.name;
 if (iframeId) {
