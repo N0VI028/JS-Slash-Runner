@@ -14,7 +14,7 @@ function get_event_listener_wrapper_map(this: Window): Map<string, Map<Function,
   );
 }
 
-function get_event_listener_map(this: Window, event_type: string): Map<Function, Function> {
+function get_listener_wrapper_map(this: Window, event_type: string): Map<Function, Function> {
   const event_listener_wrapper_map = get_event_listener_wrapper_map.call(this);
   return getOrSet(event_listener_wrapper_map, event_type, () => new Map<Function, Function>());
 }
@@ -25,10 +25,10 @@ function register_listener_wrapper(
   listener: Function,
   options: { once?: boolean } = {},
 ): Function {
-  const listener_wrapper_map = get_event_listener_map.call(this, event_type);
+  const listener_wrapper_map = get_listener_wrapper_map.call(this, event_type);
   return getOrSet(listener_wrapper_map, listener, () => {
     const wrapper = (...args: any[]): void => {
-      const listener_wrapper_map = get_event_listener_map.call(this, event_type);
+      const listener_wrapper_map = get_listener_wrapper_map.call(this, event_type);
       if (!listener_wrapper_map?.has(listener)) {
         _eventRemoveListener.call(this, event_type, wrapper);
         return;
@@ -129,7 +129,7 @@ export function _eventRemoveListener<T extends EventType>(
   event_type: T,
   listener: ListenerType[T],
 ): void {
-  const listener_wrapper_map = get_event_listener_map.call(this, event_type);
+  const listener_wrapper_map = get_listener_wrapper_map.call(this, event_type);
   if (listener_wrapper_map) {
     const wrapper = listener_wrapper_map.get(listener);
     if (wrapper) {
@@ -140,11 +140,9 @@ export function _eventRemoveListener<T extends EventType>(
 }
 
 export function _eventClearEvent(this: Window, event_type: EventType): void {
-  const event_listeners_map = get_event_listener_wrapper_map.call(this);
-  event_listeners_map.get(event_type)?.forEach(listener => {
+  get_listener_wrapper_map.call(this, event_type)?.forEach((_wrapper, listener) => {
     _eventRemoveListener.call(this, event_type, listener as any);
   });
-  event_listeners_map.delete(event_type);
 }
 
 export function _eventClearListener(this: Window, listener: Function): void {
@@ -159,7 +157,6 @@ export function _eventClearAll(this: Window): void {
       _eventRemoveListener.call(this, event_type, listener as any);
     });
   });
-  iframe_event_listener_wrapper_map.delete(_getIframeName.call(this));
 }
 
 type EventType = IframeEventType | TavernEventType | string;
