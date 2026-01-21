@@ -77,7 +77,7 @@
       </div>
     </template>
     <template v-else>
-      <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :min-size="10" :item-gap="7">
+      <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :item-gap="7">
         <template #default="{ itemData: item_data }">
           <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
             <div
