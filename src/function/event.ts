@@ -153,7 +153,7 @@ export function _eventClearListener(this: Window, listener: Function): void {
 
 export function _eventClearAll(this: Window): void {
   get_event_listener_wrapper_map.call(this).forEach((listeners, event_type) => {
-    listeners.forEach(listener => {
+    listeners.forEach((_wrapper, listener) => {
       _eventRemoveListener.call(this, event_type, listener as any);
     });
   });
