@@ -501,4 +501,4 @@ interface ListenerType {
     timedEffects: Record<string, any>;
   }) => void;
   [custom_event: string]: (...args: any) => any;
-};
+}
