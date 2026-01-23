@@ -27,7 +27,7 @@ function register_listener_wrapper(
 ): Function {
   const listener_wrapper_map = get_listener_wrapper_map.call(this, event_type);
   return getOrSet(listener_wrapper_map, listener, () => {
-    const wrapper = (...args: any[]): void => {
+    const wrapper = async (...args: any[]): Promise<void> => {
       const listener_wrapper_map = get_listener_wrapper_map.call(this, event_type);
       if (!listener_wrapper_map?.has(listener)) {
         _eventRemoveListener.call(this, event_type, wrapper);
@@ -51,7 +51,7 @@ function register_listener_wrapper(
         }
       }
 
-      listener(...args);
+      await listener(...args);
 
       if (options.once) {
         _eventRemoveListener.call(this, event_type, wrapper);
