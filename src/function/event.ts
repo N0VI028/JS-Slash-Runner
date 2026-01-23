@@ -27,10 +27,10 @@ function register_listener_wrapper(
 ): Function {
   const listener_wrapper_map = get_listener_wrapper_map.call(this, event_type);
   return getOrSet(listener_wrapper_map, listener, () => {
-    const wrapper = async (...args: any[]): Promise<void> => {
+    const wrapper = (...args: any[]) => {
       const listener_wrapper_map = get_listener_wrapper_map.call(this, event_type);
       if (!listener_wrapper_map?.has(listener)) {
-        _eventRemoveListener.call(this, event_type, wrapper);
+        eventSource.removeListener(event_type, wrapper);
         return;
       }
 
@@ -51,11 +51,13 @@ function register_listener_wrapper(
         }
       }
 
-      await listener(...args);
+      const result = listener(...args);
 
       if (options.once) {
-        _eventRemoveListener.call(this, event_type, wrapper);
+        _eventRemoveListener.call(this, event_type, listener as any);
       }
+
+      return result;
     };
     return wrapper;
   });
