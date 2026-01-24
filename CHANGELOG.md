@@ -1,4 +1,37 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.6.0
+
+### 📦函数: 为 `generate` 和 `generateRaw` 新增静默生成选项
+
+在以前, 通过 `generate` 和 `generateRaw` 进行的 AI 请求会让酒馆网页的发送按钮<i class="fa-solid fa-paper-plane"></i>变成停止按钮<i class="fa-solid fa-circle-stop"></i>, 玩家点击停止按钮会中断所有生成请求:
+
+```ts
+// 三个同时进行的生成请求, 玩家点击停止按钮后会停止它们所有
+generate({ user_input: '向剧情 AI 请求' });
+generate({ user_input: '向摘要 AI 请求' });
+generate({ user_input: '向生图提示词 AI 请求' });
+```
+
+现在, `generate` 和 `generateRaw` 新增了 `should_silence` 参数, 使用 `should_silence: true` 的生成请求不会让酒馆网页按钮变成停止按钮, 玩家点击停止按钮也不会中断该生成请求:
+
+```ts
+// 三个同时进行的生成请求, 玩家点击停止按钮后只会停止 "向剧情 AI 请求"
+generate({ user_input: '向剧情 AI 请求' });
+generate({ user_input: '向摘要 AI 请求', should_silence: true });
+generate({ user_input: '向生图提示词 AI 请求', should_silence: true });
+```
+
+如果需要停止静默生成请求, 可以使用 `stopGenerationById` 或 `stopAllGeneration` 函数:
+
+```ts
+// 为生成请求设置唯一标识符
+const uuid = uuidv4();
+generate({ generation_id: uuid, user_input: '向摘要 AI 请求', should_silence: true });
+
+// 通过该标识符停止该生成请求
+stopGenerationById(uuid);
+```
+
 ## 4.5.7
 
 ### 🐛修复

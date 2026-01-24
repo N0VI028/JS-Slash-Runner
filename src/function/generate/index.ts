@@ -5,7 +5,13 @@ import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
 import { detail, GenerateConfig, GenerateRawConfig, Overrides } from '@/function/generate/types';
 import { normalizeBaseURL, setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
-import { deactivateSendButtons, event_types, eventSource, getRequestHeaders, stopGeneration } from '@sillytavern/script';
+import {
+  deactivateSendButtons,
+  event_types,
+  eventSource,
+  getRequestHeaders,
+  stopGeneration,
+} from '@sillytavern/script';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 declare const $: any;
@@ -19,7 +25,7 @@ const generationControllers = new Map<string, GenerationControllerEntry>();
 const stopButtonBoundGenerationIds = new Set<string>();
 
 export async function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]> {
-  const url  = normalizeBaseURL(custom_api?.apiurl);
+  const url = normalizeBaseURL(custom_api?.apiurl);
 
   const response = await fetch('/api/backends/chat-completions/status', {
     method: 'POST',
@@ -135,7 +141,7 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
     use_preset: true,
     image: config.image,
     stream: config.should_stream ?? false,
-    bindToStopButton: config.bindToStopButton,
+    bindToStopButton: config.should_silence ?? false,
     overrides: config.overrides !== undefined ? fromOverrides(config.overrides) : undefined,
     inject: config.injects,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
@@ -155,7 +161,7 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
     use_preset: false,
     image: config.image,
     stream: config.should_stream ?? false,
-    bindToStopButton: config.bindToStopButton,
+    bindToStopButton: config.should_silence ?? false,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
     overrides: config.overrides ? fromOverrides(config.overrides) : undefined,
     inject: config.injects,
@@ -300,28 +306,30 @@ export async function generateRaw(config: GenerateRawConfig) {
 /**
  * 点击停止按钮时的逻辑
  */
-$(document).off('click.tavernhelper_generate', '#mes_stop').on('click.tavernhelper_generate', '#mes_stop', function () {
-  stopGeneration();
+$(document)
+  .off('click.tavernhelper_generate', '#mes_stop')
+  .on('click.tavernhelper_generate', '#mes_stop', function () {
+    stopGeneration();
 
-  if (stopButtonBoundGenerationIds.size === 0) {
-    return;
-  }
-
-  const idsToAbort = Array.from(stopButtonBoundGenerationIds.values());
-  for (const id of idsToAbort) {
-    const entry = generationControllers.get(id);
-    if (!entry) {
-      stopButtonBoundGenerationIds.delete(id);
-      continue;
+    if (stopButtonBoundGenerationIds.size === 0) {
+      return;
     }
 
-    entry.abortController.abort('点击停止按钮');
-    generationControllers.delete(id);
-    stopButtonBoundGenerationIds.delete(id);
-    eventSource.emit(event_types.GENERATION_STOPPED, id);
-  }
+    const idsToAbort = Array.from(stopButtonBoundGenerationIds.values());
+    for (const id of idsToAbort) {
+      const entry = generationControllers.get(id);
+      if (!entry) {
+        stopButtonBoundGenerationIds.delete(id);
+        continue;
+      }
 
-  if (stopButtonBoundGenerationIds.size === 0) {
-    unblockGeneration();
-  }
-});
+      entry.abortController.abort('点击停止按钮');
+      generationControllers.delete(id);
+      stopButtonBoundGenerationIds.delete(id);
+      eventSource.emit(event_types.GENERATION_STOPPED, id);
+    }
+
+    if (stopButtonBoundGenerationIds.size === 0) {
+      unblockGeneration();
+    }
+  });
