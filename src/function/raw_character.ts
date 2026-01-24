@@ -10,56 +10,23 @@ export class RawCharacter {
     this.character_data = character_data;
   }
 
-  static find({
-    name,
-    allow_avatar = true,
-  }: {
-    name: LiteralUnion<'current', string>;
-    allow_avatar?: boolean;
-  }): v1CharData | null {
-    if (!name || name === 'current') {
-      if (this_chid === undefined) {
-        return null;
-      }
-      return characters[Number(this_chid)];
+  static find({ name }: { name: LiteralUnion<'current', string> }): v1CharData | null {
+    const index = this.findIndex(name);
+    if (index !== -1) {
+      return characters[index];
     }
-
-    if (allow_avatar) {
-      const character_by_avatar = characters.find(char => char.avatar === name);
-      if (character_by_avatar) {
-        return character_by_avatar;
-      }
-    }
-
-    const matching_characters = characters.filter(char => char.name === name || (allow_avatar && char.avatar === name));
-    if (matching_characters.length > 1) {
-      console.warn(`找到多个符合条件的角色, 返回导入时间最早的角色: ${name}`);
-    }
-
-    return matching_characters[0] || null;
+    return null;
   }
 
-  static findCharacterIndex(name: string): number {
-    const matchTypes = [
-      (a: string, b: string) => a === b,
-      (a: string, b: string) => a.startsWith(b),
-      (a: string, b: string) => a.includes(b),
-    ];
-
-    const exactAvatarMatch = characters.findIndex(x => x.avatar === name);
-
-    if (exactAvatarMatch !== -1) {
-      return exactAvatarMatch;
+  static findIndex(name: LiteralUnion<'current', string>): number {
+    if (name === 'current') {
+      return this_chid === undefined ? -1 : Number(this_chid);
     }
 
-    for (const matchType of matchTypes) {
-      const index = characters.findIndex(x => matchType(x.name.toLowerCase(), name.toLowerCase()));
-      if (index !== -1) {
-        return index;
-      }
-    }
-
-    return -1;
+    const lowered_name = name.toLowerCase();
+    return characters.findIndex(
+      character => character.name.toLowerCase() === lowered_name || character.avatar.toLowerCase() === lowered_name,
+    );
   }
 
   static async getChatsFromFiles(data: any[], isGroupChat: boolean): Promise<Record<string, any>> {
@@ -166,12 +133,12 @@ export class RawCharacter {
   }
 }
 
-export function getCharData(name: LiteralUnion<'current', string>, allowAvatar: boolean = true): v1CharData | null {
+export function getCharData(name: LiteralUnion<'current', string>): v1CharData | null {
   try {
     // backward compatibility
     name = !name ? 'current' : name;
 
-    const characterData = RawCharacter.find({ name, allow_avatar: allowAvatar });
+    const characterData = RawCharacter.find({ name });
     if (!characterData) return null;
 
     const character = new RawCharacter(characterData);
@@ -182,11 +149,11 @@ export function getCharData(name: LiteralUnion<'current', string>, allowAvatar: 
   }
 }
 
-export function getCharAvatarPath(name: LiteralUnion<'current', string>, allowAvatar: boolean = true): string | null {
+export function getCharAvatarPath(name: LiteralUnion<'current', string>): string | null {
   // backward compatibility
   name = !name ? 'current' : name;
 
-  const characterData = RawCharacter.find({ name, allow_avatar: allowAvatar });
+  const characterData = RawCharacter.find({ name });
   if (!characterData) {
     return null;
   }
@@ -201,20 +168,17 @@ export function getCharAvatarPath(name: LiteralUnion<'current', string>, allowAv
   return '/characters/' + targetAvatarImg;
 }
 
-export async function getChatHistoryBrief(
-  name: LiteralUnion<'current', string>,
-  allowAvatar: boolean = true,
-): Promise<any[] | null> {
+export async function getChatHistoryBrief(name: LiteralUnion<'current', string>): Promise<any[] | null> {
   // backward compatibility
   name = !name ? 'current' : name;
 
-  const character_data = RawCharacter.find({ name, allow_avatar: allowAvatar });
+  const character_data = RawCharacter.find({ name });
   if (!character_data) {
     return null;
   }
 
   const character = new RawCharacter(character_data);
-  const index = RawCharacter.findCharacterIndex(character.getAvatarId());
+  const index = RawCharacter.findIndex(character.getAvatarId());
   if (index === -1) {
     return null;
   }

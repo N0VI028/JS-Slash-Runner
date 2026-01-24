@@ -9,6 +9,15 @@ import {
 } from '@/function/audio';
 import { builtin } from '@/function/builtin';
 import {
+  createCharacter,
+  createOrReplaceCharacter,
+  deleteCharacter,
+  getCharacter,
+  getCharacterNames,
+  replaceCharacter,
+  updateCharacterWith,
+} from '@/function/character';
+import {
   createChatMessages,
   deleteChatMessages,
   getChatMessages,
@@ -16,7 +25,7 @@ import {
   setChatMessage,
   setChatMessages,
 } from '@/function/chat_message';
-import { formatAsDisplayedMessage, retrieveDisplayedMessage, refreshOneMessage } from '@/function/displayed_message';
+import { formatAsDisplayedMessage, refreshOneMessage, retrieveDisplayedMessage } from '@/function/displayed_message';
 import {
   _eventClearAll,
   _eventClearEvent,
@@ -167,6 +176,7 @@ import {
 } from '@/function/worldbook';
 import { audioEnable, audioImport, audioMode, audioPlay, audioSelect } from '@/slash_command/audio';
 import { useIframeLogsStore } from '@/store/iframe_logs';
+import { writeExtensionField } from '@/util/tavern';
 
 function getTavernHelper() {
   return {
@@ -174,6 +184,7 @@ function getTavernHelper() {
       _init: useIframeLogsStore().init,
       _log: useIframeLogsStore().log,
       _clearLog: useIframeLogsStore().clear,
+      writeExtensionField,
     },
 
     _bind: {
@@ -240,7 +251,13 @@ function getTavernHelper() {
     builtin,
 
     // character
-    Character: RawCharacter,
+    getCharacterNames,
+    createCharacter,
+    createOrReplaceCharacter,
+    deleteCharacter,
+    getCharacter,
+    replaceCharacter,
+    updateCharacterWith,
 
     // chat_message
     getChatMessages,

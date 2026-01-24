@@ -216,10 +216,8 @@ type CharLorebooks = {
   additional: string[];
 };
 
-export function getCharLorebooks({
-  name = (characters as any)[this_chid as string]?.avatar ?? null,
-}: GetCharLorebooksOption = {}): CharLorebooks {
-  const character = RawCharacter.find({ name: name ?? 'current' });
+export function getCharLorebooks({ name = 'current' }: GetCharLorebooksOption = {}): CharLorebooks {
+  const character = RawCharacter.find({ name: name });
   if (!character) {
     throw Error(`未找到${name === 'current' ? '当前打开' : `名为 '${name}' `}的角色卡`);
   }
@@ -227,7 +225,7 @@ export function getCharLorebooks({
   const books: CharLorebooks = { primary: null, additional: [] };
 
   if (character.data?.extensions?.world) {
-    books.primary = character.data?.extensions?.world;
+    books.primary = character.data?.extensions?.world || null;
   }
 
   // TODO: 提取成函数
@@ -262,7 +260,7 @@ export async function setCurrentCharLorebooks(lorebooks: Partial<CharLorebooks>)
 
   if (lorebooks.primary !== undefined) {
     const previous_primary = String($('#character_world').val());
-    $('#character_world').val(lorebooks.primary ? lorebooks.primary : '');
+    $('#character_world').val(lorebooks.primary || '');
 
     $('.character_world_info_selector')
       .find('option:selected')

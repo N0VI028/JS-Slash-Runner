@@ -112,7 +112,7 @@ export function get_tavern_regexes_without_clone(option: TavernRegexOption): Reg
     case 'global':
       return extension_settings.regex ?? [];
     case 'character': {
-      const id = RawCharacter.findCharacterIndex(option.name ?? 'current');
+      const id = RawCharacter.findIndex(option.name ?? 'current');
       return characters.at(id)?.data?.extensions?.regex_scripts ?? [];
     }
     case 'preset':

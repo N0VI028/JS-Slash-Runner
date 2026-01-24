@@ -111,6 +111,7 @@ export const GlobalSettings = z
       render: {
         enabled: settings.render.render_enabled,
         collapse_code_block: 'frontend_only',
+        allow_streaming: false,
         use_blob_url: settings.render.render_blob_url,
         depth: settings.render.render_depth,
       },

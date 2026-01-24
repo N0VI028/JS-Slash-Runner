@@ -17,7 +17,13 @@ interface Window {
     readonly builtin: typeof builtin;
 
     // character
-    readonly Character: typeof Character;
+    readonly getCharacterNames: typeof getCharacterNames;
+    readonly createCharacter: typeof createCharacter;
+    readonly createOrReplaceCharacter: typeof createOrReplaceCharacter;
+    readonly deleteCharacter: typeof deleteCharacter;
+    readonly getCharacter: typeof getCharacter;
+    readonly replaceCharacter: typeof replaceCharacter;
+    readonly updateCharacterWith: typeof updateCharacterWith;
 
     // chat_message
     readonly getChatMessages: typeof getChatMessages;
@@ -29,6 +35,7 @@ interface Window {
     // displayed_message
     readonly formatAsDisplayedMessage: typeof formatAsDisplayedMessage;
     readonly retrieveDisplayedMessage: typeof retrieveDisplayedMessage;
+    readonly refreshOneMessage: typeof refreshOneMessage;
 
     // extension
     readonly isAdmin: typeof isAdmin;
@@ -44,6 +51,9 @@ interface Window {
     readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
     readonly generate: typeof generate;
     readonly generateRaw: typeof generateRaw;
+    readonly getModelList: typeof getModelList;
+    readonly stopGenerationById: typeof stopGenerationById;
+    readonly stopAllGeneration: typeof stopAllGeneration;
 
     // global
     readonly initializeGlobal: typeof initializeGlobal;
