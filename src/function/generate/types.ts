@@ -33,6 +33,7 @@ export type GenerateConfig = {
   user_input?: string;
   image?: File | string | (File | string)[];
   should_stream?: boolean;
+  bindToStopButton?: boolean;
   overrides?: Overrides;
   injects?: Omit<InjectionPrompt, 'id'>[];
   max_chat_history?: 'all' | number;
@@ -47,6 +48,7 @@ export type GenerateRawConfig = {
   user_input?: string;
   image?: File | string | (File | string)[];
   should_stream?: boolean;
+  bindToStopButton?: boolean;
   overrides?: Overrides;
   injects?: Omit<InjectionPrompt, 'id'>[];
   ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
@@ -180,6 +182,7 @@ export namespace detail {
     use_preset?: boolean;
     image?: File | string | (File | string)[];
     stream?: boolean;
+    bindToStopButton?: boolean;
     overrides?: OverrideConfig;
     max_chat_history?: number;
     inject?: Omit<InjectionPrompt, 'id'>[];

@@ -8,7 +8,7 @@
     >
       <slot></slot>
     </div>
-    <div class="flex-grow bg-(--grey5050a)" :class="weight ? weight : type === 'plain' ? 'h-[1px]' : 'h-[2px]'"></div>
+    <div class="grow bg-(--grey5050a)" :class="weight ? weight : type === 'plain' ? 'h-px' : 'h-[2px]'"></div>
   </div>
 </template>
 
