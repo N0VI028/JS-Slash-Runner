@@ -63,7 +63,14 @@ type Preset = {
   prompts_unused: PresetPrompt[];
 
   /** 额外字段, 用于为预设绑定额外数据 */
-  extensions: Record<string, any>;
+  extensions: {
+    regex_scripts?: TavernRegex[];
+    tavern_helper?: {
+      scripts: Record<string, any>[];
+      variales: Record<string, any>;
+    };
+    [other: string]: any;
+  };
 };
 
 type PresetPrompt = {

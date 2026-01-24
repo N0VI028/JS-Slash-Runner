@@ -1,5 +1,7 @@
+// TODO: 重制酒馆正则函数
 import { refreshOneMessage } from '@/function/displayed_message';
 import { macros } from '@/function/macro_like';
+import { RawCharacter } from '@/function/raw_character';
 import {
   characters,
   chat,
@@ -67,12 +69,11 @@ export function formatAsTavernRegexedString(
   return result;
 }
 
-type TavernRegex = {
+export type TavernRegex = {
   id: string;
   script_name: string;
   enabled: boolean;
   run_on_edit: boolean;
-  scope: 'global' | 'character';
 
   find_regex: string;
   replace_string: string;
@@ -93,21 +94,38 @@ type TavernRegex = {
   max_depth: number | null;
 };
 
-export function getGlobalRegexes(): RegexScriptData[] {
-  return extension_settings.regex ?? [];
+type TavernRegexOptionGlobal = {
+  type: 'global';
+};
+type TavernRegexOptionCharacter = {
+  type: 'character';
+  name?: string | 'current';
+};
+type TavernRegexOptionPreset = {
+  type: 'preset';
+  name?: string | 'current';
+};
+type TavernRegexOption = TavernRegexOptionGlobal | TavernRegexOptionCharacter | TavernRegexOptionPreset;
+
+export function get_tavern_regexes_without_clone(option: TavernRegexOption): RegexScriptData[] {
+  switch (option.type) {
+    case 'global':
+      return extension_settings.regex ?? [];
+    case 'character': {
+      const id = RawCharacter.findCharacterIndex(option.name ?? 'current');
+      return characters.at(id)?.data?.extensions?.regex_scripts ?? [];
+    }
+    case 'preset':
+      throw Error('暂不支持获取预设的酒馆正则');
+  }
 }
 
-export function getCharacterRegexes(): RegexScriptData[] {
-  return characters.at(this_chid as unknown as number)?.data?.extensions?.regex_scripts ?? [];
-}
-
-function toTavernRegex(regex_script_data: RegexScriptData, scope: 'global' | 'character'): TavernRegex {
+export function to_tavern_regex(regex_script_data: RegexScriptData): TavernRegex {
   return {
     id: regex_script_data.id,
     script_name: regex_script_data.scriptName,
     enabled: !regex_script_data.disabled,
     run_on_edit: regex_script_data.runOnEdit,
-    scope: scope,
 
     find_regex: regex_script_data.findRegex,
     replace_string: regex_script_data.replaceString,
@@ -129,7 +147,7 @@ function toTavernRegex(regex_script_data: RegexScriptData, scope: 'global' | 'ch
   };
 }
 
-function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
+export function from_tavern_regex(tavern_regex: TavernRegex): RegexScriptData {
   return {
     id: tavern_regex.id,
     scriptName: tavern_regex.script_name,
@@ -161,7 +179,7 @@ function fromTavernRegex(tavern_regex: TavernRegex): RegexScriptData {
 
 export function isCharacterTavernRegexesEnabled(): boolean {
   return (extension_settings?.character_allowed_regex as string[])?.includes(
-    characters.at(this_chid as unknown as number)?.avatar ?? '',
+    characters.at(Number(this_chid))?.avatar ?? '',
   );
 }
 
@@ -180,10 +198,20 @@ export function getTavernRegexes({ scope = 'all', enable_state = 'all' }: GetTav
 
   let regexes: TavernRegex[] = [];
   if (scope === 'all' || scope === 'global') {
-    regexes = [...regexes, ...getGlobalRegexes().map(regex => toTavernRegex(regex, 'global'))];
+    regexes = [
+      ...regexes,
+      ...get_tavern_regexes_without_clone({ type: 'global' })
+        .map(to_tavern_regex)
+        .map(regex => ({ ...regex, scope: 'global' })),
+    ];
   }
   if (scope === 'all' || scope === 'character') {
-    regexes = [...regexes, ...getCharacterRegexes().map(regex => toTavernRegex(regex, 'character'))];
+    regexes = [
+      ...regexes,
+      ...get_tavern_regexes_without_clone({ type: 'character' })
+        .map(to_tavern_regex)
+        .map(regex => ({ ...regex, scope: 'character' })),
+    ];
   }
   if (enable_state !== 'all') {
     regexes = regexes.filter(regex => regex.enabled === (enable_state === 'enabled'));
@@ -221,8 +249,9 @@ export async function replaceTavernRegexes(
     .forEach(regex => {
       regex.script_name = `未命名-${regex.id}`;
     });
+  // @ts-expect-error 确实有 `scope` 字段, 之后想办法弃用整个函数
   const [global_regexes, character_regexes] = _.partition(regexes, regex => regex.scope === 'global').map(paritioned =>
-    paritioned.map(fromTavernRegex),
+    paritioned.map(from_tavern_regex),
   );
 
   const character = characters.at(this_chid as unknown as number);

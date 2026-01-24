@@ -1,3 +1,4 @@
+import { from_tavern_regex, TavernRegex, to_tavern_regex } from '@/function/tavern_regex';
 import { settingsToUpdate } from '@/util/compatibility';
 import { getCompletionPresetByName } from '@/util/tavern';
 import { saveSettingsDebounced } from '@sillytavern/script';
@@ -43,7 +44,14 @@ type Preset = {
   prompts: PresetPrompt[];
   prompts_unused: PresetPrompt[];
 
-  extensions: Record<string, any>;
+  extensions: {
+    regex_scripts?: TavernRegex[];
+    tavern_helper?: {
+      scripts: Record<string, any>[];
+      variales: Record<string, any>;
+    };
+    [other: string]: any;
+  };
 };
 
 type PresetPrompt = {
@@ -403,6 +411,11 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
   );
   const prompts = prompt_order_identifiers.map(identifier => prompts_used.find(prompt => prompt.id === identifier)!);
 
+  const extensions = klona(preset.extensions);
+  if (_.has(extensions, 'regex_scripts')) {
+    extensions.regex_scripts = extensions.regex_scripts.map(to_tavern_regex);
+  }
+
   return {
     settings: {
       max_context: Number(preset.openai_max_context),
@@ -450,7 +463,7 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
     prompts,
     prompts_unused,
 
-    extensions: preset.extensions,
+    extensions,
   };
 }
 function fromPreset(preset: Preset): _OriginalPreset {
@@ -481,6 +494,12 @@ function fromPreset(preset: Preset): _OriginalPreset {
 
   const prompt_used = preset.prompts.map(prompt => fromPresetPrompt(prompt));
   const prompt_unused = preset.prompts_unused.map(prompt => fromPresetPrompt(prompt));
+
+  const extensions = klona(preset.extensions);
+  if (_.has(extensions, 'regex_scripts[0].source')) {
+    // @ts-expect-error 类型是正确的, 就是需要转换回酒馆格式
+    extensions.regex_scripts = extensions.regex_scripts.map(from_tavern_regex);
+  }
 
   return {
     max_context_unlocked: true,
@@ -542,7 +561,7 @@ function fromPreset(preset: Preset): _OriginalPreset {
       },
     ],
 
-    extensions: preset.extensions,
+    extensions,
   };
 }
 
