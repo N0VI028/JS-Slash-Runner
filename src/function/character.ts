@@ -205,10 +205,10 @@ export async function deleteCharacter(
   return true;
 }
 
-export async function getCharacter(name: LiteralUnion<'current', string>): Promise<Character | null> {
+export async function getCharacter(name: LiteralUnion<'current', string>): Promise<Character> {
   const index = RawCharacter.findIndex(name);
   if (index === -1) {
-    return null;
+    throw Error(`角色卡 '${name}' 不存在`);
   }
 
   await unshallowCharacter(String(index));
