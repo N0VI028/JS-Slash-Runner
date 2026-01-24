@@ -188,8 +188,160 @@ declare const builtin: {
   saveSettings: () => Promise<void>;
   uuidv4: () => string;
 };
-/** @deprecated 之前的 `Character` 已经重命名为 `RawCharacter`, 给之后制作角色卡接口 `Character` 腾位置 */
-type Character = RawCharacter;
+type Character = {
+  name: string;
+  version: string;
+  creator: string;
+  creator_notes: string;
+
+  worldbook: string | null;
+  description: string;
+  first_messages: string[];
+
+  extensions: {
+    regex_scripts: TavernRegex[];
+    tavern_helper: {
+      scripts: Record<string, any>[];
+      variables: Record<string, any>;
+    };
+    [other: string]: any;
+  };
+};
+
+/**
+ * 获取角色卡名称列表
+ *
+ * @returns 角色卡名称列表
+ */
+declare function getCharacterNames(): string[];
+
+/**
+ * 新建 `character_name` 角色卡, 内容为 `character`
+ *
+ * @param character_name 角色卡名称
+ * @param character 角色卡数据; 不填则使用默认数据
+ *
+ * @returns 是否成功创建, 如果已经存在同名角色卡或尝试创建名为 `'current'` 的角色卡会失败
+ *
+ * @throws 如果访问后端失败, 将会抛出异常
+ */
+declare function createCharacter(character_name: Exclude<string, 'current'>, character?: PartialDeep<Character>): Promise<boolean>;
+
+/**
+ * 创建或替换名为 `character_name` 的角色卡, 内容为 `character`
+ *
+ * @param character_name 角色卡名称
+ * @param character 角色卡数据; 不填则使用默认数据
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'|'none'`: 如果对角色卡进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染
+ *
+ * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
+ *
+ * @throws 如果访问后端失败, 将会抛出异常
+ */
+declare function createOrReplaceCharacter(
+  character_name: Exclude<string, 'current'>,
+  character?: PartialDeep<Character>,
+  options?: ReplaceCharacterOptions,
+): Promise<boolean>;
+
+/**
+ * 删除 `character_name` 角色卡
+ *
+ * @param character_name 角色卡名称
+ *
+ * @returns 是否成功删除, 可能因角色卡不存在等原因而失败
+ */
+declare function deleteCharacter(character_name: LiteralUnion<'current', string>): Promise<boolean>;
+
+/**
+ * 获取 `character_name` 角色卡的内容
+ *
+ * @param character_name 角色卡名称
+ *
+ * @returns 角色卡内容
+ *
+ * @throws 如果角色卡不存在, 将会抛出异常
+ */
+declare function getCharacter(character_name: LiteralUnion<'current', string>): Promise<Character>;
+
+type ReplaceCharacterOptions = {
+  /** 如果对角色卡进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
+  render?: 'debounced' | 'immediate' | 'none';
+};
+
+/**
+ * 完全替换 `character_name` 角色卡的内容为 `character`
+ *
+ * @param character_name 角色卡名称
+ * @param character 角色卡数据
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'|'none'`: 如果对角色卡进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染
+ *
+ * @throws 如果角色卡不存在, 将会抛出异常
+ * @throws 如果访问后端失败, 将会抛出异常
+ *
+ * @example
+ * // 为角色卡更改开场白
+ * const character = await getCharacter('角色卡名称');
+ * character.first_messages = ['新的开场白1', '新的开场白2'];
+ * await replaceCharacter('角色卡名称', character);
+ *
+ * @example
+ * // 清空角色卡的局部正则
+ * const character = await getCharacter('角色卡名称');
+ * character.extensions.regex_scripts = [];
+ * await replaceCharacter('角色卡名称', character);
+ *
+ * @example
+ * // 更换角色卡头像
+ * const character = await getCharacter('角色卡名称');
+ * character.avatar = await fetch('https://example.com/avatar.png').then(response => response.blob());
+ * await replaceCharacter('角色卡名称', character);
+ */
+declare function replaceCharacter(
+  character_name: Exclude<string, 'current'>,
+  character: PartialDeep<Character>,
+  options?: ReplaceCharacterOptions,
+): Promise<void>;
+
+type CharacterUpdater = ((character: Character) => Character) | ((character: Character) => Promise<Character>);
+
+/**
+ * 用 `updater` 函数更新 `character_name` 角色卡
+ *
+ * @param character_name 角色卡名称
+ * @param updater 用于更新角色卡的函数. 它应该接收角色卡内容作为参数, 并返回更新后的角色卡内容.
+ * @param options 可选选项
+ *   - `render:'debounced'|'immediate'|'none'`: 如果对角色卡进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染
+ *
+ * @returns 更新后的角色卡内容
+ *
+ * @throws 如果角色卡不存在, 将会抛出异常
+ * @throws 如果访问后端失败, 将会抛出异常
+ *
+ * @example
+ * // 为角色卡添加一个开场白
+ * await updateCharacterWith('角色卡名称', character => {
+ *   character.first_messages.push('新的开场白');
+ *   return character;
+ * });
+ *
+ * @example
+ * // 清空角色卡的局部正则
+ * await updateCharacterWith('角色卡名称', character => {
+ *   character.extensions.regex_scripts = [];
+ *   return character;
+ * });
+ *
+ * @example
+ * // 更换角色卡头像
+ * await updateCharacterWith('角色卡名称', async character => {
+ *   character.avatar = await fetch('https://example.com/avatar.png').then(response => response.blob());
+ *   return character;
+ * });
+ */
+declare function updateCharacterWith(character_name: LiteralUnion<'current', string>, updater: CharacterUpdater): Promise<Character>;
 type ChatMessage = {
   message_id: number;
   name: string;
@@ -610,7 +762,7 @@ declare function updateExtension(extension_id: string): Promise<Response>;
  * @param config 提示词和生成方式设置
  *   - `user_input?:string`: 用户输入
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
- *   - `bindToStopButton?:boolean`: 是否绑定到酒馆停止按钮; 默认为 'true'
+ *   - `should_silence?:boolean`: 是否静默生成; 默认为 'false'
  *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
  *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
@@ -681,7 +833,7 @@ declare function generate(config: GenerateConfig): Promise<string>;
  * @param config 提示词和生成方式设置
  *   - `user_input?:string`: 用户输入
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
- *   - `bindToStopButton?:boolean`: 是否绑定到酒馆停止按钮; 默认为 'true'
+ *   - `should_silence?:boolean`: 是否静默生成; 默认为 'false'
  *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
  *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
@@ -778,16 +930,15 @@ type GenerateConfig = {
   should_stream?: boolean;
 
   /**
-   * 是否绑定到酒馆的停止按钮; 默认为 `true`.
+   * 是否静默生成; 默认为 `false`.
+   * - `false`: 酒馆页面的发送按钮将会变为停止按钮, 点击停止按钮会中断所有非静默生成请求
+   * - `true`: 不影响酒馆停止按钮状态, 点击停止按钮不会中断该生成
    *
-   * - `true`: 保持现有行为（发送按钮变停止按钮；点击停止按钮会中断该生成）
-   * - `false`: 不影响酒馆停止按钮状态；点击停止按钮不会中断该生成
-   *
-   * 当为 `false` 时，只能通过以下方式停止该生成：
+   * 虽然静默生成不能通过停止按钮中断, 但可以在代码中使用以下方式停止生成:
    * - 使用该生成请求的 `generation_id` 调用 `stopGenerationById`
    * - 调用 `stopAllGeneration`
    */
-  bindToStopButton?: boolean;
+  should_silence?: boolean;
 
   /**
    * 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词.
@@ -995,7 +1146,13 @@ interface Window {
     readonly builtin: typeof builtin;
 
     // character
-    readonly Character: typeof Character;
+    readonly getCharacterNames: typeof getCharacterNames;
+    readonly createCharacter: typeof createCharacter;
+    readonly createOrReplaceCharacter: typeof createOrReplaceCharacter;
+    readonly deleteCharacter: typeof deleteCharacter;
+    readonly getCharacter: typeof getCharacter;
+    readonly replaceCharacter: typeof replaceCharacter;
+    readonly updateCharacterWith: typeof updateCharacterWith;
 
     // chat_message
     readonly getChatMessages: typeof getChatMessages;
@@ -1007,6 +1164,7 @@ interface Window {
     // displayed_message
     readonly formatAsDisplayedMessage: typeof formatAsDisplayedMessage;
     readonly retrieveDisplayedMessage: typeof retrieveDisplayedMessage;
+    readonly refreshOneMessage: typeof refreshOneMessage;
 
     // extension
     readonly isAdmin: typeof isAdmin;
@@ -1022,6 +1180,9 @@ interface Window {
     readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
     readonly generate: typeof generate;
     readonly generateRaw: typeof generateRaw;
+    readonly getModelList: typeof getModelList;
+    readonly stopGenerationById: typeof stopGenerationById;
+    readonly stopAllGeneration: typeof stopAllGeneration;
 
     // global
     readonly initializeGlobal: typeof initializeGlobal;
@@ -3950,6 +4111,7 @@ declare const SillyTavern: {
     response_length?: number,
     force_chid?: number,
   ) => Promise<string>;
+  /** 严禁使用本方法修改角色卡的 `extensions` 字段, 它会合并原有值和新值而不是替换; 应该使用 `updateCharacterWith` */
   readonly writeExtensionField: (character_id: number, key: string, value: any) => Promise<void>;
   readonly getThumbnailUrl: (type: any, file: any) => string;
   readonly selectCharacterById: (id: number, { switchMenu }?: { switchMenu?: boolean }) => Promise<void>;
