@@ -68,6 +68,7 @@
     "jszip": "^3.10.1",
     "klona": "^2.0.6",
     "lodash-omitdeep": "^1.7.0",
+    "object-to-formdata": "^4.5.1",
     "pinia": "^3.0.4",
     "socket.io-client": "^4.8.3",
     "type-fest": "^4.41.0",

@@ -557,6 +557,7 @@ declare const SillyTavern: {
     response_length?: number,
     force_chid?: number,
   ) => Promise<string>;
+  /** 严禁使用本方法修改角色卡的 `extensions` 字段, 它会合并原有值和新值而不是替换; 应该使用 `updateCharacterWith` */
   readonly writeExtensionField: (character_id: number, key: string, value: any) => Promise<void>;
   readonly getThumbnailUrl: (type: any, file: any) => string;
   readonly selectCharacterById: (id: number, { switchMenu }?: { switchMenu?: boolean }) => Promise<void>;

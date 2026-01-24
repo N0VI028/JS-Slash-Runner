@@ -1,10 +1,4 @@
 window._ = window.parent._;
-Object.defineProperty(window, 'SillyTavern', {
-  get: () => {
-    const SillyTavern = _.get(window.parent, 'SillyTavern');
-    return { ...SillyTavern.getContext(), ...SillyTavern };
-  },
-});
 const iframeId = window.frameElement?.id || window.name;
 if (iframeId) {
   // Cache the iframe id in case frameElement disappears (e.g., Firefox removing srcdoc iframes on navigation)
@@ -23,6 +17,16 @@ result = result.merge(
   })),
 );
 result.value();
+
+Object.defineProperty(window, 'SillyTavern', {
+  get: () => {
+    const SillyTavern = _.get(window.parent, 'SillyTavern');
+    const getContext = () => {
+      return { ...SillyTavern.getContext(), writeExtensionField: _th_impl.writeExtensionField };
+    };
+    return { ...getContext(), getContext };
+  },
+});
 
 // 其实应该用 waitGlobalInitialized 来等待 Mvu 初始化完毕, 这里设置 window.Mvu 只是为了兼容性
 if (_.has(window.parent, 'Mvu')) {

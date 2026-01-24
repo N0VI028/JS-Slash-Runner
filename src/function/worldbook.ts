@@ -5,6 +5,7 @@ import {
   setChatLorebook,
   setCurrentCharLorebooks,
 } from '@/function/lorebook';
+import { RawCharacter } from '@/function/raw_character';
 import { reloadEditor, reloadEditorDebounced } from '@/util/compatibility';
 import { saveSettingsDebounced } from '@sillytavern/script';
 import {
@@ -47,11 +48,15 @@ type CharWorldbooks = {
   additional: string[];
 };
 export function getCharWorldbookNames(character_name: LiteralUnion<'current', string>): CharWorldbooks {
-  return getCharLorebooks(character_name === 'current' ? undefined : { name: character_name });
+  return getCharLorebooks({ name: character_name });
 }
 export async function rebindCharWorldbooks(character_name: 'current', char_worldbooks: CharWorldbooks): Promise<void> {
   if (character_name !== 'current') {
     throw Error(`目前不支持对非当前角色卡调用 bindCharWorldbooks`);
+  }
+  const character = RawCharacter.find({ name: character_name });
+  if (!character) {
+    throw Error(`角色卡 '${character_name}' 不存在`);
   }
   // TODO: 重做 characters.ts, 然后直接访问后端来修改这里
   return setCurrentCharLorebooks(char_worldbooks);

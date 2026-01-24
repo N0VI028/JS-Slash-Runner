@@ -46,9 +46,9 @@ type Preset = {
 
   extensions: {
     regex_scripts?: TavernRegex[];
-    tavern_helper?: {
+    tavern_helper: {
       scripts: Record<string, any>[];
-      variales: Record<string, any>;
+      variables: Record<string, any>;
     };
     [other: string]: any;
   };
@@ -210,7 +210,12 @@ export const default_preset: Preset = {
     },
   ],
   prompts_unused: [],
-  extensions: {},
+  extensions: {
+    tavern_helper: {
+      scripts: [],
+      variables: {},
+    },
+  },
 } as const;
 
 const in_use_map = {
@@ -412,7 +417,7 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
   const prompts = prompt_order_identifiers.map(identifier => prompts_used.find(prompt => prompt.id === identifier)!);
 
   const extensions = klona(preset.extensions);
-  if (_.has(extensions, 'regex_scripts')) {
+  if (extensions.regex_scripts !== undefined) {
     extensions.regex_scripts = extensions.regex_scripts.map(to_tavern_regex);
   }
 
@@ -463,6 +468,7 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
     prompts,
     prompts_unused,
 
+    // @ts-expect-error 类型是正确的, extensions 里必然有 tavern_helper
     extensions,
   };
 }
