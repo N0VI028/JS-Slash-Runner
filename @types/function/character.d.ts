@@ -73,7 +73,7 @@ declare function deleteCharacter(character_name: LiteralUnion<'current', string>
  *
  * @throws 如果角色卡不存在, 将会抛出异常
  */
-declare function getCharacter(character_name: LiteralUnion<'current', string>): Promise<Character | null>;
+declare function getCharacter(character_name: LiteralUnion<'current', string>): Promise<Character>;
 
 type ReplaceCharacterOptions = {
   /** 如果对角色卡进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
