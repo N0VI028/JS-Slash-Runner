@@ -1,9 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.6.1
 
-### 🗣提示词查看器
+### 🐛修复
 
-- 调整提示词列表的滑动流畅度，使其更符合预期
+- 修复提示词查看器展开超长提示词 (3w+ token 的单条提示词) 时, 列表出现空白的问题
+- `generate` 和 `generateRaw` 的 `should_silence` 参数逻辑弄反了（
 
 ## 4.6.0
 
