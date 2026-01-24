@@ -5,12 +5,18 @@ import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
 import { detail, GenerateConfig, GenerateRawConfig, Overrides } from '@/function/generate/types';
 import { normalizeBaseURL, setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
-import { event_types, eventSource, getRequestHeaders, stopGeneration } from '@sillytavern/script';
+import { deactivateSendButtons, event_types, eventSource, getRequestHeaders, stopGeneration } from '@sillytavern/script';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 declare const $: any;
 
-const generationControllers = new Map<string, AbortController>();
+type GenerationControllerEntry = {
+  abortController: AbortController;
+  bindToStopButton: boolean;
+};
+
+const generationControllers = new Map<string, GenerationControllerEntry>();
+const stopButtonBoundGenerationIds = new Set<string>();
 
 export async function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]> {
   const url  = normalizeBaseURL(custom_api?.apiurl);
@@ -41,14 +47,21 @@ export async function getModelList(custom_api: { apiurl: string; key?: string })
  * @param id 生成ID
  */
 export function stopGenerationById(id: string) {
-  if (generationControllers.has(id)) {
-    const controller = generationControllers.get(id);
-    controller?.abort(`生成 ID '${id}' 已停止`);
-    generationControllers.delete(id);
-    eventSource.emit(event_types.GENERATION_STOPPED, id);
-    return true;
+  const entry = generationControllers.get(id);
+  if (!entry) return false;
+
+  entry.abortController.abort(`生成 ID '${id}' 已停止`);
+  generationControllers.delete(id);
+
+  if (entry.bindToStopButton) {
+    stopButtonBoundGenerationIds.delete(id);
+    if (stopButtonBoundGenerationIds.size === 0) {
+      unblockGeneration();
+    }
   }
-  return false;
+
+  eventSource.emit(event_types.GENERATION_STOPPED, id);
+  return true;
 }
 
 /**
@@ -56,11 +69,18 @@ export function stopGenerationById(id: string) {
  */
 export function stopAllGeneration() {
   try {
-    for (const [id, controller] of generationControllers.entries()) {
-      controller.abort(`生成 ID '${id}' 已停止`);
+    const hadStopButtonBoundGeneration = stopButtonBoundGenerationIds.size > 0;
+
+    for (const [id, entry] of generationControllers.entries()) {
+      entry.abortController.abort(`生成 ID '${id}' 已停止`);
       eventSource.emit(event_types.GENERATION_STOPPED, id);
     }
     generationControllers.clear();
+
+    stopButtonBoundGenerationIds.clear();
+    if (hadStopButtonBoundGeneration) {
+      unblockGeneration();
+    }
     return true;
   } catch (error) {
     console.error(`[TavernHelper][Generate:停止] 中断所有生成任务时出错: ${error}`);
@@ -115,6 +135,7 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
     use_preset: true,
     image: config.image,
     stream: config.should_stream ?? false,
+    bindToStopButton: config.bindToStopButton,
     overrides: config.overrides !== undefined ? fromOverrides(config.overrides) : undefined,
     inject: config.injects,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
@@ -134,6 +155,7 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
     use_preset: false,
     image: config.image,
     stream: config.should_stream ?? false,
+    bindToStopButton: config.bindToStopButton,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
     overrides: config.overrides ? fromOverrides(config.overrides) : undefined,
     inject: config.injects,
@@ -153,6 +175,7 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
  * @param config.inject 注入的提示词
  * @param config.order 提示词顺序
  * @param config.stream 是否启用流式传输
+ * @param config.bindToStopButton 是否绑定到酒馆停止按钮；默认为 true
  * @returns Promise<string> 生成的响应文本
  */
 async function iframeGenerate({
@@ -165,11 +188,31 @@ async function iframeGenerate({
   inject = [],
   order = undefined,
   stream = false,
+  bindToStopButton = true,
   custom_api = undefined,
 }: detail.GenerateParams = {}): Promise<string> {
   const generationId = generation_id || uuidv4();
+
+  if (generationControllers.has(generationId)) {
+    throw new Error(`ID为 '${generationId}' 的请求正在进行中，无法启动用同一 ID 的生成任务`);
+  }
+
   const abortController = new AbortController();
-  generationControllers.set(generationId, abortController);
+  const shouldBindToStopButton = typeof bindToStopButton === 'boolean' ? bindToStopButton : true;
+
+  generationControllers.set(generationId, {
+    abortController,
+    bindToStopButton: shouldBindToStopButton,
+  });
+
+  if (shouldBindToStopButton) {
+    const shouldDeactivateSendButtons = stopButtonBoundGenerationIds.size === 0;
+    stopButtonBoundGenerationIds.add(generationId);
+    if (shouldDeactivateSendButtons) {
+      deactivateSendButtons();
+    }
+  }
+
   let imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined;
 
   try {
@@ -234,9 +277,12 @@ async function iframeGenerate({
     // 清理
     cleanupImageProcessing(imageProcessingSetup);
     generationControllers.delete(generationId);
-    // 如果所有生成都已结束，则解锁UI
-    if (generationControllers.size === 0) {
-      unblockGeneration();
+
+    if (shouldBindToStopButton) {
+      stopButtonBoundGenerationIds.delete(generationId);
+      if (stopButtonBoundGenerationIds.size === 0) {
+        unblockGeneration();
+      }
     }
   }
 }
@@ -254,13 +300,28 @@ export async function generateRaw(config: GenerateRawConfig) {
 /**
  * 点击停止按钮时的逻辑
  */
-$(document).on('click', '#mes_stop', function () {
-  const wasStopped = stopGeneration();
-  if (wasStopped) {
-    for (const [, controller] of generationControllers.entries()) {
-      controller.abort('Clicked stop button');
+$(document).off('click.tavernhelper_generate', '#mes_stop').on('click.tavernhelper_generate', '#mes_stop', function () {
+  stopGeneration();
+
+  if (stopButtonBoundGenerationIds.size === 0) {
+    return;
+  }
+
+  const idsToAbort = Array.from(stopButtonBoundGenerationIds.values());
+  for (const id of idsToAbort) {
+    const entry = generationControllers.get(id);
+    if (!entry) {
+      stopButtonBoundGenerationIds.delete(id);
+      continue;
     }
-    generationControllers.clear();
+
+    entry.abortController.abort('点击停止按钮');
+    generationControllers.delete(id);
+    stopButtonBoundGenerationIds.delete(id);
+    eventSource.emit(event_types.GENERATION_STOPPED, id);
+  }
+
+  if (stopButtonBoundGenerationIds.size === 0) {
     unblockGeneration();
   }
 });

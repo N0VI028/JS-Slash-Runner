@@ -4,13 +4,11 @@ import {
   extractMessageFromData,
   normalizeBaseURL,
   setupImageArrayProcessing,
-  unblockGeneration,
 } from '@/function/generate/utils';
 import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
   cleanUpMessage,
   countOccurrences,
-  deactivateSendButtons,
   eventSource,
   event_types,
   isOdd,
@@ -75,7 +73,6 @@ class StreamingProcessor {
       this.abortController.abort();
     }
     this.isStopped = true;
-    unblockGeneration();
     saveChatConditionalDebounced();
   }
 
@@ -162,8 +159,6 @@ export async function generateResponse(
   let customApiEventHandler: ((data: any) => void) | null = null;
 
   try {
-    deactivateSendButtons();
-
     // 如果有自定义API配置，设置单次事件拦截
     if (customApi?.apiurl) {
       customApiEventHandler = (data: any) => {
