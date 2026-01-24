@@ -77,7 +77,7 @@
       </div>
     </template>
     <template v-else>
-      <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :item-gap="7">
+      <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :item-gap="7" :buffer="10">
         <template #default="{ itemData: item_data }">
           <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
             <div
@@ -182,9 +182,12 @@ function toggleAll(should_expand: boolean) {
   should_expand_by_default.value = should_expand;
 }
 
-watch(() => [filtered_prompts, is_expanded], () => {
-  virt_list_ref.value?.forceUpdate();
-})
+watch(
+  () => [filtered_prompts, is_expanded],
+  () => {
+    virt_list_ref.value?.forceUpdate();
+  },
+);
 
 const state = ref<'idle' | 'past_loading' | 'refreshing' | 'loading'>('idle');
 const hint_text = computed(() => {
