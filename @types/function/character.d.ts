@@ -70,8 +70,6 @@ declare function deleteCharacter(character_name: LiteralUnion<'current', string>
  * @param character_name 角色卡名称
  *
  * @returns 角色卡内容
- *
- * @throws 如果角色卡不存在, 将会抛出异常
  */
 declare function getCharacter(character_name: LiteralUnion<'current', string>): Promise<Character | null>;
 
