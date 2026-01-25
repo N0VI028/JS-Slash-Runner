@@ -62,6 +62,16 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
     { deep: true },
   );
 
+
+  const forceReload = () => {
+    ignoreUpdates(() => {
+      if (id.value !== undefined && name.value !== undefined) {
+        settings.value = getSettings(id.value);
+        saveSettingsToMemoryDebounced(id.value, name.value, klona(settings.value));
+      }
+    });
+  };
+
   // 监听 id 不能正确反映导入新预设时的情况, 在外应该监听 name
-  return { id: readonly(id), name: readonly(name), settings };
+  return { id: readonly(id), name: readonly(name), settings, forceReload };
 });
