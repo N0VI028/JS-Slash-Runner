@@ -1,4 +1,11 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.6.2
+
+### 📦函数
+
+- 为 `createOrReplacePreset` 和 `replacePreset` 新增 `render: 'none'` 选项, 使用它调整酒馆当前使用预设时将不会刷新前端显示.
+- 为 `createOrReplaceWorldbook` 和 `replaceWorldbook` 新增 `render: 'none'` 选项, 使用它调整世界书时将不会刷新前端显示.
+
 ## 4.6.1
 
 ### 🐛修复

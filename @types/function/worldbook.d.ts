@@ -156,7 +156,7 @@ declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEn
  * @param worldbook_name 世界书名称
  * @param worldbook 世界书内容; 不填则没有任何条目
  * @param options 可选选项
- *   - `render:'debounced'|'immediate'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染
+ *   - `render:'debounced'|'immediate'|'none'`: 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染
  *
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
