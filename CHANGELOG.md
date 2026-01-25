@@ -6,6 +6,8 @@
 - 为 `createOrReplacePreset` 和 `replacePreset` 新增 `render: 'none'` 选项, 使用它调整酒馆当前使用预设时将不会刷新前端显示.
 - 为 `createOrReplaceWorldbook` 和 `replaceWorldbook` 新增 `render: 'none'` 选项, 使用它调整世界书时将不会刷新前端显示.
 
+由于不会刷新前端显示, 玩家对于预设、世界书的修改是无感的. 例如, 你可以用它实现切换别的预设进行请求生成: 先 `replacePreset` 成别的预设, 然后 `generate` 请求生成, 最后换回原来的预设数据.
+
 ## 4.6.1
 
 ### 🐛修复
