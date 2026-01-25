@@ -1,5 +1,4 @@
 import { from_tavern_regex, TavernRegex, to_tavern_regex } from '@/function/tavern_regex';
-import { usePresetSettingsStore } from '@/store/settings';
 import { settingsToUpdate } from '@/util/compatibility';
 import { getCompletionPresetByName } from '@/util/tavern';
 import { saveSettingsDebounced } from '@sillytavern/script';
@@ -671,10 +670,6 @@ export async function createOrReplacePreset(
         render,
       },
     );
-  }
-
-  if (preset_name === 'inuse') {
-    usePresetSettingsStore().forceReload();
   }
 
   if (preset_name !== 'in_use') {

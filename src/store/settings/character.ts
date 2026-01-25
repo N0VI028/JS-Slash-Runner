@@ -112,7 +112,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     ignoreUpdates(() => {
       if (id.value !== undefined && name.value !== undefined) {
         settings.value = getSettings(id.value);
-        saveSettings(id.value, name.value, klona(settings.value));
+        saveSettings(id.value, name.value, settings.value);
       }
     });
   };
