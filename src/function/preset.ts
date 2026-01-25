@@ -604,7 +604,7 @@ export async function createPreset(
 function updateOriginalPresetData(
   data: Record<string, any>,
   updates: _OriginalPreset,
-  { in_use, render }: { in_use: boolean; render?: 'immediate' | 'debounced' },
+  { in_use, render }: { in_use: boolean; render?: 'immediate' | 'debounced' | 'none' },
 ): void {
   let lodash_data = _(data);
   Object.entries(settingsToUpdate).forEach(([key, { oai_setting }]) => {
@@ -615,7 +615,7 @@ function updateOriginalPresetData(
   });
   lodash_data.value();
 
-  if (!in_use) {
+  if (!in_use || render === 'none') {
     return;
   }
 
@@ -644,7 +644,7 @@ function updateOriginalPresetData(
   }
 }
 type ReplacePresetOptions = {
-  render?: 'debounced' | 'immediate';
+  render?: 'debounced' | 'immediate' | 'none';
 };
 export async function createOrReplacePreset(
   preset_name: LiteralUnion<'in_use', string>,

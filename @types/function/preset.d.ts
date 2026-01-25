@@ -227,8 +227,8 @@ declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: 
 declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
 
 type ReplacePresetOptions = {
-  /** 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */
-  render?: 'debounced' | 'immediate';
+  /** 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
+  render?: 'debounced' | 'immediate' | 'none';
 };
 /**
  * 完全替换 `preset_name` 预设的内容为 `preset`

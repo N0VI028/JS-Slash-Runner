@@ -365,10 +365,13 @@ export async function createOrReplaceWorldbook(
           .value(),
       ),
     });
-    if (render === 'debounced') {
-      reloadEditorDebounced(worldbook_name);
-    } else {
-      reloadEditor(worldbook_name);
+    switch (render) {
+      case 'debounced':
+        reloadEditorDebounced(worldbook_name);
+        break;
+      case 'immediate':
+        reloadEditor(worldbook_name);
+        break;
     }
   }
   return !is_existing;
