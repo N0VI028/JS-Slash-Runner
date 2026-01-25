@@ -615,7 +615,13 @@ function updateOriginalPresetData(
   });
   lodash_data.value();
 
-  if (!in_use || render === 'none') {
+  if (!in_use) {
+    return;
+  }
+
+  saveSettingsDebounced();
+
+  if (render === 'none') {
     return;
   }
 
@@ -636,7 +642,6 @@ function updateOriginalPresetData(
 
   $(checkboxes).trigger('input', { source: 'preset' });
   $(inputs).trigger('input', { source: 'preset' });
-  saveSettingsDebounced();
   if (render === 'debounced') {
     promptManager.renderDebounced();
   } else {
