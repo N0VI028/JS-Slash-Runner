@@ -1,11 +1,11 @@
 /**
- * 像酒馆界面里那样导入角色卡
+ * 像酒馆界面里那样导入新角色/更新现有角色卡
  *
  * @param filename 角色卡名
  * @param content 角色卡文件内容
  *
  * @example
- * // 从网络链接导入角色卡
+ * // 从网络链接导入新角色/更新现有角色卡
  * const response = await fetch(角色卡网络链接);
  * await importRawCharacter(角色卡名, await response.blob());
  */
@@ -27,26 +27,26 @@ declare function importRawCharacter(filename: string, content: Blob): Promise<Re
 declare function importRawChat(filename: string, content: string): Promise<Response>;
 
 /**
- * 像酒馆界面里那样导入预设
+ * 像酒馆界面里那样导入新预设/更新现有预设
  *
  * @param filename 预设名
  * @param content 预设文件内容
  *
  * @example
- * // 从网络链接导入预设
+ * // 从网络链接导入新预设/更新现有预设
  * const response = await fetch(预设网络链接);
  * await importRawChat(预设名, await response.text());
  */
 declare function importRawPreset(filename: string, content: string): Promise<boolean>;
 
 /**
- * 像酒馆界面里那样导入世界书
+ * 像酒馆界面里那样导入新世界书/更新现有世界书
  *
  * @param filename 世界书名
  * @param content 世界书文件内容
  *
  * @example
- * // 从网络链接导入世界书
+ * // 从网络链接导入新世界书/更新现有世界书
  * const response = await fetch(世界书网络链接);
  * await importRawChat(世界书名, await response.text());
  */
