@@ -24,22 +24,20 @@ const latest_version = await fetch(
   .then(text => text.trim());
 
 // 比较 当前角色卡版本 与 最新版本号
-if (compare(current_version, latest_version, '>=')) {
-  return;
+if (compare(current_version, latest_version, '<')) {
+  // 更新
+  await importRawCharacter(
+    '白化蓝染的日记本',
+    await fetch('https://testingcf.jsdelivr.net/gh/lolo-desu/lolocard/src/日记络络/白化蓝染的日记本.png').then(
+      response => response.blob(),
+    ),
+  );
+
+  // ⬇️⬇️⬇️不再需要刷新网页
+  // toastr.success('角色卡自动更新成功, 准备刷新页面以生效...', '白化蓝染的日记本');
+  // setTimeout(() => triggerSlash('/reload-page'), 3000);
+  // ⬆️⬆️⬆️
 }
-
-// 更新
-await importRawCharacter(
-  '白化蓝染的日记本',
-  await fetch('https://testingcf.jsdelivr.net/gh/lolo-desu/lolocard/src/日记络络/白化蓝染的日记本.png').then(
-    response => response.blob(),
-  ),
-);
-
-// ⬇️⬇️⬇️不再需要刷新网页
-// toastr.success('角色卡自动更新成功, 准备刷新页面以生效...', '白化蓝染的日记本');
-// setTimeout(() => triggerSlash('/reload-page'), 3000);
-// ⬆️⬆️⬆️
 ```
 
 ## 4.6.1
