@@ -6,13 +6,13 @@ import { extension_settings } from '@sillytavern/scripts/extensions';
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { convertCharacterBook, saveWorldInfo, world_names } from '@sillytavern/scripts/world-info';
+import { RawCharacter } from './raw_character';
 
 export async function importRawCharacter(name: string, content: Blob): Promise<Response> {
   name = name.replace(/\.(?:png|json)$/, '');
   const avatar = name + '.png';
 
-  const old_worldbook_name = (characters as any[]).find(character => character.avatar === avatar)?.data?.character_book
-    ?.name;
+  const old_worldbook_name = RawCharacter.find({ name })?.data?.extensions?.world;
 
   const file = new File([content], name, { type: 'image/png' });
 
