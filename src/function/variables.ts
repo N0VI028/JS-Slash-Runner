@@ -56,11 +56,17 @@ type VariableOption = VariableOptionNormal | VariableOptionMessage | VariableOpt
 export function get_variables_without_clone(option: VariableOption): Record<string, any> {
   switch (option.type) {
     case 'message': {
-      option.message_id = option.message_id === undefined || option.message_id === 'latest' ? -1 : option.message_id;
-      if (!_.inRange(option.message_id, -chat.length, chat.length)) {
+      const normalized_message_id =
+        option.message_id === undefined || option.message_id === 'latest' ? -1 : option.message_id;
+      if (!_.inRange(normalized_message_id, -chat.length, chat.length)) {
         throw Error(`提供的消息楼层号 '${option.message_id}' 超出了范围 [${-chat.length}, ${chat.length})`);
       }
-      const chat_message = chat.at(option.message_id);
+      let chat_message;
+      if (option.message_id === undefined || option.message_id === 'latest') {
+        chat_message = chat.filter(chat_message => !chat_message.is_system).at(normalized_message_id);
+      } else {
+        chat_message = chat.at(normalized_message_id);
+      }
       return chat_message?.variables?.[chat_message?.swipe_id ?? 0] ?? {};
     }
     case 'chat': {
