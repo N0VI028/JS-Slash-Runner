@@ -13,28 +13,12 @@
 现在, 导入角色卡、预设、世界书等函数不再需要刷新网页: 无论是导入新的, 还是更新已经存在的角色卡、预设、世界书, 都会直接生效:
 
 ```ts
-// 从角色卡中获取当前角色卡版本, 可以通过 `角色卡面板地球仪左边书籍图标-创作者的元数据-角色版本` 设置
-const current_version = (await getCharacter('白化蓝染的日记本')).version;
-
-// 从网上获取最新版本号
-const latest_version = await fetch(
-  'https://testingcf.jsdelivr.net/gh/lolo-desu/lolocard/src/日记络络/世界书/版本号.txt',
-)
-  .then(response => response.text())
-  .then(text => text.trim());
-
-// 比较 当前角色卡版本 与 最新版本号
-if (compare(current_version, latest_version, '<')) {
-  // 更新
-  await importRawCharacter(
-    '白化蓝染的日记本',
-    await fetch('https://testingcf.jsdelivr.net/gh/lolo-desu/lolocard/src/日记络络/白化蓝染的日记本.png').then(
-      response => response.blob(),
-    ),
-  );
+if (/** 通过某种方式检测到角色卡应该被更新, 如在一个世界书条目里、在角色卡高级定义里记录版本号, 然后检测到本地版本号比网络最新的版本号低时 */) {
+  // 从链接更新角色卡
+  await importRawCharacter('角色卡名称', await fetch('最新角色卡的网络链接').then(response => response.blob()));
 
   // ⬇️⬇️⬇️不再需要刷新网页
-  // toastr.success('角色卡自动更新成功, 准备刷新页面以生效...', '白化蓝染的日记本');
+  // toastr.success('角色卡自动更新成功, 准备刷新页面以生效...');
   // setTimeout(() => triggerSlash('/reload-page'), 3000);
   // ⬆️⬆️⬆️
 }
