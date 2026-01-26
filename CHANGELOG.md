@@ -17,7 +17,11 @@
 const current_version = (await getCharacter('白化蓝染的日记本')).version;
 
 // 从网上获取最新版本号
-const latest_version = await fetch('https://testingcf.jsdelivr.net/gh/lolo-desu/lolocard/src/日记络络/世界书/版本号.txt').then(response => response.text());
+const latest_version = await fetch(
+  'https://testingcf.jsdelivr.net/gh/lolo-desu/lolocard/src/日记络络/世界书/版本号.txt',
+)
+  .then(response => response.text())
+  .then(text => text.trim());
 
 // 比较 当前角色卡版本 与 最新版本号
 if (compare(current_version, latest_version, '>=')) {
