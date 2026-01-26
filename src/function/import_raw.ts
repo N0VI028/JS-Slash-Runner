@@ -1,12 +1,13 @@
+import { getCharacter, render_character } from '@/function/character';
+import { RawCharacter } from '@/function/raw_character';
 import { render_tavern_regexes_debounced } from '@/function/tavern_regex';
 import { useCharacterSettingsStore } from '@/store/settings';
-import { updateWorldInfoList } from '@/util/compatibility';
-import { characters, getOneCharacter, getRequestHeaders, name1, this_chid } from '@sillytavern/script';
+import { reloadEditor } from '@/util/compatibility';
+import { preset_manager } from '@/util/tavern';
+import { characters, getCharacters, getOneCharacter, getRequestHeaders, name1, this_chid } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
-import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { convertCharacterBook, saveWorldInfo, world_names } from '@sillytavern/scripts/world-info';
-import { RawCharacter } from './raw_character';
 
 export async function importRawCharacter(name: string, content: Blob): Promise<Response> {
   name = name.replace(/\.(?:png|json)$/, '');
@@ -31,17 +32,23 @@ export async function importRawCharacter(name: string, content: Blob): Promise<R
   }).then(async result => {
     $('#character_search_bar').val('').trigger('input');
 
-    if (old_worldbook_name) {
-      await getOneCharacter(avatar);
+    const store = useCharacterSettingsStore();
+    const is_current = store.name === name;
 
+    await getCharacters();
+    await getOneCharacter(avatar);
+    await render_character(name, await getCharacter(name), is_current);
+
+    if (old_worldbook_name) {
       const worldbook = (characters as any[]).find(character => character.avatar === avatar)?.data?.character_book;
       if (world_names.includes(old_worldbook_name) && worldbook) {
         await saveWorldInfo(worldbook.name, convertCharacterBook(worldbook), true);
+        reloadEditor(worldbook.name);
       }
-      const store = useCharacterSettingsStore();
-      if (store.name === name) {
-        store.forceReload();
-      }
+    }
+
+    if (is_current) {
+      store.forceReload();
     }
     return result;
   });
@@ -71,30 +78,21 @@ export async function importRawChat(name: string, content: string): Promise<Resp
 
 export async function importRawPreset(name: string, content: string): Promise<boolean> {
   try {
-    await getPresetManager('openai').savePreset(name, JSON.parse(content));
+    await preset_manager.savePreset(name, JSON.parse(content));
     return true;
   } catch (error) {
     return false;
   }
 }
 
-export async function importRawWorldbook(name: string, content: string): Promise<Response> {
-  const file = new File([content], name, { type: 'application/json' });
-
-  const form_data = new FormData();
-  form_data.append('avatar', file);
-
-  const headers = getRequestHeaders();
-  _.unset(headers, 'Content-Type');
-  return fetch(`/api/worldinfo/import`, {
-    method: 'POST',
-    headers: headers,
-    body: form_data,
-    cache: 'no-cache',
-  }).then(result => {
-    updateWorldInfoList();
-    return result;
-  });
+export async function importRawWorldbook(name: string, content: string): Promise<boolean> {
+  try {
+    await saveWorldInfo(name, _.pick(JSON.parse(content), 'entries'), true);
+  } catch (error) {
+    return false;
+  }
+  reloadEditor(name);
+  return true;
 }
 
 export function importRawTavernRegex(name: string, content: string): boolean {

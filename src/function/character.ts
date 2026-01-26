@@ -16,7 +16,6 @@ import {
   getThumbnailUrl,
   printMessages,
   saveChatConditional,
-  this_chid,
   unshallowCharacter,
 } from '@sillytavern/script';
 import { v1CharData } from '@sillytavern/scripts/char-data';
@@ -219,7 +218,7 @@ type ReplaceCharacterOptions = {
   render?: 'debounced' | 'immediate' | 'none';
 };
 
-async function renderCharacter(character_name: string, character: PartialDeep<Character>, is_current: boolean) {
+export async function render_character(character_name: string, character: PartialDeep<Character>, is_current: boolean) {
   if (character.avatar instanceof Blob) {
     const avatar_url = getThumbnailUrl('avatar', character_name + '.png');
     await fetch(avatar_url, {
@@ -259,7 +258,7 @@ async function renderCharacter(character_name: string, character: PartialDeep<Ch
 
   await getCharacters();
 }
-const renderCharacterDebounced = _.debounce(renderCharacter, 1000);
+const renderCharacterDebounced = _.debounce(render_character, 1000);
 
 export async function replaceCharacter(
   character_name: Exclude<string, 'current'>,
@@ -288,10 +287,11 @@ export async function replaceCharacter(
     throw new Error(`修改角色卡 '${character_name}' 失败: (${response.status}) ${await response.text()}`);
   }
 
-  const is_current = this_chid === undefined || index !== Number(this_chid);
+  const store = useCharacterSettingsStore();
+  const is_current = character_name === store.name;
 
   if (is_current && character.extensions?.tavern_helper !== undefined) {
-    useCharacterSettingsStore().forceReload();
+    store.forceReload();
   }
 
   switch (render) {
@@ -299,7 +299,7 @@ export async function replaceCharacter(
       renderCharacterDebounced(character_name, character, is_current);
       break;
     case 'immediate':
-      await renderCharacter(character_name, character, is_current);
+      await render_character(character_name, character, is_current);
       break;
     case 'none':
       break;
