@@ -19,7 +19,9 @@
   "正在更新酒馆助手...": "Updating Tavern Helper...",
   "酒馆助手已是最新版本, 无需更新": "Tavern Helper is already the latest version, no need to update",
   "更新失败: ${0}": "Update failed: ${0}",
-  "是否尝试通过卸载重装来更新? (以防由于网络问题重装没能成功, 请先复制 `https://gitlab.com/novi028/JS-Slash-Runner`": "Whether to try to update by uninstalling and reinstalling? (In case that the reinstalling failed due to network issues, please copy `https://gitlab.com/novi028/JS-Slash-Runner` first)",
+  "是否尝试通过卸载重装来更新? (以防由于网络问题重装没能成功, 请先复制网址)": "Whether to try to update by uninstalling and reinstalling? (In case that the reinstalling failed due to network issues, please copy the URL first)",
+  "复制网址": "Copy URL",
+  "网址已复制": "URL copied",
   "正在卸载重装酒馆助手...": "Uninstalling and reinstalling Tavern Helper...",
   "更新酒馆助手失败": "Failed to update Tavern Helper",
 
