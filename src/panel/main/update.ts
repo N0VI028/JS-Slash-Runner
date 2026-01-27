@@ -1,5 +1,6 @@
 import { getTavernHelperExtensionId, reinstallExtension, updateExtension } from '@/function/extension';
 import { getTavernHelperVersion } from '@/function/version';
+import { copyText } from '@/util/compatibility';
 import { renderMarkdown } from '@/util/tavern';
 import { callGenericPopup, POPUP_TYPE } from '@sillytavern/scripts/popup';
 import { compare } from 'compare-versions';
@@ -93,12 +94,20 @@ export async function update() {
     }
     return true;
   }
-  const comfirm_reinstall = await callGenericPopup(
-    t`更新失败: ${(await update_response.text()) || update_response.statusText}` +
-      '\n' +
-      t`是否尝试通过卸载重装来更新? (以防由于网络问题重装没能成功, 请先复制 \`https://gitlab.com/novi028/JS-Slash-Runner\`)`,
-    POPUP_TYPE.CONFIRM,
-  );
+  const repo_url = 'https://gitlab.com/novi028/JS-Slash-Runner';
+  const $content = $(`<div style="text-align: left;">
+    <p>${t`更新失败: ${(await update_response.text()) || update_response.statusText}`}</p>
+    <p>${t`是否尝试通过卸载重装来更新? (以防由于网络问题重装没能成功, 请先复制网址)`}</p>
+    <p style="display:flex;align-items:center;gap:4px;margin-top:8px;">
+      <code>${repo_url}</code>
+      <i class="fa-solid fa-copy" style="cursor:pointer;" title="${t`复制网址`}"></i>
+    </p>
+  </div>`);
+  $content.find('.fa-copy').on('click', () => {
+    copyText(repo_url);
+    toastr.success(t`网址已复制`);
+  });
+  const comfirm_reinstall = await callGenericPopup($content, POPUP_TYPE.CONFIRM);
   if (!comfirm_reinstall) {
     return;
   }
