@@ -37,7 +37,12 @@
     <!-- 将 sync_bottom 作为 key, 从而在切换 sync_bottom 时刷新整个 VirtList, 避免存在大量空白 -->
     <VirtList :key="sync_bottom ? 'bottom' : 'top'" item-key="message_id" :list="messages" :item-gap="7">
       <template #default="{ itemData: item_data }">
-        <MessageItem :chat-length="chat_length" :message-id="item_data.message_id" :refresh-key="refresh_key" />
+        <MessageItem
+          :chat-length="chat_length"
+          :message-id="item_data.message_id"
+          :refresh-key="refresh_key"
+          :collapsed-set="collapsed_set"
+        />
       </template>
     </VirtList>
   </div>
@@ -100,6 +105,8 @@ watch(refresh_key, () => {
     chat_length.value = chat.length;
   }
 });
+
+const collapsed_set = reactive(new Set<number>());
 
 const messages = computed(() => {
   if (chat_length.value === 0) {
