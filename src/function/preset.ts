@@ -417,9 +417,7 @@ function toPreset(preset: _OriginalPreset, { in_use }: { in_use: boolean }): Pre
   const prompts = prompt_order_identifiers.map(identifier => prompts_used.find(prompt => prompt.id === identifier)!);
 
   const extensions = klona(preset.extensions);
-  if (extensions.regex_scripts !== undefined) {
-    extensions.regex_scripts = extensions.regex_scripts.map(to_tavern_regex);
-  }
+  _.set(extensions, 'regex_scripts', (extensions.regex_scripts ?? []).map(to_tavern_regex));
 
   return {
     settings: {
