@@ -55,6 +55,10 @@ function auditRuntimes(runtimes: Runtime[], depth: number): Runtime[] {
   );
 }
 
+function rerenderAll(depth: number): Runtime[] {
+  return renderMessages(calcToRender(depth), uuidv4());
+}
+
 export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtimes', () => {
   const global_settings = useGlobalSettingsStore();
 
@@ -80,18 +84,18 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
   );
 
   if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
-    runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
+    runtimes.value = rerenderAll(global_settings.settings.render.depth);
   } else {
     eventSource.once(event_types.APP_READY, () => {
       if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
-        runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
+        runtimes.value = rerenderAll(global_settings.settings.render.depth);
       }
     });
   }
 
   eventSource.on('chatLoaded', () => {
     if (global_settings.settings.render.enabled) {
-      runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
+      runtimes.value = rerenderAll(global_settings.settings.render.depth);
     }
   });
 
