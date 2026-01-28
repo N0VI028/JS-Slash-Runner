@@ -79,6 +79,16 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
     { immediate: true },
   );
 
+  if (global_settings.settings.render.enabled && $('#chat > .mes').length > 0) {
+    runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
+  } else {
+    eventSource.once(event_types.APP_READY, () => {
+      if (global_settings.settings.render.enabled && $('#chat > .mes').length > 0) {
+        runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
+      }
+    });
+  }
+
   eventSource.on('chatLoaded', () => {
     if (global_settings.settings.render.enabled) {
       runtimes.value = renderMessages(calcToRender(global_settings.settings.render.depth), uuidv4());
