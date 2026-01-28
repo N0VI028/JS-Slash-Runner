@@ -33,6 +33,10 @@ declare namespace EjsTemplate {
     debug_enabled: boolean;
     /** 旧设定兼容模式，世界书中的 GENERATE/RENDER/INJECT 条目禁用时视为启用 */
     invert_enabled: boolean;
+    /** 是否启用后台编译 (用 Web Workers 编译) */
+    compile_workers: boolean;
+    /** 是否启用沙盒执行代码 (性能下降, 提升安全性) */
+    sanbox: boolean;
 
     /** 缓存 (实验性) (0=禁用, 1=全部, 2=仅世界书) */
     cache_enabled: number;
