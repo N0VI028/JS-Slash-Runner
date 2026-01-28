@@ -197,6 +197,20 @@ export async function writeExtensionField(id: string | undefined, field: string,
     _.set(character.data.extensions, field, value);
   }
 
+  if (character.json_data) {
+    const json_data = JSON.parse(character.json_data);
+    if (value === undefined) {
+      _.unset(json_data.data.extensions, field);
+    } else {
+      _.set(json_data.data.extensions, field, value);
+    }
+    character.json_data = JSON.stringify(json_data);
+
+    if (Number(id) === Number(this_chid)) {
+      $('#character_json_data').val(character.json_data);
+    }
+  }
+
   const payload = {
     ch_name: character.name,
     avatar_url: character.name + '.png',
