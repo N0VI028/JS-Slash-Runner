@@ -51,7 +51,7 @@
       class="flex flex-1 flex-col gap-(--TH-log--gap) overflow-y-auto"
       style="--TH-log--gap: calc(var(--mainFontSize) * 0.5)"
     >
-      <VirtList item-key="timestamp" :list="logs" item-class="TH-log--item" item-style="">
+      <VirtList item-key="timestamp" :list="logs" item-class="TH-log--item" item-style="" :buffer="10">
         <template #default="{ itemData: item_data }">
           <div
             :class="{
