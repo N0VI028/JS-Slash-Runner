@@ -78,7 +78,7 @@ function replaceVhInContent(content: string): string {
 export function createSrcContent(content: string, use_blob_url: boolean) {
   content = replaceVhInContent(content);
 
-  return `
+  return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
