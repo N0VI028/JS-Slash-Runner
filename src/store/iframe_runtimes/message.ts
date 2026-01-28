@@ -86,11 +86,11 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
   if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
     runtimes.value = rerenderAll(global_settings.settings.render.depth);
   } else {
-    eventSource.once(event_types.APP_READY, () => {
+    setTimeout(() => {
       if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
         runtimes.value = rerenderAll(global_settings.settings.render.depth);
       }
-    });
+    }, 3000);
   }
 
   eventSource.on('chatLoaded', () => {
