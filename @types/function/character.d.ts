@@ -1,5 +1,5 @@
 type Character = {
-  name: string;
+  avatar: `${string}.png` | Blob;
   version: string;
   creator: string;
   creator_notes: string;
@@ -35,7 +35,10 @@ declare function getCharacterNames(): string[];
  *
  * @throws 如果访问后端失败, 将会抛出异常
  */
-declare function createCharacter(character_name: Exclude<string, 'current'>, character?: PartialDeep<Character>): Promise<boolean>;
+declare function createCharacter(
+  character_name: Exclude<string, 'current'>,
+  character?: PartialDeep<Character>,
+): Promise<boolean>;
 
 /**
  * 创建或替换名为 `character_name` 的角色卡, 内容为 `character`
@@ -151,4 +154,7 @@ type CharacterUpdater = ((character: Character) => Character) | ((character: Cha
  *   return character;
  * });
  */
-declare function updateCharacterWith(character_name: LiteralUnion<'current', string>, updater: CharacterUpdater): Promise<Character>;
+declare function updateCharacterWith(
+  character_name: LiteralUnion<'current', string>,
+  updater: CharacterUpdater,
+): Promise<Character>;
