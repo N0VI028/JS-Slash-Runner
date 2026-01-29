@@ -174,7 +174,7 @@ type CreateChatMessagesOption = SetChatMessagesOption & {
  *
  * @param chat_messages 要创建的消息, 必须包含 `role` 和 `message` 字段
  * @param option 可选选项
- *   - `insert_at:number|'end'`: 插入到指定楼层前或末尾; 默认为末尾
+ *   - `insert_before:number|'end'`: 插入到指定楼层前或末尾; 默认为末尾
  *   - `refresh:'none'|'affected'|'all'`: 是否更新楼层在页面上的显示, 只会更新已经被加载在网页上的楼层, 并触发被更新楼层的 "仅格式显示" 正则; 默认为 `'affected'`
  *
  * @example
@@ -187,7 +187,7 @@ type CreateChatMessagesOption = SetChatMessagesOption & {
  */
 declare function createChatMessages(
   chat_messages: ChatMessageCreating[],
-  { insert_at, refresh }?: CreateChatMessagesOption,
+  { insert_before, refresh }?: CreateChatMessagesOption,
 ): Promise<void>;
 
 /**
