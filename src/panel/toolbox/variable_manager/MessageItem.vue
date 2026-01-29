@@ -71,27 +71,31 @@ const variables = shallowRef<Record<string, any>>(getVariables({ type: 'message'
 const editorContainerRef = useTemplateRef<HTMLElement>('editorContainerRef');
 const toolbarMountRef = useTemplateRef<HTMLElement>('toolbarMountRef');
 
-let jseMenuOriginalParent: HTMLElement | null = null;
-let jseMenuOriginalNextSibling: Node | null = null;
+/** 记录被移动元素的原始位置，用于卸载时还原 */
+const movedElements: { el: HTMLElement; parent: HTMLElement; nextSibling: Node | null }[] = [];
 
 /**
- * 将 JsonEditor 的工具栏移动到 sticky header 的挂载点中
+ * 将 JsonEditor 的工具栏和导航栏移动到 sticky header 的挂载点中
  */
 onMounted(() => {
   nextTick(() => {
-    const jseMenu = editorContainerRef.value?.querySelector('.jse-menu') as HTMLElement;
-    if (jseMenu && toolbarMountRef.value) {
-      jseMenuOriginalParent = jseMenu.parentElement;
-      jseMenuOriginalNextSibling = jseMenu.nextSibling;
-      toolbarMountRef.value.appendChild(jseMenu);
+    const container = editorContainerRef.value;
+    const mount = toolbarMountRef.value;
+    if (!container || !mount) return;
+
+    for (const selector of ['.jse-menu', '.jse-navigation-bar']) {
+      const el = container.querySelector(selector) as HTMLElement;
+      if (el) {
+        movedElements.push({ el, parent: el.parentElement!, nextSibling: el.nextSibling });
+        mount.appendChild(el);
+      }
     }
   });
 });
 
 onUnmounted(() => {
-  if (jseMenuOriginalParent && toolbarMountRef.value?.firstChild) {
-    const jseMenu = toolbarMountRef.value.firstChild as HTMLElement;
-    jseMenuOriginalParent.insertBefore(jseMenu, jseMenuOriginalNextSibling);
+  for (const { el, parent, nextSibling } of movedElements) {
+    parent.insertBefore(el, nextSibling);
   }
 });
 
