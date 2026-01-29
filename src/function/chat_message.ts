@@ -1,4 +1,5 @@
 import { refreshOneMessage } from '@/function/displayed_message';
+import { auditChatMessages } from '@/panel/render/use_better_chat_truncation';
 import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
 import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
@@ -393,7 +394,7 @@ export async function deleteChatMessages(
 
   _.pullAt(chat, message_ids);
 
-  refreshMessages(refresh, async () => {
+  await refreshMessages(refresh, async () => {
     const min_affected = Math.max(Number($(`#chat > .mes`).first().attr('mesid')), _.min(message_ids)!);
     const deleted_in_affected = message_ids.filter(message_id => message_id >= min_affected);
     const before_after: [number, number][] = _(_.range(min_affected, chat.length + message_ids.length))
@@ -415,6 +416,7 @@ export async function deleteChatMessages(
         }
       }),
     );
+    await auditChatMessages();
   });
 }
 
@@ -430,7 +432,7 @@ export async function rotateChatMessages(
 
   const right_part = chat.splice(middle, end - middle);
   chat.splice(begin, 0, ...right_part);
-  refreshMessages(refresh, async () => {
+  await refreshMessages(refresh, async () => {
     await Promise.all(
       _.range(Math.max(Number($(`#chat > .mes`).first().attr('mesid')), _.min([begin, middle, end])!), chat.length).map(
         message_id => refreshOneMessage(message_id),
