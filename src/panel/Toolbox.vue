@@ -24,7 +24,6 @@
       </template>
     </Item>
 
-    <AudioPlayer />
   </div>
 
   <Teleport defer to="#extensionsMenu">
@@ -84,7 +83,6 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
 import Logger from '@/panel/toolbox/Logger.vue';
 import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
 import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';

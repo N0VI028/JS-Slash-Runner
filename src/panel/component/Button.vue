@@ -1,6 +1,8 @@
 <template>
   <div
-    :class="type === 'tavern_helper' ? 'TH-Button--container' : 'menu_button menu_button_icon interactable flex-wrap'"
+    :class="
+      type === 'tavern_helper' ? 'TH-Button--container' : `menu_button menu_button_icon interactable my-0! flex-wrap`
+    "
     class="cursor-pointer"
     @click="onClick"
   >
@@ -23,7 +25,7 @@ withDefaults(
 
 .TH-Button-- {
   &container {
-    @apply flex items-center justify-center w-4 border-1 border-(--SmartThemeQuoteColor) rounded-sm py-[3px] px-[5px] th-text-xs text-(--SmartThemeBodyColor);
+    @apply flex items-center justify-center w-4 border border-(--SmartThemeQuoteColor) rounded-sm py-[3px] px-[5px] th-text-xs text-(--SmartThemeBodyColor);
 
     a {
       color: var(--SmartThemeBodyColor);

@@ -5,7 +5,7 @@
     <label
       :for="props.id"
       class="
-        absolute inset-0 cursor-pointer overflow-hidden rounded-full bg-gray-300 transition-all duration-300
+        absolute inset-0 mt-0! cursor-pointer overflow-hidden rounded-full bg-gray-300 transition-all duration-300
         peer-checked:bg-(--SmartThemeQuoteColor)
         peer-focus:shadow-[0_0_1px_var(--SmartThemeQuoteColor)]
         after:absolute after:top-1/2 after:-translate-y-1/2 after:rounded-full after:bg-white after:transition-all

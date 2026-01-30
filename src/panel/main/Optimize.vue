@@ -1,6 +1,6 @@
 <template>
-  <CollapsiblePanel :title="t`酒馆优化`" icon="fa-solid fa-wand-magic-sparkles">
-    <Item type="plain" title-size="sm" :title-bold="false">
+  <div class="flex flex-col">
+    <Item type="plain">
       <template #title>
         {{ t`禁用不兼容选项` }}
         <i class="fa-solid fa-circle-question note-link-span" @click.stop="showDisableIncompatibleHelp" />
@@ -10,7 +10,7 @@
       </template>
     </Item>
     <Divider />
-    <Item type="plain" title-size="sm" :title-bold="false">
+    <Item type="plain">
       <template #title>
         {{ t`角色卡更新优化` }}
         <i class="fa-solid fa-circle-question note-link-span" @click.stop="showCharacterUpdateHelp" />
@@ -20,7 +20,7 @@
       </template>
     </Item>
     <Divider />
-    <Item type="plain" title-size="sm" :title-bold="false">
+    <Item type="plain">
       <template #title>
         {{ t`角色卡导出优化` }}
         <i class="fa-solid fa-circle-question note-link-span" @click.stop="showCharacterExportHelp" />
@@ -30,7 +30,7 @@
       </template>
     </Item>
     <Divider />
-    <Item type="plain" title-size="sm" :title-bold="false">
+    <Item type="plain">
       <template #title>
         {{ t`楼层显示优化` }}
         <i class="fa-solid fa-circle-question note-link-span" @click.stop="showBetterChatTruncationHelp" />
@@ -39,7 +39,7 @@
         <Toggle id="TH-optimize-better-chat-truncation" v-model="better_chat_truncation" />
       </template>
     </Item>
-  </CollapsiblePanel>
+  </div>
 </template>
 
 <script setup lang="ts">

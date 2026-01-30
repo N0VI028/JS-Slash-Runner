@@ -23,7 +23,6 @@
 import Builtin from '@/panel/script/Builtin.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
-import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { ScriptData as BackwardScriptData } from '@/type/backward';
@@ -31,31 +30,24 @@ import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useFileDialog } from '@vueuse/core';
 
+const props = defineProps<{
+  target: 'global' | 'character' | 'preset';
+}>();
+
 function openCreator(type: 'script' | 'folder') {
-  let target: 'global' | 'character' | 'preset';
-  const target_selector = useModal({
-    component: TargetSelector,
-    attrs: {
-      onSubmit: async (value: 'global' | 'character' | 'preset') => {
-        target = value;
-        editor.open();
-      },
-    },
-  });
   const editor = useModal({
     component: type === 'script' ? ScriptEditor : FolderEditor,
     attrs: {
       onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
         if (type === 'script') {
-          onScriptEditorSubmit(target, result as ScriptForm);
+          onScriptEditorSubmit(props.target, result as ScriptForm);
         } else {
-          onFolderEditorSubmit(target, result as ScriptFolderForm);
+          onFolderEditorSubmit(props.target, result as ScriptFolderForm);
         }
-        target_selector.close();
       },
     },
   });
-  target_selector.open();
+  editor.open();
 }
 
 function getStoreFormType(target: 'global' | 'character' | 'preset'): ReturnType<typeof useGlobalScriptsStore> {
@@ -113,18 +105,13 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   );
 }
 
-const { open: openImport } = useModal({
-  component: TargetSelector,
-  attrs: {
-    onSubmit: async (value: 'global' | 'character' | 'preset') => {
-      const disposer = onChange(selected => {
-        handleImport(value, selected);
-        disposer.off();
-      });
-      openFileDialog();
-    },
-  },
-});
+function openImport() {
+  const disposer = onChange(selected => {
+    handleImport(props.target, selected);
+    disposer.off();
+  });
+  openFileDialog();
+}
 
 const { open: openBuiltin } = useModal({
   component: Builtin,

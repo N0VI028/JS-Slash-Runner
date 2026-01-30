@@ -4,8 +4,7 @@
       <div class="flex items-center">
         <div class="font-bold">{{ title }}</div>
       </div>
-      <!-- prettier-ignore-attribute -->
-      <div class="mt-0.25 th-text-sm opacity-70">{{ description }}</div>
+      <div v-if="description" class="mt-0.25 th-text-sm opacity-70">{{ description }}</div>
     </div>
     <Toggle :id="`${title}-script-enable-toggle`" v-model="store.enabled" />
   </div>
@@ -57,7 +56,7 @@ const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: 
 
 defineProps<{
   title: string;
-  description: string;
+  description?: string;
   target: 'global' | 'character' | 'preset';
 }>();
 

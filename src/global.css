@@ -52,3 +52,32 @@ body:has(.TH-popup)::before {
   z-index: 9999;
   pointer-events: auto;
 }
+
+/* 通用子 Tab 样式 */
+.TH-sub-tab {
+  display: flex;
+  flex: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--mainFontSize) * 0.25);
+  padding: calc(var(--mainFontSize) * 0.5) calc(var(--mainFontSize) * 0.75);
+  font-size: calc(var(--mainFontSize) * 0.875);
+  color: var(--grey50);
+  transition: color 0.2s;
+}
+
+.TH-sub-tab i {
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+.TH-sub-tab:hover {
+  color: var(--SmartThemeBodyColor);
+}
+
+.TH-sub-tab--active {
+  color: var(--SmartThemeQuoteColor);
+  border-bottom: 2px solid var(--SmartThemeQuoteColor);
+  margin-bottom: -2px;
+}

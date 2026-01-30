@@ -36,8 +36,8 @@
       </div>
     </div>
     <!-- 右侧版本区域 -->
-    <div class="item-end flex flex-col justify-center gap-0.25">
-      <span class="th-text-base">{{ t`Ver ${current_version}` }}</span>
+    <div class="flex flex-col items-end justify-center gap-0.25">
+      <span class="th-text-base font-bold">{{ t`Ver ${current_version}` }}</span>
       <Button class="w-auto! whitespace-nowrap" @click="openUpdateModal">{{ button_text }}</Button>
     </div>
   </div>
