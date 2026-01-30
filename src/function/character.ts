@@ -58,6 +58,12 @@ function toCharacter(character: v1CharData): Character {
   if (extensions.has('regex_scripts')) {
     extensions = extensions.update('regex_scripts', regex_scripts => regex_scripts.map(to_tavern_regex));
   }
+  if (extensions.has('tavern_helper')) {
+    extensions = extensions.update('tavern_helper', tavern_helper =>
+      // 依旧处理一下旧的存储格式, 保证格式正确
+      Array.isArray(tavern_helper) ? Object.fromEntries(tavern_helper) : tavern_helper,
+    );
+  }
   extensions = extensions.omit([
     'TavernHelper_scripts',
     'TavernHelper_characterScriptVariables',
