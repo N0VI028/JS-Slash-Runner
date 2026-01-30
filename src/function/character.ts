@@ -12,10 +12,13 @@ import {
   event_types,
   eventSource,
   getCharacters,
+  getOneCharacter,
   getRequestHeaders,
   getThumbnailUrl,
+  printCharacters,
   printMessages,
   saveChatConditional,
+  selectCharacterById,
   unshallowCharacter,
 } from '@sillytavern/script';
 import { v1CharData } from '@sillytavern/scripts/char-data';
@@ -266,7 +269,10 @@ export async function render_character(character_name: string, character: Partia
     await saveChatConditional();
   }
 
-  await getCharacters();
+  if (is_current) {
+    await selectCharacterById(RawCharacter.findIndex(character_name));
+  }
+  await printCharacters(true);
 }
 const renderCharacterDebounced = _.debounce(render_character, 1000);
 
@@ -300,8 +306,11 @@ export async function replaceCharacter(
   const store = useCharacterSettingsStore();
   const is_current = character_name === store.name;
 
-  if (is_current && character.extensions?.tavern_helper !== undefined) {
-    store.forceReload();
+  if (is_current) {
+    await getOneCharacter(character_name + '.png');
+    if (character.extensions?.tavern_helper !== undefined) {
+      store.forceReload();
+    }
   }
 
   switch (render) {

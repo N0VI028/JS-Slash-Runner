@@ -4,6 +4,7 @@
 ### 🐛修复
 
 - `createOrReplaceCharacter` 在一些情况下无法修改角色卡头像的问题
+- `createOrReplaceCharacter` 如果修改了角色卡扩展字段 (如局部正则), 修改会无效的问题
 
 ## 4.6.3
 
