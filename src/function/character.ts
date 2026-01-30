@@ -54,17 +54,20 @@ function toCharacter(character: v1CharData): Character {
 
   const first_messages = [character.first_mes ?? data.first_mes, ...data.alternate_greetings];
 
-  let extensions = _(klona(data.extensions as Record<string, any>));
-  if (extensions.has('regex_scripts')) {
-    extensions = extensions.update('regex_scripts', regex_scripts => regex_scripts.map(to_tavern_regex));
+  let extensions = klona(data.extensions as Record<string, any>);
+  if (_.has(extensions, 'regex_scripts')) {
+    _.set(extensions, 'regex_scripts', _.get(extensions, 'regex_scripts', []).map(to_tavern_regex));
   }
-  if (extensions.has('tavern_helper')) {
-    extensions = extensions.update('tavern_helper', tavern_helper =>
-      // 依旧处理一下旧的存储格式, 保证格式正确
+  if (_.has(extensions, 'tavern_helper')) {
+    const tavern_helper = _.get(extensions, 'tavern_helper', {});
+    // 依旧处理一下旧的存储格式, 保证格式正确
+    _.set(
+      extensions,
+      'tavern_helper',
       Array.isArray(tavern_helper) ? Object.fromEntries(tavern_helper) : tavern_helper,
     );
   }
-  extensions = extensions.omit([
+  extensions = _.omit(extensions, [
     'TavernHelper_scripts',
     'TavernHelper_characterScriptVariables',
     'fav',
@@ -88,7 +91,7 @@ function toCharacter(character: v1CharData): Character {
     first_messages: first_messages,
     worldbook: getCharWorldbookNames(character.name).primary,
     // @ts-expect-error 类型是正确的, extensions 里必然有 regex_scripts 和 tavern_helper
-    extensions: extensions.value(),
+    extensions: extensions,
   };
 }
 
@@ -126,9 +129,9 @@ function fromCharacterToPayload(
     world = new_data.worldbook || undefined;
   }
 
-  let extensions = _({ ...old_data?.data?.extensions, ...new_data.extensions });
+  const extensions = klona({ ...old_data?.data?.extensions, ...new_data.extensions });
   if (new_data.extensions?.regex_scripts !== undefined) {
-    extensions = extensions.set('regex_scripts', new_data.extensions.regex_scripts.map(from_tavern_regex));
+    _.set(extensions, 'regex_scripts', new_data.extensions.regex_scripts.map(from_tavern_regex));
   }
 
   return {
@@ -142,7 +145,7 @@ function fromCharacterToPayload(
     first_mes: (new_data.first_messages?.[0] ?? old_data?.data.first_mes) || '',
     alternate_greetings: (new_data.first_messages?.slice(1) ?? old_data?.data.alternate_greetings) || [],
     world,
-    extensions: JSON.stringify(extensions.value()),
+    extensions: JSON.stringify(extensions),
 
     chat: old_data?.chat,
     create_date: old_data?.create_date,
