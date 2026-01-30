@@ -31,20 +31,24 @@ type TavernRegex = {
   id: string;
   script_name: string;
   enabled: boolean;
-  run_on_edit: boolean;
   scope: 'global' | 'character';
+
   find_regex: string;
   replace_string: string;
+
   source: {
     user_input: boolean;
     ai_output: boolean;
     slash_command: boolean;
     world_info: boolean;
   };
+
   destination: {
     display: boolean;
     prompt: boolean;
   };
+  run_on_edit: boolean;
+
   min_depth: number | null;
   max_depth: number | null;
 }

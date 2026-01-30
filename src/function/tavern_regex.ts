@@ -73,7 +73,6 @@ export type TavernRegex = {
   id: string;
   script_name: string;
   enabled: boolean;
-  run_on_edit: boolean;
 
   find_regex: string;
   replace_string: string;
@@ -89,6 +88,7 @@ export type TavernRegex = {
     display: boolean;
     prompt: boolean;
   };
+  run_on_edit: boolean;
 
   min_depth: number | null;
   max_depth: number | null;
