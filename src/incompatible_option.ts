@@ -16,7 +16,9 @@ function toggleIfNotAllowed(option: ExpectedOption): boolean {
   return true;
 }
 
-export function disableIncompatibleOption() {
+export function disableIncompatibleOption(enabled: boolean = true) {
+  if (!enabled) return;
+
   if (
     [
       { setting: 'auto_fix_generated_markdown', expected: false },

@@ -10,11 +10,11 @@
     <DefineNonDetailPart>
       <div class="flex min-w-0 flex-1 flex-col">
         <!-- prettier-ignore-attribute -->
-        <div class="TH-Item--title th-text-base font-bold">
+        <div class="TH-Item--title" :class="title_class">
           <slot name="title" />
         </div>
         <!-- prettier-ignore-attribute -->
-        <div class="mt-0.25 th-text-sm opacity-70">
+        <div class="mt-0.25 th-text-xs opacity-70">
           <slot name="description" />
         </div>
       </div>
@@ -56,12 +56,23 @@ const props = withDefaults(
   defineProps<{
     type?: 'plain' | 'box';
     duration?: number;
+    titleSize?: 'xs' | 'sm' | 'base' | 'lg';
+    titleBold?: boolean;
   }>(),
   {
     type: 'plain',
     duration: 260,
+    titleSize: 'base',
+    titleBold: true,
   },
 );
+
+const title_class = computed(() => {
+  const size_map = { xs: 'th-text-xs', sm: 'th-text-sm', base: 'th-text-base', lg: 'th-text-lg' };
+  return [size_map[props.titleSize], props.titleBold && 'font-bold'];
+});
+
+provide('item-size', computed(() => props.titleSize));
 
 const slots = useSlots();
 const has_content = computed(() => !!slots.content);

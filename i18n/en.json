@@ -37,10 +37,11 @@
   "脚本库": "Script",
   "工具箱": "Toolbox",
 
-  "版本更新": "Version Update",
-  "最新: Ver ${0}": "Latest: Ver ${0}",
-  "当前版本: ${0}": "Current Version: ${0}",
-  "更新": "Update",
+  "类脑": "ΟΔΥΣΣΕΙΑ",
+  "旅程": "ΟΡΙΖΟΝΤΑΣ",
+  "Ver ${0}": "Ver ${0}",
+  "查看日志": "View Log",
+  "更新到: ${0}": "Update to: ${0}",
   "开发工具": "Development Tools",
   "扩展信息": "Extension Information",
 
@@ -259,5 +260,16 @@
   "最新楼层号": "latest message id",
   "第 ${0} 楼": "#${0}",
 
-  "模型": "Model"
+  "模型": "Model",
+
+  "酒馆优化": "Tavern Optimization",
+  "禁用不兼容选项": "Disable Incompatible Options",
+  "角色卡更新优化": "Character Card Update Optimization",
+  "角色卡导出优化": "Character Card Export Optimization",
+  "楼层显示优化": "Chat Truncation Optimization",
+
+  "启动时自动禁用与游玩可能不兼容的酒馆设置:<br>• 自动修复生成的 Markdown → 关<br>• 修剪不完整的句子 → 关<br>• 禁止外部媒体 → 关<br>• 编码标签 → 关<br>• 允许显示 Name1 → 开<br>• 允许显示 Name2 → 开": "Automatically disables SillyTavern settings that may be incompatible with gameplay on startup:<br>• Auto-fix Generated Markdown → Off<br>• Trim Incomplete Sentences → Off<br>• Forbid External Media → Off<br>• Encode Tags → Off<br>• Allow Name1 Display → On<br>• Allow Name2 Display → On",
+  "开启选项后，在替换/更新角色卡时，若该角色已绑定世界书，新角色卡中内嵌的世界书数据将同步更新到已绑定的世界书中。<br>（原生酒馆只会更新角色卡, 不会更新世界书）": "When enabled, replacing/updating a character card with a bound world book will sync the embedded world book data to the existing world book.<br>(Vanilla SillyTavern only updates the character card, not the world book)",
+  "开启选项后，导出角色卡时，必然会导出最新世界书。<br>（原生酒馆导出角色卡时，可能导出陈旧世界书)": "When enabled, exporting a character card will always export the latest world book.<br>(Vanilla SillyTavern may export a stale world book)",
+  "• 解除酒馆的【要加载 # 条消息】的倍数限制, 现在可以设置为任意非负数<br>• 当发送新消息或收到新回复时, 旧楼层将会被自动取消渲染，当删除楼层时, 旧楼层将自动补全出来，确保始终只显示设置的消息数量<br>": "• Removes the multiple restriction on SillyTavern's \"# messages to load\" setting, allowing any non-negative number<br>• When sending or receiving messages, older messages will be automatically hidden; when deleting messages, older messages will be restored, ensuring only the set number of messages is displayed<br>"
 }

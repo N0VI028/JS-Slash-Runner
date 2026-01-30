@@ -46,6 +46,14 @@ export const GlobalSettings = z
         enabled: z.boolean().default(true),
       })
       .prefault({}),
+    optimize: z
+      .object({
+        disable_incompatible_option: z.boolean().default(true),
+        character_update_worldbook_sync: z.boolean().default(true),
+        character_export_save_worldbook: z.boolean().default(true),
+        better_chat_truncation: z.boolean().default(true),
+      })
+      .prefault({}),
     render: z
       .object({
         enabled: z.boolean().default(true),

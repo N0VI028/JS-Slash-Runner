@@ -44,6 +44,7 @@ export default [
             'qr--button',
             'qr--buttons',
             'text_pole',
+            'note-link-span',
           ],
         },
       ],

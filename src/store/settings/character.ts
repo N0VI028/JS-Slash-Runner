@@ -1,3 +1,4 @@
+import { useGlobalSettingsStore } from '@/store/settings/global';
 import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward';
 import { CharacterSettings, setting_field } from '@/type/settings';
 import { fromCharacterBook, updateWorldInfoList } from '@/util/compatibility';
@@ -76,7 +77,10 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
         settings.value = getSettings(current_id);
 
         // 并且替换世界书
-        if ($('#world_button').hasClass('world_set')) {
+        if (
+          useGlobalSettingsStore().settings.optimize.character_update_worldbook_sync &&
+          $('#world_button').hasClass('world_set')
+        ) {
           const book = characters[Number(current_id)]?.data?.character_book;
           if (book) {
             const book_name = book.name || `${characters[Number(current_id)]?.name}'s Lorebook`;
@@ -91,6 +95,8 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
 
   // 导出角色卡前保存最新世界书
   $('#export_button').on('click', async () => {
+    if (!useGlobalSettingsStore().settings.optimize.character_export_save_worldbook) return;
+
     const book_name = $('#character_world').val() as string;
     if (book_name) {
       await saveWorldInfo(book_name, await loadWorldInfo(book_name), true);

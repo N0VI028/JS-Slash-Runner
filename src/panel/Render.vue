@@ -62,7 +62,6 @@ import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { useBetterChatTruncation } from './render/use_better_chat_truncation';
 
 const global_settings = useGlobalSettingsStore();
 const { enabled, collapse_code_block, allow_streaming, use_blob_url, depth } = toRefs(global_settings.settings.render);
@@ -83,7 +82,6 @@ const collapse_code_block_options = [
   },
 ];
 
-useBetterChatTruncation(enabled);
 useOptimizeHljs(enabled);
 const enable_collapse_code_block = computed(() => {
   if (!enabled.value) {
