@@ -21,6 +21,7 @@ import {
 import { v1CharData } from '@sillytavern/scripts/char-data';
 import { favsToHotswap } from '@sillytavern/scripts/RossAscends-mods';
 import { delay } from '@sillytavern/scripts/utils';
+import isBlob from 'is-blob';
 import { serialize } from 'object-to-formdata';
 import { LiteralUnion, PartialDeep } from 'type-fest';
 
@@ -127,7 +128,7 @@ function fromCharacterToPayload(
   return {
     ch_name: character_name,
     avatar_url: character_name + '.png',
-    avatar: new_data.avatar instanceof Blob ? new File([new_data.avatar], character_name + '.png') : undefined,
+    avatar: isBlob(new_data.avatar) ? new File([new_data.avatar], character_name + '.png') : undefined,
     character_version: new_data.version ?? old_data?.data.character_version,
     creator: new_data.creator ?? old_data?.data.creator,
     creator_notes: new_data.creator_notes ?? old_data?.data.creator_notes,
@@ -219,7 +220,7 @@ type ReplaceCharacterOptions = {
 };
 
 export async function render_character(character_name: string, character: PartialDeep<Character>, is_current: boolean) {
-  if (character.avatar instanceof Blob) {
+  if (isBlob(character.avatar)) {
     const avatar_url = getThumbnailUrl('avatar', character_name + '.png');
     await fetch(avatar_url, {
       method: 'GET',
