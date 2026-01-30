@@ -1,3 +1,4 @@
+import { RawCharacter } from '@/function/raw_character';
 import { isFrontend } from '@/util/is_frontend';
 import {
   characters,
@@ -18,6 +19,7 @@ import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensio
 import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { getImageSizeFromDataURL } from '@sillytavern/scripts/utils';
 import { serialize } from 'object-to-formdata';
+import { LiteralUnion } from 'type-fest';
 
 export const version = await fetch('/version')
   .then(res => res.json())
@@ -93,8 +95,8 @@ export function getUserAvatarPath() {
   return `./User Avatars/${user_avatar}`;
 }
 
-export function getCharAvatarPath() {
-  const character = characters.at(this_chid as unknown as number);
+export function getCharAvatarPath(character_name: LiteralUnion<'current', string> = 'current') {
+  const character = RawCharacter.find({ name: character_name });
   const thumbnail_path = getThumbnailUrl('avatar', character?.avatar || character?.name || '');
   const avatar_img = thumbnail_path.substring(thumbnail_path.lastIndexOf('=') + 1);
   return '/characters/' + avatar_img;
