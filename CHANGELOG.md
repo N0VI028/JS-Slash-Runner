@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.6.4
+
+### 🐛修复
+
+- `createOrReplaceCharacter` 在一些情况下无法修改角色卡头像的问题
+
 ## 4.6.3
 
 ### ⏫原生体验
