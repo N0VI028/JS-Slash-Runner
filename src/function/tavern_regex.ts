@@ -125,7 +125,6 @@ export function to_tavern_regex(regex_script_data: RegexScriptData): TavernRegex
     id: regex_script_data.id,
     script_name: regex_script_data.scriptName,
     enabled: !regex_script_data.disabled,
-    run_on_edit: regex_script_data.runOnEdit,
 
     find_regex: regex_script_data.findRegex,
     replace_string: regex_script_data.replaceString,
@@ -141,6 +140,7 @@ export function to_tavern_regex(regex_script_data: RegexScriptData): TavernRegex
       display: regex_script_data.markdownOnly,
       prompt: regex_script_data.promptOnly,
     },
+    run_on_edit: regex_script_data.runOnEdit,
 
     min_depth: typeof regex_script_data.minDepth === 'number' ? regex_script_data.minDepth : null,
     max_depth: typeof regex_script_data.maxDepth === 'number' ? regex_script_data.maxDepth : null,
