@@ -63,6 +63,7 @@ import Toolbox from '@/panel/Toolbox.vue';
 import Reference from '@/panel/Reference.vue';
 import { ModalsContainer } from 'vue-final-modal';
 import { getSmartThemeQuoteTextColor } from './util/color';
+import { useValidatedTab } from './panel/composable/use_validated_tab';
 
 // 暴露 Vue 从而让 vue devtool 能正确识别
 useScriptTag('https://testingcf.jsdelivr.net/npm/vue/dist/vue.runtime.global.prod.min.js');
@@ -76,7 +77,7 @@ const tabs = [
   { key: 'develop', name: t`开发工具`, icon: 'fa-solid fa-tools', component: Develop },
   { key: 'writing', name: t`编写参考`, icon: 'fa-solid fa-book', component: Reference },
 ] as const;
-const active_tab = useLocalStorage<string>('TH-Panel:active_tab', 'main');
+const active_tab = useValidatedTab('TH-Panel:active_tab', 'main', () => tabs.map(t => t.key));
 const current_tab = computed(() => tabs.find(t => t.key === active_tab.value) ?? tabs[0]);
 
 const has_update = ref(false);

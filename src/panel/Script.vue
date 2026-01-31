@@ -93,6 +93,7 @@ import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { eventSource } from '@sillytavern/script';
+import { useValidatedTab } from '@/panel/composable/use_validated_tab';
 
 const tabs = [
   { key: 'global', name: t`全局脚本`, icon: 'fa-solid fa-globe' },
@@ -100,7 +101,7 @@ const tabs = [
   { key: 'preset', name: t`预设脚本`, icon: 'fa-solid fa-sliders' },
 ];
 
-const active_tab = useLocalStorage<string>('TH-Script:active_tab', 'global');
+const active_tab = useValidatedTab('TH-Script:active_tab', 'global', () => tabs.map(t => t.key));
 
 const search_input = ref<RegExp | null>(null);
 watch(active_tab, () => {

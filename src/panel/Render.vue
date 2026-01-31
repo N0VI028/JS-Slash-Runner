@@ -94,13 +94,14 @@ import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
+import { useValidatedTab } from '@/panel/composable/use_validated_tab';
 
 const tabs = [
   { key: 'basic', name: t`基本设置`, icon: 'fa-solid fa-trowel-bricks' },
   { key: 'optimize', name: t`渲染优化`, icon: 'fa-solid fa-wand-magic-sparkles' },
   { key: 'experimental', name: t`实验功能`, icon: 'fa-solid fa-flask' },
 ];
-const active_tab = useLocalStorage<string>('TH-Render:active_tab', 'basic');
+const active_tab = useValidatedTab('TH-Render:active_tab', 'basic', () => tabs.map(t => t.key));
 
 const global_settings = useGlobalSettingsStore();
 const { enabled, collapse_code_block, allow_streaming, use_blob_url, optimize_hljs, depth } = toRefs(

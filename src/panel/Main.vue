@@ -28,11 +28,12 @@
 <script setup lang="ts">
 import Info from '@/panel/main/Info.vue';
 import Optimize from '@/panel/main/Optimize.vue';
+import { useValidatedTab } from '@/panel/composable/use_validated_tab';
 
 const tabs = [
   { key: 'info', name: t`扩展信息`, icon: 'fa-solid fa-info-circle' },
   { key: 'optimize', name: t`酒馆优化`, icon: 'fa-solid fa-wand-magic-sparkles' },
 ];
 
-const active_tab = useLocalStorage<string>('TH-Main:active_tab', 'info');
+const active_tab = useValidatedTab('TH-Main:active_tab', 'info', () => tabs.map(t => t.key));
 </script>

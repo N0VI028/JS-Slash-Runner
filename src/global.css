@@ -78,7 +78,8 @@ body:has(.TH-popup)::before {
   color: var(--SmartThemeBodyColor);
 }
 
-.TH-sub-tab--active {
+.TH-sub-tab--active,
+.TH-sub-tab--active:hover {
   color: var(--SmartThemeQuoteColor);
   border-bottom: 2px solid var(--SmartThemeQuoteColor);
   margin-bottom: -2px;
