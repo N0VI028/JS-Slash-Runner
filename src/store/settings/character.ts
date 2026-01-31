@@ -40,9 +40,9 @@ function getSettings(id: string | undefined): CharacterSettings {
   return CharacterSettings.parse(parsed.data);
 }
 
-function saveSettings(id: string, name: string, settings: CharacterSettings) {
+async function saveSettings(id: string, name: string, settings: CharacterSettings) {
   if (name === characters[id as unknown as number]?.name) {
-    writeExtensionField(id, setting_field, settings);
+    await writeExtensionField(id, setting_field, settings);
   }
 }
 
@@ -99,10 +99,10 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   // 在某角色卡内修改 settings 时保存
   const { ignoreUpdates } = watchIgnorable(
     settings,
-    new_settings => {
+    async new_settings => {
       if (id.value !== undefined && name.value !== undefined) {
-        // 酒馆经常读取 settings, 所以这里需要立即保存
-        saveSettings(id.value, name.value, klona(new_settings));
+        // 酒馆经常读取角色卡数据, 所以这里需要立即保存
+        await saveSettings(id.value, name.value, klona(new_settings));
       }
     },
     { deep: true },
