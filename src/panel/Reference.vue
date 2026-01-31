@@ -233,7 +233,7 @@ async function downloadMacros() {
 </script>
 
 <style lang="scss" scoped>
-@reference '../../global.css';
+@reference '../global.css';
 .TH-reference-button {
   @apply cursor-pointer flex items-center justify-center bg-(--grey5020a) rounded-sm p-0.5 th-text-xs text-(--SmartThemeBodyColor) gap-0.5 whitespace-nowrap;
   margin-top: 5px;
