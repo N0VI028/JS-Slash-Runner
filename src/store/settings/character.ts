@@ -45,7 +45,6 @@ function saveSettings(id: string, name: string, settings: CharacterSettings) {
     writeExtensionField(id, setting_field, settings);
   }
 }
-const saveSettingsDebounced = _.debounce(saveSettings, 1000);
 
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
@@ -102,7 +101,8 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     settings,
     new_settings => {
       if (id.value !== undefined && name.value !== undefined) {
-        saveSettingsDebounced(id.value, name.value, klona(new_settings));
+        // 酒馆经常读取 settings, 所以这里需要立即保存
+        saveSettings(id.value, name.value, klona(new_settings));
       }
     },
     { deep: true },
