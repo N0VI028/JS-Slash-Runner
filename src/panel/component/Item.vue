@@ -1,12 +1,24 @@
 <template>
   <div
     ref="container_ref"
-    class="flex items-center justify-between gap-0.75"
+    class="flex gap-0.75"
     :class="[
-      type === 'box' ? 'rounded-md border border-(--grey5050a) p-1' : 'items-center',
+      type === 'box' ? 'relative rounded-md border border-(--grey5050a) p-1' : '',
+      type === 'box' && has_legend ? 'mt-1' : '',
+      has_default ? 'flex-col' : 'items-center justify-between',
       { 'TH-collapsible flex-col items-center': has_detail, expanded: has_detail && is_expanded },
     ]"
   >
+    <!-- prettier-ignore-attribute -->
+    <div
+      v-if="type === 'box' && has_legend"
+      class="
+        absolute top-0 left-0.5 flex -translate-y-1/2 items-center gap-0.25 bg-(--SmartThemeBlurTintColor) px-0.5
+        th-text-xs text-(--grey50)
+      "
+    >
+      <slot name="legend" />
+    </div>
     <DefineNonDetailPart>
       <div class="flex min-w-0 flex-1 flex-col">
         <!-- prettier-ignore-attribute -->
@@ -23,7 +35,11 @@
       </div>
     </DefineNonDetailPart>
 
-    <template v-if="!has_detail">
+    <template v-if="has_default">
+      <slot />
+    </template>
+
+    <template v-else-if="!has_detail">
       <NonDetailPart />
     </template>
 
@@ -72,11 +88,16 @@ const title_class = computed(() => {
   return [size_map[props.titleSize], props.titleBold && 'font-bold'];
 });
 
-provide('item-size', computed(() => props.titleSize));
+provide(
+  'item-size',
+  computed(() => props.titleSize),
+);
 
 const slots = useSlots();
 const has_content = computed(() => !!slots.content);
 const has_detail = computed(() => !!slots.detail);
+const has_legend = computed(() => !!slots.legend);
+const has_default = computed(() => !!slots.default);
 
 const is_animating = ref<boolean>(false);
 const container_ref = useTemplateRef<HTMLDivElement>('container_ref');

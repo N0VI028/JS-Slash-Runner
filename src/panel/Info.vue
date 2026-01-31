@@ -1,9 +1,9 @@
 <template>
   <Item type="box">
-    <Optimize />
+    <InfoContent />
   </Item>
 </template>
 
 <script setup lang="ts">
-import Optimize from '@/panel/main/Optimize.vue';
+import InfoContent from '@/panel/main/Info.vue';
 </script>

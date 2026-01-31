@@ -23,6 +23,7 @@
 import Builtin from '@/panel/script/Builtin.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
+import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { ScriptData as BackwardScriptData } from '@/type/backward';
@@ -31,23 +32,38 @@ import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useFileDialog } from '@vueuse/core';
 
 const props = defineProps<{
-  target: 'global' | 'character' | 'preset';
+  target?: 'global' | 'character' | 'preset';
 }>();
 
 function openCreator(type: 'script' | 'folder') {
-  const editor = useModal({
-    component: type === 'script' ? ScriptEditor : FolderEditor,
-    attrs: {
-      onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
-        if (type === 'script') {
-          onScriptEditorSubmit(props.target, result as ScriptForm);
-        } else {
-          onFolderEditorSubmit(props.target, result as ScriptFolderForm);
-        }
+  const openEditor = (target: 'global' | 'character' | 'preset') => {
+    const editor = useModal({
+      component: type === 'script' ? ScriptEditor : FolderEditor,
+      attrs: {
+        onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
+          if (type === 'script') {
+            onScriptEditorSubmit(target, result as ScriptForm);
+          } else {
+            onFolderEditorSubmit(target, result as ScriptFolderForm);
+          }
+        },
       },
-    },
-  });
-  editor.open();
+    });
+    editor.open();
+  };
+
+  if (props.target) {
+    openEditor(props.target);
+  } else {
+    useModal({
+      component: TargetSelector,
+      attrs: {
+        onSubmit: (target: 'global' | 'character' | 'preset') => {
+          openEditor(target);
+        },
+      },
+    }).open();
+  }
 }
 
 function getStoreFormType(target: 'global' | 'character' | 'preset'): ReturnType<typeof useGlobalScriptsStore> {
@@ -105,12 +121,31 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   );
 }
 
+/** 导入脚本，无 target 时弹出 TargetSelector 选择目标库 */
+let importDisposer: ReturnType<typeof onChange> | null = null;
 function openImport() {
-  const disposer = onChange(selected => {
-    handleImport(props.target, selected);
-    disposer.off();
-  });
-  openFileDialog();
+  importDisposer?.off();
+  const doImport = (target: 'global' | 'character' | 'preset') => {
+    importDisposer = onChange(selected => {
+      handleImport(target, selected);
+      importDisposer?.off();
+      importDisposer = null;
+    });
+    openFileDialog();
+  };
+
+  if (props.target) {
+    doImport(props.target);
+  } else {
+    useModal({
+      component: TargetSelector,
+      attrs: {
+        onSubmit: (target: 'global' | 'character' | 'preset') => {
+          doImport(target);
+        },
+      },
+    }).open();
+  }
 }
 
 const { open: openBuiltin } = useModal({

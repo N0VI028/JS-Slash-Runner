@@ -37,7 +37,6 @@
   "渲染器": "Renderer",
   "脚本库": "Script",
   "工具箱": "Toolbox",
-  "总开关": "Master Switch",
   "基本设置": "Basic Settings",
   "渲染优化": "Render Optimization",
   "实验功能": "Experimental Features",
@@ -47,6 +46,8 @@
   "Ver ${0}": "Ver ${0}",
   "查看日志": "View Log",
   "更新到: ${0}": "Update to: ${0}",
+  "发现新版本: ${0}": "New version available: ${0}",
+  "更新": "Update",
   "开发工具": "Development",
   "扩展信息": "Extension Information",
 

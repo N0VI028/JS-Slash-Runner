@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-0.5 flex flex-col">
+  <div class="flex flex-col">
     <Item type="plain">
       <template #title>
         {{ t`禁用不兼容选项` }}

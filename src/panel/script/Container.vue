@@ -12,7 +12,7 @@
   <div class="flex h-full flex-col">
     <VueDraggable
       v-model="script_trees"
-      :group="`TH-scripts-${target}`"
+      :group="actual_group"
       handle=".TH-handle"
       class="flex grow flex-col gap-[5px] overflow-y-auto py-0.5"
       :class="{ 'min-h-2': script_trees.length === 0 }"
@@ -54,17 +54,21 @@ import { SortableEvent, VueDraggable } from 'vue-draggable-plus';
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
 
-defineProps<{
+const props = defineProps<{
   title: string;
   description?: string;
   target: 'global' | 'character' | 'preset';
+  group?: string;
 }>();
+
+const actual_group = computed(() => props.group ?? `TH-scripts-${props.target}`);
 
 const emit = defineEmits<{
   move: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
 
 provide<Ref<boolean>>('container_enabled', toRef(store.value, 'enabled'));
+provide('drag_group', actual_group);
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
 

@@ -1,85 +1,60 @@
 <template>
-  <div class="flex flex-col rounded-md border border-(--grey5050a) p-1">
-    <!-- 横向Tab栏 -->
-    <div class="mb-0.5 flex border-b-2 border-(--grey5050a)">
+  <Item type="box">
+    <div class="flex flex-col gap-0.5">
+      <Toolbar class="flex flex-wrap gap-0.5" />
+      <SearchBar
+        v-model="search_input"
+        class="flex flex-wrap items-center gap-0.5"
+        :placeholder="t`搜索（支持普通和/正则/）`"
+        clearable
+      />
+    </div>
+
+    <Container v-model="global_scripts" :title="t`全局脚本`" :description="t`酒馆全局可用`" target="global" />
+
+    <template v-if="character_name !== undefined">
+      <Divider />
+      <Container
+        v-model="character_scripts"
+        :title="t`角色脚本`"
+        :description="t`绑定到当前角色卡`"
+        target="character"
+      />
+    </template>
+
+    <Divider />
+    <Container v-model="preset_scripts" :title="t`预设脚本`" :description="t`绑定到当前预设`" target="preset" />
+
+    <Teleport to="body">
+      <Iframe
+        v-for="script in runtimes"
+        :id="script.id"
+        :key="script.source + script.id + script.reload_memo"
+        :name="script.name"
+        :content="script.content"
+        :use-blob-url="use_blob_url"
+      />
+    </Teleport>
+
+    <Teleport v-if="!!button_element" defer :to="button_element">
       <div
-        v-for="{ key, name, icon } in tabs"
-        :key="key"
-        class="TH-sub-tab"
-        :class="{ 'TH-sub-tab--active': active_tab === key }"
-        @click="active_tab = key"
+        v-for="(buttons, script_id) in button_map"
+        :id="`script_container_${script_id}`"
+        :key="script_id"
+        class="qr--buttons flex gap-[5px]"
       >
-        <i :class="icon" class="th-text-xs" />
-        <span>{{ name }}</span>
+        <div
+          v-for="button in buttons"
+          :key="button.button_id"
+          class="qr--button menu_button interactable"
+          @click.stop.prevent="eventSource.emit(button.button_id)"
+          @pointerdown.prevent
+        >
+          {{ button.button_name }}
+        </div>
       </div>
-    </div>
-
-    <!-- 内容区 -->
-    <div class="mt-0.5 flex flex-col gap-0.5">
-      <template v-if="active_tab === 'global'">
-        <Toolbar class="flex w-full flex-wrap gap-0.5" target="global" />
-        <SearchBar
-          v-model="search_input"
-          class="flex w-full flex-wrap items-center gap-0.5"
-          :placeholder="t`搜索（支持普通和/正则/）`"
-          clearable
-        />
-        <Container v-model="global_scripts" :title="t`启用全局脚本`" :description="t`酒馆全局可用`" target="global" />
-      </template>
-
-      <template v-else-if="active_tab === 'character'">
-        <Toolbar class="flex w-full flex-wrap gap-0.5" target="character" />
-        <SearchBar
-          v-model="search_input"
-          class="flex w-full flex-wrap items-center gap-0.5"
-          :placeholder="t`搜索（支持普通和/正则/）`"
-          clearable
-        />
-        <Container v-model="character_scripts" :title="t`启用角色脚本`" :description="t`绑定到当前角色卡`" target="character" />
-      </template>
-
-      <template v-else-if="active_tab === 'preset'">
-        <Toolbar class="flex w-full flex-wrap gap-0.5" target="preset" />
-        <SearchBar
-          v-model="search_input"
-          class="flex w-full flex-wrap items-center gap-0.5"
-          :placeholder="t`搜索（支持普通和/正则/）`"
-          clearable
-        />
-        <Container v-model="preset_scripts" :title="t`启用预设脚本`" :description="t`绑定到当前预设`" target="preset" />
-      </template>
-    </div>
-  </div>
-
-  <Teleport to="body">
-    <Iframe
-      v-for="script in runtimes"
-      :id="script.id"
-      :key="script.source + script.id + script.reload_memo"
-      :name="script.name"
-      :content="script.content"
-      :use-blob-url="use_blob_url"
-    />
-  </Teleport>
-
-  <Teleport v-if="!!button_element" defer :to="button_element">
-    <div
-      v-for="(buttons, script_id) in button_map"
-      :id="`script_container_${script_id}`"
-      :key="script_id"
-      class="qr--buttons flex gap-[5px]"
-    >
-      <div
-        v-for="button in buttons"
-        :key="button.button_id"
-        class="qr--button menu_button interactable"
-        @click.stop.prevent="eventSource.emit(button.button_id)"
-        @pointerdown.prevent
-      >
-        {{ button.button_name }}
-      </div>
-    </div>
-  </Teleport>
+    </Teleport>
+  </Item>
 </template>
 
 <script setup lang="ts">
@@ -93,20 +68,8 @@ import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { eventSource } from '@sillytavern/script';
-import { useValidatedTab } from '@/panel/composable/use_validated_tab';
-
-const tabs = [
-  { key: 'global', name: t`全局脚本`, icon: 'fa-solid fa-globe' },
-  { key: 'character', name: t`角色脚本`, icon: 'fa-solid fa-user' },
-  { key: 'preset', name: t`预设脚本`, icon: 'fa-solid fa-sliders' },
-];
-
-const active_tab = useValidatedTab('TH-Script:active_tab', 'global', () => tabs.map(t => t.key));
 
 const search_input = ref<RegExp | null>(null);
-watch(active_tab, () => {
-  search_input.value = null;
-});
 provide('search_input', search_input);
 provide('during_sorting_item', ref(false));
 

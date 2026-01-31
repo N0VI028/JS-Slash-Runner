@@ -71,7 +71,6 @@ withDefaults(
   },
 );
 
-const dialog_ref = useTemplateRef<HTMLDivElement>('dialog_ref');
 
 function close() {
   visible.value = false;

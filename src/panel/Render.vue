@@ -1,21 +1,7 @@
 <template>
-  <div class="flex flex-col rounded-md border border-(--grey5050a) p-1">
-    <!-- 横向Tab栏 -->
-    <div class="mb-0.5 flex border-b-2 border-(--grey5050a)">
-      <div
-        v-for="{ key, name, icon } in tabs"
-        :key="key"
-        class="TH-sub-tab"
-        :class="{ 'TH-sub-tab--active': active_tab === key }"
-        @click="active_tab = key"
-      >
-        <i :class="icon" class="th-text-xs" />
-        <span>{{ name }}</span>
-      </div>
-    </div>
-    <!-- 内容区 -->
-    <div class="mt-0.5 flex flex-col gap-0.5">
-      <template v-if="active_tab === 'basic'">
+  <div class="flex flex-col">
+    <Item type="box">
+      <div class="flex flex-col gap-0.5">
         <Item type="plain">
           <template #title>{{ t`启用渲染器` }}</template>
           <template #description>{{ t`启用后，符合条件的代码块将被渲染` }}</template>
@@ -31,8 +17,7 @@
             <input v-model="depth" class="text_pole w-3.5!" type="number" :min="0" />
           </template>
         </Item>
-      </template>
-      <template v-else-if="active_tab === 'optimize'">
+        <Divider />
         <Item type="plain">
           <template #title>{{ t`启用代码折叠` }}</template>
           <template #description>
@@ -62,19 +47,19 @@
             <Toggle id="TH-render-optimize-hljs" v-model="optimize_hljs" />
           </template>
         </Item>
+      </div>
+    </Item>
+    <!-- 实验功能 -->
+    <Item type="box" class="mt-0.75">
+      <template #legend><i class="fa-solid fa-flask" />{{ t`实验功能` }}</template>
+      <template #title>{{ t`允许流式渲染` }}</template>
+      <template #description>
+        {{ t`在AI流式输出时就渲染，某些前端界面可能无法这样渲染。此外，这可能与某些脚本、插件、酒馆美化不兼容` }}
       </template>
-      <template v-else-if="active_tab === 'experimental'">
-        <Item type="plain">
-          <template #title>{{ t`允许流式渲染` }}</template>
-          <template #description>
-            {{ t`在AI流式输出时就渲染，某些前端界面可能无法这样渲染。此外，这可能与某些脚本、插件、酒馆美化不兼容` }}
-          </template>
-          <template #content>
-            <Toggle id="TH-render-allow-streaming" v-model="allow_streaming" />
-          </template>
-        </Item>
+      <template #content>
+        <Toggle id="TH-render-allow-streaming" v-model="allow_streaming" />
       </template>
-    </div>
+    </Item>
   </div>
 
   <template v-for="{ message_id, reload_memo, elements } in runtimes" :key="message_id + reload_memo">
@@ -94,14 +79,6 @@ import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { useValidatedTab } from '@/panel/composable/use_validated_tab';
-
-const tabs = [
-  { key: 'basic', name: t`基本设置`, icon: 'fa-solid fa-trowel-bricks' },
-  { key: 'optimize', name: t`渲染优化`, icon: 'fa-solid fa-wand-magic-sparkles' },
-  { key: 'experimental', name: t`实验功能`, icon: 'fa-solid fa-flask' },
-];
-const active_tab = useValidatedTab('TH-Render:active_tab', 'basic', () => tabs.map(t => t.key));
 
 const global_settings = useGlobalSettingsStore();
 const { enabled, collapse_code_block, allow_streaming, use_blob_url, optimize_hljs, depth } = toRefs(

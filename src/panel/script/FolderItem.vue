@@ -45,14 +45,11 @@
       v-show="is_expanded"
       v-model="script_folder.scripts"
       :group="{
-        name: `TH-scripts-${props.target}`,
+        name: drag_group.value,
         pull: true,
         put: (_to, _from, draggedEl) => {
-          const getType = (containerEl: HTMLElement) => {
-            return containerEl?.dataset?.type;
-          };
-          const targetType = getType(draggedEl.querySelector('[data-type]') as HTMLElement);
-          if (targetType === 'folder') return false;
+          const targetType = draggedEl.querySelector('[data-type]')?.dataset?.type;
+          if (!targetType || targetType === 'folder') return false;
           return true;
         },
       }"
@@ -114,6 +111,7 @@ const actually_enabled = computed(() => container_enabled.value && script_folder
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
 const during_sorting_item = inject<Ref<boolean>>('during_sorting_item', ref(false));
+const drag_group = inject<Ref<string>>('drag_group', computed(() => `TH-scripts-${props.target}`));
 
 const is_expanded = ref<boolean>(false);
 
