@@ -68,7 +68,7 @@ function createHelpModal(content: string) {
 }
 
 const { open: showDisableIncompatibleHelp } = createHelpModal(
-  t`启动时自动禁用与游玩可能不兼容的酒馆设置:<br>• 自动修复生成的 Markdown → 关<br>• 修剪不完整的句子 → 关<br>• 禁止外部媒体 → 关<br>• 编码标签 → 关<br>• 允许显示 Name1 → 开<br>• 允许显示 Name2 → 开`,
+  t`启动时自动禁用与游玩可能不兼容的酒馆设置:<br>• 自动修复生成的 Markdown → 关<br>• 修剪不完整的句子 → 关<br>• 禁止外部媒体 → 关<br>• 在响应中显示标签 → 关<br>• 在机器人消息中允许{{char}} → 开<br>• 在机器人消息中允许{{user}} → 开`,
 );
 const { open: showCharacterUpdateHelp } = createHelpModal(
   t`开启选项后，在替换/更新角色卡时，若该角色已绑定世界书，新角色卡中内嵌的世界书数据将同步更新到已绑定的世界书中。<br>（原生酒馆只会更新角色卡, 不会更新世界书）`,

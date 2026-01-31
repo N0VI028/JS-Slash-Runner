@@ -1,8 +1,11 @@
 <template>
   <div class="mt-0.5 flex flex-col">
-    <!-- Header -->
+    <!-- prettier-ignore-attribute -->
     <div
-      class="flex cursor-pointer items-center gap-0.5 bg-[color-mix(in_srgb,_var(--SmartThemeQuoteColor)_10%,_transparent)] px-0.75 py-0.5 select-none"
+      class="
+        flex cursor-pointer items-center gap-0.5 bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_10%,transparent)]
+        px-0.75 py-0.5 select-none
+      "
       :class="is_expanded ? 'rounded-t-md' : 'rounded-md'"
       @click="toggle"
     >
@@ -16,11 +19,14 @@
       />
     </div>
 
-    <!-- Content -->
+    <!-- prettier-ignore-attribute -->
     <div
       ref="content_ref"
       :class="is_expanded ? 'block' : 'hidden'"
-      class="rounded-b-md border-x-2 border-b-2 border-[color-mix(in_srgb,_var(--SmartThemeQuoteColor)_10%,_transparent)] px-0.75 py-0.5"
+      class="
+        rounded-b-md border-x-2 border-b-2 border-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_10%,transparent)]
+        px-0.75 py-0.5
+      "
     >
       <slot />
     </div>
@@ -38,7 +44,7 @@ const props = withDefaults(
     icon?: string;
     duration?: number;
   }>(),
-  {
+  { icon: 'fa-solid fa-chevron-right',
     duration: 260,
   },
 );

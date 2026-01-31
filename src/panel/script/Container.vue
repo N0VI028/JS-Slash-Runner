@@ -12,7 +12,7 @@
   <div class="flex h-full flex-col">
     <VueDraggable
       v-model="script_trees"
-      group="TH-scripts"
+      :group="`TH-scripts-${target}`"
       handle=".TH-handle"
       class="flex grow flex-col gap-[5px] overflow-y-auto py-0.5"
       :class="{ 'min-h-2': script_trees.length === 0 }"

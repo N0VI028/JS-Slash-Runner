@@ -1,7 +1,7 @@
 <template>
-  <div class="flex w-full gap-0.75 rounded-md p-0.5">
+  <div class="flex w-full gap-0.75 rounded-md">
     <!-- 左侧信息区域 -->
-    <div class="flex flex-1 flex-col gap-0.75">
+    <div class="mt-0.5 flex flex-1 flex-col gap-0.5">
       <div class="flex gap-0.75">
         <a
           href="https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/关于酒馆助手/常见问题/安装与更新问题.html"

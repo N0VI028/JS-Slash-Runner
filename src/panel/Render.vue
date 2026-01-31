@@ -1,13 +1,13 @@
 <template>
-  <div class="flex flex-col gap-0.5">
+  <div class="flex flex-col rounded-md border border-(--grey5050a) p-1">
     <!-- 横向Tab栏 -->
-    <div class="flex border-b-2 border-(--grey5050a)">
+    <div class="mb-0.5 flex border-b-2 border-(--grey5050a)">
       <div
-        v-for="({ name, icon }, index) in tabs"
-        :key="index"
+        v-for="{ key, name, icon } in tabs"
+        :key="key"
         class="TH-sub-tab"
-        :class="{ 'TH-sub-tab--active': active_tab === index }"
-        @click="active_tab = index"
+        :class="{ 'TH-sub-tab--active': active_tab === key }"
+        @click="active_tab = key"
       >
         <i :class="icon" class="th-text-xs" />
         <span>{{ name }}</span>
@@ -15,8 +15,7 @@
     </div>
     <!-- 内容区 -->
     <div class="mt-0.5 flex flex-col gap-0.5">
-      <!-- 基本 -->
-      <template v-if="active_tab === 0">
+      <template v-if="active_tab === 'basic'">
         <Item type="plain">
           <template #title>{{ t`启用渲染器` }}</template>
           <template #description>{{ t`启用后，符合条件的代码块将被渲染` }}</template>
@@ -33,8 +32,7 @@
           </template>
         </Item>
       </template>
-      <!-- 优化 -->
-      <template v-else-if="active_tab === 1">
+      <template v-else-if="active_tab === 'optimize'">
         <Item type="plain">
           <template #title>{{ t`启用代码折叠` }}</template>
           <template #description>
@@ -65,8 +63,7 @@
           </template>
         </Item>
       </template>
-      <!-- 实验 -->
-      <template v-else-if="active_tab === 2">
+      <template v-else-if="active_tab === 'experimental'">
         <Item type="plain">
           <template #title>{{ t`允许流式渲染` }}</template>
           <template #description>
@@ -99,11 +96,11 @@ import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 const tabs = [
-  { name: t`基本`, icon: 'fa-solid fa-trowel-bricks' },
-  { name: t`优化`, icon: 'fa-solid fa-wand-magic-sparkles' },
-  { name: t`实验`, icon: 'fa-solid fa-flask' },
+  { key: 'basic', name: t`基本设置`, icon: 'fa-solid fa-trowel-bricks' },
+  { key: 'optimize', name: t`渲染优化`, icon: 'fa-solid fa-wand-magic-sparkles' },
+  { key: 'experimental', name: t`实验功能`, icon: 'fa-solid fa-flask' },
 ];
-const active_tab = useLocalStorage<number>('TH-Render:active_tab', 0);
+const active_tab = useLocalStorage<string>('TH-Render:active_tab', 'basic');
 
 const global_settings = useGlobalSettingsStore();
 const { enabled, collapse_code_block, allow_streaming, use_blob_url, optimize_hljs, depth } = toRefs(

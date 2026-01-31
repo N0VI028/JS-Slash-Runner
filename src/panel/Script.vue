@@ -1,13 +1,13 @@
 <template>
-  <div class="flex flex-col gap-0.5">
+  <div class="flex flex-col rounded-md border border-(--grey5050a) p-1">
     <!-- 横向Tab栏 -->
-    <div class="flex border-b-2 border-(--grey5050a)">
+    <div class="mb-0.5 flex border-b-2 border-(--grey5050a)">
       <div
-        v-for="({ name, icon }, index) in tabs"
-        :key="index"
+        v-for="{ key, name, icon } in tabs"
+        :key="key"
         class="TH-sub-tab"
-        :class="{ 'TH-sub-tab--active': active_tab === index }"
-        @click="active_tab = index"
+        :class="{ 'TH-sub-tab--active': active_tab === key }"
+        @click="active_tab = key"
       >
         <i :class="icon" class="th-text-xs" />
         <span>{{ name }}</span>
@@ -16,8 +16,7 @@
 
     <!-- 内容区 -->
     <div class="mt-0.5 flex flex-col gap-0.5">
-      <!-- 全局脚本 -->
-      <template v-if="active_tab === 0">
+      <template v-if="active_tab === 'global'">
         <Toolbar class="flex w-full flex-wrap gap-0.5" target="global" />
         <SearchBar
           v-model="search_input"
@@ -28,8 +27,7 @@
         <Container v-model="global_scripts" :title="t`启用全局脚本`" :description="t`酒馆全局可用`" target="global" />
       </template>
 
-      <!-- 角色脚本 -->
-      <template v-else-if="active_tab === 1">
+      <template v-else-if="active_tab === 'character'">
         <Toolbar class="flex w-full flex-wrap gap-0.5" target="character" />
         <SearchBar
           v-model="search_input"
@@ -40,8 +38,7 @@
         <Container v-model="character_scripts" :title="t`启用角色脚本`" :description="t`绑定到当前角色卡`" target="character" />
       </template>
 
-      <!-- 预设脚本 -->
-      <template v-else-if="active_tab === 2">
+      <template v-else-if="active_tab === 'preset'">
         <Toolbar class="flex w-full flex-wrap gap-0.5" target="preset" />
         <SearchBar
           v-model="search_input"
@@ -98,12 +95,12 @@ import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsSto
 import { eventSource } from '@sillytavern/script';
 
 const tabs = [
-  { name: t`全局脚本`, icon: 'fa-solid fa-globe' },
-  { name: t`角色脚本`, icon: 'fa-solid fa-user' },
-  { name: t`预设脚本`, icon: 'fa-solid fa-sliders' },
+  { key: 'global', name: t`全局脚本`, icon: 'fa-solid fa-globe' },
+  { key: 'character', name: t`角色脚本`, icon: 'fa-solid fa-user' },
+  { key: 'preset', name: t`预设脚本`, icon: 'fa-solid fa-sliders' },
 ];
 
-const active_tab = useLocalStorage<number>('TH-Script:active_tab', 0);
+const active_tab = useLocalStorage<string>('TH-Script:active_tab', 'global');
 
 const search_input = ref<RegExp | null>(null);
 watch(active_tab, () => {

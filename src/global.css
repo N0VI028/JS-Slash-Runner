@@ -56,15 +56,17 @@ body:has(.TH-popup)::before {
 /* 通用子 Tab 样式 */
 .TH-sub-tab {
   display: flex;
+  flex-wrap: wrap;
   flex: 1;
   cursor: pointer;
   align-items: center;
   justify-content: center;
   gap: calc(var(--mainFontSize) * 0.25);
-  padding: calc(var(--mainFontSize) * 0.5) calc(var(--mainFontSize) * 0.75);
+  padding-bottom: calc(var(--mainFontSize) * 0.5);
   font-size: calc(var(--mainFontSize) * 0.875);
   color: var(--grey50);
   transition: color 0.2s;
+  text-align: center;
 }
 
 .TH-sub-tab i {
@@ -81,3 +83,4 @@ body:has(.TH-popup)::before {
   border-bottom: 2px solid var(--SmartThemeQuoteColor);
   margin-bottom: -2px;
 }
+

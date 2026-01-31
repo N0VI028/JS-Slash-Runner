@@ -1,45 +1,49 @@
 <template>
-  <div class="flex w-full flex-col gap-0.5">
-    <div class="th-text-base font-bold">{{ t`酒馆助手` }}</div>
-    <div class="mb-0.5 flex items-center gap-0.5">
-      <div
-        class="TH-reference-button"
-        @click="open('https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html')"
-      >
-        {{ t`查看教程及文档` }}<i class="fa-solid fa-external-link" />
-      </div>
-      <div ref="tavern_helper_types_button" class="TH-reference-button">
-        {{ t`下载参考文件` }}<i class="fa-solid fa-ellipsis-vertical" />
-      </div>
-      <div ref="tavern_helper_types_popup" class="list-group" style="display: none">
-        <a
-          target="_blank"
-          href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.zip?ref_type=heads&inline=false"
-          class="list-group-item"
+  <div class="flex flex-col rounded-md border border-(--grey5050a) p-1">
+    <div class="flex flex-col gap-0.25">
+      <div class="th-text-base font-bold">{{ t`酒馆助手` }}</div>
+      <div class="mb-0.5 flex items-center gap-0.5">
+        <div
+          class="TH-reference-button"
+          @click="open('https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html')"
         >
-          {{ t`电脑编写模板用` }}<i class="fa-solid fa-download" />
-        </a>
-        <a
-          target="_blank"
-          href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.txt?ref_type=heads&inline=false"
-          class="list-group-item"
-        >
-          {{ t`手机或 AI 官网用` }}<i class="fa-solid fa-download" />
-        </a>
+          {{ t`查看教程及文档` }}<i class="fa-solid fa-external-link" />
+        </div>
+        <div ref="tavern_helper_types_button" class="TH-reference-button">
+          {{ t`下载参考文件` }}<i class="fa-solid fa-ellipsis-vertical" />
+        </div>
+        <div ref="tavern_helper_types_popup" class="list-group" style="display: none">
+          <a
+            target="_blank"
+            href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.zip?ref_type=heads&inline=false"
+            class="list-group-item"
+          >
+            {{ t`电脑编写模板用` }}<i class="fa-solid fa-download" />
+          </a>
+          <a
+            target="_blank"
+            href="https://gitlab.com/novi028/JS-Slash-Runner/-/raw/main/dist/@types.txt?ref_type=heads&inline=false"
+            class="list-group-item"
+          >
+            {{ t`手机或 AI 官网用` }}<i class="fa-solid fa-download" />
+          </a>
+        </div>
       </div>
     </div>
-    <Divider margin-y="my-0.25" />
-    <div class="th-text-base font-bold">{{ t`酒馆STScript与宏` }}</div>
-    <div class="mb-0.5 flex flex-wrap items-center gap-0.5">
-      <div class="TH-reference-button" @click="open('https://rentry.org/sillytavern-script-book')">
-        {{ t`查看手册` }}
-        <i class="fa-solid fa-external-link" />
-      </div>
-      <div class="TH-reference-button" @click="downloadSlashCommands">
-        {{ t`下载STScript参考文件` }}<i class="fa-solid fa-download" />
-      </div>
-      <div class="TH-reference-button" @click="downloadMacros">
-        {{ t`下载宏参考文件` }}<i class="fa-solid fa-download" />
+    <Divider margin-y="my-0.75" />
+    <div class="flex flex-col gap-0.25">
+      <div class="th-text-base font-bold">{{ t`酒馆STScript与宏` }}</div>
+      <div class="mb-0.5 flex flex-wrap items-center gap-0.5">
+        <div class="TH-reference-button" @click="open('https://rentry.org/sillytavern-script-book')">
+          {{ t`查看手册` }}
+          <i class="fa-solid fa-external-link" />
+        </div>
+        <div class="TH-reference-button" @click="downloadSlashCommands">
+          {{ t`下载STScript参考文件` }}<i class="fa-solid fa-download" />
+        </div>
+        <div class="TH-reference-button" @click="downloadMacros">
+          {{ t`下载宏参考文件` }}<i class="fa-solid fa-download" />
+        </div>
       </div>
     </div>
   </div>
@@ -56,7 +60,7 @@ import { download } from '@sillytavern/scripts/utils';
 import { compare } from 'compare-versions';
 
 function open(url: string) {
-  window.open(url, '_blank');
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function formatSlashCommands(): string {
@@ -199,15 +203,24 @@ async function formatMacros(): Promise<string> {
 
 const tavern_helper_types_button = useTemplateRef('tavern_helper_types_button');
 const tavern_helper_types_popup = useTemplateRef('tavern_helper_types_popup');
+
+let popper_instance: ReturnType<typeof Popper.createPopper> | null = null;
+
 onMounted(() => {
-  const popper_instance = Popper.createPopper(tavern_helper_types_button.value!, tavern_helper_types_popup.value!, {
+  popper_instance = Popper.createPopper(tavern_helper_types_button.value!, tavern_helper_types_popup.value!, {
     placement: 'right-end',
   });
-  $(tavern_helper_types_button.value!).on('click', function () {
+  $(tavern_helper_types_button.value!).on('click.th-reference', function () {
     const $popup = $(tavern_helper_types_popup.value!);
     $popup.css('display', $popup.css('display') === 'none' ? 'block' : 'none');
-    popper_instance.update();
+    popper_instance?.update();
   });
+});
+
+onUnmounted(() => {
+  $(tavern_helper_types_button.value!).off('.th-reference');
+  popper_instance?.destroy();
+  popper_instance = null;
 });
 
 function downloadSlashCommands() {

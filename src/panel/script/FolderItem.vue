@@ -45,7 +45,7 @@
       v-show="is_expanded"
       v-model="script_folder.scripts"
       :group="{
-        name: 'TH-scripts',
+        name: `TH-scripts-${props.target}`,
         pull: true,
         put: (_to, _from, draggedEl) => {
           const getType = (containerEl: HTMLElement) => {

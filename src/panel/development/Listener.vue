@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-0.5 rounded-md border border-(--grey5050a) p-1">
-    <!-- 标题行 -->
+
     <div class="flex items-center justify-between gap-0.75">
       <div class="flex min-w-0 flex-1 flex-col">
         <div class="th-text-base font-bold">{{ t`实时监听` }}</div>
@@ -8,9 +8,9 @@
       </div>
       <i class="fa-solid fa-wifi" :style="{ color: connected ? 'green' : 'rgb(170, 0, 0)' }" />
     </div>
-    <!-- 分割线 -->
+    
     <Divider type="major" margin-y="my-0.25" weight="h-[0.75px]" />
-    <!-- 详细内容 -->
+
     <div class="flex flex-wrap items-center justify-between gap-0.5">
       <div class="flex-container">
         <div class="flex items-center">

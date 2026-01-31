@@ -3,7 +3,7 @@
     <!-- 标题行 -->
     <div class="flex items-center justify-between gap-0.75">
       <div class="flex min-w-0 flex-1 flex-col">
-        <div class="th-text-base font-bold">{{ t`播放器` }}</div>
+        <div class="th-text-base font-bold">{{ t`总开关` }}</div>
         <div class="mt-0.25 th-text-xs opacity-70">{{ t`全局音频播放器` }}</div>
       </div>
       <Toggle id="TH-audio-player-enabled" v-model="enabled" />
