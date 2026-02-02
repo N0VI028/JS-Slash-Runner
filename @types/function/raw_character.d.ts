@@ -1,5 +1,3 @@
-import { LiteralUnion } from 'prettier';
-
 /**
  * 角色卡管理类
  * 用于封装角色卡数据操作和提供便捷的访问方法
