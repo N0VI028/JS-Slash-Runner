@@ -118,10 +118,12 @@ export function useCollapseCodeBlock(
     });
   });
 
-  eventSource.on('chatLoaded', () => {
-    if (collapse_code_block.value !== 'none') {
-      collapseCodeBlockForAll(collapse_code_block.value, allow_streaming.value);
-    }
+  ['chatLoaded', event_types.MORE_MESSAGES_LOADED].forEach(event => {
+    eventSource.on(event, () => {
+      if (collapse_code_block.value !== 'none') {
+        collapseCodeBlockForAll(collapse_code_block.value, allow_streaming.value);
+      }
+    });
   });
 
   [

@@ -118,7 +118,9 @@ useEventSourceOn(event_types.STREAM_TOKEN_RECEIVED, () => {
   renderOneMessage(Number($('#chat').children('.mes.last_mes').attr('mesid')));
 });
 
-useEventSourceOn(event_types.MESSAGE_DELETED, () => {
-  renderAllMessages();
-});
+[event_types.MORE_MESSAGES_LOADED, event_types.MESSAGE_DELETED].forEach(event =>
+  useEventSourceOn(event, () => {
+    renderAllMessages();
+  }),
+);
 </script>

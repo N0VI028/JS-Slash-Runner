@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.6.5
 
+### 🎨渲染器
+
+- 当点击 `Show more messages` 时, 新加载出楼层消息的前端界面会被正确渲染、折叠
+
 ### 🐛修复
 
 - `getPreset` 对旧版本酒馆下预设的兼容性问题

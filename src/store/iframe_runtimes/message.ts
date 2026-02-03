@@ -116,10 +116,12 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
     });
   });
 
-  eventSource.on(event_types.MESSAGE_DELETED, () => {
-    if (global_settings.settings.render.enabled) {
-      runtimes.value = auditRuntimes(runtimes.value, global_settings.settings.render.depth);
-    }
+  [event_types.MESSAGE_DELETED, event_types.MORE_MESSAGES_LOADED].forEach(event => {
+    eventSource.on(event, () => {
+      if (global_settings.settings.render.enabled) {
+        runtimes.value = auditRuntimes(runtimes.value, global_settings.settings.render.depth);
+      }
+    });
   });
 
   const reloadAll = () => {
