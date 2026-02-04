@@ -75,6 +75,7 @@
           :search-input="search_input"
           @delete="handleScriptDelete"
           @move="handleMove"
+          @copy="handleCopy"
         />
       </div>
     </VueDraggable>
@@ -89,7 +90,7 @@ import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
 import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { ScriptFolder } from '@/type/scripts';
-import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
+import { download, getSanitizedFilename, uuidv4 } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
 import { VueDraggable } from 'vue-draggable-plus';
 
@@ -191,6 +192,7 @@ const { open: openMoveConfirm } = useModal({
   },
 });
 
+// TODO: 这里的和 Container 的明显重复, 应该合并
 const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
   const removed = _.remove(script_folder.value.scripts, script => script.id === id);
   switch (target) {
@@ -202,6 +204,28 @@ const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
       break;
     case 'preset':
       usePresetScriptsStore().script_trees.push(...removed);
+      break;
+  }
+};
+
+// TODO: 这里的和 Container 的明显重复, 应该合并
+const handleCopy = (id: string, target: 'global' | 'character' | 'preset') => {
+  const script = _.find(script_folder.value.scripts, script => script.id === id);
+  if (!script) {
+    return;
+  }
+  const copied_script = klona(script);
+  copied_script.id = uuidv4();
+  copied_script.enabled = false;
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(copied_script);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(copied_script);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(copied_script);
       break;
   }
 };
