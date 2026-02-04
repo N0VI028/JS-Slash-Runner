@@ -12,7 +12,7 @@
 import StreamingOne from '@/panel/render/StreamingOne.vue';
 import { calcToRender } from '@/store/iframe_runtimes/message';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { isFrontendElement } from '@/util/is_frontend';
+import { containsFrontendElement } from '@/util/is_frontend';
 import { chat, event_types } from '@sillytavern/script';
 
 const props = defineProps<{ enableAllowStreaming: boolean }>();
@@ -52,21 +52,18 @@ function renderOneMessage(message_id: number) {
     return;
   }
 
-  const runtime = runtimes.value.find(runtime => runtime.message_id === message_id);
-
   const $mes_text = $(`.mes[mesid="${message_id}"]`).find('.mes_text');
   $mes_text.find('code[data-highlighted="yes"]').css('position', 'relative');
   if (
+    $mes_text.length === 0 ||
     $mes_text.siblings('.mes_streaming').length > 0 ||
-    !$mes_text
-      .children()
-      .toArray()
-      .some(element => isFrontendElement(element))
+    !containsFrontendElement($mes_text[0])
   ) {
     return;
   }
   const html = $mes_text.html();
 
+  const runtime = runtimes.value.find(runtime => runtime.message_id === message_id);
   if (runtime) {
     runtime.html = html;
   } else {
@@ -74,9 +71,10 @@ function renderOneMessage(message_id: number) {
   }
 }
 
-function renderAllMessages(options: { destroy_all?: boolean } = {}) {
+async function renderAllMessages(options: { destroy_all?: boolean } = {}) {
   if (options.destroy_all) {
     runtimes.value = [];
+    await nextTick();
   } else {
     destroyAllInvalid();
   }
@@ -87,9 +85,9 @@ function renderAllMessages(options: { destroy_all?: boolean } = {}) {
 
 watch(
   () => [props.enableAllowStreaming, store.settings.render.depth] as const,
-  ([new_enabled]) => {
+  async ([new_enabled]) => {
     if (new_enabled) {
-      renderAllMessages();
+      await renderAllMessages();
     } else {
       runtimes.value = [];
     }
@@ -97,8 +95,8 @@ watch(
   { immediate: true },
 );
 
-useEventSourceOn('chatLoaded', () => {
-  renderAllMessages({ destroy_all: true });
+useEventSourceOn('chatLoaded', async () => {
+  await renderAllMessages({ destroy_all: true });
 });
 
 useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) => {
@@ -110,7 +108,8 @@ useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) =>
   useEventSourceOn(event, async (message_id: number) => {
     destroyAllInvalid();
     destroy(message_id);
-    setTimeout(() => renderOneMessage(message_id));
+    await nextTick();
+    renderOneMessage(message_id);
   });
 });
 
