@@ -1,5 +1,5 @@
 <template>
-  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]">
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]" :focus-trap="false">
     <div class="my-0.5 th-text-md font-bold">
       {{ props.scriptFolder !== undefined ? t`编辑文件夹` : t`创建新文件夹` }}
     </div>
