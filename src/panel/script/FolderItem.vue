@@ -74,8 +74,8 @@
           :folder-enabled="script_folder.enabled"
           :search-input="search_input"
           @delete="handleScriptDelete"
-          @move="handleMove"
-          @copy="handleCopy"
+          @move="handleScriptMove"
+          @copy="handleScriptCopy"
         />
       </div>
     </VueDraggable>
@@ -155,10 +155,6 @@ const { open: openFolderEditor } = useModal({
   },
 });
 
-const handleScriptDelete = (id: string) => {
-  _.remove(script_folder.value.scripts, script => script.id === id);
-};
-
 const { open: openDeleteConfirm } = useModal({
   component: Popup,
   attrs: {
@@ -192,44 +188,6 @@ const { open: openMoveConfirm } = useModal({
   },
 });
 
-// TODO: 这里的和 Container 的明显重复, 应该合并
-const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
-  const removed = _.remove(script_folder.value.scripts, script => script.id === id);
-  switch (target) {
-    case 'global':
-      useGlobalScriptsStore().script_trees.push(...removed);
-      break;
-    case 'character':
-      useCharacterScriptsStore().script_trees.push(...removed);
-      break;
-    case 'preset':
-      usePresetScriptsStore().script_trees.push(...removed);
-      break;
-  }
-};
-
-// TODO: 这里的和 Container 的明显重复, 应该合并
-const handleCopy = (id: string, target: 'global' | 'character' | 'preset') => {
-  const script = _.find(script_folder.value.scripts, script => script.id === id);
-  if (!script) {
-    return;
-  }
-  const copied_script = klona(script);
-  copied_script.id = uuidv4();
-  copied_script.enabled = false;
-  switch (target) {
-    case 'global':
-      useGlobalScriptsStore().script_trees.push(copied_script);
-      break;
-    case 'character':
-      useCharacterScriptsStore().script_trees.push(copied_script);
-      break;
-    case 'preset':
-      usePresetScriptsStore().script_trees.push(copied_script);
-      break;
-  }
-};
-
 type ScriptExportOptions = {
   should_strip_data: boolean;
 };
@@ -257,8 +215,8 @@ const downloadExport = async (options: ScriptExportOptions) => {
 };
 
 const exportFolder = async () => {
-  const has_data = script_folder.value.scripts.some(script => !_.isEmpty(script.data));
-  if (!has_data) {
+  const scripts_with_data = script_folder.value.scripts.filter(script => !_.isEmpty(script.data));
+  if (scripts_with_data.length === 0) {
     downloadExport({ should_strip_data: false });
     return;
   }
@@ -287,8 +245,50 @@ const exportFolder = async () => {
     },
     slots: {
       // TODO: 显示脚本变量有什么?
-      default: t`<div>'${script_folder.value.name}' 文件夹中脚本包含脚本变量, 是否要清除? 如有 API Key 等敏感数据，注意清除</div>`,
+      default: t`<div>'${script_folder.value.name}' 文件夹中 '${JSON.stringify(scripts_with_data.map(script => script.name))}' 脚本包含脚本变量, 是否要清除? 如有 API Key 等敏感数据，注意清除</div>`,
     },
   }).open();
+};
+
+const handleScriptDelete = (id: string) => {
+  _.remove(script_folder.value.scripts, script => script.id === id);
+};
+
+// TODO: 这里的和 Container 的明显重复, 应该合并
+const handleScriptMove = (id: string, target: 'global' | 'character' | 'preset') => {
+  const removed = _.remove(script_folder.value.scripts, script => script.id === id);
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(...removed);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(...removed);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(...removed);
+      break;
+  }
+};
+
+// TODO: 这里的和 Container 的明显重复, 应该合并
+const handleScriptCopy = (id: string, target: 'global' | 'character' | 'preset') => {
+  const script = _.find(script_folder.value.scripts, script => script.id === id);
+  if (!script) {
+    return;
+  }
+  const copied_script = klona(script);
+  copied_script.id = uuidv4();
+  copied_script.enabled = false;
+  switch (target) {
+    case 'global':
+      useGlobalScriptsStore().script_trees.push(copied_script);
+      break;
+    case 'character':
+      useCharacterScriptsStore().script_trees.push(copied_script);
+      break;
+    case 'preset':
+      usePresetScriptsStore().script_trees.push(copied_script);
+      break;
+  }
 };
 </script>

@@ -146,7 +146,7 @@
   "酒馆助手脚本-${0}.json": "tavern_helper_script-${0}.json",
   "包含数据导出": "Export with Data",
   "清除数据导出": "Export without Data",
-  "<div>'${0}' 文件夹中脚本包含脚本变量, 是否要清除? 如有 API Key 等敏感数据, 注意清除</div>": "<div>whether to clear the script variables in the '${0}' folder? Please pay attention if there are sensitive data such as API Key</div>",
+  "<div>'${0}' 文件夹中 '${1}' 脚本包含脚本变量, 是否要清除? 如有 API Key 等敏感数据, 注意清除</div>": "<div>'${0}' folder contains scripts that have script variables: '${1}', whether to clear? Please pay attention if there are sensitive data such as API Key</div>",
 
   "编辑脚本": "Edit Script",
   "创建新脚本": "Create New Script",
