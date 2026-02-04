@@ -44,7 +44,7 @@ const contents = computed(() => {
         type: isFrontendElement(element) ? 'iframe' : containsFrontendElement(element) ? 'nested_iframe' : 'normal',
       })),
     (lhs, rhs) => {
-      return lhs.type === rhs.type && lhs.type !== 'iframe';
+      return lhs.type === 'normal' && lhs.type === rhs.type;
     },
   ).map(chunk => ({
     type: chunk[0].type,
