@@ -3392,7 +3392,7 @@ declare namespace Mvu {
     stat_data: Record<string, any>;
   };
 
-  type CommandInfo = SetCommandInfo | InsertCommandInfo | DeleteCommandInfo | AddCommandInfo;
+  type CommandInfo = SetCommandInfo | InsertCommandInfo | DeleteCommandInfo | AddCommandInfo | MoveCommandInfo;
   type SetCommandInfo = {
     type: 'set';
     full_match: string;
