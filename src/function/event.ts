@@ -3,6 +3,7 @@ import { _getButtonEvent } from '@/function/script';
 import { _getIframeName } from '@/function/util';
 import { getOrSet } from '@/util/algorithm';
 import { eventSource } from '@sillytavern/script';
+import { LiteralUnion } from 'type-fest';
 
 const iframe_event_listener_wrapper_map: Map<string, Map<string, Map<Function, Function>>> = new Map();
 
@@ -284,7 +285,23 @@ export type ListenerType = {
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
   [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
   [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
-  [tavern_events.MESSAGE_RECEIVED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_RECEIVED]: (
+    message_id: number,
+    type: LiteralUnion<
+      | 'normal'
+      | 'quiet'
+      | 'regenerate'
+      | 'impersonate'
+      | 'continue'
+      | 'swipe'
+      | 'append'
+      | 'appendFinal'
+      | 'first_message'
+      | 'command'
+      | 'extension',
+      string
+    >,
+  ) => void;
   [tavern_events.MESSAGE_EDITED]: (message_id: number) => void;
   [tavern_events.MESSAGE_DELETED]: (message_id: number) => void;
   [tavern_events.MESSAGE_UPDATED]: (message_id: number) => void;

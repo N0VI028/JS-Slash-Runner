@@ -287,7 +287,23 @@ interface ListenerType {
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
   [tavern_events.MESSAGE_SWIPED]: (message_id: number) => void;
   [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
-  [tavern_events.MESSAGE_RECEIVED]: (message_id: number) => void;
+  [tavern_events.MESSAGE_RECEIVED]: (
+    message_id: number,
+    type: LiteralUnion<
+      | 'normal'
+      | 'quiet'
+      | 'regenerate'
+      | 'impersonate'
+      | 'continue'
+      | 'swipe'
+      | 'append'
+      | 'appendFinal'
+      | 'first_message'
+      | 'command'
+      | 'extension',
+      string
+    >,
+  ) => void;
   [tavern_events.MESSAGE_EDITED]: (message_id: number) => void;
   [tavern_events.MESSAGE_DELETED]: (message_id: number) => void;
   [tavern_events.MESSAGE_UPDATED]: (message_id: number) => void;
