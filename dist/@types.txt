@@ -3390,6 +3390,8 @@ declare namespace Mvu {
 
     /** 实际的变量数据 */
     stat_data: Record<string, any>;
+
+    [key: string]: any;
   };
 
   type CommandInfo = SetCommandInfo | InsertCommandInfo | DeleteCommandInfo | AddCommandInfo | MoveCommandInfo;
