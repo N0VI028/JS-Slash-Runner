@@ -171,15 +171,6 @@ declare const Mvu: {
   parseMessage: (message: string, old_data: Mvu.MvuData) => Promise<Mvu.MvuData>;
 
   /**
-   * 重新加载初始变量数据
-   *
-   * @param mvu_data 要重新加载初始数据的 MvuData 数据表
-   *
-   * @returns 是否加载成功
-   */
-  reloadInitVar: (mvu_data: Mvu.MvuData) => Promise<boolean>;
-
-  /**
    * 酒馆是否正在进行额外模型解析
    */
   isDuringExtraAnalysis: () => boolean;
