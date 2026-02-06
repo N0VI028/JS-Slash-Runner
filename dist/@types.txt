@@ -3386,7 +3386,7 @@ declare const EjsTemplate: {
 declare namespace Mvu {
   type MvuData = {
     /** 已被 mvu 初始化 initvar 条目的世界书列表 */
-    initialized_lorebooks: string[];
+    initialized_lorebooks: Record<string, any[]>;
 
     /** 实际的变量数据 */
     stat_data: Record<string, any>;
