@@ -3113,7 +3113,7 @@ interface ListenerType {
     presetName: string;
     settingsToUpdate: object;
     settings: object;
-    savePreset: Function;
+    savePreset: (name: string, settings: Record<string, any>, trigger_ui?: boolean) => Promise<void>;
     presetNameBefore: string;
   }) => void;
   [tavern_events.OAI_PRESET_CHANGED_AFTER]: () => void;
