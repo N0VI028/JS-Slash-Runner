@@ -3114,6 +3114,7 @@ interface ListenerType {
     settingsToUpdate: object;
     settings: object;
     savePreset: Function;
+    presetNameBefore: string;
   }) => void;
   [tavern_events.OAI_PRESET_CHANGED_AFTER]: () => void;
   [tavern_events.OAI_PRESET_EXPORT_READY]: (preset: object) => void;
