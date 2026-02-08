@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-0.75">
+  <div class="flex flex-col">
     <DefineOptimize v-slot="{ title, name }">
       <Item type="plain">
         <template #title>
