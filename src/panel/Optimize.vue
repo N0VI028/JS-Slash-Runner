@@ -93,14 +93,18 @@ async function getHelp(name: keyof typeof store.settings.optimize): Promise<stri
 }
 
 async function showHelp(name: keyof typeof store.settings.optimize) {
+  toastr.info(t`正在加载说明...`);
   useModal({
     component: Popup,
     attrs: {
       width: 'wide',
       buttons: [{ name: t`关闭` }],
+      onOpened: () => {
+        toastr.clear();
+      },
     },
     slots: {
-      default: `<div class="p-1 text-left">${renderMarkdown(await getHelp(name))}</div>`,
+      default: `<div class="p-1.5 text-left">${renderMarkdown(await getHelp(name))}</div>`,
     },
   }).open();
 }
