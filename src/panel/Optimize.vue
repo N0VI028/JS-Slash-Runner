@@ -56,12 +56,10 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import { useBetterCharacterDeletion } from '@/panel/optimize/better_character_deletion';
 import { useBetterMessageToLoad } from '@/panel/optimize/better_message_to_load';
 import { useDisableIncompatibleOption } from '@/panel/optimize/disable_incompatible_option';
 import { useForceRecommendedWorldbookGlobalSettings } from '@/panel/optimize/force_recommended_worldbook_global_settings';
 import { useMaximizePresetContextLength } from '@/panel/optimize/maximize_preset_context_length';
-import { useSavePresetWhenSavingPresetEntries } from '@/panel/optimize/save_preset_when_saving_preset_entries';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { renderMarkdown } from '@/util/tavern';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
@@ -74,11 +72,9 @@ const [DefineOptimize, Optimize] = createReusableTemplate<{
 
 const store = useGlobalSettingsStore();
 useBetterMessageToLoad(toRef(() => store.settings.optimize.better_message_to_load));
-useBetterCharacterDeletion(toRef(() => store.settings.optimize.better_character_deletion));
 useForceRecommendedWorldbookGlobalSettings(
   toRef(() => store.settings.optimize.force_recommended_worldbook_global_settings),
 );
-useSavePresetWhenSavingPresetEntries(toRef(() => store.settings.optimize.save_preset_when_saving_preset_entries));
 useMaximizePresetContextLength(toRef(() => store.settings.optimize.maximize_preset_context_length));
 useDisableIncompatibleOption(toRef(() => store.settings.optimize.disable_incompatible_option));
 
