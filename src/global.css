@@ -17,15 +17,15 @@
 }
 
 @utility th-text-xs {
-  font-size: calc(var(--mainFontSize) * 0.7);
+  font-size: calc(var(--mainFontSize) * 0.75);
 }
 
 @utility th-text-sm {
-  font-size: calc(var(--mainFontSize) * 0.8);
+  font-size: calc(var(--mainFontSize) * 0.875);
 }
 
 @utility th-text-md {
-  font-size: calc(var(--mainFontSize) * 1.2);
+  font-size: calc(var(--mainFontSize) * 1.15);
 }
 
 @utility th-text-lg {

@@ -2,13 +2,13 @@
   <div
     v-show="is_visible"
     ref="folder_item"
-    class="w-full rounded-md border bg-(--grey5020a)"
+    class="w-full rounded-[10px] border bg-(--grey5020a)"
     :class="[is_sorting_target ? 'border-solid! border-(--SmartThemeQuoteColor)' : 'border-(--SmartThemeBorderColor)']"
     data-type="folder"
     data-folder
     :data-folder-id="script_folder.id"
   >
-    <div class="flex w-full cursor-pointer items-center justify-between p-0.5" @click="is_expanded = !is_expanded">
+    <div class="flex w-full cursor-pointer items-center justify-between p-[5px]" @click="is_expanded = !is_expanded">
       <span class="TH-handle cursor-grab select-none active:cursor-grabbing" aria-hidden="true" @click.stop>☰</span>
 
       <i
@@ -19,7 +19,7 @@
       <span class="ml-0.5 w-0 grow overflow-hidden" :class="{ 'opacity-50': !actually_enabled }">
         <Highlighter :query="search_input" :text-to-highlight="script_folder.name" />
       </span>
-      <div class="flex shrink-0 flex-wrap items-center gap-0.25">
+      <div class="flex shrink-0 flex-wrap items-center">
         <!-- prettier-ignore-attribute -->
         <div
           class="mt-0! mr-0.5 mb-0! cursor-pointer"
@@ -30,7 +30,7 @@
           <i class="fa-solid" :class="[script_folder.enabled ? 'fa-toggle-on' : 'fa-toggle-off']" />
         </div>
         <DefineScriptFolderButton v-slot="{ icon }">
-          <div class="mt-0! mr-0.5 mb-0! cursor-pointer">
+          <div class="flex cursor-pointer items-center justify-center p-[6px] leading-none">
             <i class="fa-solid" :class="icon"></i>
           </div>
         </DefineScriptFolderButton>

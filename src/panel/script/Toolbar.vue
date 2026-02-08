@@ -31,31 +31,39 @@ import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useFileDialog } from '@vueuse/core';
 
+const props = defineProps<{
+  target?: 'global' | 'character' | 'preset';
+}>();
+
 function openCreator(type: 'script' | 'folder') {
-  let target: 'global' | 'character' | 'preset';
-  const target_selector = useModal({
-    component: TargetSelector,
-    attrs: {
-      onSubmit: async (value: 'global' | 'character' | 'preset') => {
-        target = value;
-        editor.open();
+  const openEditor = (target: 'global' | 'character' | 'preset') => {
+    const editor = useModal({
+      component: type === 'script' ? ScriptEditor : FolderEditor,
+      attrs: {
+        onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
+          if (type === 'script') {
+            onScriptEditorSubmit(target, result as ScriptForm);
+          } else {
+            onFolderEditorSubmit(target, result as ScriptFolderForm);
+          }
+        },
       },
-    },
-  });
-  const editor = useModal({
-    component: type === 'script' ? ScriptEditor : FolderEditor,
-    attrs: {
-      onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
-        if (type === 'script') {
-          onScriptEditorSubmit(target, result as ScriptForm);
-        } else {
-          onFolderEditorSubmit(target, result as ScriptFolderForm);
-        }
-        target_selector.close();
+    });
+    editor.open();
+  };
+
+  if (props.target) {
+    openEditor(props.target);
+  } else {
+    useModal({
+      component: TargetSelector,
+      attrs: {
+        onSubmit: (target: 'global' | 'character' | 'preset') => {
+          openEditor(target);
+        },
       },
-    },
-  });
-  target_selector.open();
+    }).open();
+  }
 }
 
 function getStoreFormType(target: 'global' | 'character' | 'preset'): ReturnType<typeof useGlobalScriptsStore> {
@@ -113,18 +121,32 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
   );
 }
 
-const { open: openImport } = useModal({
-  component: TargetSelector,
-  attrs: {
-    onSubmit: async (value: 'global' | 'character' | 'preset') => {
-      const disposer = onChange(selected => {
-        handleImport(value, selected);
-        disposer.off();
-      });
-      openFileDialog();
-    },
-  },
-});
+/** 导入脚本，无 target 时弹出 TargetSelector 选择目标库 */
+let importDisposer: ReturnType<typeof onChange> | null = null;
+function openImport() {
+  importDisposer?.off();
+  const doImport = (target: 'global' | 'character' | 'preset') => {
+    importDisposer = onChange(selected => {
+      handleImport(target, selected);
+      importDisposer?.off();
+      importDisposer = null;
+    });
+    openFileDialog();
+  };
+
+  if (props.target) {
+    doImport(props.target);
+  } else {
+    useModal({
+      component: TargetSelector,
+      attrs: {
+        onSubmit: (target: 'global' | 'character' | 'preset') => {
+          doImport(target);
+        },
+      },
+    }).open();
+  }
+}
 
 const { open: openBuiltin } = useModal({
   component: Builtin,

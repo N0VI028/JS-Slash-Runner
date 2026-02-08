@@ -1,11 +1,16 @@
 <template>
   <Item type="box">
-    <template #title>{{ t`实时监听` }}</template>
-    <template #description>{{ t`连接编写模板，将代码修改实时同步到酒馆` }}</template>
-    <template #content>
-      <i class="fa-solid fa-wifi mr-0.5" :style="{ color: connected ? 'green' : 'rgb(170, 0, 0)' }" />
-    </template>
-    <template #detail>
+    <div class="flex flex-col gap-0.5">
+      <div class="flex items-center justify-between gap-0.75">
+        <div class="flex min-w-0 flex-1 flex-col">
+          <div class="th-text-base font-bold">{{ t`实时监听` }}</div>
+          <div class="mt-0.25 th-text-xs opacity-70">{{ t`连接编写模板，将代码修改实时同步到酒馆` }}</div>
+        </div>
+        <i class="fa-solid fa-wifi" :style="{ color: connected ? 'green' : 'rgb(170, 0, 0)' }" />
+      </div>
+
+      <Divider type="major" margin-y="my-0.25" weight="h-[0.75px]" />
+
       <div class="flex flex-wrap items-center justify-between gap-0.5">
         <div class="flex-container">
           <div class="flex items-center">
@@ -32,12 +37,12 @@
           <input v-model="duration" class="text_pole" type="number" min="1" />
         </div>
       </div>
-    </template>
+    </div>
   </Item>
 </template>
 
 <script setup lang="ts">
-import { useListener } from '@/panel/main/listener';
+import { useListener } from '@/panel/developer/listener';
 import { useGlobalSettingsStore } from '@/store/settings';
 
 const { enabled, enable_echo, url, duration } = toRefs(useGlobalSettingsStore().settings.listener);

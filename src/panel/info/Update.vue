@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { getChangelogHtml, update } from '@/panel/main/update';
+import { getChangelogHtml, update } from '@/panel/info/update';
 
 const changelog = ref<string>(t`<div>更新日志加载中...</div>`);
 onMounted(async () => {

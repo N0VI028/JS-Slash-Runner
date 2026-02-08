@@ -1,11 +1,11 @@
 <template>
-  <Item type="box">
+  <Item v-model="is_expanded" type="box">
     <template #title>{{ t`编写参考` }}</template>
     <template #description>{{ t`编写脚本的参考文档` }}</template>
     <template #detail>
-      <div class="flex w-full flex-wrap gap-0.5">
-        <Divider margin-y="0">{{ t`酒馆助手` }}</Divider>
-        <div class="mb-0.5 flex items-center justify-center gap-0.5">
+      <div class="flex flex-col gap-0.25">
+        <div class="th-text-base">{{ t`酒馆助手` }}</div>
+        <div class="mb-0.5 flex items-center gap-0.5">
           <div
             class="TH-reference-button"
             @click="open('https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/基本用法/如何正确使用酒馆助手.html')"
@@ -32,7 +32,10 @@
             </a>
           </div>
         </div>
-        <Divider margin-y="0">{{ t`酒馆STScript与宏` }}</Divider>
+      </div>
+      <Divider margin-y="my-0.75" />
+      <div class="flex flex-col gap-0.25">
+        <div class="th-text-base">{{ t`酒馆STScript与宏` }}</div>
         <div class="mb-0.5 flex flex-wrap items-center gap-0.5">
           <div class="TH-reference-button" @click="open('https://rentry.org/sillytavern-script-book')">
             {{ t`查看手册` }}
@@ -51,17 +54,19 @@
 </template>
 
 <script setup lang="ts">
+import { version } from '@/util/tavern';
 import {
   SlashCommandArgument,
   SlashCommandNamedArgument,
 } from '@sillytavern/scripts/slash-commands/SlashCommandArgument';
 import { SlashCommandParser } from '@sillytavern/scripts/slash-commands/SlashCommandParser';
 import { download } from '@sillytavern/scripts/utils';
-import { version } from '@/util/tavern';
 import { compare } from 'compare-versions';
 
+const is_expanded = ref(false);
+
 function open(url: string) {
-  window.open(url, '_blank');
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function formatSlashCommands(): string {
@@ -127,7 +132,6 @@ function formatSlashCommands(): string {
 }
 
 async function formatMacros(): Promise<string> {
-
   if (compare(version, '1.15.0', '>=')) {
     // 新版本：使用MacroRegistry
     const { MacroRegistry } = await import('@sillytavern/scripts/macros/engine/MacroRegistry');
@@ -205,15 +209,24 @@ async function formatMacros(): Promise<string> {
 
 const tavern_helper_types_button = useTemplateRef('tavern_helper_types_button');
 const tavern_helper_types_popup = useTemplateRef('tavern_helper_types_popup');
+
+let popper_instance: ReturnType<typeof Popper.createPopper> | null = null;
+
 onMounted(() => {
-  const popper_instance = Popper.createPopper(tavern_helper_types_button.value!, tavern_helper_types_popup.value!, {
+  popper_instance = Popper.createPopper(tavern_helper_types_button.value!, tavern_helper_types_popup.value!, {
     placement: 'right-end',
   });
-  $(tavern_helper_types_button.value!).on('click', function () {
+  $(tavern_helper_types_button.value!).on('click.th-reference', function () {
     const $popup = $(tavern_helper_types_popup.value!);
     $popup.css('display', $popup.css('display') === 'none' ? 'block' : 'none');
-    popper_instance.update();
+    popper_instance?.update();
   });
+});
+
+onUnmounted(() => {
+  $(tavern_helper_types_button.value!).off('.th-reference');
+  popper_instance?.destroy();
+  popper_instance = null;
 });
 
 function downloadSlashCommands() {

@@ -71,11 +71,11 @@ const variables = shallowRef<Record<string, any>>(getVariables({ type: 'message'
 const editorContainerRef = useTemplateRef<HTMLElement>('editorContainerRef');
 const toolbarMountRef = useTemplateRef<HTMLElement>('toolbarMountRef');
 
-/** 记录被移动元素的原始位置，用于卸载时还原 */
-const movedElements: { el: HTMLElement; parent: HTMLElement; nextSibling: Node | null }[] = [];
+const TOOLBAR_SELECTORS = ['.jse-menu', '.jse-navigation-bar'] as const;
 
 /**
- * 将 JsonEditor 的工具栏和导航栏移动到 sticky header 的挂载点中
+ * 将编辑器容器内的工具栏和导航栏移动到 sticky header 挂载点
+ * 使用 MutationObserver 持续监听，处理 vanilla-jsoneditor 模式切换时的 DOM 重建
  */
 onMounted(() => {
   nextTick(() => {
@@ -83,20 +83,28 @@ onMounted(() => {
     const mount = toolbarMountRef.value;
     if (!container || !mount) return;
 
-    for (const selector of ['.jse-menu', '.jse-navigation-bar']) {
-      const el = container.querySelector(selector) as HTMLElement;
-      if (el) {
-        movedElements.push({ el, parent: el.parentElement!, nextSibling: el.nextSibling });
-        mount.appendChild(el);
+    const moveToolbars = () => {
+      for (const selector of TOOLBAR_SELECTORS) {
+        const el = container.querySelector(selector) as HTMLElement;
+        if (el && el.parentElement !== mount) {
+          mount.querySelector(selector)?.remove();
+          mount.appendChild(el);
+        }
       }
-    }
-  });
-});
+      // 库可能异步分批创建 DOM，确保顺序始终为 menu → navigation-bar
+      for (const selector of TOOLBAR_SELECTORS) {
+        const el = mount.querySelector(selector);
+        if (el) mount.appendChild(el);
+      }
+    };
 
-onUnmounted(() => {
-  for (const { el, parent, nextSibling } of movedElements) {
-    parent.insertBefore(el, nextSibling);
-  }
+    moveToolbars();
+
+    const observer = new MutationObserver(() => moveToolbars());
+    observer.observe(container, { childList: true, subtree: true });
+
+    onUnmounted(() => observer.disconnect());
+  });
 });
 
 watch(

@@ -20,24 +20,42 @@
           </a>
         </span>
       </div>
-      <!-- prettier-ignore-attribute -->
-      <div
-        v-for="builtin in builtins"
-        :key="builtin.name"
-        class="flex w-full items-center justify-between rounded-sm border border-(--SmartThemeBorderColor) p-0.25"
-      >
-        <div class="ml-0.5 grow overflow-hidden text-left! text-ellipsis! whitespace-nowrap!">
-          {{ builtin.name }}
+
+      <DefineToolButton v-slot="{ name, icon }">
+        <div class="menu_button interactable my-0! mr-0.5" :title="name">
+          <i class="fa-solid" :class="icon"></i>
         </div>
-        <div class="flex shrink-0! flex-nowrap! items-center gap-0.5">
-          <DefineToolButton v-slot="{ name, icon }">
-            <div class="menu_button interactable my-0! mr-0.5" :title="name">
-              <i class="fa-solid" :class="icon"></i>
-            </div>
-          </DefineToolButton>
-          <ToolButton name="查看作者备注" icon="fa-info-circle" @click="openInfo(builtin)" />
-          <ToolButton name="导出脚本" icon="fa-plus" @click="importScript(builtin)" />
+      </DefineToolButton>
+
+      <DefineScriptItem v-slot="{ script }">
+        <!-- prettier-ignore-attribute -->
+        <div
+          class="
+            flex w-full min-w-0 items-center justify-between rounded-sm border border-(--SmartThemeBorderColor) p-0.25
+          "
+        >
+          <div class="ml-0.5 min-w-0 grow text-left! wrap-break-word">
+            {{ script.name }}
+          </div>
+          <div class="flex shrink-0 items-center gap-0.5">
+            <ToolButton :name="t`查看作者备注`" icon="fa-info-circle" @click="openInfo(script)" />
+            <ToolButton :name="t`导出脚本`" icon="fa-plus" @click="importScript(script)" />
+          </div>
         </div>
+      </DefineScriptItem>
+
+      <div class="flex flex-col gap-0.75">
+        <Item
+          v-for="category in categories"
+          :key="category.key"
+          type="divider"
+          style="padding-top: var(--mainFontSize)"
+        >
+          <template #legend><i class="fa-solid th-text-xs!" :class="category.icon" /> {{ category.label }}</template>
+          <div class="flex flex-col gap-0.25">
+            <ScriptItem v-for="script in category.scripts" :key="script.name" :script="script" />
+          </div>
+        </Item>
       </div>
     </div>
   </Popup>
@@ -55,123 +73,157 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
   icon: string;
 }>();
 
+const [DefineScriptItem, ScriptItem] = createReusableTemplate<{
+  script: BuiltinScript;
+}>();
+
 type BuiltinScript = {
   name: string;
   content_url: string;
   info_url: string;
 };
+
+type Category = {
+  key: string;
+  label: string;
+  icon: string;
+  scripts: BuiltinScript[];
+};
+
+const categories: Category[] = [
+  {
+    key: 'experience',
+    label: t`体验优化`,
+    icon: 'fa-wand-magic-sparkles',
+    scripts: [
+      {
+        name: t`输入助手`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/输入助手/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/输入助手/README.md',
+      },
+    ],
+  },
+  {
+    key: 'character card',
+    label: t`角色卡`,
+    icon: 'fa-address-card',
+    scripts: [
+      {
+        name: t`删除角色卡时删除绑定的主要世界书`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/删除角色卡时删除绑定的主要世界书/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/删除角色卡时删除绑定的主要世界书/README.md',
+      },
+    ],
+  },
+  {
+    key: 'worldbook',
+    label: t`世界书`,
+    icon: 'fa-book',
+    scripts: [
+      {
+        name: t`世界书强制自定义排序`,
+        content_url:
+          'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制自定义排序/index.js',
+        info_url:
+          'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制自定义排序/README.md',
+      },
+      {
+        name: t`一键禁用条目递归`,
+        content_url:
+          'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/一键禁用条目递归/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/一键禁用条目递归/README.md',
+      },
+      {
+        name: t`世界书繁简互换: 一键将繁体/简体世界书翻译成简体/繁体`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书繁简互换/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书繁简互换/README.md',
+      },
+    ],
+  },
+  {
+    key: 'preset',
+    label: t`预设`,
+    icon: 'fa-sliders',
+    scripts: [
+      {
+        name: t`预设防误触`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设防误触/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设防误触/README.md',
+      },
+      {
+        name: t`预设条目更多按钮: 一键新增预设条目`,
+        content_url:
+          'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设条目更多按钮/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设条目更多按钮/README.md',
+      },
+      {
+        name: t`保存预设条目时直接保存预设`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/保存提示词时保存预设/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/保存提示词时保存预设/README.md',
+      },
+    ],
+  },
+  {
+    key: 'binding',
+    label: t`联动和绑定`,
+    icon: 'fa-link',
+    scripts: [
+      {
+        name: t`标签化: 随世界书、预设或链接配置自动开关正则、提示词条目`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/标签化/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/标签化/README.md',
+      },
+      {
+        name: t`角色卡绑定预设: 切换到某个角色卡时自动切换为对应预设`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/角色卡绑定预设/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/角色卡绑定预设/README.md',
+      },
+    ],
+  },
+  {
+    key: 'context',
+    label: t`模型上下文处理`,
+    icon: 'fa-layer-group',
+    scripts: [
+      {
+        name: t`深度条目排斥器: 让深度条目只能在 D0 或 D9999`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/深度条目排斥器/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/深度条目排斥器/README.md',
+      },
+      {
+        name: t`压缩相邻消息: 让 AI 对内容理解更连贯`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/压缩相邻消息/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/压缩相邻消息/README.md',
+      },
+      {
+        name: t`token数过多提醒: 防止玩傻子AI`,
+        content_url:
+          'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/token数过多提醒/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/token数过多提醒/README.md',
+      },
+    ],
+  },
+  {
+    key: 'miscellaneous',
+    label: t`杂项`,
+    icon: 'fa-bucket',
+    scripts: [
+      {
+        name: t`取消代码块高亮`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/取消代码块高亮/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/取消代码块高亮/README.md',
+      },
+    ],
+  },
+];
+
 async function getInfo(script: BuiltinScript): Promise<string> {
   const response = await fetch(script.info_url);
   if (!response.ok) {
-    throw Error(`获取脚本信息失败: ${response.status} ${response.statusText}`);
+    return `获取脚本信息失败: (${response.status}) ${await response.text()}`;
   }
   return response.text();
 }
-async function toScript(script: BuiltinScript): Promise<Script> {
-  return {
-    type: 'script',
-    enabled: false,
-    name: script.name,
-    id: uuidv4(),
-    content: `import '${script.content_url}'`,
-    info: await getInfo(script),
-    button: {
-      enabled: true,
-      buttons: [],
-    },
-    data: {},
-  };
-}
-
-const builtins: BuiltinScript[] = [
-  {
-    name: t`标签化: 随世界书、预设或链接配置自动开关正则、提示词条目`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/标签化/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/标签化/README.md',
-  },
-  {
-    name: t`预设防误触`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设防误触/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设防误触/README.md',
-  },
-  {
-    name: t`世界书强制自定义排序`,
-    content_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制自定义排序/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制自定义排序/README.md',
-  },
-  {
-    name: t`世界书强制用推荐的全局设置`,
-    content_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书强制用推荐的全局设置/index.js',
-    info_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书强制用推荐的全局设置/README.md',
-  },
-  {
-    name: t`一键禁用条目递归`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/一键禁用条目递归/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/一键禁用条目递归/README.md',
-  },
-  {
-    name: t`保存预设条目时直接保存预设`,
-    content_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/保存提示词时保存预设/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/保存提示词时保存预设/README.md',
-  },
-  {
-    name: t`预设条目更多按钮: 一键新增预设条目`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/预设条目更多按钮/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/预设条目更多按钮/README.md',
-  },
-  {
-    name: t`角色卡绑定预设: 切换到某个角色卡时自动切换为对应预设`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/角色卡绑定预设/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/角色卡绑定预设/README.md',
-  },
-  {
-    name: t`输入助手`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/输入助手/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/输入助手/README.md',
-  },
-  {
-    name: t`压缩相邻消息: 让 AI 对内容理解更连贯`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/压缩相邻消息/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/压缩相邻消息/README.md',
-  },
-  {
-    name: t`深度条目排斥器: 让深度条目只能在 D0 或 D9999`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/深度条目排斥器/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/深度条目排斥器/README.md',
-  },
-  {
-    name: t`最大化预设上下文长度: 避免酒馆错误地截断本来可以完整发给 AI 的提示词"`,
-    content_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/最大化预设上下文长度/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/最大化预设上下文长度/README.md',
-  },
-  {
-    name: t`token数过多提醒: 防止玩傻子AI`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/token数过多提醒/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/token数过多提醒/README.md',
-  },
-  {
-    name: t`删除角色卡时删除绑定的主要世界书`,
-    content_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/删除角色卡时删除绑定的主要世界书/index.js',
-    info_url:
-      'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/删除角色卡时删除绑定的主要世界书/README.md',
-  },
-  {
-    name: t`取消代码块高亮`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/取消代码块高亮/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/取消代码块高亮/README.md',
-  },
-  {
-    name: t`世界书繁简互换: 一键将繁体/简体世界书翻译成简体/繁体`,
-    content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/世界书繁简互换/index.js',
-    info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/世界书繁简互换/README.md',
-  },
-];
 
 async function openInfo(builtin: BuiltinScript) {
   toastr.info(t`正在加载作者备注...`);
@@ -188,6 +240,22 @@ async function openInfo(builtin: BuiltinScript) {
       default: `<div class="p-1.5 text-left">${renderMarkdown(await getInfo(builtin))}</div>`,
     },
   }).open();
+}
+
+async function toScript(script: BuiltinScript): Promise<Script> {
+  return {
+    type: 'script',
+    enabled: false,
+    name: script.name,
+    id: uuidv4(),
+    content: `import '${script.content_url}'`,
+    info: await getInfo(script),
+    button: {
+      enabled: true,
+      buttons: [],
+    },
+    data: {},
+  };
 }
 
 async function importScript(builtin: BuiltinScript) {

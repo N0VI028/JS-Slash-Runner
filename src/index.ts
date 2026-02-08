@@ -1,9 +1,9 @@
 import { initTavernHelperObject } from '@/function/index';
 import '@/global.css';
-import { disableIncompatibleOption } from '@/incompatible_option';
 import { registerMacros } from '@/macro';
 import Panel from '@/Panel.vue';
 import { initSlashCommands } from '@/slash_command/index';
+import { useGlobalSettingsStore } from '@/store/settings';
 import { registerSwipeEvent } from '@/swipe';
 import { initThirdPartyObject } from '@/third_party_object';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
@@ -36,7 +36,6 @@ app.use(i18n);
 
 $(() => {
   z.config(getCurrentLocale().includes('zh') ? z.locales.zhCN() : z.locales.en());
-  disableIncompatibleOption();
   registerMacros();
   registerSwipeEvent();
   initTavernHelperObject();

@@ -23,19 +23,24 @@ import Global from '@/panel/toolbox/variable_manager/Global.vue';
 import Message from '@/panel/toolbox/variable_manager/Message.vue';
 import Preset from '@/panel/toolbox/variable_manager/Preset.vue';
 import { useCharacterSettingsStore } from '@/store/settings';
+import { useValidatedTab } from '@/panel/composable/use_validated_tab';
 
 const character = useCharacterSettingsStore();
 
-const active_tab = useLocalStorage<number>('TH-VariableManager:active_tab', 0);
-const tabs = [
-  { name: t`全局`, component: Global },
-  { name: t`预设`, component: Preset },
-]
-  .concat(character.name ? [{ name: '角色', component: Character }] : [])
-  .concat([
-    { name: t`聊天`, component: Chat },
-    { name: t`消息楼层`, component: Message },
-  ]);
+const tabs = computed(() =>
+  [
+    { name: t`全局`, component: Global },
+    { name: t`预设`, component: Preset },
+  ]
+    .concat(character.name ? [{ name: '角色', component: Character }] : [])
+    .concat([
+      { name: t`聊天`, component: Chat },
+      { name: t`消息楼层`, component: Message },
+    ]),
+);
+const active_tab = useValidatedTab('TH-VariableManager:active_tab', 0, () =>
+  tabs.value.map((_, index) => index),
+);
 </script>
 
 <style lang="scss" scoped>

@@ -26,11 +26,10 @@ const props = withDefaults(
 
 const target = ref<'global' | 'character' | 'preset'>(props.target);
 
-const character_name = toRef(useCharacterSettingsStore(), 'name');
 const options = computed(() => {
   let result = _<{ label: string; value: 'global' | 'character' | 'preset' }>([]);
   result = result.push({ label: t`全局脚本库`, value: 'global' });
-  if (character_name.value !== undefined) {
+  if (useCharacterSettingsStore().name !== undefined) {
     result = result.push({ label: t`角色脚本库`, value: 'character' });
   }
   result = result.push({ label: t`预设脚本库`, value: 'preset' });

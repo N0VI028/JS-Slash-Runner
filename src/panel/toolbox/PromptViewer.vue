@@ -66,8 +66,8 @@
         </Teleport>
       </div>
       <div class="flex items-center justify-between gap-1 border-b border-(--SmartThemeBorderColor) py-0.25">
-        <span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`模型` }}: {{ model }}</span
-        ><span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`预设` }}: {{ preset }}</span>
+        <span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`模型` }}: {{ model }}</span>
+        <span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`预设` }}: {{ preset }}</span>
       </div>
     </div>
     <template v-if="state !== 'idle'">
@@ -162,7 +162,7 @@ useEventSourceOn(event_types.CHATCOMPLETION_MODEL_CHANGED, () => {
   model.value = getChatCompletionModel();
 });
 
-const preset = toRef(usePresetSettingsStore(), 'name');
+const preset = toRef(() => usePresetSettingsStore().name);
 
 const prompts = shallowRef<PromptData[]>([]);
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);

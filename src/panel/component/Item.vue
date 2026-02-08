@@ -1,20 +1,45 @@
 <template>
   <div
     ref="container_ref"
-    class="flex items-center justify-between gap-0.75"
+    class="flex"
+    :style="{ gap: `calc(var(--spacing) * ${gap})` }"
     :class="[
-      type === 'box' ? 'rounded-md border border-(--grey5050a) p-1' : 'items-center',
+      type === 'box' ? 'relative rounded-md border border-(--grey5050a) p-1' : '',
+      type === 'box' && has_legend ? 'mt-1' : '',
+      type === 'divider' ? 'relative border-t border-(--grey5050a) pt-0.75' : '',
+      type === 'divider' && has_legend ? 'mt-0.5' : '',
+      has_default ? 'flex-col' : 'items-center justify-between',
       { 'TH-collapsible flex-col items-center': has_detail, expanded: has_detail && is_expanded },
     ]"
   >
+    <!-- prettier-ignore-attribute -->
+    <div
+      v-if="type === 'box' && has_legend"
+      class="
+        absolute top-0 left-0.5 flex -translate-y-1/2 items-center justify-center gap-0.25
+        bg-(--SmartThemeBlurTintColor) px-0.5 th-text-xs! leading-none text-(--grey50)
+      "
+    >
+      <slot name="legend" />
+    </div>
+    <!-- prettier-ignore-attribute -->
+    <div
+      v-if="type === 'divider' && has_legend"
+      class="
+        absolute top-0 left-0 flex -translate-y-1/2 items-center justify-center gap-0.25 bg-(--SmartThemeBlurTintColor)
+        px-0.5 th-text-xs! leading-none text-(--grey50)
+      "
+    >
+      <slot name="legend" />
+    </div>
     <DefineNonDetailPart>
       <div class="flex min-w-0 flex-1 flex-col">
         <!-- prettier-ignore-attribute -->
-        <div class="TH-Item--title th-text-base font-bold">
+        <div class="TH-Item--title" :class="title_class">
           <slot name="title" />
         </div>
         <!-- prettier-ignore-attribute -->
-        <div class="mt-0.25 th-text-sm opacity-70">
+        <div v-if="has_description" class="mt-0.25 th-text-xs opacity-70">
           <slot name="description" />
         </div>
       </div>
@@ -23,7 +48,11 @@
       </div>
     </DefineNonDetailPart>
 
-    <template v-if="!has_detail">
+    <template v-if="has_default">
+      <slot />
+    </template>
+
+    <template v-else-if="!has_detail">
       <NonDetailPart />
     </template>
 
@@ -54,18 +83,37 @@ const is_expanded = defineModel<boolean>();
 
 const props = withDefaults(
   defineProps<{
-    type?: 'plain' | 'box';
+    type?: 'plain' | 'box' | 'divider';
     duration?: number;
+    titleSize?: 'xs' | 'sm' | 'base' | 'lg';
+    titleBold?: boolean;
+    gap?: string;
   }>(),
   {
     type: 'plain',
     duration: 260,
+    titleSize: 'base',
+    titleBold: true,
+    gap: '0.75',
   },
+);
+
+const title_class = computed(() => {
+  const size_map = { xs: 'th-text-xs', sm: 'th-text-sm', base: 'th-text-base', lg: 'th-text-lg' };
+  return [size_map[props.titleSize], props.titleBold && 'font-bold'];
+});
+
+provide(
+  'item-size',
+  computed(() => props.titleSize),
 );
 
 const slots = useSlots();
 const has_content = computed(() => !!slots.content);
 const has_detail = computed(() => !!slots.detail);
+const has_legend = computed(() => !!slots.legend);
+const has_default = computed(() => !!slots.default);
+const has_description = computed(() => !!slots.description);
 
 const is_animating = ref<boolean>(false);
 const container_ref = useTemplateRef<HTMLDivElement>('container_ref');
@@ -183,6 +231,15 @@ function collapse() {
 </script>
 
 <style lang="scss" scoped>
+/* legend 内图标对齐：约束为 1em 方盒并居中字形 */
+.TH-legend :deep(i) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+}
+
 /* 可折叠组件样式 */
 .TH-collapsible > div:first-child {
   cursor: pointer;

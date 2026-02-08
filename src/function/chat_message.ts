@@ -1,5 +1,5 @@
 import { refreshOneMessage } from '@/function/displayed_message';
-import { auditChatMessages } from '@/panel/render/use_better_chat_truncation';
+import { auditChatMessages } from '@/panel/optimize/better_message_to_load';
 import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
 import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
@@ -360,7 +360,11 @@ export async function createChatMessages(
           message,
           is_at_end ? undefined : { insertBefore: insert_before, forceId: message_id, scroll: false },
         );
-        await eventSource.emit(message.is_user ? event_types.MESSAGE_SENT : event_types.MESSAGE_RECEIVED, message_id, 'extension');
+        await eventSource.emit(
+          message.is_user ? event_types.MESSAGE_SENT : event_types.MESSAGE_RECEIVED,
+          message_id,
+          'extension',
+        );
         await eventSource.emit(
           message.is_user ? event_types.USER_MESSAGE_RENDERED : event_types.CHARACTER_MESSAGE_RENDERED,
           message_id,

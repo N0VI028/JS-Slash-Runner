@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-col gap-0.75">
+  <div class="flex flex-col gap-0.5">
+    <Player />
+
     <Item type="box">
       <template #title>{{ t`提示词查看器` }}</template>
       <template #description>{{ t`查看当前提示词发送情况，窗口开启时会监听新的发送及时更新显示` }}</template>
@@ -23,8 +25,6 @@
         <Button @click="enable_logger = true">{{ t`打开` }}</Button>
       </template>
     </Item>
-
-    <AudioPlayer />
   </div>
 
   <Teleport defer to="#extensionsMenu">
@@ -84,8 +84,8 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import AudioPlayer from '@/panel/toolbox/AudioPlayer.vue';
 import Logger from '@/panel/toolbox/Logger.vue';
+import Player from '@/panel/toolbox/AudioPlayer.vue';
 import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
 import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
 import PromptViewer from '@/panel/toolbox/PromptViewer.vue';

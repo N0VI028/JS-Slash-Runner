@@ -4,14 +4,13 @@
       <div class="flex items-center">
         <div class="font-bold">{{ title }}</div>
       </div>
-      <!-- prettier-ignore-attribute -->
-      <div class="mt-0.25 th-text-sm opacity-70">{{ description }}</div>
+      <div v-if="description" class="mt-0.25 th-text-sm opacity-70">{{ description }}</div>
     </div>
     <Toggle :id="`${title}-script-enable-toggle`" v-model="store.enabled" />
   </div>
 
   <div class="flex h-full flex-col">
-    <VueDraggable
+  <VueDraggable
       v-model="script_trees"
       group="TH-scripts"
       handle=".TH-handle"
@@ -55,17 +54,21 @@ import { SortableEvent, VueDraggable } from 'vue-draggable-plus';
 
 const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
 
-defineProps<{
+const props = defineProps<{
   title: string;
-  description: string;
+  description?: string;
   target: 'global' | 'character' | 'preset';
+  group?: string;
 }>();
+
+const actual_group = computed(() => props.group ?? `TH-scripts-${props.target}`);
 
 const emit = defineEmits<{
   move: [id: string, target: 'global' | 'character' | 'preset'];
 }>();
 
 provide<Ref<boolean>>('container_enabled', toRef(store.value, 'enabled'));
+provide('drag_group', actual_group);
 
 const search_input = inject<Ref<RegExp | null>>('search_input', ref(null));
 
