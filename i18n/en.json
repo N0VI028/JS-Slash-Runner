@@ -251,5 +251,6 @@
   "删除角色卡时删除绑定的主要世界书": "Delete bound primary worldbook when deleting character cards",
   "强制使用推荐的世界书全局设置": "Forcely use recommended worldbook global settings",
   "保存预设条目时直接保存预设": "Save preset when saving preset entries",
-  "最大化预设上下文长度": "Maximize preset context length"
+  "最大化预设上下文长度": "Maximize preset context length",
+  "切换预设时提醒还没有保存": "Remind saving the current preset before switching to another preset"
 }

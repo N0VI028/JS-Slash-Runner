@@ -161,6 +161,11 @@ const categories: Category[] = [
         content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/保存提示词时保存预设/index.js',
         info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/保存提示词时保存预设/README.md',
       },
+      {
+        name: t`切换预设时提醒还没有保存`,
+        content_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/酒馆助手/切换预设时提醒还没有保存/index.js',
+        info_url: 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/src/酒馆助手/切换预设时提醒还没有保存/README.md',
+      },
     ],
   },
   {
