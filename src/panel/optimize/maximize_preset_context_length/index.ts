@@ -9,8 +9,10 @@ export function useMaximizePresetContextLength(enabled: Readonly<Ref<boolean>>) 
     }
 
     $('#oai_max_context_unlocked').prop('checked', true).trigger('input');
-    $('#openai_max_context_counter').attr('max', MAX_CONTEXT).val(MAX_CONTEXT);
     $('#openai_max_context').attr('max', MAX_CONTEXT).val(MAX_CONTEXT).trigger('input');
+    // 再通过 oai_settings 保证被设置
+    oai_settings.max_context_unlocked = true;
+    oai_settings.openai_max_context = MAX_CONTEXT;
   }
 
   watchImmediate(enabled, new_enabled => {
