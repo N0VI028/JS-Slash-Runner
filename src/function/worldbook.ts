@@ -138,6 +138,14 @@ const _default_implicit_keys: _ImplicitKeys = {
   matchWholeWords: null,
   useGroupScoring: null,
   automationId: '',
+  ignoreBudget: false,
+  outletName: '',
+  triggers: [],
+  characterFilter: {
+    isExclude: false,
+    names: [],
+    tags: [],
+  },
 } as const;
 type _ImplicitKeys = {
   addMemo: true;
@@ -154,6 +162,14 @@ type _ImplicitKeys = {
   matchWholeWords: null;
   useGroupScoring: null;
   automationId: '';
+  ignoreBudget: false,
+  outletName: '',
+  triggers: [],
+  characterFilter: {
+    isExclude: false,
+    names: [],
+    tags: [],
+  },
 };
 type _OriginalWorldbookEntry = {
   uid: number;
