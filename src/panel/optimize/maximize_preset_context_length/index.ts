@@ -8,14 +8,14 @@ export function useMaximizePresetContextLength(enabled: Readonly<Ref<boolean>>) 
       return;
     }
 
-    $('#oai_max_context_unlocked').prop('checked', true).trigger('input');
     $('#openai_max_context_counter').val(MAX_CONTEXT);
     $('#openai_max_context').val(MAX_CONTEXT).trigger('input');
+    $('#oai_max_context_unlocked').prop('checked', true).trigger('input');
   }
 
   watchImmediate(enabled, new_enabled => {
     const $inputs = $('#oai_max_context_unlocked, #openai_max_context, #openai_max_context_counter');
-    if (new_enabled) {
+    if (new_enabled && $inputs.length > 0) {
       unlock_token_length();
       $inputs.prop('disabled', true);
     } else {
