@@ -1,10 +1,10 @@
 import { event_types, eventSource } from '@sillytavern/script';
-import { openai_settings } from '@sillytavern/scripts/openai';
+import { oai_settings } from '@sillytavern/scripts/openai';
 
 export function useMaximizePresetContextLength(enabled: Readonly<Ref<boolean>>) {
   function unlock_token_length() {
     const MAX_CONTEXT = 2000000;
-    if (openai_settings.max_context_unlocked === true && openai_settings.openai_max_context === MAX_CONTEXT) {
+    if (oai_settings.max_context_unlocked === true && oai_settings.openai_max_context === MAX_CONTEXT) {
       return;
     }
 
