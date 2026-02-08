@@ -4,7 +4,7 @@
       <Item type="plain">
         <template #title>
           {{ title }}
-          <i class="fa-solid fa-circle-question note-link-span" @click.stop="showHelp(name)" />
+          <i class="fa-solid fa-circle-question note-link-span cursor-pointer" @click.stop="showHelp(name)" />
         </template>
         <template #content>
           <Toggle
