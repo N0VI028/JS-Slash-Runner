@@ -15,7 +15,7 @@ export function useCheckEnablementPopup(
 ) {
   // TODO: Don't Repeat
   watch(preset_name, new_name => {
-    if (preset_scripts.script_trees.length === 0 || preset_scripts.enabled) {
+    if (!new_name || preset_scripts.script_trees.length === 0 || preset_scripts.enabled) {
       return;
     }
 
@@ -37,7 +37,7 @@ export function useCheckEnablementPopup(
           ],
         },
         slots: {
-          default: t`<div><h4>此预设包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-预设脚本”中手动启用它们</small></div>`,
+          default: t`<div><h4>预设 '${new_name}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-预设脚本”中手动启用它们</small></div>`,
         },
       }).open();
     }
@@ -71,7 +71,7 @@ export function useCheckEnablementPopup(
   }
 
   watch(character_name, new_name => {
-    if (new_name === undefined || character_scripts.script_trees.length === 0 || character_scripts.enabled) {
+    if (!new_name || character_scripts.script_trees.length === 0 || character_scripts.enabled) {
       return;
     }
 
@@ -93,7 +93,7 @@ export function useCheckEnablementPopup(
           ],
         },
         slots: {
-          default: `<div><h4>此角色包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-角色脚本”中手动启用它们</small></div>`,
+          default: `<div><h4>角色卡 '${new_name}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-角色脚本”中手动启用它们</small></div>`,
         },
       }).open();
     }
