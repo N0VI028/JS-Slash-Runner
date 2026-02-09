@@ -1,4 +1,5 @@
 import { setLorebookSettings } from '@/function/lorebook';
+import { eventSource } from '@sillytavern/script';
 
 function sync_lorebook_settings() {
   const EXPECTED_SETTINGS: Record<string, any> = {
@@ -21,17 +22,12 @@ function sync_lorebook_settings() {
   setLorebookSettings(EXPECTED_SETTINGS);
 }
 
-function toggle_lock(should_lock: boolean) {
-  $('#wiActivationSettings').find('input, select').prop('disabled', should_lock);
-}
-
 export function useForceRecommendedWorldbookGlobalSettings(enabled: Readonly<Ref<boolean>>) {
-  watchImmediate(enabled, new_enabled => {
-    if (new_enabled) {
-      sync_lorebook_settings();
-      toggle_lock(true);
-    } else {
-      toggle_lock(false);
-    }
+  eventSource.once('chatLoaded', () => {
+    watchImmediate(enabled, new_enabled => {
+      if (new_enabled) {
+        sync_lorebook_settings();
+      }
+    });
   });
 }

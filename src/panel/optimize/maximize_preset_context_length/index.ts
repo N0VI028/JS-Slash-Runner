@@ -15,14 +15,13 @@ export function useMaximizePresetContextLength(enabled: Readonly<Ref<boolean>>) 
     oai_settings.openai_max_context = MAX_CONTEXT;
   }
 
-  watchImmediate(enabled, new_enabled => {
-    const $inputs = $('#oai_max_context_unlocked, #openai_max_context, #openai_max_context_counter');
-    if (new_enabled && $inputs.length > 0) {
-      unlock_token_length();
-      $inputs.prop('disabled', true);
-    } else {
-      $inputs.prop('disabled', false);
-    }
+  eventSource.once('chatLoaded', () => {
+    watchImmediate(enabled, new_enabled => {
+      const $inputs = $('#oai_max_context_unlocked, #openai_max_context, #openai_max_context_counter');
+      if (new_enabled && $inputs.length > 0) {
+        unlock_token_length();
+      }
+    });
   });
 
   eventSource.on(event_types.OAI_PRESET_CHANGED_AFTER, () => {
