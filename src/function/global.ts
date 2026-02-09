@@ -32,7 +32,11 @@ export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<
       configurable: true,
     });
     if (global === 'Mvu') {
-      await waitUntil(() => _.has(get_variables_without_clone({ type: 'message', message_id: 0 }), 'stat_data'));
+      try {
+        await waitUntil(() => _.has(get_variables_without_clone({ type: 'message', message_id: 0 }), 'stat_data'));
+      } catch (error) {
+        /** 只是作为保险, 忽略超时时的报错 */
+      }
     }
     return;
   }
@@ -43,7 +47,11 @@ export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<
         configurable: true,
       });
       if (global === 'Mvu') {
-        await waitUntil(() => _.has(get_variables_without_clone({ type: 'message', message_id: 0 }), 'stat_data'));
+        try {
+          await waitUntil(() => _.has(get_variables_without_clone({ type: 'message', message_id: 0 }), 'stat_data'));
+        } catch (error) {
+          /** 只是作为保险, 忽略超时时的报错 */
+        }
       }
       resolve();
     });
