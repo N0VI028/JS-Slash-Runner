@@ -413,7 +413,17 @@ declare const SillyTavern: {
     once: typeof eventOnce;
   };
   readonly eventTypes: typeof tavern_events;
-  readonly addOneMessage: (mes: object, options: any) => Promise<void>;
+  readonly addOneMessage: (
+    mes: SillyTavern.ChatMessage,
+    options?: {
+      type?: 'swipe';
+      insertAfter?: number;
+      scroll?: true;
+      insertBefore?: number;
+      forceId?: number;
+      showSwipes?: boolean;
+    },
+  ) => JQuery<HTMLElement>;
   readonly deleteLastMessage: () => Promise<void>;
   readonly generate: Function;
   readonly sendStreamingRequest: (type: string, data: object) => Promise<void>;
