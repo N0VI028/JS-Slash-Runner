@@ -109,7 +109,8 @@ useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) =>
     destroyAllInvalid();
     destroy(message_id);
     await nextTick();
-    renderOneMessage(message_id);
+    // 延迟以等待编辑后 mes_text 内 DOM 已经更新
+    setTimeout(() => renderOneMessage(message_id));
   });
 });
 
