@@ -95,6 +95,7 @@ function computeLogs(
 ): { iframe_id: string; level: LogLevel; timestamp: number; message: string }[] {
   let result = _(iframe_logs)
     .flatMap(([iframe_id, logs]) => logs.map(log => ({ iframe_id, ...log })))
+    .filter(item => level_filters.value[item.level])
     .sortBy(item => item.timestamp);
   if (search_input.value !== null) {
     result = result.filter(item => search_input.value!.test(item.message));
