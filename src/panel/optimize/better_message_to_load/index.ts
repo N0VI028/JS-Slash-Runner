@@ -37,28 +37,30 @@ function cancelChatMessages() {
 }
 
 export function useBetterMessageToLoad(enabled: Readonly<Ref<boolean>>) {
-  watchImmediate(enabled, new_enabled => {
-    const $input = $('#chat_truncation, #chat_truncation_counter');
-    const $text = $input.parent().find('[data-i18n="# Messages to Load"]');
-    if (new_enabled) {
-      const text = $text.text();
-      $text.attr('original-text', text);
-      if (text === '# Msg. to Load') {
-        $text.text('# Msg. to Render');
-      } else if (text === '要加载 # 条消息') {
-        $text.text('要渲染 # 条消息');
-      } else if (text === '每頁載入的訊息數') {
-        $text.text('每頁渲染的訊息數');
+  eventSource.once('chatLoaded', () => {
+    watchImmediate(enabled, new_enabled => {
+      const $input = $('#chat_truncation, #chat_truncation_counter');
+      const $text = $input.parent().find('[data-i18n="# Messages to Load"]');
+      if (new_enabled) {
+        const text = $text.text();
+        $text.attr('original-text', text);
+        if (text === '# Msg. to Load') {
+          $text.text('# Msg. to Render');
+        } else if (text === '要加载 # 条消息') {
+          $text.text('要渲染 # 条消息');
+        } else if (text === '每頁載入的訊息數') {
+          $text.text('每頁渲染的訊息數');
+        }
+        $input.attr('step', 1);
+        return;
       }
-      $input.attr('step', 1);
-      return;
-    }
 
-    const original_text = $text.attr('original-text');
-    if (original_text) {
-      $text.text(original_text);
-    }
-    $input.attr('step', 5);
+      const original_text = $text.attr('original-text');
+      if (original_text) {
+        $text.text(original_text);
+      }
+      $input.attr('step', 5);
+    });
   });
 
   [event_types.CHARACTER_MESSAGE_RENDERED, event_types.USER_MESSAGE_RENDERED].forEach(event =>
