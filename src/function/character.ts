@@ -54,7 +54,7 @@ export function getCharacterNames(): string[] {
 }
 
 export function getCurrentCharacterName(): string | null {
-  return name2 || null;
+  return name2 === '' ? null : name2;
 }
 
 function toCharacter(character: v1CharData): Character {
