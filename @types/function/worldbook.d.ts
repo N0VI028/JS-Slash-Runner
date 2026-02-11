@@ -147,6 +147,8 @@ type WorldbookEntry = {
  *
  * @param worldbook_name 世界书名称
  * @param worldbook 世界书内容; 不填则没有任何条目
+ *
+ * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
 declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEntry[]): Promise<boolean>;
 
