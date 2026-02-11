@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.7.7
 
+### 📦函数
+
+- 新增 `getCurrentCharacterName` 函数, 用于获取当前角色卡名称; 之前你可能会用 `SillTavern.name2`
+
 ### 🐛修复
 
 - 在导入预设后, 如果不刷新网页就调整预设脚本, 预设脚本可能保存不上的问题

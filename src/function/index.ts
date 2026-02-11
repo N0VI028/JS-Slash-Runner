@@ -14,6 +14,7 @@ import {
   deleteCharacter,
   getCharacter,
   getCharacterNames,
+  getCurrentCharacterName,
   replaceCharacter,
   updateCharacterWith,
 } from '@/function/character';
@@ -252,6 +253,7 @@ function getTavernHelper() {
 
     // character
     getCharacterNames,
+    getCurrentCharacterName,
     createCharacter,
     createOrReplaceCharacter,
     deleteCharacter,

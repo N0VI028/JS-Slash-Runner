@@ -26,6 +26,13 @@ type Character = {
 declare function getCharacterNames(): string[];
 
 /**
+ * 获取当前角色卡名称
+ *
+ * @returns 当前角色卡名称, 如果当前没有角色卡, 则返回 `null`
+ */
+declare function getCurrentCharacterName(): string | null;
+
+/**
  * 新建 `character_name` 角色卡, 内容为 `character`
  *
  * @param character_name 角色卡名称

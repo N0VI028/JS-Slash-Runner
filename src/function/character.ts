@@ -52,6 +52,10 @@ export function getCharacterNames(): string[] {
   return characters.map(character => character.name);
 }
 
+export function getCurrentCharacterName(): string | null {
+  return RawCharacter.find({ name: 'current' })?.name ?? null;
+}
+
 function toCharacter(character: v1CharData): Character {
   const data = character.data;
 
