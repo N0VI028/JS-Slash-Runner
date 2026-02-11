@@ -15,6 +15,7 @@ import {
   getOneCharacter,
   getRequestHeaders,
   getThumbnailUrl,
+  name2,
   printCharacters,
   printMessages,
   saveChatConditional,
@@ -53,7 +54,7 @@ export function getCharacterNames(): string[] {
 }
 
 export function getCurrentCharacterName(): string | null {
-  return RawCharacter.find({ name: 'current' })?.name ?? null;
+  return name2 || null;
 }
 
 function toCharacter(character: v1CharData): Character {
