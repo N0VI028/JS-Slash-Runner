@@ -20,14 +20,16 @@ function saveSettingsToMemoryDebounced(id: string, name: string, settings: Prese
   }
 }
 
-async function saveSettingsToFile(id: string, name: string, settings: PresetSettings) {
+async function saveSettingsToFile(_id: string, name: string, settings: PresetSettings) {
   const preset_list = preset_manager.getPresetList();
-  const preset = preset_list.presets[Number(id)];
-  const preset_name = Object.keys(preset_list.preset_names)[Number(id)];
-  if (name === preset_name) {
-    _.set(preset, `extensions.${setting_field}`, settings);
-    await preset_manager.savePreset(preset_name, preset, { skipUpdate: true });
+  const index = _.get(preset_list.preset_names, name, -1);
+  if (index === -1) {
+    return;
   }
+
+  const preset = preset_list.presets[index];
+  _.set(preset, `extensions.${setting_field}`, settings);
+  await preset_manager.savePreset(name, preset, { skipUpdate: true });
 }
 const saveSettingsToFileDebounced = _.debounce(saveSettingsToFile, 1000);
 
