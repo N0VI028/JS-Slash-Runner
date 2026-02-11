@@ -48,7 +48,7 @@ export function _errorCatched<T extends any[], U>(this: Window, fn: (...args: T)
         ? [error.message, error.stack].join('\n')
         : error.stack
       : error.message;
-    toastr.error(`<pre style="white-space: pre-wrap">${message}</pre>`, `[${iframe_name}]${error.name}`, {
+    toastr.error(`<pre style="white-space: pre-wrap">${message}</pre>`, `[${iframe_name}] ${error.name}`, {
       escapeHtml: false,
       toastClass: 'toastr w-fit! min-w-[300px]',
     });
