@@ -33,7 +33,7 @@
         <Item type="plain">
           <template #title>{{ t`启用 Blob URL 渲染` }}</template>
           <template #description>
-            {{ t`使用 Blob URL 渲染前端界面，更方便 f12 开发者工具调试` }}
+            {{ t`使用 Blob URL 渲染前端界面，更方便 f12 开发者工具调试；但某些浏览器可能不支持` }}
           </template>
           <template #content>
             <Toggle id="TH-render-use-blob-url" v-model="use_blob_url" />

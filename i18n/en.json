@@ -56,7 +56,7 @@
   "启用加载动画": "Enable Loading Animation",
   "在前端内字体、图片等资源未加载完成前，显示加载动画而不是显示不完全界面": "Show loading animation instead of incomplete interface before fonts, images and other resources in frontend are loaded",
   "启用 Blob URL 渲染": "Enable Blob URL Rendering",
-  "使用 Blob URL 渲染前端界面，更方便 f12 开发者工具调试": "Use Blob URL to render frontend interface, easier for F12 developer tool debugging",
+  "使用 Blob URL 渲染前端界面，更方便 f12 开发者工具调试；但某些浏览器可能不支持": "Use Blob URL to render frontend interface, easier for F12 developer tool debugging; but some browsers may not support it",
   "取消前端代码高亮": "Cancel Frontend Code Highlight",
   "避免酒馆对可渲染成前端界面的代码块进行语法高亮，从而提升渲染性能": "Avoid SillyTavern from highlighting code blocks that can be rendered into frontend interface, improving rendering performance",
   "渲染深度": "Rendering Depth",
