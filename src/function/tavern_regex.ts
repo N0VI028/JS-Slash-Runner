@@ -76,6 +76,7 @@ export type TavernRegex = {
 
   find_regex: string;
   replace_string: string;
+  trim_strings: string[];
 
   source: {
     user_input: boolean;
@@ -128,6 +129,7 @@ export function to_tavern_regex(regex_script_data: RegexScriptData): TavernRegex
 
     find_regex: regex_script_data.findRegex,
     replace_string: regex_script_data.replaceString,
+    trim_strings: regex_script_data.trimStrings,
 
     source: {
       user_input: regex_script_data.placement.includes(regex_placement.USER_INPUT),
@@ -156,7 +158,7 @@ export function from_tavern_regex(tavern_regex: TavernRegex): RegexScriptData {
 
     findRegex: tavern_regex.find_regex,
     replaceString: tavern_regex.replace_string,
-    trimStrings: [], // TODO: handle this?
+    trimStrings: tavern_regex.trim_strings,
 
     placement: [
       ...(tavern_regex.source.user_input ? [regex_placement.USER_INPUT] : []),
