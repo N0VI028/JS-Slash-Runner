@@ -67,11 +67,15 @@ export function useCheckEnablementPopup(
   } else {
     eventSource.on(
       event_types.OAI_PRESET_CHANGED_AFTER,
-      _.debounce(() => {
-        const names = new Set(preset_manager.getAllPresets());
-        _.remove(global_settings.settings.script.popuped.presets, item => !names.has(item));
-        _.remove(global_settings.settings.script.enabled.presets, item => !names.has(item));
-      }, 1000),
+      _.throttle(
+        () => {
+          const names = new Set(preset_manager.getAllPresets());
+          _.remove(global_settings.settings.script.popuped.presets, item => !names.has(item));
+          _.remove(global_settings.settings.script.enabled.presets, item => !names.has(item));
+        },
+        1000,
+        { trailing: false },
+      ),
     );
   }
 
