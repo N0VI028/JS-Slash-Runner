@@ -18,34 +18,38 @@ export function useCheckEnablementPopup(
     const existing_presets = new Set(preset_manager.getAllPresets());
     _.remove(global_settings.settings.script.popuped.presets, preset => !existing_presets.has(preset));
     _.remove(global_settings.settings.script.enabled.presets, preset => !existing_presets.has(preset));
-    watchImmediate(preset_name, new_name => {
-      if (!new_name || preset_scripts.script_trees.length === 0 || preset_scripts.enabled) {
-        return;
-      }
+    watch(
+      preset_name,
+      new_name => {
+        if (!new_name || preset_scripts.script_trees.length === 0 || preset_scripts.enabled) {
+          return;
+        }
 
-      if (!global_settings.settings.script.popuped.presets.includes(new_name)) {
-        global_settings.settings.script.popuped.presets.push(new_name);
-        useModal({
-          component: Popup,
-          attrs: {
-            buttons: [
-              {
-                name: t`确认`,
-                shouldEmphasize: true,
-                onClick: close => {
-                  preset_scripts.enabled = true;
-                  close();
+        if (!global_settings.settings.script.popuped.presets.includes(new_name)) {
+          global_settings.settings.script.popuped.presets.push(new_name);
+          useModal({
+            component: Popup,
+            attrs: {
+              buttons: [
+                {
+                  name: t`确认`,
+                  shouldEmphasize: true,
+                  onClick: close => {
+                    preset_scripts.enabled = true;
+                    close();
+                  },
                 },
-              },
-              { name: t`取消` },
-            ],
-          },
-          slots: {
-            default: t`<div><h4>预设 '${new_name}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-预设脚本”中手动启用它们</small></div>`,
-          },
-        }).open();
-      }
-    });
+                { name: t`取消` },
+              ],
+            },
+            slots: {
+              default: t`<div><h4>预设 '${new_name}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-预设脚本”中手动启用它们</small></div>`,
+            },
+          }).open();
+        }
+      },
+      { immediate: true, flush: 'post' },
+    );
   });
   if (compare(version, '1.13.5', '>=')) {
     eventSource.on(event_types.PRESET_RENAMED_BEFORE, ({ oldName, newName }: { oldName: string; newName: string }) => {
@@ -83,34 +87,38 @@ export function useCheckEnablementPopup(
     const existing_characters = new Set(characters.map(character => character?.name ?? '').filter(Boolean));
     _.remove(global_settings.settings.script.popuped.characters, character => !existing_characters.has(character));
     _.remove(global_settings.settings.script.enabled.characters, character => !existing_characters.has(character));
-    watchImmediate(character_name, new_name => {
-      if (!new_name || character_scripts.script_trees.length === 0 || character_scripts.enabled) {
-        return;
-      }
+    watch(
+      character_name,
+      new_name => {
+        if (!new_name || character_scripts.script_trees.length === 0 || character_scripts.enabled) {
+          return;
+        }
 
-      if (!global_settings.settings.script.popuped.characters.includes(new_name)) {
-        global_settings.settings.script.popuped.characters.push(new_name);
-        useModal({
-          component: Popup,
-          attrs: {
-            buttons: [
-              {
-                name: t`确认`,
-                shouldEmphasize: true,
-                onClick: close => {
-                  character_scripts.enabled = true;
-                  close();
+        if (!global_settings.settings.script.popuped.characters.includes(new_name)) {
+          global_settings.settings.script.popuped.characters.push(new_name);
+          useModal({
+            component: Popup,
+            attrs: {
+              buttons: [
+                {
+                  name: t`确认`,
+                  shouldEmphasize: true,
+                  onClick: close => {
+                    character_scripts.enabled = true;
+                    close();
+                  },
                 },
-              },
-              { name: t`取消` },
-            ],
-          },
-          slots: {
-            default: `<div><h4>角色卡 '${new_name}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-角色脚本”中手动启用它们</small></div>`,
-          },
-        }).open();
-      }
-    });
+                { name: t`取消` },
+              ],
+            },
+            slots: {
+              default: `<div><h4>角色卡 '${new_name}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-角色脚本”中手动启用它们</small></div>`,
+            },
+          }).open();
+        }
+      },
+      { immediate: true, flush: 'post' },
+    );
   });
   eventSource.on(event_types.CHARACTER_RENAMED, (old_avatar: string, new_avatar: string) => {
     const old_name = old_avatar.replace('.png', '');
