@@ -35,6 +35,7 @@ type TavernRegex = {
 
   find_regex: string;
   replace_string: string;
+  trim_strings: string;
 
   source: {
     user_input: boolean;
