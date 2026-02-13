@@ -26,7 +26,7 @@ import { useGlobalSettingsStore } from '@/store/settings';
 import { chunkBy } from '@/util/algorithm';
 import { containsFrontendElement, isFrontendElement } from '@/util/is_frontend';
 
-const props = defineProps<{ messageId: number; html: string }>();
+const props = defineProps<{ messageId: number; html: string; duringStreaming: boolean }>();
 const emits = defineEmits<{ 'request-unmount': [] }>();
 
 const store = useGlobalSettingsStore();

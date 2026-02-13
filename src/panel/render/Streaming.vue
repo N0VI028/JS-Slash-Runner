@@ -4,6 +4,7 @@
     :key="runtime.message_id"
     :message-id="runtime.message_id"
     :html="runtime.html"
+    :during-streaming="runtime.during_streaming"
     @request-unmount="destroy(runtime.message_id)"
   />
 </template>
@@ -12,13 +13,14 @@
 import StreamingOne from '@/panel/render/StreamingOne.vue';
 import { calcToRender } from '@/store/iframe_runtimes/message';
 import { useGlobalSettingsStore } from '@/store/settings';
+import { containsFrontendElement } from '@/util/is_frontend';
 import { chat, event_types } from '@sillytavern/script';
 
 const props = defineProps<{ enableAllowStreaming: boolean }>();
 
 const store = useGlobalSettingsStore();
 
-type Runtime = { message_id: number; html: string };
+type Runtime = { message_id: number; html: string; during_streaming: boolean };
 const runtimes = ref<Runtime[]>([]);
 
 const destroy = (message_id: number) => {
@@ -46,14 +48,19 @@ const destroyAllInvalid = () => {
   runtimes.value.forEach(({ message_id }) => destroyIfInvalid(message_id));
 };
 
-function renderOneMessage(message_id: number) {
+function renderOneMessage(message_id: number, during_streaming: boolean = false) {
   if (destroyIfInvalid(message_id)) {
     return;
   }
 
   const $mes_text = $(`.mes[mesid="${message_id}"]`).find('.mes_text');
   $mes_text.find('code[data-highlighted="yes"]').css('position', 'relative');
-  if ($mes_text.length === 0 || $mes_text.siblings('.mes_streaming').length > 0) {
+  if (
+    $mes_text.length === 0 ||
+    $mes_text.siblings('.mes_streaming').length > 0 ||
+    (!during_streaming && !containsFrontendElement($mes_text[0]))
+  ) {
+    destroy(message_id);
     return;
   }
   const html = $mes_text.html();
@@ -61,8 +68,9 @@ function renderOneMessage(message_id: number) {
   const runtime = runtimes.value.find(runtime => runtime.message_id === message_id);
   if (runtime) {
     runtime.html = html;
+    runtime.during_streaming = during_streaming;
   } else {
-    runtimes.value.push({ message_id, html });
+    runtimes.value.push({ message_id, html, during_streaming });
   }
 }
 
@@ -110,7 +118,7 @@ useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) =>
 });
 
 useEventSourceOn(event_types.STREAM_TOKEN_RECEIVED, () => {
-  renderOneMessage(Number($('#chat').children('.mes.last_mes').attr('mesid')));
+  renderOneMessage(Number($('#chat').children('.mes.last_mes').attr('mesid')), true);
 });
 
 [event_types.MORE_MESSAGES_LOADED, event_types.MESSAGE_DELETED].forEach(event =>
