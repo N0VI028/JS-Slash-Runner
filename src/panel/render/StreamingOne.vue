@@ -41,7 +41,13 @@ const contents = computed(() => {
       .toArray()
       .map(element => ({
         element,
-        type: isFrontendElement(element) ? 'iframe' : containsFrontendElement(element) ? 'nested_iframe' : 'normal',
+        type: isFrontendElement(element)
+          ? 'iframe'
+          : containsFrontendElement(element)
+            ? 'nested_iframe'
+            : $(element).is('details')
+              ? 'details'
+              : 'normal',
       })),
     (lhs, rhs) => {
       return lhs.type === 'normal' && lhs.type === rhs.type;

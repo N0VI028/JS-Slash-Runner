@@ -12,7 +12,6 @@
 import StreamingOne from '@/panel/render/StreamingOne.vue';
 import { calcToRender } from '@/store/iframe_runtimes/message';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { containsFrontendElement } from '@/util/is_frontend';
 import { chat, event_types } from '@sillytavern/script';
 
 const props = defineProps<{ enableAllowStreaming: boolean }>();
@@ -54,11 +53,7 @@ function renderOneMessage(message_id: number) {
 
   const $mes_text = $(`.mes[mesid="${message_id}"]`).find('.mes_text');
   $mes_text.find('code[data-highlighted="yes"]').css('position', 'relative');
-  if (
-    $mes_text.length === 0 ||
-    $mes_text.siblings('.mes_streaming').length > 0 ||
-    !containsFrontendElement($mes_text[0])
-  ) {
+  if ($mes_text.length === 0 || $mes_text.siblings('.mes_streaming').length > 0) {
     return;
   }
   const html = $mes_text.html();
