@@ -5,6 +5,7 @@ import {
   character_names_behavior,
   default_order,
   detail,
+  extension_prompt_roles,
 } from '@/function/generate/types';
 import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
 import { InjectionPrompt } from '@/function/inject';
@@ -12,7 +13,9 @@ import {
   MAX_INJECTION_DEPTH,
   eventSource,
   event_types,
+  extension_prompt_types,
   extension_prompts,
+  getExtensionPrompt,
   getExtensionPromptByName,
   substituteParams,
 } from '@sillytavern/script';
@@ -327,39 +330,72 @@ async function populationInjectionPrompts(
     }
   }
 
-  // 处理自定义注入
-  if (Array.isArray(customInjects)) {
-    for (const inject of customInjects) {
+  const knownExtensionPrompts = [
+    '1_memory',
+    '2_floating_prompt',
+    '3_vectors',
+    '4_vectors_data_bank',
+    'chromadb',
+    'PERSONA_DESCRIPTION',
+    'QUIET_PROMPT',
+    'DEPTH_PROMPT',
+  ];
+
+  // Anything that is not a known extension prompt
+  for (const key in extension_prompts) {
+    if (Object.hasOwn(extension_prompts, key)) {
+      // @ts-expect-error 类型正确
+      const prompt = extension_prompts[key];
+      if (knownExtensionPrompts.includes(key)) continue;
+      if (!prompt.value) continue;
+      if (![extension_prompt_types.BEFORE_PROMPT, extension_prompt_types.IN_PROMPT].includes(prompt.position)) continue;
+
+      const hasFilter = typeof prompt.filter === 'function';
+      if (hasFilter && !(await prompt.filter())) continue;
+
       injectionPrompts.push({
-        identifier: `INJECTION-${inject.role}-${inject.depth}`,
-        role: inject.role,
-        content: inject.content,
-        injection_depth: inject.depth || 0,
+        identifier: key.replace(/\W/g, '_'),
+        role: getPromptRole(prompt.role),
+        content: prompt.value,
+        injection_depth: prompt.depth || 0,
         injected: true,
       });
     }
   }
 
+  const roleTypes = {
+    system: extension_prompt_roles.SYSTEM,
+    user: extension_prompt_roles.USER,
+    assistant: extension_prompt_roles.ASSISTANT,
+  };
+
   for (let i = 0; i <= MAX_INJECTION_DEPTH; i++) {
     const depthPrompts = injectionPrompts.filter(prompt => prompt.injection_depth === i && prompt.content);
 
-    const roles = ['system', 'user', 'assistant'];
+    const roles = ['system', 'user', 'assistant'] as const;
     const roleMessages = [];
     const separator = '\n';
 
     for (const role of roles) {
-      // 直接处理当前深度和角色的所有提示词
       const rolePrompts = depthPrompts
         .filter(prompt => prompt.role === role)
-        .map(x => x.content.trim())
+        .map(x => x.content)
         .join(separator);
 
-      if (rolePrompts) {
-        roleMessages.push({
-          role: role as 'user' | 'system' | 'assistant',
-          content: rolePrompts,
-          injected: true,
-        });
+      const extensionPrompt = await getExtensionPrompt(
+        extension_prompt_types.IN_CHAT,
+        i,
+        separator,
+        roleTypes[role],
+        false,
+      );
+      const jointPrompt = [rolePrompts, extensionPrompt]
+        .filter(x => x)
+        .map(x => x.trim())
+        .join(separator);
+
+      if (jointPrompt && jointPrompt.length) {
+        roleMessages.push({ role: role, content: jointPrompt, injected: true });
       }
     }
 
