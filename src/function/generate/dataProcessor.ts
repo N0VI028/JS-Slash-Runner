@@ -38,7 +38,7 @@ import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from
  * @returns 包含角色信息、聊天上下文和世界信息的数据对象
  */
 export async function prepareAndOverrideData(
-  config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
+  config: Omit<detail.GenerateParams, 'user_input'>,
   processedUserInput: string,
 ) {
   const getOverrideContent = (identifier: string): string | RolePrompt[] | undefined => {
@@ -188,13 +188,10 @@ function setAuthorNotePrompt(config: detail.GenerateParams) {
   setExtensionPrompt(
     NOTE_MODULE_NAME,
     prompt,
-    // @ts-expect-error 类型正确
     chat_metadata[metadata_keys.position],
-    // @ts-expect-error 类型正确
     chat_metadata[metadata_keys.depth],
     // @ts-expect-error 类型正确
     extension_settings.note.allowWIScan,
-    // @ts-expect-error 类型正确
     chat_metadata[metadata_keys.role],
   );
 }
@@ -224,13 +221,10 @@ function setPersonaDescriptionExtensionPrompt() {
     setExtensionPrompt(
       NOTE_MODULE_NAME,
       ANWithDesc,
-      // @ts-expect-error 类型正确
       chat_metadata[metadata_keys.position],
-      // @ts-expect-error 类型正确
       chat_metadata[metadata_keys.depth],
       // @ts-expect-error 类型正确
       extension_settings.note.allowWIScan,
-      // @ts-expect-error 类型正确
       chat_metadata[metadata_keys.role],
     );
   }
@@ -251,10 +245,11 @@ function setPersonaDescriptionExtensionPrompt() {
 /**
  * 处理注入的提示词
  */
-async function handleInjectedPrompts(promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>) {
-  if (!promptConfig || !Array.isArray(promptConfig.inject)) return;
+async function handleInjectedPrompts(promptConfig: Omit<detail.GenerateParams, 'user_input'>) {
+  // generateRaw 的注入提示词会由代码自行注入, 不必在此注入
+  if (!promptConfig || !Array.isArray(promptConfig.inject) || !promptConfig.use_preset) return;
   injectPrompts(
-    promptConfig.inject.map(prompt => ({ id: uuidv4(), ...prompt })),
+    promptConfig.inject.map(prompt => ({ id: `TH-CustomInjects-${uuidv4()}`, ...prompt })),
     { once: true },
   );
 }

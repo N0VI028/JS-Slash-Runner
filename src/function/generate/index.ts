@@ -232,6 +232,7 @@ async function iframeGenerate({
     // 2. 准备过滤后的基础数据
     const baseData = await prepareAndOverrideData(
       {
+        use_preset,
         overrides,
         max_chat_history,
         inject,

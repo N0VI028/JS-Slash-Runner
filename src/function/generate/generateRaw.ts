@@ -1,4 +1,5 @@
 import {
+  BaseData,
   RolePrompt,
   builtin_prompt_default_order,
   character_names_behavior,
@@ -13,9 +14,9 @@ import {
   event_types,
   extension_prompt_types,
   extension_prompts,
+  getExtensionPromptByName,
   substituteParams,
 } from '@sillytavern/script';
-import { NOTE_MODULE_NAME } from '@sillytavern/scripts/authors-note';
 import {
   ChatCompletion,
   Message,
@@ -26,6 +27,7 @@ import {
 } from '@sillytavern/scripts/openai';
 import { persona_description_positions, power_user } from '@sillytavern/scripts/power-user';
 import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
+import { InjectionPrompt } from '../inject';
 
 /**
  * @fileoverview 原始生成路径处理模块 - 不使用预设的生成逻辑
@@ -222,7 +224,9 @@ async function processChatHistoryAndInject(
   }
 
   // 处理注入和添加消息
-  const messages = (await populationInjectionPrompts(baseData.chatContext.oaiMessages, promptConfig)).reverse();
+  const messages = (
+    await populationInjectionPrompts(baseData, baseData.chatContext.oaiMessages, promptConfig.inject, promptConfig)
+  ).reverse();
   const imageInlining = isImageInliningSupported();
   // 添加聊天记录
   const chatPool = [...messages];
@@ -271,18 +275,21 @@ async function processChatHistoryAndInject(
  * 按深度注入各种提示词，包括作者注释、用户描述、世界书深度条目和自定义注入
  * @param baseData 包含世界书信息的基础数据
  * @param messages 原始消息数组
+ * @param customInjects 自定义注入提示词数组
  * @param config 配置参数，用于过滤检查
  * @returns Promise<RolePrompt[]> 处理后的消息数组，包含所有注入的提示词
  */
 async function populationInjectionPrompts(
+  baseData: BaseData,
   messages: RolePrompt[],
+  customInjects: Omit<InjectionPrompt, 'id'>[] = [],
   config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
 ) {
   const processedMessages = [...messages];
   let totalInsertedMessages = 0;
   const injectionPrompts = [];
 
-  const authorsNote = _.get(extension_prompts, NOTE_MODULE_NAME, {}) as any;
+  const authorsNote = _.get(extension_prompts, '2_floating_prompt', {}) as any;
   if (authorsNote && authorsNote.value) {
     injectionPrompts.push({
       role: getPromptRole(authorsNote.role),
@@ -304,6 +311,35 @@ async function populationInjectionPrompts(
       injection_depth: power_user.persona_description_depth,
       injected: true,
     });
+  }
+
+  // 处理世界书里的深度条目
+  if (!isPromptFiltered('char_depth_prompt', config)) {
+    const wiDepthPrompt = baseData.worldInfo.worldInfoDepth;
+    if (wiDepthPrompt) {
+      for (const entry of wiDepthPrompt) {
+        const content = await getExtensionPromptByName(`customDepthWI-${entry.depth}-${entry.role}`);
+        injectionPrompts.push({
+          role: getPromptRole(entry.role),
+          content: content,
+          injection_depth: entry.depth,
+          injected: true,
+        });
+      }
+    }
+  }
+
+  // 处理自定义注入
+  if (Array.isArray(customInjects)) {
+    for (const inject of customInjects) {
+      injectionPrompts.push({
+        identifier: `INJECTION-${inject.role}-${inject.depth}`,
+        role: inject.role,
+        content: inject.content,
+        injection_depth: inject.depth || 0,
+        injected: true,
+      });
+    }
   }
 
   const knownExtensionPrompts = [
@@ -358,13 +394,12 @@ async function populationInjectionPrompts(
         .map(x => x.content)
         .join(separator);
 
-      const extensionPrompt = await overridedGetExtensionPrompt(
+      const extensionPrompt = await filteredGetExtensionPrompt(
         extension_prompt_types.IN_CHAT,
         i,
         separator,
         roleTypes[role],
         false,
-        config,
       );
       const jointPrompt = [rolePrompts, extensionPrompt]
         .filter(x => x)
@@ -386,13 +421,12 @@ async function populationInjectionPrompts(
   return processedMessages;
 }
 
-async function overridedGetExtensionPrompt(
+async function filteredGetExtensionPrompt(
   position = extension_prompt_types.IN_PROMPT,
   depth: number | undefined = undefined,
   separator: string = '\n',
   role: number | undefined = undefined,
   wrap: boolean = true,
-  config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
 ) {
   // @ts-expect-error 无视类型
   const filterByFunction = async prompt => {
@@ -404,7 +438,7 @@ async function overridedGetExtensionPrompt(
   };
   const promptPromises = Object.keys(extension_prompts)
     .sort()
-    .filter(x => !isPromptFiltered('char_depth_prompt', config) || !/customDepthWI-\d+-\d+/.test(x))
+    .filter(x => x !== '2_floating_prompt' && !/customDepthWI-\d+-\d+/.test(x) && !/TH-CustomInjects-.+/.test(x))
     // @ts-expect-error 无视类型
     .map(x => extension_prompts[x])
     .filter(x => x.position == position && x.value)
