@@ -13,7 +13,6 @@ import {
   event_types,
   extension_prompt_types,
   extension_prompts,
-  getExtensionPrompt as overridedGetExtensionPrompt,
   substituteParams,
 } from '@sillytavern/script';
 import { NOTE_MODULE_NAME } from '@sillytavern/scripts/authors-note';
