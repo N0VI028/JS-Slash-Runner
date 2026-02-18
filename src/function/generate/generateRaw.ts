@@ -1,5 +1,4 @@
 import {
-  BaseData,
   RolePrompt,
   builtin_prompt_default_order,
   character_names_behavior,
@@ -8,15 +7,13 @@ import {
   extension_prompt_roles,
 } from '@/function/generate/types';
 import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
-import { InjectionPrompt } from '@/function/inject';
 import {
   MAX_INJECTION_DEPTH,
   eventSource,
   event_types,
   extension_prompt_types,
   extension_prompts,
-  getExtensionPrompt,
-  getExtensionPromptByName,
+  getExtensionPrompt as overridedGetExtensionPrompt,
   substituteParams,
 } from '@sillytavern/script';
 import { NOTE_MODULE_NAME } from '@sillytavern/scripts/authors-note';
@@ -226,9 +223,7 @@ async function processChatHistoryAndInject(
   }
 
   // 处理注入和添加消息
-  const messages = (
-    await populationInjectionPrompts(baseData, baseData.chatContext.oaiMessages, promptConfig.inject, promptConfig)
-  ).reverse();
+  const messages = (await populationInjectionPrompts(baseData.chatContext.oaiMessages, promptConfig)).reverse();
   const imageInlining = isImageInliningSupported();
   // 添加聊天记录
   const chatPool = [...messages];
@@ -277,14 +272,11 @@ async function processChatHistoryAndInject(
  * 按深度注入各种提示词，包括作者注释、用户描述、世界书深度条目和自定义注入
  * @param baseData 包含世界书信息的基础数据
  * @param messages 原始消息数组
- * @param customInjects 自定义注入提示词数组
  * @param config 配置参数，用于过滤检查
  * @returns Promise<RolePrompt[]> 处理后的消息数组，包含所有注入的提示词
  */
 async function populationInjectionPrompts(
-  baseData: BaseData,
   messages: RolePrompt[],
-  customInjects: Omit<InjectionPrompt, 'id'>[] = [],
   config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
 ) {
   const processedMessages = [...messages];
@@ -313,21 +305,6 @@ async function populationInjectionPrompts(
       injection_depth: power_user.persona_description_depth,
       injected: true,
     });
-  }
-
-  if (!isPromptFiltered('char_depth_prompt', config)) {
-    const wiDepthPrompt = baseData.worldInfo.worldInfoDepth;
-    if (wiDepthPrompt) {
-      for (const entry of wiDepthPrompt) {
-        const content = await getExtensionPromptByName(`customDepthWI-${entry.depth}-${entry.role}`);
-        injectionPrompts.push({
-          role: getPromptRole(entry.role),
-          content: content,
-          injection_depth: entry.depth,
-          injected: true,
-        });
-      }
-    }
   }
 
   const knownExtensionPrompts = [
@@ -382,12 +359,13 @@ async function populationInjectionPrompts(
         .map(x => x.content)
         .join(separator);
 
-      const extensionPrompt = await getExtensionPrompt(
+      const extensionPrompt = await overridedGetExtensionPrompt(
         extension_prompt_types.IN_CHAT,
         i,
         separator,
         roleTypes[role],
         false,
+        config,
       );
       const jointPrompt = [rolePrompts, extensionPrompt]
         .filter(x => x)
@@ -407,6 +385,47 @@ async function populationInjectionPrompts(
   }
 
   return processedMessages;
+}
+
+async function overridedGetExtensionPrompt(
+  position = extension_prompt_types.IN_PROMPT,
+  depth: number | undefined = undefined,
+  separator: string = '\n',
+  role: number | undefined = undefined,
+  wrap: boolean = true,
+  config: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
+) {
+  // @ts-expect-error 无视类型
+  const filterByFunction = async prompt => {
+    const hasFilter = typeof prompt.filter === 'function';
+    if (hasFilter && !(await prompt.filter())) {
+      return false;
+    }
+    return true;
+  };
+  const promptPromises = Object.keys(extension_prompts)
+    .sort()
+    .filter(x => !isPromptFiltered('char_depth_prompt', config) || !/customDepthWI-\d+-\d+/.test(x))
+    // @ts-expect-error 无视类型
+    .map(x => extension_prompts[x])
+    .filter(x => x.position == position && x.value)
+    .filter(x => depth === undefined || x.depth === undefined || x.depth === depth)
+    .filter(x => role === undefined || x.role === undefined || x.role === role)
+    .filter(filterByFunction);
+  const prompts = await Promise.all(promptPromises);
+
+  // @ts-expect-error 无视类型
+  let values = prompts.map(x => x.value.trim()).join(separator);
+  if (wrap && values.length && !values.startsWith(separator)) {
+    values = separator + values;
+  }
+  if (wrap && values.length && !values.endsWith(separator)) {
+    values = values + separator;
+  }
+  if (values.length) {
+    values = substituteParams(values);
+  }
+  return values;
 }
 
 /**
