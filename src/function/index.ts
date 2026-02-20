@@ -117,8 +117,10 @@ import {
   _getButtonEvent,
   _getScriptButtons,
   _getScriptInfo,
+  _getScriptName,
   _replaceScriptButtons,
   _replaceScriptInfo,
+  _updateScriptButtonsWith,
   getAllEnabledScriptButtons,
 } from '@/function/script';
 import { triggerSlash } from '@/function/slash';
@@ -213,7 +215,9 @@ function getTavernHelper() {
       _getButtonEvent,
       _getScriptButtons,
       _replaceScriptButtons,
+      _updateScriptButtonsWith,
       _appendInexistentScriptButtons,
+      _getScriptName,
       _getScriptInfo,
       _replaceScriptInfo,
 

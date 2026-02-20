@@ -46,6 +46,30 @@ declare function getScriptButtons(): ScriptButton[];
 declare function replaceScriptButtons(buttons: ScriptButton[]): void;
 
 /**
+ * 用 `updater` 函数更新脚本按钮列表, **只能在脚本中使用**
+ *
+ * @param updater 用于更新脚本按钮列表的函数. 它应该接收脚本按钮列表作为参数, 并返回更新后的脚本按钮列表.
+ *
+ * @returns 更新后的脚本按钮列表
+ *
+ * @example
+ * // 新增一个按钮到末尾
+ * updateVariablesWith(buttons => [...buttons, { name: '新按钮', visible: true }]);
+ */
+declare function updateScriptButtonsWith(updater: (buttons: ScriptButton[]) => ScriptButton[]): ScriptButton[];
+
+/**
+ * 用 `updater` 函数更新脚本按钮列表, **只能在脚本中使用**
+ *
+ * @param updater 用于更新脚本按钮列表的函数. 它应该接收脚本按钮列表作为参数, 并返回更新后的脚本按钮列表.
+ *
+ * @returns 更新后的脚本按钮列表
+ */
+declare function updateScriptButtonsWith(
+  updater: (buttons: ScriptButton[]) => Promise<ScriptButton[]>,
+): Promise<ScriptButton[]>;
+
+/**
  * 为脚本按钮列表末尾添加不存在的按钮, 不会重复添加同名按钮, **只能在脚本中使用**
  *
  * @param buttons
@@ -55,6 +79,9 @@ declare function replaceScriptButtons(buttons: ScriptButton[]): void;
  * appendInexistentScriptButtons([{name: '重新开始', visible: true}]);
  */
 declare function appendInexistentScriptButtons(buttons: ScriptButton[]): void;
+
+/** 获取脚本名称 */
+declare function getScriptName(): string;
 
 /** 获取脚本作者注释 */
 declare function getScriptInfo(): string;

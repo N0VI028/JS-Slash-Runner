@@ -1,6 +1,7 @@
 import { _getScriptId } from '@/function/util';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { getButtonId } from '@/store/iframe_runtimes/script';
+import isPromise from 'is-promise';
 
 type ScriptButton = {
   name: string;
@@ -32,7 +33,35 @@ export function _replaceScriptButtons(this: Window, param1: string | ScriptButto
   if (!script) {
     return;
   }
-  script.button.buttons = typeof param1 === 'string' ? param2! : param1;
+  const new_buttons = typeof param1 === 'string' ? param2! : param1;
+  if (!_.isEqual(script.button.buttons, new_buttons)) {
+    script.button.buttons = new_buttons;
+  }
+}
+
+export function _updateScriptButtonsWith(
+  this: Window,
+  updater: (buttons: ScriptButton[]) => ScriptButton[],
+): ScriptButton[];
+export function _updateScriptButtonsWith(
+  this: Window,
+  updater: (buttons: ScriptButton[]) => Promise<ScriptButton[]>,
+): Promise<ScriptButton[]>;
+export function _updateScriptButtonsWith(
+  this: Window,
+  updater: ((buttons: ScriptButton[]) => ScriptButton[]) | ((buttons: ScriptButton[]) => Promise<ScriptButton[]>),
+): ScriptButton[] | Promise<ScriptButton[]> {
+  const buttons = _getScriptButtons.call(this);
+  let result = updater(buttons);
+  if (isPromise(result)) {
+    result = result.then((result: ScriptButton[]) => {
+      _replaceScriptButtons.call(this, result);
+      return result;
+    });
+  } else {
+    _replaceScriptButtons.call(this, result);
+  }
+  return result;
 }
 
 export function _appendInexistentScriptButtons(this: Window, script_id: string, buttons: ScriptButton[]): void;
@@ -41,14 +70,22 @@ export function _appendInexistentScriptButtons(
   this: Window,
   param1: string | ScriptButton[],
   param2?: ScriptButton[],
-): void {
-  const buttons = typeof param1 === 'string' ? param2! : param1;
-  const script_buttons = _getScriptButtons.call(this);
-  const inexistent_buttons = buttons.filter(button => !script_buttons.some(b => b.name === button.name));
-  if (inexistent_buttons.length === 0) {
-    return;
+): ScriptButton[] {
+  const new_buttons = typeof param1 === 'string' ? param2! : param1;
+  // @ts-expect-error 类型正确
+  return _updateScriptButtonsWith.call(this, buttons => {
+    const inexistent_buttons = new_buttons.filter(button => !buttons.some(b => b.name === button.name));
+    return [...buttons, ...inexistent_buttons];
+  });
+}
+
+export function _getScriptName(this: Window): string {
+  // TODO: 对于预设脚本、角色脚本, $(window).on('pagehide') 时已经切换了角色卡, get 会失败
+  const script = useScriptIframeRuntimesStore().get(_getScriptId.call(this));
+  if (!script) {
+    return '';
   }
-  _replaceScriptButtons.call(this, [...script_buttons, ...inexistent_buttons]);
+  return script.name;
 }
 
 export function _getScriptInfo(this: Window): string {
