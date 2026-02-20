@@ -14,7 +14,7 @@ ${third_party}
 </head>
 <body>
 <script type="module">
-${content}
+${content.match(/^\s*```[^\n]*\n(.*)\n```\s*$/is)?.[1] ?? content}
 </script>
 </body>
 </html>
