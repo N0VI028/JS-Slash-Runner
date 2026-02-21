@@ -1,6 +1,6 @@
 {
   "name": "JS-Slash-Runner",
-  "version": "4.7.10",
+  "version": "4.7.11",
   "scripts": {
     "build": "vite build",
     "watch": "vite build --watch --mode development",
