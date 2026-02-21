@@ -14,7 +14,7 @@ export function useCheckEnablementPopup(
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,
 ) {
   // TODO: Don't Repeat
-  eventSource.once('chatLoaded', () => {
+  eventSource.once(event_types.SETTINGS_UPDATED, () => {
     const existing_presets = new Set(preset_manager.getAllPresets());
     _.remove(global_settings.settings.script.popuped.presets, preset => !existing_presets.has(preset));
     _.remove(global_settings.settings.script.enabled.presets, preset => !existing_presets.has(preset));
@@ -83,7 +83,7 @@ export function useCheckEnablementPopup(
     );
   }
 
-  eventSource.once('chatLoaded', () => {
+  eventSource.once(event_types.SETTINGS_UPDATED, () => {
     const existing_characters = new Set(characters.map(character => character?.name ?? '').filter(Boolean));
     _.remove(global_settings.settings.script.popuped.characters, character => !existing_characters.has(character));
     _.remove(global_settings.settings.script.enabled.characters, character => !existing_characters.has(character));

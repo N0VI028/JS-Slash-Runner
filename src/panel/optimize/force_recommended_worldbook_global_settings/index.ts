@@ -1,5 +1,5 @@
 import { setLorebookSettings } from '@/function/lorebook';
-import { eventSource } from '@sillytavern/script';
+import { event_types, eventSource } from '@sillytavern/script';
 
 function sync_lorebook_settings() {
   const EXPECTED_SETTINGS: Record<string, any> = {
@@ -23,7 +23,7 @@ function sync_lorebook_settings() {
 }
 
 export function useForceRecommendedWorldbookGlobalSettings(enabled: Readonly<Ref<boolean>>) {
-  eventSource.once('chatLoaded', () => {
+  eventSource.once(event_types.SETTINGS_UPDATED, () => {
     watchImmediate(enabled, new_enabled => {
       if (new_enabled) {
         sync_lorebook_settings();

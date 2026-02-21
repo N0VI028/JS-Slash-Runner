@@ -1,4 +1,4 @@
-import { eventSource, saveSettingsDebounced } from '@sillytavern/script';
+import { event_types, eventSource, saveSettingsDebounced } from '@sillytavern/script';
 import { power_user } from '@sillytavern/scripts/power-user';
 
 interface ExpectedOption {
@@ -17,7 +17,7 @@ function toggleIfNotAllowed(option: ExpectedOption): boolean {
 }
 
 export function useDisableIncompatibleOption(enabled: Readonly<Ref<boolean>>) {
-  eventSource.once('chatLoaded', () => {
+  eventSource.once(event_types.SETTINGS_UPDATED, () => {
     watchImmediate(enabled, new_enabled => {
       if (!new_enabled) {
         return;

@@ -37,7 +37,7 @@ function cancelChatMessages() {
 }
 
 export function useBetterMessageToLoad(enabled: Readonly<Ref<boolean>>) {
-  eventSource.once('chatLoaded', () => {
+  eventSource.once(event_types.SETTINGS_UPDATED, () => {
     watchImmediate(enabled, new_enabled => {
       const $input = $('#chat_truncation, #chat_truncation_counter');
       const $text = $input.parent().find('[data-i18n="# Messages to Load"]');
