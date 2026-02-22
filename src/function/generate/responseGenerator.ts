@@ -81,14 +81,14 @@ class StreamingProcessor {
     throw Error('Generation function for streaming is not hooked up');
   }
 
-  async generate() {
+  async generate(): Promise<string> {
     try {
       const sw = new Stopwatch(1000 / power_user.streaming_fps);
 
       for await (const { text } of this.generator()) {
         if (this.isStopped) {
           this.messageBuffer = '';
-          return;
+          return this.result;
         }
 
         this.result = text;
