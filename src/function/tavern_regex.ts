@@ -128,7 +128,7 @@ export function to_tavern_regex(regex_script_data: RegexScriptData): TavernRegex
     enabled: !regex_script_data.disabled,
 
     find_regex: regex_script_data.findRegex,
-    trim_strings: regex_script_data.trimStrings,
+    trim_strings: regex_script_data.trimStrings || [],
     replace_string: regex_script_data.replaceString,
 
     source: {
@@ -157,7 +157,7 @@ export function from_tavern_regex(tavern_regex: TavernRegex): RegexScriptData {
     runOnEdit: tavern_regex.run_on_edit,
 
     findRegex: tavern_regex.find_regex,
-    trimStrings: tavern_regex.trim_strings,
+    trimStrings: tavern_regex.trim_strings || [],
     replaceString: tavern_regex.replace_string,
 
     placement: [
