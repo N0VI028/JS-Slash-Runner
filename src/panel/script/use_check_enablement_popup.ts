@@ -2,7 +2,7 @@ import Popup from '@/panel/component/Popup.vue';
 import { useCharacterScriptsStore, usePresetScriptsStore } from '@/store/scripts';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { preset_manager, version } from '@/util/tavern';
-import { characters, event_types, eventSource } from '@sillytavern/script';
+import { event_types, eventSource } from '@sillytavern/script';
 import { v1CharData } from '@sillytavern/scripts/char-data';
 import { compare } from 'compare-versions';
 
@@ -63,9 +63,7 @@ export function useCheckEnablementPopup(
       }
     });
     eventSource.on(event_types.PRESET_DELETED, ({ name }: { name: string }) => {
-      if (global_settings.settings.script.popuped.presets.includes(name)) {
-        _.pull(global_settings.settings.script.popuped.presets, name);
-      }
+      _.pull(global_settings.settings.script.popuped.presets, name);
       _.pull(global_settings.settings.script.enabled.presets, name);
     });
   } else {
@@ -83,10 +81,7 @@ export function useCheckEnablementPopup(
     );
   }
 
-  eventSource.once(event_types.SETTINGS_UPDATED, () => {
-    const existing_characters = new Set(characters.map(character => character?.name ?? '').filter(Boolean));
-    _.remove(global_settings.settings.script.popuped.characters, character => !existing_characters.has(character));
-    _.remove(global_settings.settings.script.enabled.characters, character => !existing_characters.has(character));
+  eventSource.once('chatLoaded', () => {
     watch(
       character_name,
       new_name => {
@@ -133,9 +128,7 @@ export function useCheckEnablementPopup(
     }
   });
   eventSource.on(event_types.CHARACTER_DELETED, ({ character }: { character: v1CharData }) => {
-    if (global_settings.settings.script.popuped.characters.includes(character.name)) {
-      _.pull(global_settings.settings.script.popuped.characters, character.name);
-    }
+    _.pull(global_settings.settings.script.popuped.characters, character.name);
     _.pull(global_settings.settings.script.enabled.characters, character.name);
   });
 }
