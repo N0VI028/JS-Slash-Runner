@@ -77,42 +77,45 @@
       </div>
     </template>
     <template v-else>
-      <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :item-gap="7" :buffer="10">
-        <template #default="{ itemData: item_data }">
-          <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
-            <div
-              class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
-              @click="is_expanded[item_data.id] = !is_expanded[item_data.id]"
-            >
-              <span>
-                Role:
-                <span> {{ roleIcons[item_data.role] }} {{ item_data.role }} </span>
-                | Tokens: <span>{{ item_data.token }}</span>
-              </span>
-              <div class="flex gap-1">
-                <div class="fa-solid fa-copy cursor-pointer" title="复制" @click.stop="copyPrompt(item_data.content)" />
-                <div
-                  class="fa-solid"
-                  :class="is_expanded[item_data.id] ? 'fa-circle-chevron-up' : 'fa-circle-chevron-down'"
-                ></div>
-              </div>
-            </div>
-            <template v-if="is_expanded[item_data.id]">
-              <Divider />
-              <!-- prettier-ignore-attribute -->
+      <div ref="virt_list_container" class="flex-1 overflow-hidden">
+        <VirtList ref="virt_list" item-key="id" :list="filtered_prompts" :item-gap="7" :buffer="10">
+          <template #default="{ itemData: item_data }">
+            <div class="rounded-md border border-(--SmartThemeBorderColor) p-0.5 text-(--SmartThemeBodyColor)">
               <div
-                class="
-                  mt-0.5 max-h-[40%] overflow-x-hidden overflow-y-auto rounded-b-md leading-[1.4] wrap-break-word
-                  whitespace-pre-wrap text-(--mainFontSize)
-                "
+                class="flex cursor-pointer items-center justify-between rounded-md rounded-b-none"
+                @click="is_expanded[item_data.id] = !is_expanded[item_data.id]"
               >
-                <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
-                <ImageGallery v-if="item_data.images && item_data.images.length" :images="item_data.images" />
+                <span>
+                  Role:
+                  <span> {{ roleIcons[item_data.role] }} {{ item_data.role }} </span>
+                  | Tokens: <span>{{ item_data.token }}</span>
+                </span>
+                <div class="flex gap-1">
+                  <div class="fa-solid fa-copy cursor-pointer" title="复制" @click.stop="copyPrompt(item_data.content)" />
+                  <div
+                    class="fa-solid"
+                    :class="is_expanded[item_data.id] ? 'fa-circle-chevron-up' : 'fa-circle-chevron-down'"
+                  ></div>
+                </div>
               </div>
-            </template>
-          </div>
-        </template>
-      </VirtList>
+              <template v-if="is_expanded[item_data.id]">
+                <Divider />
+                <!-- prettier-ignore-attribute -->
+                <div
+                  class="mt-0.5 rounded-b-md leading-[1.4] wrap-break-word whitespace-pre-wrap text-(--mainFontSize)"
+                  :style="expanded_content_style"
+                  tabindex="0"
+                  role="region"
+                  :aria-label="`${item_data.role} 提示词内容`"
+                >
+                  <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
+                  <ImageGallery v-if="item_data.images && item_data.images.length" :images="item_data.images" />
+                </div>
+              </template>
+            </div>
+          </template>
+        </VirtList>
+      </div>
     </template>
   </div>
 </template>
@@ -135,8 +138,9 @@ import {
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
 import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
-import { Teleport } from 'vue';
+import { Teleport, nextTick } from 'vue';
 import { VirtList } from 'vue-virt-list';
+import { useResizeObserver, throttleFilter } from '@vueuse/core';
 
 const is_filter_opened = ref<boolean>(false);
 const teleportTarget = useTemplateRef<HTMLElement>('teleportTarget');
@@ -156,6 +160,35 @@ export interface PromptData {
 }
 
 const virt_list_ref = useTemplateRef('virt_list');
+const virt_list_container_ref = useTemplateRef<HTMLElement>('virt_list_container');
+
+const container_height = ref(0);
+
+useResizeObserver(
+  virt_list_container_ref,
+  (entries) => {
+    const entry = entries[0];
+    if (entry) {
+      container_height.value = entry.contentRect.height;
+      // 触发虚拟列表重算，避免滚动位置错位
+      nextTick(() => {
+        virt_list_ref.value?.forceUpdate();
+      });
+    }
+  },
+  { eventFilter: throttleFilter(16) },
+);
+
+const expanded_content_style = computed(() => {
+  if (container_height.value <= 0) {
+    return { maxHeight: '40vh', overflowY: 'auto' as const, overflowX: 'hidden' as const };
+  }
+  return {
+    maxHeight: `${container_height.value * 0.7}px`,
+    overflowY: 'auto' as const,
+    overflowX: 'hidden' as const,
+  };
+});
 
 const model = ref<string>(getChatCompletionModel());
 useEventSourceOn(event_types.CHATCOMPLETION_MODEL_CHANGED, () => {
