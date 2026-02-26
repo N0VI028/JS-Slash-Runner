@@ -59,7 +59,12 @@
         {{ t`在AI流式输出时就渲染，某些前端界面可能无法这样渲染。此外，这可能与某些脚本、插件、酒馆美化不兼容` }}
       </template>
       <template #content>
-        <Toggle id="TH-render-allow-streaming" v-model="allow_streaming" />
+        <Toggle
+          id="TH-render-allow-streaming"
+          :key="streaming_toggle_key"
+          :model-value="allow_streaming"
+          @update:model-value="handleStreamingChange"
+        />
       </template>
     </Item>
   </div>
@@ -74,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import Popup from '@/panel/component/Popup.vue';
 import Iframe from '@/panel/render/Iframe.vue';
 import Streaming from '@/panel/render/Streaming.vue';
 import { useMacroLike } from '@/panel/render/macro_like';
@@ -81,6 +87,7 @@ import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
+import { useModal } from 'vue-final-modal';
 
 const global_settings = useGlobalSettingsStore();
 const { enabled, collapse_code_block, allow_streaming, use_blob_url, optimize_hljs, depth } = toRefs(
@@ -120,6 +127,37 @@ const enable_allow_streaming = computed(() => {
 useCollapseCodeBlock(enable_collapse_code_block, enable_allow_streaming);
 useMacroLike(macro_enabled);
 const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
+
+const { open: openStreamingConfirm } = useModal({
+  component: Popup,
+  attrs: {
+    buttons: [
+      {
+        name: t`确定`,
+        shouldEmphasize: true,
+        onClick: (close: () => void) => {
+          allow_streaming.value = true;
+          close();
+        },
+      },
+      { name: t`取消` },
+    ],
+  },
+  slots: { default: `<h2>⚠️${t`警告`}</h2><p>${t`启用流式渲染可能与某些脚本、插件或酒馆美化不兼容，导致界面异常或功能失效。是否继续？`}</p>` },
+});
+
+/**
+ * 拦截流式渲染开关，开启时先弹确认框
+ */
+const streaming_toggle_key = ref(0);
+function handleStreamingChange(val: boolean) {
+  if (val && !allow_streaming.value) {
+    streaming_toggle_key.value++;
+    openStreamingConfirm();
+  } else {
+    allow_streaming.value = val;
+  }
+}
 </script>
 
 <style>
