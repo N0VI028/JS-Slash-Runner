@@ -582,7 +582,7 @@ declare const SillyTavern: {
   ) => string;
   readonly shouldSendOnEnter: () => boolean;
   readonly isMobile: () => boolean;
-  readonly t: (strings: string, ...values: any[]) => string;
+  readonly t: (strings: TemplateStringsArray, ...values: any[]) => string;
   readonly translate: (text: string, key?: string | null) => string;
   readonly getCurrentLocale: () => string;
   readonly addLocaleData: (localeId: string, data: Record<string, string>) => void;
