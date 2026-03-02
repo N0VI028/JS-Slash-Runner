@@ -169,6 +169,17 @@ declare function getLoadedPresetName(): string;
 declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
 
 /**
+ * 获取 `preset_name` 预设的内容
+ *
+ * @param preset_name 预设名称
+ *
+ * @returns 预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ */
+declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
+
+/**
  * 新建 `preset_name` 预设, 内容为 `preset`
  *
  * @param preset_name 预设名称
@@ -214,17 +225,6 @@ declare function deletePreset(preset_name: Exclude<string, 'in_use'>): Promise<b
  * @returns 是否成功重命名, 可能因预设不存在等原因而失败
  */
 declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: string): Promise<boolean>;
-
-/**
- * 获取 `preset_name` 预设的内容
- *
- * @param preset_name 预设名称
- *
- * @returns 预设内容
- *
- * @throws 如果预设不存在, 将会抛出异常
- */
-declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
 
 type ReplacePresetOptions = {
   /** 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */

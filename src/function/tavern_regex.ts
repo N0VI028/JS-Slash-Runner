@@ -2,6 +2,7 @@
 import { refreshOneMessage } from '@/function/displayed_message';
 import { macros } from '@/function/macro_like';
 import { RawCharacter } from '@/function/raw_character';
+import { getCompletionPresetByName, preset_manager, writeExtensionField } from '@/util/tavern';
 import {
   characters,
   chat,
@@ -9,12 +10,14 @@ import {
   eventSource,
   getCurrentChatId,
   saveSettings,
+  saveSettingsDebounced,
   substituteParams,
   this_chid,
 } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
-import { extension_settings, writeExtensionField } from '@sillytavern/scripts/extensions';
+import { extension_settings } from '@sillytavern/scripts/extensions';
 import { getRegexedString, regex_placement } from '@sillytavern/scripts/extensions/regex/engine';
+import { oai_settings } from '@sillytavern/scripts/openai';
 
 type FormatAsTavernRegexedStringOption = {
   depth?: number;
@@ -104,21 +107,29 @@ type TavernRegexOptionCharacter = {
 };
 type TavernRegexOptionPreset = {
   type: 'preset';
-  name?: string | 'current';
+  name?: string | 'in_use';
 };
 type TavernRegexOption = TavernRegexOptionGlobal | TavernRegexOptionCharacter | TavernRegexOptionPreset;
 
-export function get_tavern_regexes_without_clone(option: TavernRegexOption): RegexScriptData[] {
+export function get_tavern_regexes_without_clone(option: TavernRegexOption): TavernRegex[] {
+  let data: RegexScriptData[];
   switch (option.type) {
     case 'global':
-      return extension_settings.regex ?? [];
+      data = extension_settings.regex ?? [];
+      break;
     case 'character': {
       const id = RawCharacter.findIndex(option.name ?? 'current');
-      return characters.at(id)?.data?.extensions?.regex_scripts ?? [];
+      data = characters.at(id)?.data?.extensions?.regex_scripts ?? [];
+      break;
     }
-    case 'preset':
-      throw Error('暂不支持获取预设的酒馆正则');
+    case 'preset': {
+      option.name ??= 'in_use';
+      const preset = option.name === 'in_use' ? oai_settings : getCompletionPresetByName(option.name);
+      data = preset?.extensions?.regex_scripts ?? [];
+      break;
+    }
   }
+  return data.map(to_tavern_regex);
 }
 
 export function to_tavern_regex(regex_script_data: RegexScriptData): TavernRegex {
@@ -185,45 +196,51 @@ export function isCharacterTavernRegexesEnabled(): boolean {
   );
 }
 
-type GetTavernRegexesOption = {
-  scope?: 'all' | 'global' | 'character'; // 按所在区域筛选正则
+type GetTavernRegexesOption = TavernRegexOption & {
+  /** @deprecated 请使用 `type` */
+  scope?: 'all' | 'global' | 'character';
+  /** @deprecated 请获取所有正则然后筛选 */
   enable_state?: 'all' | 'enabled' | 'disabled'; // 按是否被开启筛选正则
 };
 
-export function getTavernRegexes({ scope = 'all', enable_state = 'all' }: GetTavernRegexesOption = {}): TavernRegex[] {
-  if (!['all', 'enabled', 'disabled'].includes(enable_state)) {
-    throw Error(`提供的 enable_state 无效, 请提供 'all', 'enabled' 或 'disabled', 你提供的是: ${enable_state}`);
-  }
-  if (!['all', 'global', 'character'].includes(scope)) {
-    throw Error(`提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${scope}`);
+export function getTavernRegexes(option?: GetTavernRegexesOption): TavernRegex[] {
+  if (option?.type === undefined) {
+    option ??= { type: 'global' };
+    const { scope = 'all', enable_state = 'all' } = option;
+
+    if (!['all', 'enabled', 'disabled'].includes(enable_state)) {
+      throw Error(`提供的 enable_state 无效, 请提供 'all', 'enabled' 或 'disabled', 你提供的是: ${enable_state}`);
+    }
+    if (!['all', 'global', 'character'].includes(scope)) {
+      throw Error(`提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${scope}`);
+    }
+
+    let regexes: TavernRegex[] = [];
+    if (scope === 'all' || scope === 'global') {
+      regexes = [
+        ...regexes,
+        ...get_tavern_regexes_without_clone({ type: 'global' }).map(regex => ({ ...regex, scope: 'global' })),
+      ];
+    }
+    if (scope === 'all' || scope === 'character') {
+      regexes = [
+        ...regexes,
+        ...get_tavern_regexes_without_clone({ type: 'character' }).map(regex => ({ ...regex, scope: 'character' })),
+      ];
+    }
+    if (enable_state !== 'all') {
+      regexes = regexes.filter(regex => regex.enabled === (enable_state === 'enabled'));
+    }
+
+    return klona(regexes);
   }
 
-  let regexes: TavernRegex[] = [];
-  if (scope === 'all' || scope === 'global') {
-    regexes = [
-      ...regexes,
-      ...get_tavern_regexes_without_clone({ type: 'global' })
-        .map(to_tavern_regex)
-        .map(regex => ({ ...regex, scope: 'global' })),
-    ];
-  }
-  if (scope === 'all' || scope === 'character') {
-    regexes = [
-      ...regexes,
-      ...get_tavern_regexes_without_clone({ type: 'character' })
-        .map(to_tavern_regex)
-        .map(regex => ({ ...regex, scope: 'character' })),
-    ];
-  }
-  if (enable_state !== 'all') {
-    regexes = regexes.filter(regex => regex.enabled === (enable_state === 'enabled'));
-  }
-
-  return klona(regexes);
+  return klona(get_tavern_regexes_without_clone(option));
 }
 
-type ReplaceTavernRegexesOption = {
-  scope?: 'all' | 'global' | 'character'; // 要替换的酒馆正则部分
+type ReplaceTavernRegexesOption = TavernRegexOption & {
+  /** @deprecated 请使用 `type` */
+  scope?: 'all' | 'global' | 'character';
 };
 
 export async function render_tavern_regexes() {
@@ -237,36 +254,71 @@ export async function render_tavern_regexes() {
 }
 export const render_tavern_regexes_debounced = _.debounce(render_tavern_regexes, 1000);
 
-export async function replaceTavernRegexes(
-  regexes: TavernRegex[],
-  { scope = 'all' }: ReplaceTavernRegexesOption,
-): Promise<void> {
-  if (!['all', 'global', 'character'].includes(scope)) {
-    throw Error(`提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${scope}`);
-  }
-
-  // TODO: `trimStrings` and `substituteRegex` are not considered
+export async function replaceTavernRegexes(regexes: TavernRegex[], option?: ReplaceTavernRegexesOption): Promise<void> {
   regexes
     .filter(regex => regex.script_name == '')
     .forEach(regex => {
       regex.script_name = `未命名-${regex.id}`;
     });
-  // @ts-expect-error 确实有 `scope` 字段, 之后想办法弃用整个函数
-  const [global_regexes, character_regexes] = _.partition(regexes, regex => regex.scope === 'global').map(paritioned =>
-    paritioned.map(from_tavern_regex),
-  );
 
-  const character = characters.at(this_chid as unknown as number);
-  if (scope === 'all' || scope === 'global') {
-    extension_settings.regex = global_regexes;
-  }
-  if (scope === 'all' || scope === 'character') {
-    if (character) {
+  if (option?.type === undefined) {
+    option ??= { type: 'global' };
+    const { scope = 'all' } = option;
+    if (!['all', 'global', 'character'].includes(scope)) {
+      throw Error(`提供的 scope 无效, 请提供 'all', 'global' 或 'character', 你提供的是: ${scope}`);
+    }
+
+    // TODO: `trimStrings` and `substituteRegex` are not considered
+    // @ts-expect-error 确实有 `scope` 字段, 之后想办法弃用整个函数
+    const [global_regexes, character_regexes] = _.partition(regexes, regex => regex.scope === 'global').map(
+      paritioned => paritioned.map(from_tavern_regex),
+    );
+
+    const character = characters.at(this_chid as unknown as number);
+    if (scope === 'all' || scope === 'global') {
+      extension_settings.regex = global_regexes;
+    }
+    if (scope === 'all' || scope === 'character') {
+      if (!character) {
+        return;
+      }
       character.data.extensions.regex_scripts = character_regexes;
       await writeExtensionField(this_chid as unknown as string, 'regex_scripts', character_regexes);
     }
+    return render_tavern_regexes_debounced();
   }
-  render_tavern_regexes_debounced();
+
+  const converted = regexes.map(from_tavern_regex);
+  switch (option.type) {
+    case 'global':
+      extension_settings.regex = converted;
+      break;
+    case 'preset': {
+      option.name ??= 'in_use';
+      if (option.name !== 'in_use' && !preset_manager.getAllPresets().includes(option.name)) {
+        return;
+      }
+      if (option.name === 'in_use') {
+        _.set(oai_settings, 'extensions.regex_scripts', converted);
+        saveSettingsDebounced();
+      } else {
+        const data = getCompletionPresetByName(option.name);
+        _.set(data, 'extensions.regex_scripts', converted);
+        await preset_manager.savePreset(option.name, data, { skipUpdate: true });
+      }
+      break;
+    }
+    case 'character': {
+      const id = RawCharacter.findIndex(option.name ?? 'current');
+      const character = characters.at(id);
+      if (!character) {
+        return;
+      }
+      character.data.extensions.regex_scripts = converted;
+      break;
+    }
+  }
+  return render_tavern_regexes_debounced();
 }
 
 type TavernRegexUpdater =
@@ -275,10 +327,10 @@ type TavernRegexUpdater =
 
 export async function updateTavernRegexesWith(
   updater: TavernRegexUpdater,
-  { scope = 'all' }: ReplaceTavernRegexesOption = {},
+  option?: ReplaceTavernRegexesOption,
 ): Promise<TavernRegex[]> {
-  let regexes = getTavernRegexes({ scope });
+  let regexes = getTavernRegexes(option);
   regexes = await updater(regexes);
-  await replaceTavernRegexes(regexes, { scope });
+  await replaceTavernRegexes(regexes, option);
   return regexes;
 }

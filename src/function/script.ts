@@ -1,7 +1,50 @@
 import { _getScriptId } from '@/function/util';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { getButtonId } from '@/store/iframe_runtimes/script';
+import { getScriptsStoreByType } from '@/store/scripts';
+import { ScriptTree } from '@/type/scripts';
 import isPromise from 'is-promise';
+import { PartialDeep } from 'type-fest';
+
+type ScriptTreesOptions = {
+  type: 'global' | 'preset' | 'character';
+};
+
+export function getScriptTrees(option: ScriptTreesOptions): ScriptTree[] {
+  return klona(getScriptsStoreByType(option.type).script_trees);
+}
+
+export function replaceScriptTrees(script_trees: PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void {
+  const store = getScriptsStoreByType(option.type);
+  store.script_trees.length = 0;
+  store.script_trees.push(...script_trees.map(tree => ScriptTree.parse(tree)));
+}
+
+export function updateScriptTreesWith(
+  updater: (script_trees: ScriptTree[]) => PartialDeep<ScriptTree>[],
+  option: ScriptTreesOptions,
+): ScriptTree[];
+export function updateScriptTreesWith(
+  updater: (script_trees: ScriptTree[]) => Promise<PartialDeep<ScriptTree>[]>,
+  option: ScriptTreesOptions,
+): Promise<ScriptTree[]>;
+export function updateScriptTreesWith(
+  updater:
+    | ((script_trees: ScriptTree[]) => PartialDeep<ScriptTree>[])
+    | ((script_trees: ScriptTree[]) => Promise<PartialDeep<ScriptTree>[]>),
+  option: ScriptTreesOptions,
+): ScriptTree[] | Promise<ScriptTree[]> {
+  const script_trees = getScriptTrees(option);
+  const result = updater(script_trees);
+  if (isPromise(result)) {
+    return result.then((result: PartialDeep<ScriptTree>[]) => {
+      replaceScriptTrees(result, option);
+      return getScriptTrees(option);
+    });
+  }
+  replaceScriptTrees(result, option);
+  return getScriptTrees(option);
+}
 
 type ScriptButton = {
   name: string;

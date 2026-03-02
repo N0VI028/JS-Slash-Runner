@@ -143,6 +143,17 @@ type WorldbookEntry = {
 };
 
 /**
+ * 获取 `worldbook_name` 世界书的内容
+ *
+ * @param worldbook_name 世界书名称
+ *
+ * @returns 世界书内容
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
+ */
+declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
+
+/**
  * 创建新的世界书
  *
  * @param worldbook_name 世界书名称
@@ -179,17 +190,6 @@ declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
 
 // TODO: rename 需要处理世界书绑定
 // export function renameWorldbook(old_name: string, new_name: string): boolean;
-
-/**
- * 获取 `worldbook_name` 世界书的内容
- *
- * @param worldbook_name 世界书名称
- *
- * @returns 世界书内容
- *
- * @throws 如果世界书不存在, 将会抛出错误
- */
-declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
 
 interface ReplaceWorldbookOptions {
   /** 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */

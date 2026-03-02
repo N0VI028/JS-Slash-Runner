@@ -215,15 +215,14 @@ export function updateVariablesWith(
   option: VariableOption = { type: 'chat' },
 ): Record<string, any> | Promise<Record<string, any>> {
   const variables = getVariables(option);
-  let result = updater(variables);
+  const result = updater(variables);
   if (isPromise(result)) {
-    result = result.then((result: Record<string, any>) => {
+    return result.then((result: Record<string, any>) => {
       replaceVariables(result, option);
       return result;
     });
-  } else {
-    replaceVariables(result, option);
   }
+  replaceVariables(result, option);
   return result;
 }
 

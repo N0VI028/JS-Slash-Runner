@@ -12,11 +12,6 @@
  */
 declare function getButtonEvent(button_name: string): string;
 
-type ScriptButton = {
-  name: string;
-  visible: boolean;
-};
-
 /**
  * 获取脚本的按钮列表, **只能在脚本中使用**
  *

@@ -200,7 +200,7 @@ declare function deleteVariable(
  *   }),
  * }), {type: 'message'});
  */
-function registerVariableSchema(
+declare function registerVariableSchema(
   schema: z.ZodType<any>,
   option: { type: 'global' | 'preset' | 'character' | 'chat' | 'message' },
 ): void;

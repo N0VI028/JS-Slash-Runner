@@ -1,9 +1,8 @@
 import { from_tavern_regex, TavernRegex, to_tavern_regex } from '@/function/tavern_regex';
 import { settingsToUpdate } from '@/util/compatibility';
-import { getCompletionPresetByName } from '@/util/tavern';
+import { getCompletionPresetByName, preset_manager } from '@/util/tavern';
 import { saveSettingsDebounced } from '@sillytavern/script';
 import { oai_settings, promptManager } from '@sillytavern/scripts/openai';
-import { getPresetManager } from '@sillytavern/scripts/preset-manager';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { LiteralUnion, PartialDeep, SetRequired } from 'type-fest';
 
@@ -569,8 +568,6 @@ function fromPreset(preset: Preset): _OriginalPreset {
   };
 }
 
-const preset_manager = getPresetManager('openai');
-
 export function getPresetNames(): string[] {
   return klona(['in_use', ...preset_manager.getAllPresets()]);
 }
@@ -586,6 +583,14 @@ export function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean {
   }
   preset_manager.selectPreset(preset_value);
   return true;
+}
+
+export function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset {
+  const original_preset = preset_name === 'in_use' ? oai_settings : getCompletionPresetByName(preset_name);
+  if (!original_preset) {
+    throw Error(`预设 '${preset_name}' 不存在`);
+  }
+  return klona(toPreset(original_preset, { in_use: preset_name === 'in_use' }));
 }
 
 export async function createPreset(
@@ -695,14 +700,6 @@ export async function renamePreset(preset_name: Exclude<string, 'in_use'>, new_n
   await createPreset(new_name, getPreset(preset_name)!);
   await deletePreset(preset_name);
   return true;
-}
-
-export function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset {
-  const original_preset = preset_name === 'in_use' ? oai_settings : getCompletionPresetByName(preset_name);
-  if (!original_preset) {
-    throw Error(`预设 '${preset_name}' 不存在`);
-  }
-  return klona(toPreset(original_preset, { in_use: preset_name === 'in_use' }));
 }
 
 export async function replacePreset(

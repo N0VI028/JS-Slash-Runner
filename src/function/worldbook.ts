@@ -349,6 +349,19 @@ function handleWorldbookEntriesCollision(
     uid: handle_uid_collision(entry.uid),
   }));
 }
+
+
+export async function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]> {
+  if (!getWorldbookNames().includes(worldbook_name)) {
+    throw Error(`未能找到世界书 '${worldbook_name}'`);
+  }
+  const original_worldbook_entries = await loadWorldInfo(worldbook_name).then(
+    data => (data! as { entries: { [uid: number]: _OriginalWorldbookEntry & _ImplicitKeys } }) ?? {},
+  );
+
+  return klona(_(original_worldbook_entries.entries).values().sortBy('displayIndex').map(toWorldbookEntry).value());
+}
+
 export async function createWorldbook(worldbook_name: string, worldbook: WorldbookEntry[] = []): Promise<boolean> {
   if (getWorldbookNames().includes(worldbook_name)) {
     return false;
@@ -399,17 +412,6 @@ export async function deleteWorldbook(worldbook_name: string): Promise<boolean> 
 
 // TODO: rename 需要处理世界书绑定
 // export function renameWorldbook(old_name: string, new_name: string): boolean;
-
-export async function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]> {
-  if (!getWorldbookNames().includes(worldbook_name)) {
-    throw Error(`未能找到世界书 '${worldbook_name}'`);
-  }
-  const original_worldbook_entries = await loadWorldInfo(worldbook_name).then(
-    data => (data! as { entries: { [uid: number]: _OriginalWorldbookEntry & _ImplicitKeys } }) ?? {},
-  );
-
-  return klona(_(original_worldbook_entries.entries).values().sortBy('displayIndex').map(toWorldbookEntry).value());
-}
 
 export async function replaceWorldbook(
   worldbook_name: string,
