@@ -43,3 +43,6 @@ export function isScript(script_tree: ScriptTree): script_tree is Script {
 export function isScriptFolder(script_tree: ScriptTree): script_tree is ScriptFolder {
   return script_tree.type === 'folder';
 }
+export function flattenScriptTree(script_tree: ScriptTree): Script[] {
+  return script_tree.type === 'folder' ? script_tree.scripts : [script_tree];
+}
