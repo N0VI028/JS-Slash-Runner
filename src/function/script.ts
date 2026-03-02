@@ -16,8 +16,18 @@ export function getScriptTrees(option: ScriptTreesOptions): ScriptTree[] {
 
 export function replaceScriptTrees(script_trees: PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void {
   const store = getScriptsStoreByType(option.type);
+
+  let parsed: ScriptTree[];
+  try {
+    parsed = script_trees.map(tree => ScriptTree.parse(tree));
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    toastr.error(errorMsg, '脚本数据验证失败');
+    throw error;
+  }
+
   store.script_trees.length = 0;
-  store.script_trees.push(...script_trees.map(tree => ScriptTree.parse(tree)));
+  store.script_trees.push(...parsed);
 }
 
 export function updateScriptTreesWith(
