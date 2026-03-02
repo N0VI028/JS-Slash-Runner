@@ -325,6 +325,7 @@ export async function replaceTavernRegexes(regexes: TavernRegex[], option?: Repl
         return;
       }
       character.data.extensions.regex_scripts = converted;
+      await writeExtensionField(String(id), 'regex_scripts', converted);
       break;
     }
   }
