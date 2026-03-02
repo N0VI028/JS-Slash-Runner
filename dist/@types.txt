@@ -1700,6 +1700,17 @@ declare function getLoadedPresetName(): string;
 declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
 
 /**
+ * 获取 `preset_name` 预设的内容
+ *
+ * @param preset_name 预设名称
+ *
+ * @returns 预设内容
+ *
+ * @throws 如果预设不存在, 将会抛出异常
+ */
+declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
+
+/**
  * 新建 `preset_name` 预设, 内容为 `preset`
  *
  * @param preset_name 预设名称
@@ -1745,17 +1756,6 @@ declare function deletePreset(preset_name: Exclude<string, 'in_use'>): Promise<b
  * @returns 是否成功重命名, 可能因预设不存在等原因而失败
  */
 declare function renamePreset(preset_name: Exclude<string, 'in_use'>, new_name: string): Promise<boolean>;
-
-/**
- * 获取 `preset_name` 预设的内容
- *
- * @param preset_name 预设名称
- *
- * @returns 预设内容
- *
- * @throws 如果预设不存在, 将会抛出异常
- */
-declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
 
 type ReplacePresetOptions = {
   /** 如果对 `'in_use'` 预设进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
@@ -2030,6 +2030,83 @@ declare function getChatHistoryDetail(data: any[], isGroupChat?: boolean): Promi
  * 获取所有处于启用状态的酒馆助手脚本按钮, 主要是方便 QR 助手等兼容脚本按钮
  */
 declare function getAllEnabledScriptButtons(): { [script_id: string]: { button_id: string; button_name: string }[] };
+
+type ScriptButton = {
+  name: string;
+  visible: boolean;
+};
+
+type Script = {
+  type: 'script',
+  enabled: boolean;
+  name: string;
+  id: string;
+  content: string;
+  info: string;
+  button: {
+    enabled: boolean;
+    buttons: Array<ScriptButton>;
+  }
+  data: Record<string, any>;
+};
+type ScriptFolder = {
+  type: 'folder';
+  enabled: boolean;
+  name: string;
+  id: string;
+  icon: string;
+  color: string;
+  scripts: Script[];
+}
+type ScriptTree = Script | ScriptFolder;
+
+type ScriptTreesOptions = {
+  /** 对全局脚本 (`'chat'`)、当前预设脚本 (`'preset'`) 或当前角色卡脚本 (`'global'`) 进行操作 */
+  type: 'global' | 'preset' | 'character';
+};
+
+/**
+ * 获取酒馆助手脚本列表
+ *
+ * @param option 要操作的酒馆助手脚本类型
+ *
+ * @returns 酒馆助手脚本列表
+ */
+declare function getScriptTrees(option: ScriptTreesOptions): ScriptTree[];
+
+/**
+ * 完全替换酒馆助手列表为 `script_trees`
+ *
+ * @param script_trees 要用于替换的酒馆助手列表
+ * @param option 要操作的酒馆助手脚本类型
+ */
+declare function replaceScriptTrees(script_trees: PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void;
+
+/**
+ * 用 `updater` 函数更新酒馆助手列表
+ *
+ * @param updater 用于更新酒馆助手列表的函数. 它应该接收酒馆助手列表作为参数, 并返回更新后的酒馆助手列表.
+ * @param option 要操作的酒馆助手脚本类型
+ *
+ * @returns 更新后的酒馆助手列表
+ */
+declare function updateScriptTreesWith(
+  updater: (script_trees: ScriptTree[]) => PartialDeep<ScriptTree>[],
+  option: ScriptTreesOptions,
+): ScriptTree[];
+
+/**
+ * 用 `updater` 函数更新酒馆助手列表
+ *
+ * @param updater 用于更新酒馆助手列表的函数. 它应该接收酒馆助手列表作为参数, 并返回更新后的酒馆助手列表.
+ * @param option 要操作的酒馆助手脚本类型
+ *
+ * @returns 更新后的酒馆助手列表
+ */
+declare function updateScriptTreesWith(
+  updater: (script_trees: ScriptTree[]) => Promise<PartialDeep<ScriptTree>[]>,
+  option: ScriptTreesOptions,
+): Promise<ScriptTree[]>;
 /**
  * 运行 Slash 命令, 注意如果命令写错了将不会有任何反馈
  *
@@ -2064,7 +2141,7 @@ type FormatAsTavernRegexedStringOption = {
   depth?: number;
   /** 角色卡名称; 不填则使用当前角色卡名称 */
   character_name?: string;
-}
+};
 
 /**
  * 对 `text` 应用酒馆正则
@@ -2113,32 +2190,41 @@ type TavernRegex = {
 
   min_depth: number | null;
   max_depth: number | null;
-}
+};
 
 /**
  * 判断局部正则是否启用
  */
 declare function isCharacterTavernRegexesEnabled(): boolean;
 
-type GetTavernRegexesOption = {
-  scope?: 'all' | 'global' | 'character';
-  enable_state?: 'all' | 'enabled' | 'disabled';
-}
+type TavernRegexOptionGlobal = {
+  /** 对全局正则 (`'global'`) 进行操作 */
+  type: 'global';
+};
+type TavernRegexOptionCharacter = {
+  /** 对角色卡局部 (`'character'`) 进行操作 */
+  type: 'character';
+  name?: string | 'current';
+};
+type TavernRegexOptionPreset = {
+  /** 对预设正则 (`'preset'`) 进行操作 */
+  type: 'preset';
+  name?: string | 'in_use';
+};
+type TavernRegexOption = TavernRegexOptionGlobal | TavernRegexOptionCharacter | TavernRegexOptionPreset;
 
 /**
  * 获取酒馆正则
  *
- * @param option 可选选项
- *   - `scope?:'all'|'global'|'character'`:         // 按所在区域筛选酒馆正则; 默认为 `'all'`
- *   - `enable_state?:'all'|'enabled'|'disabled'`:  // 按是否被开启筛选酒馆正则; 默认为 `'all'`
+ * @param option 要操作的酒馆正则类型
  *
  * @returns 一个数组, 数组的元素是酒馆正则 `TavernRegex`. 该数组依据正则作用于文本的顺序排序, 也就是酒馆显示正则的地方从上到下排列.
  */
-declare function getTavernRegexes({ scope, enable_state }?: GetTavernRegexesOption): TavernRegex[];
+declare function getTavernRegexes(option: TavernRegexOption): TavernRegex[];
 
 type ReplaceTavernRegexesOption = {
   scope?: 'all' | 'global' | 'character';
-}
+};
 
 /**
  * 完全替换酒馆正则为 `regexes`.
@@ -2148,10 +2234,9 @@ type ReplaceTavernRegexesOption = {
  * 之所以提供这么直接的函数, 是因为你可能需要调换正则顺序等.
  *
  * @param regexes 要用于替换的酒馆正则
- * @param option 可选选项
- *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
+ * @param option 要操作的酒馆正则类型
  */
-declare function replaceTavernRegexes(regexes: TavernRegex[], { scope }: ReplaceTavernRegexesOption): Promise<void>;
+declare function replaceTavernRegexes(regexes: TavernRegex[], option: TavernRegexOption): Promise<void>;
 
 type TavernRegexUpdater =
   | ((regexes: TavernRegex[]) => TavernRegex[])
@@ -2161,25 +2246,27 @@ type TavernRegexUpdater =
  * 用 `updater` 函数更新酒馆正则
  *
  * @param updater 用于更新酒馆正则的函数. 它应该接收酒馆正则作为参数, 并返回更新后的酒馆正则.
- * @param option 可选选项
- *   - scope?: 'all' | 'global' | 'character';  // 要替换的酒馆正则部分; 默认为 'all'
+ * @param option 要操作的酒馆正则类型
  *
  * @returns 更新后的酒馆正则
  *
  * @example
- * // 开启所有名字里带 "舞台少女" 的正则
- * await updateTavernRegexesWith(regexes => {
- *   regexes.forEach(regex => {
- *     if (regex.script_name.includes('舞台少女')) {
- *       regex.enabled = true;
- *     }
- *   });
- *   return regexes;
- * });
+ * // 开启所有名字里带 "舞台少女" 的全局正则
+ * await updateTavernRegexesWith(
+ *   regexes => {
+ *     regexes.forEach(regex => {
+ *       if (regex.script_name.includes('舞台少女')) {
+ *         regex.enabled = true;
+ *       }
+ *     });
+ *     return regexes;
+ *   },
+ *   { type: 'global' },
+ * );
  */
 declare function updateTavernRegexesWith(
   updater: TavernRegexUpdater,
-  option?: ReplaceTavernRegexesOption,
+  option: TavernRegexOption,
 ): Promise<TavernRegex[]>;
 /**
  * 替换字符串中的酒馆宏
@@ -2426,7 +2513,7 @@ declare function deleteVariable(
  *   }),
  * }), {type: 'message'});
  */
-function registerVariableSchema(
+declare function registerVariableSchema(
   schema: z.ZodType<any>,
   option: { type: 'global' | 'preset' | 'character' | 'chat' | 'message' },
 ): void;
@@ -2584,6 +2671,17 @@ type WorldbookEntry = {
 };
 
 /**
+ * 获取 `worldbook_name` 世界书的内容
+ *
+ * @param worldbook_name 世界书名称
+ *
+ * @returns 世界书内容
+ *
+ * @throws 如果世界书不存在, 将会抛出错误
+ */
+declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
+
+/**
  * 创建新的世界书
  *
  * @param worldbook_name 世界书名称
@@ -2620,17 +2718,6 @@ declare function deleteWorldbook(worldbook_name: string): Promise<boolean>;
 
 // TODO: rename 需要处理世界书绑定
 // export function renameWorldbook(old_name: string, new_name: string): boolean;
-
-/**
- * 获取 `worldbook_name` 世界书的内容
- *
- * @param worldbook_name 世界书名称
- *
- * @returns 世界书内容
- *
- * @throws 如果世界书不存在, 将会抛出错误
- */
-declare function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]>;
 
 interface ReplaceWorldbookOptions {
   /** 对于对世界书的更改, 世界书编辑器应该防抖渲染 (debounced) 还是立即渲染 (immediate)? 默认为性能更好的防抖渲染 */
@@ -4298,11 +4385,6 @@ declare const TavernHelper: typeof window.TavernHelper;
  * });
  */
 declare function getButtonEvent(button_name: string): string;
-
-type ScriptButton = {
-  name: string;
-  visible: boolean;
-};
 
 /**
  * 获取脚本的按钮列表, **只能在脚本中使用**
