@@ -12,7 +12,7 @@ import {
   saveSettings,
   saveSettingsDebounced,
   substituteParams,
-  this_chid,
+  this_chid
 } from '@sillytavern/script';
 import { RegexScriptData } from '@sillytavern/scripts/char-data';
 import { extension_settings } from '@sillytavern/scripts/extensions';
@@ -119,6 +119,11 @@ export function get_tavern_regexes_without_clone(option: TavernRegexOption): Tav
       break;
     case 'character': {
       const id = RawCharacter.findIndex(option.name ?? 'current');
+      if (id === -1) {
+        const errorMsg = `未能找到角色 '${option.name ?? 'current'}'`;
+        toastr.error(errorMsg, '角色不存在');
+        throw Error(errorMsg);
+      }
       data = characters.at(id)?.data?.extensions?.regex_scripts ?? [];
       break;
     }
@@ -310,6 +315,11 @@ export async function replaceTavernRegexes(regexes: TavernRegex[], option?: Repl
     }
     case 'character': {
       const id = RawCharacter.findIndex(option.name ?? 'current');
+      if (id === -1) {
+        const errorMsg = `未能找到角色 '${option.name ?? 'current'}'`;
+        toastr.error(errorMsg, '角色不存在');
+        throw Error(errorMsg);
+      }
       const character = characters.at(id);
       if (!character) {
         return;
