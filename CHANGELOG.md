@@ -1,4 +1,11 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.8.0
+
+### 📦函数
+
+- 不影响以前代码地重制了酒馆助手正则函数 `getTavernRegexes`、`replaceTavernRegexes`、`updateTavernRegexesWith`, 使之与变量函数、世界书函数等更为相似 ([文档链接](插入进来))
+- 新增了 `getScriptTrees`、`replaceScriptTrees`、`updateScriptTreesWith` 等函数, 用于在脚本内操控酒馆助手脚本列表 ([文档链接](插入进来))
+
 ## 4.7.12
 
 ### 🐛修复
