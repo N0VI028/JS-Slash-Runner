@@ -25,7 +25,7 @@ import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
-import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
+import { getScriptsStoreByType } from '@/store/scripts';
 import { ScriptData as BackwardScriptData } from '@/type/backward';
 import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts';
 import { uuidv4 } from '@sillytavern/scripts/utils';
@@ -66,23 +66,12 @@ function openCreator(type: 'script' | 'folder') {
   }
 }
 
-function getStoreFormType(target: 'global' | 'character' | 'preset'): ReturnType<typeof useGlobalScriptsStore> {
-  switch (target) {
-    case 'global':
-      return useGlobalScriptsStore();
-    case 'character':
-      return useCharacterScriptsStore();
-    case 'preset':
-      return usePresetScriptsStore();
-  }
-}
-
 function onScriptEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptForm) {
-  getStoreFormType(target).script_trees.push(Script.parse(result));
+  getScriptsStoreByType(target).script_trees.push(Script.parse(result));
 }
 
 function onFolderEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptFolderForm) {
-  getStoreFormType(target).script_trees.push(ScriptFolder.parse(result));
+  getScriptsStoreByType(target).script_trees.push(ScriptFolder.parse(result));
 }
 
 const { open: openFileDialog, onChange } = useFileDialog({
@@ -111,7 +100,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
         } else {
           toastr.success(t`成功导入脚本 '${script_tree.name}'`);
         }
-        getStoreFormType(target).script_trees.push(script_tree);
+        getScriptsStoreByType(target).script_trees.push(script_tree);
       } catch (err) {
         const error = err as Error;
         console.error(error);

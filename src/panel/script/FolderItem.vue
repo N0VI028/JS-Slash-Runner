@@ -88,7 +88,7 @@ import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
 import { ScriptFolderForm } from '@/panel/script/type';
-import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
+import { getScriptsStoreByType } from '@/store/scripts';
 import { ScriptFolder } from '@/type/scripts';
 import { download, getSanitizedFilename, uuidv4 } from '@sillytavern/scripts/utils';
 import { createReusableTemplate } from '@vueuse/core';
@@ -257,17 +257,7 @@ const handleScriptDelete = (id: string) => {
 // TODO: 这里的和 Container 的明显重复, 应该合并
 const handleScriptMove = (id: string, target: 'global' | 'character' | 'preset') => {
   const removed = _.remove(script_folder.value.scripts, script => script.id === id);
-  switch (target) {
-    case 'global':
-      useGlobalScriptsStore().script_trees.push(...removed);
-      break;
-    case 'character':
-      useCharacterScriptsStore().script_trees.push(...removed);
-      break;
-    case 'preset':
-      usePresetScriptsStore().script_trees.push(...removed);
-      break;
-  }
+  getScriptsStoreByType(target).script_trees.push(...removed);
 };
 
 // TODO: 这里的和 Container 的明显重复, 应该合并
@@ -279,16 +269,6 @@ const handleScriptCopy = (id: string, target: 'global' | 'character' | 'preset')
   const copied_script = klona(script);
   copied_script.id = uuidv4();
   copied_script.enabled = false;
-  switch (target) {
-    case 'global':
-      useGlobalScriptsStore().script_trees.push(copied_script);
-      break;
-    case 'character':
-      useCharacterScriptsStore().script_trees.push(copied_script);
-      break;
-    case 'preset':
-      usePresetScriptsStore().script_trees.push(copied_script);
-      break;
-  }
+  getScriptsStoreByType(target).script_trees.push(copied_script);
 };
 </script>

@@ -10,7 +10,7 @@
   </div>
 
   <div class="flex h-full flex-col">
-  <VueDraggable
+    <VueDraggable
       v-model="script_trees"
       group="TH-scripts"
       handle=".TH-handle"
@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
-import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
+import { getScriptsStoreByType, useGlobalScriptsStore } from '@/store/scripts';
 import { isScript } from '@/type/scripts';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { SortableEvent, VueDraggable } from 'vue-draggable-plus';
@@ -85,17 +85,7 @@ const handleDelete = (id: string) => {
 
 const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
   const removed = _.remove(store.value.script_trees, script => script.id === id);
-  switch (target) {
-    case 'global':
-      useGlobalScriptsStore().script_trees.push(...removed);
-      break;
-    case 'character':
-      useCharacterScriptsStore().script_trees.push(...removed);
-      break;
-    case 'preset':
-      usePresetScriptsStore().script_trees.push(...removed);
-      break;
-  }
+  getScriptsStoreByType(target).script_trees.push(...removed);
 };
 
 const handleCopy = (id: string, target: 'global' | 'character' | 'preset') => {
@@ -106,16 +96,6 @@ const handleCopy = (id: string, target: 'global' | 'character' | 'preset') => {
   const copied_script = klona(script);
   copied_script.id = uuidv4();
   copied_script.enabled = false;
-  switch (target) {
-    case 'global':
-      useGlobalScriptsStore().script_trees.push(copied_script);
-      break;
-    case 'character':
-      useCharacterScriptsStore().script_trees.push(copied_script);
-      break;
-    case 'preset':
-      usePresetScriptsStore().script_trees.push(copied_script);
-      break;
-  }
+  getScriptsStoreByType(target).script_trees.push(copied_script);
 };
 </script>

@@ -98,3 +98,14 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
 export const useGlobalScriptsStore = createScriptsStore('global');
 export const useCharacterScriptsStore = createScriptsStore('character');
 export const usePresetScriptsStore = createScriptsStore('preset');
+
+export function getScriptsStoreByType(target: 'global' | 'character' | 'preset'): ReturnType<typeof useGlobalScriptsStore> {
+  switch (target) {
+    case 'global':
+      return useGlobalScriptsStore();
+    case 'character':
+      return useCharacterScriptsStore();
+    case 'preset':
+      return usePresetScriptsStore();
+  }
+}
