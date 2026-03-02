@@ -2169,7 +2169,8 @@ type TavernRegex = {
   id: string;
   script_name: string;
   enabled: boolean;
-  scope: 'global' | 'character';
+  /** @deprecated 使用新 API 时不再返回此字段，仅在使用旧 scope 参数时返回 */
+  scope?: 'global' | 'character';
 
   find_regex: string;
   replace_string: string;
