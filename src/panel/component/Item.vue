@@ -1,36 +1,30 @@
 <template>
-  <div
+  <component
+    :is="type === 'box' && has_legend ? 'fieldset' : 'div'"
     ref="container_ref"
     class="flex"
     :style="{ gap: `calc(var(--spacing) * ${gap})` }"
     :class="[
-      type === 'box' ? 'relative rounded-md border border-(--grey5050a) p-1' : '',
-      type === 'box' && has_legend ? 'mt-1' : '',
-      type === 'divider' ? 'relative border-t border-(--grey5050a) pt-0.75' : '',
+      type === 'box' ? 'rounded-md border border-(--grey5050a) p-1' : '',
+      type === 'box' && has_legend ? 'TH-fieldset mt-1' : '',
+      type === 'divider' && !has_legend ? 'relative border-t border-(--grey5050a) pt-0.75' : '',
       type === 'divider' && has_legend ? 'mt-0.5' : '',
       has_default ? 'flex-col' : 'items-center justify-between',
       { 'TH-collapsible flex-col items-center': has_detail, expanded: has_detail && is_expanded },
     ]"
   >
-    <!-- prettier-ignore-attribute -->
-    <div
+    <legend
       v-if="type === 'box' && has_legend"
-      class="
-        absolute top-0 left-0.5 flex -translate-y-1/2 items-center justify-center gap-0.25
-        bg-(--SmartThemeBlurTintColor) px-0.5 th-text-xs! leading-none text-(--grey50)
-      "
+      class="-ml-0.5 flex items-center gap-0.25 px-0.5 th-text-xs! leading-none text-(--grey50)"
     >
       <slot name="legend" />
-    </div>
-    <!-- prettier-ignore-attribute -->
+    </legend>
     <div
       v-if="type === 'divider' && has_legend"
-      class="
-        absolute top-0 left-0 flex -translate-y-1/2 items-center justify-center gap-0.25 bg-(--SmartThemeBlurTintColor)
-        px-0.5 th-text-xs! leading-none text-(--grey50)
-      "
+      class="flex w-full items-center gap-0.5 th-text-xs! leading-none text-(--grey50)"
     >
       <slot name="legend" />
+      <span class="flex-1 border-t border-(--grey5050a)"></span>
     </div>
     <DefineNonDetailPart>
       <div class="flex min-w-0 flex-1 flex-col">
@@ -71,7 +65,7 @@
         <slot name="detail" />
       </div>
     </template>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -231,7 +225,11 @@ function collapse() {
 </script>
 
 <style lang="scss" scoped>
-/* legend 内图标对齐：约束为 1em 方盒并居中字形 */
+.TH-fieldset {
+  min-inline-size: 0;
+  margin-inline: 0;
+}
+
 .TH-legend :deep(i) {
   display: inline-flex;
   align-items: center;
