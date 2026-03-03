@@ -63,7 +63,8 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import { useGlobalScriptsStore } from '@/store/scripts';
+import TargetSelector from '@/panel/script/TargetSelector.vue';
+import { getScriptsStoreByType } from '@/store/scripts';
 import { Script } from '@/type/scripts';
 import { renderMarkdown } from '@/util/tavern';
 import { uuidv4 } from '@sillytavern/scripts/utils';
@@ -264,10 +265,15 @@ async function toScript(script: BuiltinScript): Promise<Script> {
 }
 
 async function importScript(builtin: BuiltinScript) {
-  toastr.info(t`正在加载脚本...`);
-  const script = await toScript(builtin);
-  toastr.clear();
-  useGlobalScriptsStore().script_trees.push(script);
-  toastr.success(t`成功导入脚本: '${script.name}'`);
+  useModal({
+    component: TargetSelector,
+    attrs: {
+      onSubmit: async (target: 'global' | 'character' | 'preset') => {
+        const script = await toScript(builtin);
+        getScriptsStoreByType(target).script_trees.push(script);
+        toastr.success(t`成功导入脚本: '${script.name}'`);
+      },
+    },
+  }).open();
 }
 </script>
