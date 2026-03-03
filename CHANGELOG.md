@@ -3,8 +3,8 @@
 
 ### 📦函数
 
-- 不影响以前代码地重制了酒馆助手正则函数 `getTavernRegexes`、`replaceTavernRegexes`、`updateTavernRegexesWith`, 使之与变量函数、世界书函数等更为相似 ([文档链接](插入进来))
-- 新增了 `getScriptTrees`、`replaceScriptTrees`、`updateScriptTreesWith` 等函数, 用于在脚本内操控酒馆助手脚本列表 ([文档链接](插入进来))
+- 不影响以前代码地重制了酒馆助手正则函数 `getTavernRegexes`、`replaceTavernRegexes`、`updateTavernRegexesWith`, 使之与变量函数、世界书函数等更为相似 ([文档链接](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/酒馆正则/获取正则.html))
+- 新增了 `getScriptTrees`、`replaceScriptTrees`、`updateScriptTreesWith` 等函数, 用于在脚本内操控酒馆助手脚本列表 ([文档链接](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/酒馆助手脚本/获取脚本.html))
 
 ## 4.7.12
 
