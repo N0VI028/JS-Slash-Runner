@@ -119,11 +119,6 @@ export function get_tavern_regexes_without_clone(option: TavernRegexOption): Tav
       break;
     case 'character': {
       const id = RawCharacter.findIndex(option.name ?? 'current');
-      if (id === -1) {
-        const errorMsg = `未能找到角色 '${option.name ?? 'current'}'`;
-        toastr.error(errorMsg, '角色不存在');
-        throw Error(errorMsg);
-      }
       data = characters.at(id)?.data?.extensions?.regex_scripts ?? [];
       break;
     }
