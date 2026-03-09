@@ -2642,7 +2642,8 @@ type WorldbookEntry = {
       | 'after_example_messages'
       | 'before_author_note'
       | 'after_author_note'
-      | 'at_depth';
+      | 'at_depth'
+      | 'outlet';
     /** 该条目的消息身份, 仅位置类型为 `'at_depth'` 时有效 */
     role: 'system' | 'assistant' | 'user';
     /** 该条目要插入的深度, 仅位置类型为 `'at_depth'` 时有效 */
