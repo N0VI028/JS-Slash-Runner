@@ -1,3 +1,4 @@
+import { createGenerationParameters, getChatCompletionModelCompat } from '@/function/generate/createGenerationParametersCompat';
 import { CustomApiConfig } from '@/function/generate/types';
 import {
   clearInjectionPrompts,
@@ -11,10 +12,18 @@ import {
   countOccurrences,
   eventSource,
   event_types,
+  getRequestHeaders,
   isOdd,
 } from '@sillytavern/script';
-import { oai_settings, sendOpenAIRequest } from '@sillytavern/scripts/openai';
+import {
+  getChatCompletionModel,
+  getStreamingReply,
+  oai_settings,
+  sendOpenAIRequest,
+  tryParseStreamingError,
+} from '@sillytavern/scripts/openai';
 import { power_user } from '@sillytavern/scripts/power-user';
+import { getEventSourceStream } from '@sillytavern/scripts/sse-stream';
 import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
 
 /**
@@ -115,6 +124,153 @@ class StreamingProcessor {
 }
 
 /**
+ * 应用自定义API参数覆盖
+ */
+function applyCustomApiOverrides(generate_data: any, customApi: CustomApiConfig) {
+  generate_data.reverse_proxy = normalizeBaseURL(customApi.apiurl!);
+  generate_data.proxy_password = customApi.key || '';
+  if (customApi.model) {
+    generate_data.model = customApi.model;
+  }
+
+  const set_param = (param: keyof CustomApiConfig) => {
+    const input = customApi[param] ?? 'same_as_preset';
+    if (input === 'unset') {
+      delete generate_data[param];
+    } else if (input !== 'same_as_preset') {
+      generate_data[param] = input;
+    }
+  };
+  set_param('max_tokens');
+  set_param('temperature');
+  set_param('frequency_penalty');
+  set_param('presence_penalty');
+  set_param('top_p');
+  set_param('top_k');
+}
+
+/**
+ * 发送自定义API请求（流式）
+ */
+async function* sendCustomApiRequestStreaming(
+  messages: any[],
+  signal: AbortSignal,
+  customApi: CustomApiConfig,
+): AsyncGenerator<{ text: string }, void, void> {
+  const source = customApi.source || 'openai';
+  const settings = {
+    ...oai_settings,
+    chat_completion_source: source,
+    stream_openai: true,
+    reverse_proxy: '',
+  };
+
+  const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
+  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages)) as {
+    generate_data: any;
+  };
+  applyCustomApiOverrides(generate_data, customApi);
+
+  await eventSource.emit(event_types.CHAT_COMPLETION_SETTINGS_READY, generate_data);
+
+  const response = await fetch('/api/backends/chat-completions/generate', {
+    method: 'POST',
+    headers: getRequestHeaders(),
+    body: JSON.stringify(generate_data),
+    signal,
+  });
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    tryParseStreamingError(response, responseText);
+    throw new Error(`HTTP ${response.status}: ${responseText}`);
+  }
+
+  if (!response.body) {
+    throw new Error('Response body is null');
+  }
+
+  const eventStream = getEventSourceStream();
+  response.body.pipeThrough(eventStream);
+  const reader = eventStream.readable.getReader();
+  let text = '';
+  const state = { reasoning: '', images: [], signature: '', toolSignatures: {} };
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const rawData = value.data;
+      if (rawData === '[DONE]') break;
+
+      tryParseStreamingError(response, rawData);
+
+      let parsed;
+      try {
+        parsed = JSON.parse(rawData);
+      } catch {
+        continue;
+      }
+
+      const chunk = getStreamingReply(parsed, state, { chatCompletionSource: source });
+      if (chunk) {
+        text += chunk;
+        yield { text };
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+/**
+ * 发送自定义API请求（非流式）
+ */
+async function sendCustomApiRequestNonStreaming(
+  messages: any[],
+  signal: AbortSignal,
+  customApi: CustomApiConfig,
+): Promise<any> {
+  const source = customApi.source || 'openai';
+  const settings = {
+    ...oai_settings,
+    chat_completion_source: source,
+    stream_openai: false,
+    reverse_proxy: '',
+  };
+
+  const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
+  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages)) as {
+    generate_data: any;
+  };
+  applyCustomApiOverrides(generate_data, customApi);
+
+  await eventSource.emit(event_types.CHAT_COMPLETION_SETTINGS_READY, generate_data);
+
+  const response = await fetch('/api/backends/chat-completions/generate', {
+    method: 'POST',
+    headers: getRequestHeaders(),
+    body: JSON.stringify(generate_data),
+    signal,
+  });
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    tryParseStreamingError(response, responseText);
+    throw new Error(`HTTP ${response.status}: ${responseText}`);
+  }
+
+  const data = await response.json();
+
+  if (data.error) {
+    throw new Error(data.error.message || 'API error');
+  }
+
+  return data;
+}
+
+/**
  * 处理非流式响应
  * @param response API响应对象
  * @returns 提取的消息文本
@@ -156,44 +312,13 @@ export async function generateResponse(
   customApi?: CustomApiConfig,
 ): Promise<string> {
   let result = '';
-  let customApiEventHandler: ((data: any) => void) | null = null;
 
   try {
-    // 如果有自定义API配置，设置单次事件拦截
-    if (customApi?.apiurl) {
-      customApiEventHandler = (data: any) => {
-        data.reverse_proxy = normalizeBaseURL(customApi.apiurl!);
-        data.chat_completion_source = customApi.source || 'openai';
-        data.proxy_password = customApi.key || '';
-        data.model = customApi.model;
-
-        const set_param = (param: keyof CustomApiConfig) => {
-          const input = customApi[param] ?? 'same_as_preset';
-          if (input === 'unset') {
-            _.unset(data, param);
-          } else if (input !== 'same_as_preset') {
-            _.set(data, param, input);
-          }
-        };
-        set_param('max_tokens');
-        set_param('temperature');
-        set_param('frequency_penalty');
-        set_param('presence_penalty');
-        set_param('top_p');
-        set_param('top_k');
-
-        return data;
-      };
-
-      eventSource.once(event_types.CHAT_COMPLETION_SETTINGS_READY, customApiEventHandler);
-    }
-
     // 如果有图片处理，等待图片处理完成
     if (imageProcessingSetup) {
       try {
         await imageProcessingSetup.imageProcessingPromise;
       } catch (imageError: any) {
-        // 图片处理失败不应该阻止整个生成流程，但需要记录错误
         throw new Error(`图片处理失败: ${imageError?.message || '未知错误'}`);
       }
     }
@@ -202,20 +327,41 @@ export async function generateResponse(
     }
     eventSource.emit('js_generation_started', generationId);
 
-    try {
+    // custom_api 走 sendCustomApiRequest，否则走 sendOpenAIRequest
+    if (customApi?.apiurl) {
       if (useStream) {
-        oai_settings.stream_openai = true;
         const streamingProcessor = new StreamingProcessor(generationId, abortController);
-        // @ts-expect-error 类型正确
-        streamingProcessor.generator = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
+        streamingProcessor.generator = () =>
+          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, customApi);
         result = (await streamingProcessor.generate()) as string;
       } else {
-        oai_settings.stream_openai = false;
-        const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
+        const response = await sendCustomApiRequestNonStreaming(
+          generate_data.prompt,
+          abortController.signal,
+          customApi,
+        );
         result = await handleResponse(response, generationId);
       }
-    } finally {
-      oai_settings.stream_openai = $('#stream_toggle').is(':checked');
+    } else {
+      try {
+        if (useStream) {
+          oai_settings.stream_openai = true;
+          const streamingProcessor = new StreamingProcessor(generationId, abortController);
+          // @ts-expect-error 类型正确
+          streamingProcessor.generator = await sendOpenAIRequest(
+            'normal',
+            generate_data.prompt,
+            abortController.signal,
+          );
+          result = (await streamingProcessor.generate()) as string;
+        } else {
+          oai_settings.stream_openai = false;
+          const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
+          result = await handleResponse(response, generationId);
+        }
+      } finally {
+        oai_settings.stream_openai = $('#stream_toggle').is(':checked');
+      }
     }
   } catch (error) {
     // 如果有图片处理设置但生成失败，确保拒绝Promise
@@ -224,12 +370,6 @@ export async function generateResponse(
     }
     throw error;
   } finally {
-    // 清理自定义API事件监听器
-    if (customApiEventHandler) {
-      eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, customApiEventHandler);
-    }
-
-    //unblockGeneration();
     await clearInjectionPrompts(['INJECTION']);
   }
   return result;
