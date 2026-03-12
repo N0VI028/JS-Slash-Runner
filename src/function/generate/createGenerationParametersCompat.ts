@@ -131,6 +131,20 @@ async function createGenerationParametersFallback(
     custom_prompt_post_processing: settings.custom_prompt_post_processing,
   };
 
+  // 只有在反向代理有值且源支持时才添加
+  const supportedSources = [
+    chat_completion_sources.CLAUDE,
+    chat_completion_sources.OPENAI,
+    chat_completion_sources.MISTRALAI,
+    chat_completion_sources.MAKERSUITE,
+    chat_completion_sources.DEEPSEEK,
+    chat_completion_sources.XAI,
+  ];
+  if (settings.reverse_proxy && supportedSources.includes(settings.chat_completion_source)) {
+    generate_data.reverse_proxy = settings.reverse_proxy;
+    generate_data.proxy_password = settings.proxy_password;
+  }
+
   // Azure OpenAI specific
   if (isAzureOpenAI) {
     generate_data.azure_base_url = settings.azure_base_url;

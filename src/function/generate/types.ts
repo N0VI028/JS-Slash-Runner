@@ -13,6 +13,7 @@ export const extension_prompt_roles = {
  * 自定义API配置接口
  */
 export type CustomApiConfig = {
+  proxy_preset?: string;
   apiurl?: string;
   key?: string;
   model?: string;

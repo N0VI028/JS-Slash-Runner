@@ -1,4 +1,7 @@
-import { createGenerationParameters, getChatCompletionModelCompat } from '@/function/generate/createGenerationParametersCompat';
+import {
+  createGenerationParameters,
+  getChatCompletionModelCompat,
+} from '@/function/generate/createGenerationParametersCompat';
 import { CustomApiConfig } from '@/function/generate/types';
 import {
   clearInjectionPrompts,
@@ -19,6 +22,7 @@ import {
   getChatCompletionModel,
   getStreamingReply,
   oai_settings,
+  proxies,
   sendOpenAIRequest,
   tryParseStreamingError,
 } from '@sillytavern/scripts/openai';
@@ -124,11 +128,39 @@ class StreamingProcessor {
 }
 
 /**
+ * 解析代理预设配置
+ * 根据 proxy_preset 名称查找酒馆已保存的代理预设
+ * - 预设未找到：回退到 customApi（保留用户传的 apiurl 和 key）
+ * - 预设找到：完全使用预设的 url 和 password（即使为空也不回退）
+ */
+function resolveProxyPreset(customApi: CustomApiConfig): CustomApiConfig {
+  if (!customApi.proxy_preset) return customApi;
+
+  const preset = proxies.find(p => p.name === customApi.proxy_preset?.trim());
+  if (!preset) {
+    console.warn(
+      `代理预设 '${customApi.proxy_preset}' 未找到，将回退到 ${customApi.apiurl ? 'custom_api.apiurl' : '当前 ST 源'}`,
+    );
+    return customApi;
+  }
+
+  return {
+    ...customApi,
+    apiurl: preset.url,
+    key: preset.password ?? '',
+  };
+}
+
+/**
  * 应用自定义API参数覆盖
  */
 function applyCustomApiOverrides(generate_data: any, customApi: CustomApiConfig) {
-  generate_data.reverse_proxy = normalizeBaseURL(customApi.apiurl!);
-  generate_data.proxy_password = customApi.key || '';
+  // 只有明确指定 apiurl 时才覆盖 reverse_proxy
+  if (customApi.apiurl) {
+    generate_data.reverse_proxy = normalizeBaseURL(customApi.apiurl);
+    generate_data.proxy_password = customApi.key || '';
+  }
+
   if (customApi.model) {
     generate_data.model = customApi.model;
   }
@@ -157,12 +189,11 @@ async function* sendCustomApiRequestStreaming(
   signal: AbortSignal,
   customApi: CustomApiConfig,
 ): AsyncGenerator<{ text: string }, void, void> {
-  const source = customApi.source || 'openai';
+  const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
     ...oai_settings,
     chat_completion_source: source,
     stream_openai: true,
-    reverse_proxy: '',
   };
 
   const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
@@ -232,12 +263,11 @@ async function sendCustomApiRequestNonStreaming(
   signal: AbortSignal,
   customApi: CustomApiConfig,
 ): Promise<any> {
-  const source = customApi.source || 'openai';
+  const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
     ...oai_settings,
     chat_completion_source: source,
     stream_openai: false,
-    reverse_proxy: '',
   };
 
   const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
@@ -327,18 +357,19 @@ export async function generateResponse(
     }
     eventSource.emit('js_generation_started', generationId);
 
-    // custom_api 走 sendCustomApiRequest，否则走 sendOpenAIRequest
-    if (customApi?.apiurl) {
+    if (customApi) {
+      customApi = resolveProxyPreset(customApi);
+      const validCustomApi = customApi;
       if (useStream) {
         const streamingProcessor = new StreamingProcessor(generationId, abortController);
         streamingProcessor.generator = () =>
-          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, customApi);
+          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi);
         result = (await streamingProcessor.generate()) as string;
       } else {
         const response = await sendCustomApiRequestNonStreaming(
           generate_data.prompt,
           abortController.signal,
-          customApi,
+          validCustomApi,
         );
         result = await handleResponse(response, generationId);
       }
