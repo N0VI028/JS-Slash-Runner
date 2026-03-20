@@ -152,7 +152,7 @@ declare namespace SillyTavern {
     /** the name of the book */
     name: string;
     /** the entries of the book */
-    entries: v2DataWorldInfoEntry[];
+    entries: Record<number, v2DataWorldInfoEntry>;
   };
 
   /**
