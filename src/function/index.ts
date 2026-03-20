@@ -53,7 +53,7 @@ import {
   uninstallExtension,
   updateExtension,
 } from '@/function/extension';
-import { generate, generateRaw, stopAllGeneration, stopGenerationById } from '@/function/generate';
+import { generate, generateRaw, getModelList, stopAllGeneration, stopGenerationById } from '@/function/generate';
 import { builtin_prompt_default_order } from '@/function/generate/types';
 import { _initializeGlobal, _waitGlobalInitialized, initializeGlobal, waitGlobalInitialized } from '@/function/global';
 import {
@@ -309,6 +309,7 @@ function getTavernHelper() {
 
     // generate
     builtin_prompt_default_order,
+    getModelList,
     generate,
     generateRaw,
     stopGenerationById,
