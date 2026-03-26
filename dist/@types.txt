@@ -769,6 +769,13 @@ declare function reinstallExtension(extension_id: string): Promise<Response>;
  */
 declare function updateExtension(extension_id: string): Promise<Response>;
 /**
+ * 获取代理预设名称列表
+ *
+ * @returns 代理预设名称列表
+ */
+declare function getProxyPresetNames(): string[];
+
+/**
  * 使用酒馆当前启用的预设, 让 AI 生成一段文本.
  *
  * 该函数在执行过程中将会发送以下事件:
@@ -1232,6 +1239,7 @@ interface Window {
     readonly generate: typeof generate;
     readonly generateRaw: typeof generateRaw;
     readonly getModelList: typeof getModelList;
+    readonly getProxyPresetNames: typeof getProxyPresetNames;
     readonly stopGenerationById: typeof stopGenerationById;
     readonly stopAllGeneration: typeof stopAllGeneration;
 
