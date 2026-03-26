@@ -52,6 +52,7 @@ interface Window {
     readonly generate: typeof generate;
     readonly generateRaw: typeof generateRaw;
     readonly getModelList: typeof getModelList;
+    readonly getProxyPresetNames: typeof getProxyPresetNames;
     readonly stopGenerationById: typeof stopGenerationById;
     readonly stopAllGeneration: typeof stopAllGeneration;
 

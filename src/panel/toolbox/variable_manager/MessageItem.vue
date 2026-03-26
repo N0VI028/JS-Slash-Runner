@@ -2,12 +2,20 @@
   <div class="TH-message-item">
     <div class="TH-sticky-header">
       <!-- prettier-ignore-attribute -->
-      <button class="
+      <button
+        class="
           flex w-full cursor-pointer items-center justify-between rounded-t-sm border-none bg-(--SmartThemeQuoteColor)/20
           px-0.5 py-0.25 th-text-sm
-        " @click="toggleCollapse">
+        "
+        @click="toggleCollapse"
+      >
         <span> {{ t`第 ${normalized_message_id} 楼` }} </span>
-        <div class="flex items-center justify-center">
+        <div class="flex items-center gap-0.75">
+          <i
+            class="fa-solid fa-rotate cursor-pointer th-text-xs"
+            :title="t`重新渲染第 ${normalized_message_id} 楼`"
+            @click.stop="rerenderMessage"
+          ></i>
           <i class="fa-solid" :class="is_collapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
         </div>
       </button>
@@ -21,6 +29,7 @@
 </template>
 
 <script setup lang="ts">
+import { refreshOneMessage } from '@/function/displayed_message';
 import { get_variables_without_clone, getVariables, replaceVariables } from '@/function/variables';
 import { useVariableSchemasStore } from '@/store/variable_schemas';
 import { event_types } from '@sillytavern/script';
@@ -64,6 +73,11 @@ function toggleCollapse() {
   } else {
     props.collapsedSet!.add(id);
   }
+}
+
+async function rerenderMessage() {
+  await refreshOneMessage(normalized_message_id.value);
+  toastr.success(t`已重新渲染第 ${normalized_message_id.value} 楼`);
 }
 
 const variables = shallowRef<Record<string, any>>(getVariables({ type: 'message', message_id: props.messageId }));

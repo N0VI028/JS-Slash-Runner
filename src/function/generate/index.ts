@@ -12,6 +12,7 @@ import {
   getRequestHeaders,
   stopGeneration,
 } from '@sillytavern/script';
+import { proxies } from '@sillytavern/scripts/openai';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 declare const $: any;
@@ -23,6 +24,10 @@ type GenerationControllerEntry = {
 
 const generationControllers = new Map<string, GenerationControllerEntry>();
 const stopButtonBoundGenerationIds = new Set<string>();
+
+export function getProxyPresetNames(): string[] {
+  return proxies.map(proxy => proxy.name);
+}
 
 export async function getModelList(custom_api: { apiurl: string; key?: string }): Promise<string[]> {
   const url = normalizeBaseURL(custom_api?.apiurl);
