@@ -10,6 +10,43 @@ export const extension_prompt_roles = {
 } as const;
 
 /**
+ * Tool function 定义
+ */
+export type ToolFunction = {
+  name: string;
+  description?: string;
+  parameters?: Record<string, any>;
+};
+
+/**
+ * Tool 定义（OpenAI 格式）
+ */
+export type ToolDefinition = {
+  type: 'function';
+  function: ToolFunction;
+};
+
+/**
+ * Tool choice 选项
+ */
+export type ToolChoice = 'auto' | 'required' | 'none' | { type: 'function'; function: { name: string } };
+
+/**
+ * 当模型返回 tool_calls 时的结构化结果
+ */
+export type GenerateToolCallResult = {
+  content: string;
+  tool_calls: {
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }[];
+};
+
+/**
  * 自定义API配置接口
  */
 export type CustomApiConfig = {
@@ -39,6 +76,8 @@ export type GenerateConfig = {
   injects?: Omit<InjectionPrompt, 'id'>[];
   max_chat_history?: 'all' | number;
   custom_api?: CustomApiConfig;
+  tools?: ToolDefinition[];
+  tool_choice?: ToolChoice;
 };
 
 /**
@@ -55,6 +94,8 @@ export type GenerateRawConfig = {
   ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
   max_chat_history?: 'all' | number;
   custom_api?: CustomApiConfig;
+  tools?: ToolDefinition[];
+  tool_choice?: ToolChoice;
 };
 
 /**
@@ -189,6 +230,8 @@ export namespace detail {
     inject?: Omit<InjectionPrompt, 'id'>[];
     order?: Array<BuiltinPromptEntry | CustomPrompt>;
     custom_api?: CustomApiConfig;
+    tools?: ToolDefinition[];
+    tool_choice?: ToolChoice;
   };
 }
 

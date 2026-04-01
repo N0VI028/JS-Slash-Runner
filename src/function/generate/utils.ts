@@ -42,6 +42,73 @@ export async function convertFileToBase64(img: File | string): Promise<string | 
   return processedImg;
 }
 
+type NormalizedToolCall = {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    arguments: string;
+  };
+};
+
+/**
+ * 从响应数据中提取 tool_calls（兼容 OpenAI / Claude / Google 格式）
+ */
+export function extractToolCallsFromData(data: any): NormalizedToolCall[] | null {
+  if (typeof data === 'string') return null;
+
+  // OpenAI 格式: choices[0].message.tool_calls
+  const oaiToolCalls = data?.choices?.[0]?.message?.tool_calls;
+  if (Array.isArray(oaiToolCalls) && oaiToolCalls.length > 0) {
+    return oaiToolCalls.map((tc: any) => ({
+      id: tc.id ?? crypto.randomUUID(),
+      type: 'function' as const,
+      function: {
+        name: tc.function.name,
+        arguments: typeof tc.function.arguments === 'string'
+          ? tc.function.arguments
+          : JSON.stringify(tc.function.arguments),
+      },
+    }));
+  }
+
+  // Claude 格式: content[] with type === 'tool_use'
+  const claudeContent = data?.content ?? data?.message?.content;
+  if (Array.isArray(claudeContent)) {
+    const toolUseBlocks = claudeContent.filter((b: any) => b?.type === 'tool_use' && b?.name);
+    if (toolUseBlocks.length > 0) {
+      return toolUseBlocks.map((b: any) => ({
+        id: b.id ?? crypto.randomUUID(),
+        type: 'function' as const,
+        function: {
+          name: b.name,
+          arguments: typeof b.input === 'string' ? b.input : JSON.stringify(b.input ?? {}),
+        },
+      }));
+    }
+  }
+
+  // Google 格式: candidates[0].content.parts[] with functionCall
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(parts)) {
+    const fnCalls = parts.filter((p: any) => p?.functionCall);
+    if (fnCalls.length > 0) {
+      return fnCalls.map((p: any) => ({
+        id: crypto.randomUUID(),
+        type: 'function' as const,
+        function: {
+          name: p.functionCall.name,
+          arguments: typeof p.functionCall.args === 'string'
+            ? p.functionCall.args
+            : JSON.stringify(p.functionCall.args ?? {}),
+        },
+      }));
+    }
+  }
+
+  return null;
+}
+
 /**
  * 从响应数据中提取消息内容
  * @param data 响应数据

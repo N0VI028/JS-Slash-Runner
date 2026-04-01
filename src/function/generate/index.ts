@@ -3,7 +3,7 @@ import { handlePresetPath } from '@/function/generate/generate';
 import { handleCustomPath } from '@/function/generate/generateRaw';
 import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
-import { detail, GenerateConfig, GenerateRawConfig, Overrides } from '@/function/generate/types';
+import { detail, GenerateConfig, GenerateRawConfig, GenerateToolCallResult, Overrides } from '@/function/generate/types';
 import { normalizeBaseURL, setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
 import {
   deactivateSendButtons,
@@ -151,6 +151,8 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
     inject: config.injects,
     max_chat_history: typeof config.max_chat_history === 'number' ? config.max_chat_history : undefined,
     custom_api: config.custom_api,
+    tools: config.tools,
+    tool_choice: config.tool_choice,
   };
 }
 
@@ -172,6 +174,8 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
     inject: config.injects,
     order: config.ordered_prompts,
     custom_api: config.custom_api,
+    tools: config.tools,
+    tool_choice: config.tool_choice,
   };
 }
 
@@ -201,7 +205,9 @@ async function iframeGenerate({
   stream = false,
   bindToStopButton = true,
   custom_api = undefined,
-}: detail.GenerateParams = {}): Promise<string> {
+  tools = undefined,
+  tool_choice = undefined,
+}: detail.GenerateParams = {}): Promise<string | GenerateToolCallResult> {
   const generationId = generation_id || uuidv4();
 
   if (generationControllers.has(generationId)) {
@@ -270,6 +276,7 @@ async function iframeGenerate({
 
     await eventSource.emit(event_types.GENERATE_AFTER_DATA, generate_data, false);
     // 4. 根据 stream 参数决定生成方式
+    const toolOptions = tools?.length ? { tools, tool_choice } : undefined;
     const result = await generateResponse(
       generate_data,
       stream,
@@ -277,6 +284,7 @@ async function iframeGenerate({
       imageProcessingSetup,
       abortController,
       custom_api,
+      toolOptions,
     );
 
     return result;
@@ -299,12 +307,12 @@ async function iframeGenerate({
   }
 }
 
-export async function generate(config: GenerateConfig) {
+export async function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult> {
   const converted_config = fromGenerateConfig(config);
   return await iframeGenerate(converted_config);
 }
 
-export async function generateRaw(config: GenerateRawConfig) {
+export async function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult> {
   const converted_config = fromGenerateRawConfig(config);
   return await iframeGenerate(converted_config);
 }

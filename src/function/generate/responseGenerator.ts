@@ -2,10 +2,11 @@ import {
   createGenerationParameters,
   getChatCompletionModelCompat,
 } from '@/function/generate/createGenerationParametersCompat';
-import { CustomApiConfig } from '@/function/generate/types';
+import { CustomApiConfig, GenerateToolCallResult, ToolChoice, ToolDefinition } from '@/function/generate/types';
 import {
   clearInjectionPrompts,
   extractMessageFromData,
+  extractToolCallsFromData,
   normalizeBaseURL,
   setupImageArrayProcessing,
 } from '@/function/generate/utils';
@@ -188,6 +189,7 @@ async function* sendCustomApiRequestStreaming(
   messages: any[],
   signal: AbortSignal,
   customApi: CustomApiConfig,
+  toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
 ): AsyncGenerator<{ text: string }, void, void> {
   const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
@@ -197,7 +199,10 @@ async function* sendCustomApiRequestStreaming(
   };
 
   const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
-  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages)) as {
+  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages, {
+    tools: toolOptions?.tools,
+    tool_choice: toolOptions?.tool_choice,
+  })) as {
     generate_data: any;
   };
   applyCustomApiOverrides(generate_data, customApi);
@@ -262,6 +267,7 @@ async function sendCustomApiRequestNonStreaming(
   messages: any[],
   signal: AbortSignal,
   customApi: CustomApiConfig,
+  toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
 ): Promise<any> {
   const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
@@ -271,7 +277,10 @@ async function sendCustomApiRequestNonStreaming(
   };
 
   const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
-  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages)) as {
+  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages, {
+    tools: toolOptions?.tools,
+    tool_choice: toolOptions?.tool_choice,
+  })) as {
     generate_data: any;
   };
   applyCustomApiOverrides(generate_data, customApi);
@@ -305,7 +314,7 @@ async function sendCustomApiRequestNonStreaming(
  * @param response API响应对象
  * @returns 提取的消息文本
  */
-async function handleResponse(response: any, generationId: string) {
+async function handleResponse(response: any, generationId: string, hasTools: boolean): Promise<string | GenerateToolCallResult> {
   if (!response) {
     throw Error(`未得到响应`);
   }
@@ -317,6 +326,19 @@ async function handleResponse(response: any, generationId: string) {
     }
     throw Error(response?.response);
   }
+
+  // 检查是否有 tool_calls
+  if (hasTools) {
+    const toolCalls = extractToolCallsFromData(response);
+    if (toolCalls) {
+      const content = extractMessageFromData(response);
+      const toolCallResult: GenerateToolCallResult = { content, tool_calls: toolCalls };
+      eventSource.emit('js_generation_before_end', { message: content }, generationId);
+      eventSource.emit('js_generation_ended', content, generationId);
+      return toolCallResult;
+    }
+  }
+
   const result = { message: extractMessageFromData(response) };
   eventSource.emit('js_generation_before_end', result, generationId);
   eventSource.emit('js_generation_ended', result.message, generationId);
@@ -340,8 +362,10 @@ export async function generateResponse(
   imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined,
   abortController: AbortController,
   customApi?: CustomApiConfig,
-): Promise<string> {
-  let result = '';
+  toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
+): Promise<string | GenerateToolCallResult> {
+  let result: string | GenerateToolCallResult = '';
+  const hasTools = !!(toolOptions?.tools?.length);
 
   try {
     // 如果有图片处理，等待图片处理完成
@@ -363,17 +387,28 @@ export async function generateResponse(
       if (useStream) {
         const streamingProcessor = new StreamingProcessor(generationId, abortController);
         streamingProcessor.generator = () =>
-          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi);
+          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi, toolOptions);
         result = (await streamingProcessor.generate()) as string;
       } else {
         const response = await sendCustomApiRequestNonStreaming(
           generate_data.prompt,
           abortController.signal,
           validCustomApi,
+          toolOptions,
         );
-        result = await handleResponse(response, generationId);
+        result = await handleResponse(response, generationId, hasTools);
       }
     } else {
+      // 如果用户传了 tools 但没有 custom_api，通过事件注入 tools 到 generate_data
+      const toolInjector = hasTools
+        ? (data: any) => {
+            data.tools = toolOptions!.tools;
+            data.tool_choice = toolOptions!.tool_choice ?? 'auto';
+          }
+        : null;
+      if (toolInjector) {
+        eventSource.once(event_types.CHAT_COMPLETION_SETTINGS_READY, toolInjector);
+      }
       try {
         if (useStream) {
           oai_settings.stream_openai = true;
@@ -388,9 +423,12 @@ export async function generateResponse(
         } else {
           oai_settings.stream_openai = false;
           const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
-          result = await handleResponse(response, generationId);
+          result = await handleResponse(response, generationId, hasTools);
         }
       } finally {
+        if (toolInjector) {
+          eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, toolInjector);
+        }
         oai_settings.stream_openai = $('#stream_toggle').is(':checked');
       }
     }
