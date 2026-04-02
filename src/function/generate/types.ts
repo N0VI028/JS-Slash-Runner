@@ -32,6 +32,16 @@ export type ToolDefinition = {
 export type ToolChoice = 'auto' | 'required' | 'none' | { type: 'function'; function: { name: string } };
 
 /**
+ * JSON Schema 定义，用于强制模型输出符合指定 schema 的 JSON
+ */
+export type JsonSchema = {
+  name: string;
+  description?: string;
+  value: Record<string, any>;
+  strict?: boolean;
+};
+
+/**
  * 当模型返回 tool_calls 时的结构化结果
  */
 export type GenerateToolCallResult = {
@@ -78,6 +88,7 @@ export type GenerateConfig = {
   custom_api?: CustomApiConfig;
   tools?: ToolDefinition[];
   tool_choice?: ToolChoice;
+  json_schema?: JsonSchema;
 };
 
 /**
@@ -96,6 +107,7 @@ export type GenerateRawConfig = {
   custom_api?: CustomApiConfig;
   tools?: ToolDefinition[];
   tool_choice?: ToolChoice;
+  json_schema?: JsonSchema;
 };
 
 /**
@@ -232,6 +244,7 @@ export namespace detail {
     custom_api?: CustomApiConfig;
     tools?: ToolDefinition[];
     tool_choice?: ToolChoice;
+    json_schema?: JsonSchema;
   };
 }
 

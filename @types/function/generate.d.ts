@@ -123,6 +123,25 @@ declare function getProxyPresetNames(): string[];
  * } else {
  *   console.info('收到文本回复: ', result);
  * }
+ *
+ * @example
+ * // 使用 json_schema 强制结构化输出
+ * const result = await generate({
+ *   user_input: '描述场景',
+ *   json_schema: {
+ *     name: 'scene_output',
+ *     value: {
+ *       type: 'object',
+ *       properties: {
+ *         narrative: { type: 'string' },
+ *         mood: { type: 'string', enum: ['happy', 'sad', 'tense'] }
+ *       },
+ *       required: ['narrative', 'mood']
+ *     }
+ *   }
+ * });
+ * const parsed = JSON.parse(result as string);
+ * console.info(parsed.narrative, parsed.mood);
  */
 declare function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult>;
 
@@ -274,6 +293,18 @@ type GenerateConfig = {
    * - `{ type: 'function', function: { name: string } }`: 强制调用指定工具
    */
   tool_choice?: ToolChoice;
+
+  /**
+   * JSON Schema 定义，强制模型输出符合指定 schema 的 JSON。
+   * 返回值为 JSON 字符串（需自行 JSON.parse）。
+   *
+   * ST 服务端会根据 provider 自动转换格式：
+   * - OpenAI/DeepSeek/Mistral 等 → response_format.json_schema
+   * - Claude → 转为 tool + forced tool_choice
+   *
+   * 与 tools 互斥，不要同时传入。
+   */
+  json_schema?: JsonSchema;
 };
 
 type GenerateRawConfig = GenerateConfig & {
@@ -365,6 +396,38 @@ type CustomApiConfig = {
   presence_penalty?: 'same_as_preset' | 'unset' | number;
   top_p?: 'same_as_preset' | 'unset' | number;
   top_k?: 'same_as_preset' | 'unset' | number;
+};
+
+/**
+ * JSON Schema 定义，用于强制模型输出符合指定 schema 的 JSON。
+ *
+ * @example
+ * const result = await generateRaw({
+ *   user_input: '描述场景',
+ *   json_schema: {
+ *     name: 'scene_output',
+ *     description: '场景描述和角色状态',
+ *     value: {
+ *       type: 'object',
+ *       properties: {
+ *         narrative: { type: 'string', description: '叙事文本' },
+ *         status: { type: 'object', properties: { name: { type: 'string' } } }
+ *       },
+ *       required: ['narrative', 'status']
+ *     }
+ *   }
+ * });
+ * const parsed = JSON.parse(result as string);
+ */
+type JsonSchema = {
+  /** Schema 名称 */
+  name: string;
+  /** Schema 描述 */
+  description?: string;
+  /** JSON Schema 定义 */
+  value: Record<string, any>;
+  /** 是否严格模式（默认 true） */
+  strict?: boolean;
 };
 
 /**

@@ -3,7 +3,7 @@ import { handlePresetPath } from '@/function/generate/generate';
 import { handleCustomPath } from '@/function/generate/generateRaw';
 import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
-import { detail, GenerateConfig, GenerateRawConfig, GenerateToolCallResult, Overrides } from '@/function/generate/types';
+import { detail, GenerateConfig, GenerateRawConfig, GenerateToolCallResult, JsonSchema, Overrides } from '@/function/generate/types';
 import { normalizeBaseURL, setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
 import {
   deactivateSendButtons,
@@ -153,6 +153,7 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
     custom_api: config.custom_api,
     tools: config.tools,
     tool_choice: config.tool_choice,
+    json_schema: config.json_schema,
   };
 }
 
@@ -176,6 +177,7 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
     custom_api: config.custom_api,
     tools: config.tools,
     tool_choice: config.tool_choice,
+    json_schema: config.json_schema,
   };
 }
 
@@ -207,6 +209,7 @@ async function iframeGenerate({
   custom_api = undefined,
   tools = undefined,
   tool_choice = undefined,
+  json_schema = undefined,
 }: detail.GenerateParams = {}): Promise<string | GenerateToolCallResult> {
   const generationId = generation_id || uuidv4();
 
@@ -285,6 +288,7 @@ async function iframeGenerate({
       abortController,
       custom_api,
       toolOptions,
+      json_schema,
     );
 
     return result;

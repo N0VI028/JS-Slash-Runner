@@ -2,7 +2,7 @@ import {
   createGenerationParameters,
   getChatCompletionModelCompat,
 } from '@/function/generate/createGenerationParametersCompat';
-import { CustomApiConfig, GenerateToolCallResult, ToolChoice, ToolDefinition } from '@/function/generate/types';
+import { CustomApiConfig, GenerateToolCallResult, JsonSchema, ToolChoice, ToolDefinition } from '@/function/generate/types';
 import {
   clearInjectionPrompts,
   extractMessageFromData,
@@ -190,6 +190,7 @@ async function* sendCustomApiRequestStreaming(
   signal: AbortSignal,
   customApi: CustomApiConfig,
   toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
+  jsonSchema?: JsonSchema,
 ): AsyncGenerator<{ text: string }, void, void> {
   const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
@@ -202,6 +203,7 @@ async function* sendCustomApiRequestStreaming(
   const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages, {
     tools: toolOptions?.tools,
     tool_choice: toolOptions?.tool_choice,
+    jsonSchema: jsonSchema,
   })) as {
     generate_data: any;
   };
@@ -268,6 +270,7 @@ async function sendCustomApiRequestNonStreaming(
   signal: AbortSignal,
   customApi: CustomApiConfig,
   toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
+  jsonSchema?: JsonSchema,
 ): Promise<any> {
   const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
@@ -280,6 +283,7 @@ async function sendCustomApiRequestNonStreaming(
   const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages, {
     tools: toolOptions?.tools,
     tool_choice: toolOptions?.tool_choice,
+    jsonSchema: jsonSchema,
   })) as {
     generate_data: any;
   };
@@ -363,6 +367,7 @@ export async function generateResponse(
   abortController: AbortController,
   customApi?: CustomApiConfig,
   toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
+  jsonSchema?: JsonSchema,
 ): Promise<string | GenerateToolCallResult> {
   let result: string | GenerateToolCallResult = '';
   const hasTools = !!(toolOptions?.tools?.length);
@@ -387,7 +392,7 @@ export async function generateResponse(
       if (useStream) {
         const streamingProcessor = new StreamingProcessor(generationId, abortController);
         streamingProcessor.generator = () =>
-          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi, toolOptions);
+          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi, toolOptions, jsonSchema);
         result = (await streamingProcessor.generate()) as string;
       } else {
         const response = await sendCustomApiRequestNonStreaming(
@@ -395,19 +400,26 @@ export async function generateResponse(
           abortController.signal,
           validCustomApi,
           toolOptions,
+          jsonSchema,
         );
         result = await handleResponse(response, generationId, hasTools);
       }
     } else {
-      // 如果用户传了 tools 但没有 custom_api，通过事件注入 tools 到 generate_data
-      const toolInjector = hasTools
+      // 如果用户传了 tools/json_schema 但没有 custom_api，通过事件注入到 generate_data
+      const needsInjection = hasTools || jsonSchema;
+      const optionsInjector = needsInjection
         ? (data: any) => {
-            data.tools = toolOptions!.tools;
-            data.tool_choice = toolOptions!.tool_choice ?? 'auto';
+            if (hasTools) {
+              data.tools = toolOptions!.tools;
+              data.tool_choice = toolOptions!.tool_choice ?? 'auto';
+            }
+            if (jsonSchema) {
+              data.json_schema = jsonSchema;
+            }
           }
         : null;
-      if (toolInjector) {
-        eventSource.once(event_types.CHAT_COMPLETION_SETTINGS_READY, toolInjector);
+      if (optionsInjector) {
+        eventSource.once(event_types.CHAT_COMPLETION_SETTINGS_READY, optionsInjector);
       }
       try {
         if (useStream) {
@@ -426,8 +438,8 @@ export async function generateResponse(
           result = await handleResponse(response, generationId, hasTools);
         }
       } finally {
-        if (toolInjector) {
-          eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, toolInjector);
+        if (optionsInjector) {
+          eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, optionsInjector);
         }
         oai_settings.stream_openai = $('#stream_toggle').is(':checked');
       }
