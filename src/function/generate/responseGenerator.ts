@@ -4,6 +4,7 @@ import {
 } from '@/function/generate/createGenerationParametersCompat';
 import { CustomApiConfig, GenerateToolCallResult, JsonSchema, ToolChoice, ToolDefinition } from '@/function/generate/types';
 import {
+  accumulateToolCallDeltas,
   clearInjectionPrompts,
   extractMessageFromData,
   extractToolCallsFromData,
@@ -36,9 +37,10 @@ import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
  * 处理流式生成的响应数据
  */
 class StreamingProcessor {
-  public generator: () => AsyncGenerator<{ text: string }, void, void>;
+  public generator: () => AsyncGenerator<{ text: string; toolCalls?: any[] }, void, void>;
   public stoppingStrings?: any;
   public result: string;
+  public toolCalls: any[];
   public isStopped: boolean;
   public isFinished: boolean;
   public abortController: AbortController;
@@ -47,6 +49,7 @@ class StreamingProcessor {
 
   constructor(generationId: string, abortController: AbortController) {
     this.result = '';
+    this.toolCalls = [];
     this.messageBuffer = '';
     this.isStopped = false;
     this.isFinished = false;
@@ -91,7 +94,7 @@ class StreamingProcessor {
   }
 
   // eslint-disable-next-line require-yield
-  async *nullStreamingGeneration(): AsyncGenerator<{ text: string }, void, void> {
+  async *nullStreamingGeneration(): AsyncGenerator<{ text: string; toolCalls?: any[] }, void, void> {
     throw Error('Generation function for streaming is not hooked up');
   }
 
@@ -99,13 +102,16 @@ class StreamingProcessor {
     try {
       const sw = new Stopwatch(1000 / power_user.streaming_fps);
 
-      for await (const { text } of this.generator()) {
+      for await (const { text, toolCalls } of this.generator()) {
         if (this.isStopped) {
           this.messageBuffer = '';
           return this.result;
         }
 
         this.result = text;
+        if (toolCalls) {
+          this.toolCalls = toolCalls;
+        }
         await sw.tick(() => this.onProgressStreaming({ text: this.result, isFinal: false }));
       }
 
@@ -191,7 +197,7 @@ async function* sendCustomApiRequestStreaming(
   customApi: CustomApiConfig,
   toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
   jsonSchema?: JsonSchema,
-): AsyncGenerator<{ text: string }, void, void> {
+): AsyncGenerator<{ text: string; toolCalls?: any[] }, void, void> {
   const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
     ...oai_settings,
@@ -232,6 +238,7 @@ async function* sendCustomApiRequestStreaming(
   response.body.pipeThrough(eventStream);
   const reader = eventStream.readable.getReader();
   let text = '';
+  const toolCalls: any[] = [];
   const state = { reasoning: '', images: [], signature: '', toolSignatures: {} };
 
   try {
@@ -254,8 +261,12 @@ async function* sendCustomApiRequestStreaming(
       const chunk = getStreamingReply(parsed, state, { chatCompletionSource: source });
       if (chunk) {
         text += chunk;
-        yield { text };
       }
+
+      // Accumulate streaming tool_calls deltas
+      accumulateToolCallDeltas(toolCalls, parsed);
+
+      yield { text, toolCalls };
     }
   } finally {
     reader.releaseLock();
@@ -350,6 +361,30 @@ async function handleResponse(response: any, generationId: string, hasTools: boo
 }
 
 /**
+ * 将流式累积的 toolCalls 数组转换为 GenerateToolCallResult
+ */
+function buildToolCallResult(content: string, toolCalls: any[]): GenerateToolCallResult {
+  // toolCalls 可能是嵌套数组 (来自 ST 的 ToolManager 格式: toolCalls[choiceIndex][callIndex])
+  // 或扁平数组 (来自自定义 API 路径的 accumulateToolCallDeltas)
+  const flatCalls = Array.isArray(toolCalls[0]) ? toolCalls[0] : toolCalls;
+  return {
+    content,
+    tool_calls: flatCalls.map((tc: any) => ({
+      id: tc.id ?? crypto.randomUUID(),
+      type: 'function' as const,
+      function: {
+        name: tc.function?.name ?? tc.name ?? '',
+        arguments: typeof tc.function?.arguments === 'string'
+          ? tc.function.arguments
+          : typeof tc.input === 'string'
+            ? tc.input
+            : JSON.stringify(tc.function?.arguments ?? tc.input ?? {}),
+      },
+    })),
+  };
+}
+
+/**
  * 生成响应
  * @param generate_data 生成数据
  * @param useStream 是否使用流式传输
@@ -393,7 +428,10 @@ export async function generateResponse(
         const streamingProcessor = new StreamingProcessor(generationId, abortController);
         streamingProcessor.generator = () =>
           sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi, toolOptions, jsonSchema);
-        result = (await streamingProcessor.generate()) as string;
+        result = await streamingProcessor.generate();
+        if (hasTools && streamingProcessor.toolCalls.length > 0) {
+          result = buildToolCallResult(result, streamingProcessor.toolCalls);
+        }
       } else {
         const response = await sendCustomApiRequestNonStreaming(
           generate_data.prompt,
@@ -431,7 +469,10 @@ export async function generateResponse(
             generate_data.prompt,
             abortController.signal,
           );
-          result = (await streamingProcessor.generate()) as string;
+          result = await streamingProcessor.generate();
+          if (hasTools && streamingProcessor.toolCalls.length > 0) {
+            result = buildToolCallResult(result, streamingProcessor.toolCalls);
+          }
         } else {
           oai_settings.stream_openai = false;
           const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);

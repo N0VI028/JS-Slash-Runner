@@ -110,6 +110,34 @@ export function extractToolCallsFromData(data: any): NormalizedToolCall[] | null
 }
 
 /**
+ * 从流式 chunk 中累积 tool_calls delta（OpenAI / Claude 流式格式）
+ * 与 ST 的 ToolManager.parseToolCalls 类似，但不依赖 ToolManager 注册状态
+ */
+export function accumulateToolCallDeltas(toolCalls: any[], parsed: any): void {
+  // OpenAI 流式格式: choices[0].delta.tool_calls[]
+  const deltas = parsed?.choices?.[0]?.delta?.tool_calls;
+  if (!Array.isArray(deltas)) return;
+
+  for (const delta of deltas) {
+    const idx = delta?.index ?? 0;
+
+    if (!toolCalls[idx]) {
+      toolCalls[idx] = {
+        id: delta.id ?? '',
+        type: delta.type ?? 'function',
+        function: { name: '', arguments: '' },
+      };
+    }
+
+    const target = toolCalls[idx];
+    if (delta.id) target.id = delta.id;
+    if (delta.type) target.type = delta.type;
+    if (delta.function?.name) target.function.name += delta.function.name;
+    if (delta.function?.arguments) target.function.arguments += delta.function.arguments;
+  }
+}
+
+/**
  * 从响应数据中提取消息内容
  * @param data 响应数据
  * @returns 提取的消息字符串
