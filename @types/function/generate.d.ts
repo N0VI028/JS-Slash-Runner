@@ -94,8 +94,56 @@ declare function getProxyPresetNames(): string[];
  * // 然后进行生成
  * const result = await generate({ user_input: '你好', should_stream: true });
  * console.info('收到最终回复: ', result);
+ *
+ * @example
+ * // 使用 tool use / function calling
+ * const result = await generate({
+ *   user_input: '今天北京天气怎么样？',
+ *   tools: [{
+ *     type: 'function',
+ *     function: {
+ *       name: 'get_weather',
+ *       description: '获取指定城市的天气',
+ *       parameters: {
+ *         type: 'object',
+ *         properties: {
+ *           city: { type: 'string', description: '城市名称' }
+ *         },
+ *         required: ['city']
+ *       }
+ *     }
+ *   }],
+ *   tool_choice: 'auto'
+ * });
+ *
+ * if (typeof result === 'object' && result.tool_calls) {
+ *   for (const call of result.tool_calls) {
+ *     console.info(`模型调用了工具: ${call.function.name}(${call.function.arguments})`);
+ *   }
+ * } else {
+ *   console.info('收到文本回复: ', result);
+ * }
+ *
+ * @example
+ * // 使用 json_schema 强制结构化输出
+ * const result = await generate({
+ *   user_input: '描述场景',
+ *   json_schema: {
+ *     name: 'scene_output',
+ *     value: {
+ *       type: 'object',
+ *       properties: {
+ *         narrative: { type: 'string' },
+ *         mood: { type: 'string', enum: ['happy', 'sad', 'tense'] }
+ *       },
+ *       required: ['narrative', 'mood']
+ *     }
+ *   }
+ * });
+ * const parsed = JSON.parse(result as string);
+ * console.info(parsed.narrative, parsed.mood);
  */
-declare function generate(config: GenerateConfig): Promise<string>;
+declare function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult>;
 
 /**
  * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
@@ -148,7 +196,7 @@ declare function generate(config: GenerateConfig): Promise<string>;
  * })
  * console.info('收到回复: ', result);
  */
-declare function generateRaw(config: GenerateRawConfig): Promise<string>;
+declare function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult>;
 
 /**
  * 获取模型列表
@@ -230,6 +278,33 @@ type GenerateConfig = {
 
   /** 自定义API配置 */
   custom_api?: CustomApiConfig;
+
+  /**
+   * 工具定义列表（OpenAI 格式）。
+   * 传入后，模型可能返回 tool_calls 而非纯文本，此时函数返回 `GenerateToolCallResult` 对象。
+   */
+  tools?: ToolDefinition[];
+
+  /**
+   * 工具选择策略:
+   * - `'auto'`: 模型自行决定是否调用工具（默认）
+   * - `'required'`: 模型必须调用工具
+   * - `'none'`: 模型不调用工具
+   * - `{ type: 'function', function: { name: string } }`: 强制调用指定工具
+   */
+  tool_choice?: ToolChoice;
+
+  /**
+   * JSON Schema 定义，强制模型输出符合指定 schema 的 JSON。
+   * 返回值为 JSON 字符串（需自行 JSON.parse）。
+   *
+   * ST 服务端会根据 provider 自动转换格式：
+   * - OpenAI/DeepSeek/Mistral 等 → response_format.json_schema
+   * - Claude → 转为 tool + forced tool_choice
+   *
+   * 与 tools 互斥，不要同时传入。
+   */
+  json_schema?: JsonSchema;
 };
 
 type GenerateRawConfig = GenerateConfig & {
@@ -321,4 +396,83 @@ type CustomApiConfig = {
   presence_penalty?: 'same_as_preset' | 'unset' | number;
   top_p?: 'same_as_preset' | 'unset' | number;
   top_k?: 'same_as_preset' | 'unset' | number;
+};
+
+/**
+ * JSON Schema 定义，用于强制模型输出符合指定 schema 的 JSON。
+ *
+ * @example
+ * const result = await generateRaw({
+ *   user_input: '描述场景',
+ *   json_schema: {
+ *     name: 'scene_output',
+ *     description: '场景描述和角色状态',
+ *     value: {
+ *       type: 'object',
+ *       properties: {
+ *         narrative: { type: 'string', description: '叙事文本' },
+ *         status: { type: 'object', properties: { name: { type: 'string' } } }
+ *       },
+ *       required: ['narrative', 'status']
+ *     }
+ *   }
+ * });
+ * const parsed = JSON.parse(result as string);
+ */
+type JsonSchema = {
+  /** Schema 名称 */
+  name: string;
+  /** Schema 描述 */
+  description?: string;
+  /** JSON Schema 定义 */
+  value: Record<string, any>;
+  /** 是否严格模式（默认 true） */
+  strict?: boolean;
+};
+
+/**
+ * Tool function 定义
+ */
+type ToolFunction = {
+  /** 工具函数名称 */
+  name: string;
+  /** 工具函数描述 */
+  description?: string;
+  /** JSON Schema 格式的参数定义 */
+  parameters?: Record<string, any>;
+};
+
+/**
+ * Tool 定义（OpenAI 格式）
+ */
+type ToolDefinition = {
+  type: 'function';
+  function: ToolFunction;
+};
+
+/**
+ * Tool choice 选项
+ */
+type ToolChoice = 'auto' | 'required' | 'none' | { type: 'function'; function: { name: string } };
+
+/**
+ * 当模型返回 tool_calls 时的结构化结果。
+ *
+ * 仅在 `generate` / `generateRaw` 配置中传入了 `tools` 且模型决定调用工具时返回；
+ * 否则函数仍返回普通的 `string`。
+ */
+type GenerateToolCallResult = {
+  /** 模型返回的文本内容（可能为空字符串） */
+  content: string;
+  /** 模型请求调用的工具列表 */
+  tool_calls: {
+    id: string;
+    type: 'function';
+    function: {
+      /** 工具函数名称 */
+      name: string;
+      /** JSON 字符串格式的参数 */
+      arguments: string;
+    };
+  }[];
 };

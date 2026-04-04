@@ -2,10 +2,12 @@ import {
   createGenerationParameters,
   getChatCompletionModelCompat,
 } from '@/function/generate/createGenerationParametersCompat';
-import { CustomApiConfig } from '@/function/generate/types';
+import { CustomApiConfig, GenerateToolCallResult, JsonSchema, ToolChoice, ToolDefinition } from '@/function/generate/types';
 import {
+  accumulateToolCallDeltas,
   clearInjectionPrompts,
   extractMessageFromData,
+  extractToolCallsFromData,
   normalizeBaseURL,
   setupImageArrayProcessing,
 } from '@/function/generate/utils';
@@ -35,9 +37,10 @@ import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
  * 处理流式生成的响应数据
  */
 class StreamingProcessor {
-  public generator: () => AsyncGenerator<{ text: string }, void, void>;
+  public generator: () => AsyncGenerator<{ text: string; toolCalls?: any[] }, void, void>;
   public stoppingStrings?: any;
   public result: string;
+  public toolCalls: any[];
   public isStopped: boolean;
   public isFinished: boolean;
   public abortController: AbortController;
@@ -46,6 +49,7 @@ class StreamingProcessor {
 
   constructor(generationId: string, abortController: AbortController) {
     this.result = '';
+    this.toolCalls = [];
     this.messageBuffer = '';
     this.isStopped = false;
     this.isFinished = false;
@@ -90,7 +94,7 @@ class StreamingProcessor {
   }
 
   // eslint-disable-next-line require-yield
-  async *nullStreamingGeneration(): AsyncGenerator<{ text: string }, void, void> {
+  async *nullStreamingGeneration(): AsyncGenerator<{ text: string; toolCalls?: any[] }, void, void> {
     throw Error('Generation function for streaming is not hooked up');
   }
 
@@ -98,13 +102,16 @@ class StreamingProcessor {
     try {
       const sw = new Stopwatch(1000 / power_user.streaming_fps);
 
-      for await (const { text } of this.generator()) {
+      for await (const { text, toolCalls } of this.generator()) {
         if (this.isStopped) {
           this.messageBuffer = '';
           return this.result;
         }
 
         this.result = text;
+        if (toolCalls) {
+          this.toolCalls = toolCalls;
+        }
         await sw.tick(() => this.onProgressStreaming({ text: this.result, isFinal: false }));
       }
 
@@ -188,7 +195,9 @@ async function* sendCustomApiRequestStreaming(
   messages: any[],
   signal: AbortSignal,
   customApi: CustomApiConfig,
-): AsyncGenerator<{ text: string }, void, void> {
+  toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
+  jsonSchema?: JsonSchema,
+): AsyncGenerator<{ text: string; toolCalls?: any[] }, void, void> {
   const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
     ...oai_settings,
@@ -197,7 +206,11 @@ async function* sendCustomApiRequestStreaming(
   };
 
   const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
-  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages)) as {
+  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages, {
+    tools: toolOptions?.tools,
+    tool_choice: toolOptions?.tool_choice,
+    jsonSchema: jsonSchema,
+  })) as {
     generate_data: any;
   };
   applyCustomApiOverrides(generate_data, customApi);
@@ -225,6 +238,7 @@ async function* sendCustomApiRequestStreaming(
   response.body.pipeThrough(eventStream);
   const reader = eventStream.readable.getReader();
   let text = '';
+  const toolCalls: any[] = [];
   const state = { reasoning: '', images: [], signature: '', toolSignatures: {} };
 
   try {
@@ -247,8 +261,12 @@ async function* sendCustomApiRequestStreaming(
       const chunk = getStreamingReply(parsed, state, { chatCompletionSource: source });
       if (chunk) {
         text += chunk;
-        yield { text };
       }
+
+      // Accumulate streaming tool_calls deltas
+      accumulateToolCallDeltas(toolCalls, parsed);
+
+      yield { text, toolCalls };
     }
   } finally {
     reader.releaseLock();
@@ -262,6 +280,8 @@ async function sendCustomApiRequestNonStreaming(
   messages: any[],
   signal: AbortSignal,
   customApi: CustomApiConfig,
+  toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
+  jsonSchema?: JsonSchema,
 ): Promise<any> {
   const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
   const settings = {
@@ -271,7 +291,11 @@ async function sendCustomApiRequestNonStreaming(
   };
 
   const model = getChatCompletionModelCompat(getChatCompletionModel, settings);
-  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages)) as {
+  const { generate_data } = (await createGenerationParameters(settings, model, 'normal', messages, {
+    tools: toolOptions?.tools,
+    tool_choice: toolOptions?.tool_choice,
+    jsonSchema: jsonSchema,
+  })) as {
     generate_data: any;
   };
   applyCustomApiOverrides(generate_data, customApi);
@@ -305,7 +329,7 @@ async function sendCustomApiRequestNonStreaming(
  * @param response API响应对象
  * @returns 提取的消息文本
  */
-async function handleResponse(response: any, generationId: string) {
+async function handleResponse(response: any, generationId: string, hasTools: boolean): Promise<string | GenerateToolCallResult> {
   if (!response) {
     throw Error(`未得到响应`);
   }
@@ -317,10 +341,47 @@ async function handleResponse(response: any, generationId: string) {
     }
     throw Error(response?.response);
   }
+
+  // 检查是否有 tool_calls
+  if (hasTools) {
+    const toolCalls = extractToolCallsFromData(response);
+    if (toolCalls) {
+      const content = extractMessageFromData(response);
+      const toolCallResult: GenerateToolCallResult = { content, tool_calls: toolCalls };
+      eventSource.emit('js_generation_before_end', { message: content }, generationId);
+      eventSource.emit('js_generation_ended', content, generationId);
+      return toolCallResult;
+    }
+  }
+
   const result = { message: extractMessageFromData(response) };
   eventSource.emit('js_generation_before_end', result, generationId);
   eventSource.emit('js_generation_ended', result.message, generationId);
   return result.message;
+}
+
+/**
+ * 将流式累积的 toolCalls 数组转换为 GenerateToolCallResult
+ */
+function buildToolCallResult(content: string, toolCalls: any[]): GenerateToolCallResult {
+  // toolCalls 可能是嵌套数组 (来自 ST 的 ToolManager 格式: toolCalls[choiceIndex][callIndex])
+  // 或扁平数组 (来自自定义 API 路径的 accumulateToolCallDeltas)
+  const flatCalls = Array.isArray(toolCalls[0]) ? toolCalls[0] : toolCalls;
+  return {
+    content,
+    tool_calls: flatCalls.map((tc: any) => ({
+      id: tc.id ?? crypto.randomUUID(),
+      type: 'function' as const,
+      function: {
+        name: tc.function?.name ?? tc.name ?? '',
+        arguments: typeof tc.function?.arguments === 'string'
+          ? tc.function.arguments
+          : typeof tc.input === 'string'
+            ? tc.input
+            : JSON.stringify(tc.function?.arguments ?? tc.input ?? {}),
+      },
+    })),
+  };
 }
 
 /**
@@ -340,8 +401,11 @@ export async function generateResponse(
   imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined,
   abortController: AbortController,
   customApi?: CustomApiConfig,
-): Promise<string> {
-  let result = '';
+  toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
+  jsonSchema?: JsonSchema,
+): Promise<string | GenerateToolCallResult> {
+  let result: string | GenerateToolCallResult = '';
+  const hasTools = !!(toolOptions?.tools?.length);
 
   try {
     // 如果有图片处理，等待图片处理完成
@@ -363,17 +427,38 @@ export async function generateResponse(
       if (useStream) {
         const streamingProcessor = new StreamingProcessor(generationId, abortController);
         streamingProcessor.generator = () =>
-          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi);
-        result = (await streamingProcessor.generate()) as string;
+          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi, toolOptions, jsonSchema);
+        result = await streamingProcessor.generate();
+        if (hasTools && streamingProcessor.toolCalls.length > 0) {
+          result = buildToolCallResult(result, streamingProcessor.toolCalls);
+        }
       } else {
         const response = await sendCustomApiRequestNonStreaming(
           generate_data.prompt,
           abortController.signal,
           validCustomApi,
+          toolOptions,
+          jsonSchema,
         );
-        result = await handleResponse(response, generationId);
+        result = await handleResponse(response, generationId, hasTools);
       }
     } else {
+      // 如果用户传了 tools/json_schema 但没有 custom_api，通过事件注入到 generate_data
+      const needsInjection = hasTools || jsonSchema;
+      const optionsInjector = needsInjection
+        ? (data: any) => {
+            if (hasTools) {
+              data.tools = toolOptions!.tools;
+              data.tool_choice = toolOptions!.tool_choice ?? 'auto';
+            }
+            if (jsonSchema) {
+              data.json_schema = jsonSchema;
+            }
+          }
+        : null;
+      if (optionsInjector) {
+        eventSource.once(event_types.CHAT_COMPLETION_SETTINGS_READY, optionsInjector);
+      }
       try {
         if (useStream) {
           oai_settings.stream_openai = true;
@@ -384,13 +469,19 @@ export async function generateResponse(
             generate_data.prompt,
             abortController.signal,
           );
-          result = (await streamingProcessor.generate()) as string;
+          result = await streamingProcessor.generate();
+          if (hasTools && streamingProcessor.toolCalls.length > 0) {
+            result = buildToolCallResult(result, streamingProcessor.toolCalls);
+          }
         } else {
           oai_settings.stream_openai = false;
           const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
-          result = await handleResponse(response, generationId);
+          result = await handleResponse(response, generationId, hasTools);
         }
       } finally {
+        if (optionsInjector) {
+          eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, optionsInjector);
+        }
         oai_settings.stream_openai = $('#stream_toggle').is(':checked');
       }
     }

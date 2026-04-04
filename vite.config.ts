@@ -15,10 +15,16 @@ const externals = {
   '@popperjs/core': 'Popper',
 } as const;
 
-const relative_sillytavern_path = path.relative(
-  path.join(__dirname, 'dist'),
-  __dirname.substring(0, __dirname.lastIndexOf('public') + 6),
-);
+// Browser loads from: /scripts/extensions/third-party/<name>/dist/index.js
+// Need 5x ../ to reach ST public root. The original calculation uses __dirname depth
+// which only works when the project sits inside ST's public/ tree (or by CI coincidence).
+// ST_IMPORT_DEPTH env var lets out-of-tree builds override the depth (default: auto-detect).
+const relative_sillytavern_path = process.env.ST_IMPORT_DEPTH
+  ? '../'.repeat(Number(process.env.ST_IMPORT_DEPTH)).slice(0, -1)
+  : path.relative(
+    path.join(__dirname, 'dist'),
+    __dirname.substring(0, __dirname.lastIndexOf('public') + 6),
+  );
 
 const relative_lib_path = path.relative(path.join(__dirname, 'dist'), path.join(__dirname, 'lib'));
 

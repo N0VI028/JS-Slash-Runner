@@ -1,3 +1,4 @@
+import { ToolChoice, ToolDefinition } from '@/function/generate/types';
 import { getTavernVersion } from '@/function/version';
 import { compare } from 'compare-versions';
 
@@ -27,7 +28,7 @@ export async function createGenerationParameters(
   model: string,
   type: string,
   messages: any[],
-  options: { jsonSchema?: any } = {},
+  options: { jsonSchema?: any; tools?: ToolDefinition[]; tool_choice?: ToolChoice } = {},
 ): Promise<{ generate_data: any; stream?: boolean; canMultiSwipe?: boolean }> {
   const version = getTavernVersion();
 
@@ -36,11 +37,17 @@ export async function createGenerationParameters(
     if (compare(version, '1.15.0', '>=')) {
       // @ts-expect-error 低版本没有，TS会报错
       const { createGenerationParameters: nativeFunc } = await import('@sillytavern/scripts/openai');
-      return (await nativeFunc(settings, model, type, messages, options)) as {
+      const result = (await nativeFunc(settings, model, type, messages, options)) as {
         generate_data: any;
         stream?: boolean;
         canMultiSwipe?: boolean;
       };
+      // 用户传入的 tools 覆盖 ToolManager 自动注册的
+      if (options.tools?.length) {
+        result.generate_data.tools = options.tools;
+        result.generate_data.tool_choice = options.tool_choice ?? 'auto';
+      }
+      return result;
     }
   } catch (error) {
     console.warn('Failed to import native createGenerationParameters, using fallback:', error);
@@ -59,7 +66,7 @@ async function createGenerationParametersFallback(
   model: string,
   type: string,
   messages: any[],
-  { jsonSchema = null }: { jsonSchema?: any } = {},
+  { jsonSchema = null, tools, tool_choice }: { jsonSchema?: any; tools?: ToolDefinition[]; tool_choice?: ToolChoice } = {},
 ): Promise<{ generate_data: any; stream?: boolean; canMultiSwipe?: boolean }> {
   const { chat_completion_sources, getChatCompletionModel } = (await import('@sillytavern/scripts/openai')) as any;
   const { getCustomStoppingStrings } = (await import('@sillytavern/scripts/power-user')) as any;
@@ -228,6 +235,11 @@ async function createGenerationParametersFallback(
 
   if (jsonSchema) {
     generate_data.json_schema = jsonSchema;
+  }
+
+  if (tools?.length) {
+    generate_data.tools = tools;
+    generate_data.tool_choice = tool_choice ?? 'auto';
   }
 
   return { generate_data, stream, canMultiSwipe };
