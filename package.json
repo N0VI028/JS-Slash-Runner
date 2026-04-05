@@ -6,7 +6,9 @@
     "watch": "vite build --watch --mode development",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,scss,html,vue}\"",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "browserslist": [
     "defaults and partially supports es6-module"
@@ -49,6 +51,7 @@
     "vanilla-jsoneditor": "^3.12.0",
     "vite": "^7.3.1",
     "vite-plugin-external": "^6.2.2",
+    "vitest": "^3.2.4",
     "vue-eslint-parser": "^10.4.0",
     "vue-style-loader": "^4.1.3",
     "vue-tsc": "^3.2.6",

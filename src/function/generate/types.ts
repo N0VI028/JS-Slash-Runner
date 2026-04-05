@@ -53,7 +53,18 @@ export type GenerateToolCallResult = {
       name: string;
       arguments: string;
     };
+    /**
+     * 加密的 reasoning/thought 签名（若 provider 返回）。
+     * 多轮 tool call 时需要原样回传给下一轮请求以维持推理上下文。
+     * 目前主要由 Google Gemini 和 OpenRouter 提供。
+     */
+    thought_signature?: string;
   }[];
+  /**
+   * 顶层 reasoning 签名（非绑定到具体 tool_call 的那一份）。
+   * 同样用于多轮场景下把 thinking 上下文回传给下一轮请求。
+   */
+  reasoning_signature?: string;
 };
 
 /**

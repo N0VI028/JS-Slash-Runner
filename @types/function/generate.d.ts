@@ -474,5 +474,35 @@ type GenerateToolCallResult = {
       /** JSON 字符串格式的参数 */
       arguments: string;
     };
+    /**
+     * 加密的 reasoning/thought 签名（若 provider 返回）。
+     *
+     * 多轮 tool call 场景下必须把签名原样回传给下一轮请求以维持推理上下文。
+     *
+     * **Gemini 3 强制要求**：不回传 thought_signature 会返回 4xx 校验错误
+     * （Gemini 2.5 及之前是可选，3.0+ 强制，见官方 thought-signatures 文档）。
+     *
+     * **并行 tool call**：Gemini 只会把签名挂在**第一个** tool_call 上，
+     * 后续并行 call 的 `thought_signature` 为 undefined——这一个签名代表整批，
+     * 回传时只需要还原到第一个 call 对应的 functionCall part 上。
+     *
+     * **多轮累积**：必须把**历史所有轮次**返回过的签名一起回传，而不是只带最后一次。
+     *
+     * **绕过校验**（仅限手动构造 tool call 的情况）：把 thought_signature 设为
+     * `"skip_thought_signature_validator"` 或 `"context_engineering_is_the_way_to_go"`
+     * 可以跳过 Gemini 服务端校验。
+     */
+    thought_signature?: string;
   }[];
+  /**
+   * 顶层 reasoning 签名（非绑定到具体 tool_call 的那一份）。
+   *
+   * 主要出现在「模型只返回文本、没有 tool_calls」的场景：Gemini 会把签名挂在最后一个
+   * text part 上（流式终帧里可能是空字符串 text + 签名）。OpenRouter 通过
+   * `reasoning_details` 暴露非 tool 绑定的 encrypted 段；Claude 通过 thinking 块的
+   * signature 字段提供。
+   *
+   * 同样用于多轮场景下把 thinking 上下文回传给下一轮请求。
+   */
+  reasoning_signature?: string;
 };
