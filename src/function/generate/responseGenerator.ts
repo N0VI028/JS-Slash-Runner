@@ -4,14 +4,23 @@ import {
 } from '@/function/generate/createGenerationParametersCompat';
 import { CustomApiConfig, GenerateToolCallResult, JsonSchema, ToolChoice, ToolDefinition } from '@/function/generate/types';
 import {
-  accumulateToolCallDeltas,
   clearInjectionPrompts,
   extractMessageFromData,
-  extractReasoningSignatureFromData,
-  extractToolCallsFromData,
   normalizeBaseURL,
   setupImageArrayProcessing,
 } from '@/function/generate/utils';
+import {
+  accumulateToolCallDeltasForSupportedSources,
+  extractReasoningSignatureForSupportedSources,
+  extractToolCallsForSupportedSources,
+  getIgnoredToolCallWarningMessage,
+  hasToolCallRequestOptions,
+  isSupportedToolCallSource,
+  normalizeRequestToolOptionsForSource,
+  normalizeAccumulatedToolCalls,
+  resolveToolCallSource,
+  SupportedToolCallSource,
+} from '@/function/generate/toolCallCompat';
 import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
   cleanUpMessage,
@@ -33,10 +42,6 @@ import { power_user } from '@sillytavern/scripts/power-user';
 import { getEventSourceStream } from '@sillytavern/scripts/sse-stream';
 import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
 
-/**
- * 流式处理器类
- * 处理流式生成的响应数据
- */
 class StreamingProcessor {
   public generator: () => AsyncGenerator<{ text: string; toolCalls?: any[]; state?: any }, void, void>;
   public stoppingStrings?: any;
@@ -64,7 +69,6 @@ class StreamingProcessor {
   }
 
   onProgressStreaming(data: { text: string; isFinal: boolean }) {
-    // 计算增量文本
     const newText = data.text.slice(this.messageBuffer.length);
     this.messageBuffer = data.text;
     // @ts-expect-error 兼容酒馆旧版本
@@ -147,12 +151,6 @@ class StreamingProcessor {
   }
 }
 
-/**
- * 解析代理预设配置
- * 根据 proxy_preset 名称查找酒馆已保存的代理预设
- * - 预设未找到：回退到 customApi（保留用户传的 apiurl 和 key）
- * - 预设找到：完全使用预设的 url 和 password（即使为空也不回退）
- */
 function resolveProxyPreset(customApi: CustomApiConfig): CustomApiConfig {
   if (!customApi.proxy_preset) return customApi;
 
@@ -171,39 +169,74 @@ function resolveProxyPreset(customApi: CustomApiConfig): CustomApiConfig {
   };
 }
 
-/**
- * 应用自定义API参数覆盖
- */
-function applyCustomApiOverrides(generate_data: any, customApi: CustomApiConfig) {
-  // 只有明确指定 apiurl 时才覆盖 reverse_proxy
+function applyCustomApiOverrides(generateData: any, customApi: CustomApiConfig) {
   if (customApi.apiurl) {
-    generate_data.reverse_proxy = normalizeBaseURL(customApi.apiurl);
-    generate_data.proxy_password = customApi.key || '';
+    generateData.reverse_proxy = normalizeBaseURL(customApi.apiurl);
+    generateData.proxy_password = customApi.key || '';
   }
 
   if (customApi.model) {
-    generate_data.model = customApi.model;
+    generateData.model = customApi.model;
   }
 
-  const set_param = (param: keyof CustomApiConfig) => {
+  const setParam = (param: keyof CustomApiConfig) => {
     const input = customApi[param] ?? 'same_as_preset';
     if (input === 'unset') {
-      delete generate_data[param];
+      delete generateData[param];
     } else if (input !== 'same_as_preset') {
-      generate_data[param] = input;
+      generateData[param] = input;
     }
   };
-  set_param('max_tokens');
-  set_param('temperature');
-  set_param('frequency_penalty');
-  set_param('presence_penalty');
-  set_param('top_p');
-  set_param('top_k');
+  setParam('max_tokens');
+  setParam('temperature');
+  setParam('frequency_penalty');
+  setParam('presence_penalty');
+  setParam('top_p');
+  setParam('top_k');
 }
 
-/**
- * 发送自定义API请求（流式）
- */
+function resolveEffectiveToolCallOptions(
+  customApi: CustomApiConfig | undefined,
+  toolOptions: { tools?: ToolDefinition[]; tool_choice?: ToolChoice } | undefined,
+  jsonSchema: JsonSchema | undefined,
+): {
+  source: string | undefined;
+  supportedSource: SupportedToolCallSource | undefined;
+  effectiveToolOptions: { tools?: ToolDefinition[]; tool_choice?: ToolChoice } | undefined;
+  effectiveJsonSchema: JsonSchema | undefined;
+} {
+  const source = resolveToolCallSource({
+    customSource: customApi?.source,
+    hasCustomApiUrl: Boolean(customApi?.apiurl),
+    defaultSource: oai_settings.chat_completion_source,
+  });
+  const supportedSource = isSupportedToolCallSource(source) ? source : undefined;
+  const hasToolCallOptions = hasToolCallRequestOptions({ toolOptions, jsonSchema });
+
+  if (!supportedSource && hasToolCallOptions) {
+    toastr.warning(getIgnoredToolCallWarningMessage(source), 'Tool Calling', {
+      preventDuplicates: true,
+    });
+  }
+
+  const normalizedToolOptions = supportedSource
+    ? normalizeRequestToolOptionsForSource(supportedSource, toolOptions)
+    : { toolOptions: undefined, warnings: [] };
+
+  for (const warning of normalizedToolOptions.warnings) {
+    toastr.warning(warning, 'Tool Calling', {
+      preventDuplicates: true,
+    });
+  }
+
+  return {
+    source,
+    supportedSource,
+    effectiveToolOptions: supportedSource ? normalizedToolOptions.toolOptions : undefined,
+    effectiveJsonSchema: supportedSource ? jsonSchema : undefined,
+  };
+}
+
 async function* sendCustomApiRequestStreaming(
   messages: any[],
   signal: AbortSignal,
@@ -211,7 +244,12 @@ async function* sendCustomApiRequestStreaming(
   toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
   jsonSchema?: JsonSchema,
 ): AsyncGenerator<{ text: string; toolCalls?: any[]; state?: any }, void, void> {
-  const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
+  const source = resolveToolCallSource({
+    customSource: customApi.source,
+    hasCustomApiUrl: Boolean(customApi.apiurl),
+    defaultSource: oai_settings.chat_completion_source,
+  }) ?? 'openai';
+  const toolCallSource = isSupportedToolCallSource(source) ? source : undefined;
   const settings = {
     ...oai_settings,
     chat_completion_source: source,
@@ -223,9 +261,7 @@ async function* sendCustomApiRequestStreaming(
     tools: toolOptions?.tools,
     tool_choice: toolOptions?.tool_choice,
     jsonSchema: jsonSchema,
-  })) as {
-    generate_data: any;
-  };
+  })) as { generate_data: any };
   applyCustomApiOverrides(generate_data, customApi);
 
   await eventSource.emit(event_types.CHAT_COMPLETION_SETTINGS_READY, generate_data);
@@ -276,8 +312,9 @@ async function* sendCustomApiRequestStreaming(
         text += chunk;
       }
 
-      // Accumulate streaming tool_calls deltas
-      accumulateToolCallDeltas(toolCalls, parsed);
+      if (toolCallSource) {
+        accumulateToolCallDeltasForSupportedSources(toolCalls, parsed, toolCallSource);
+      }
 
       yield { text, toolCalls, state };
     }
@@ -286,9 +323,6 @@ async function* sendCustomApiRequestStreaming(
   }
 }
 
-/**
- * 发送自定义API请求（非流式）
- */
 async function sendCustomApiRequestNonStreaming(
   messages: any[],
   signal: AbortSignal,
@@ -296,7 +330,11 @@ async function sendCustomApiRequestNonStreaming(
   toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
   jsonSchema?: JsonSchema,
 ): Promise<any> {
-  const source = customApi.source || (customApi.apiurl ? 'openai' : oai_settings.chat_completion_source);
+  const source = resolveToolCallSource({
+    customSource: customApi.source,
+    hasCustomApiUrl: Boolean(customApi.apiurl),
+    defaultSource: oai_settings.chat_completion_source,
+  }) ?? 'openai';
   const settings = {
     ...oai_settings,
     chat_completion_source: source,
@@ -308,9 +346,7 @@ async function sendCustomApiRequestNonStreaming(
     tools: toolOptions?.tools,
     tool_choice: toolOptions?.tool_choice,
     jsonSchema: jsonSchema,
-  })) as {
-    generate_data: any;
-  };
+  })) as { generate_data: any };
   applyCustomApiOverrides(generate_data, customApi);
 
   await eventSource.emit(event_types.CHAT_COMPLETION_SETTINGS_READY, generate_data);
@@ -337,14 +373,14 @@ async function sendCustomApiRequestNonStreaming(
   return data;
 }
 
-/**
- * 处理非流式响应
- * @param response API响应对象
- * @returns 提取的消息文本
- */
-async function handleResponse(response: any, generationId: string, hasTools: boolean): Promise<string | GenerateToolCallResult> {
+async function handleResponse(
+  response: any,
+  generationId: string,
+  hasTools: boolean,
+  source?: SupportedToolCallSource,
+): Promise<string | GenerateToolCallResult> {
   if (!response) {
-    throw Error(`未得到响应`);
+    throw Error('未得到响应');
   }
   if (response.error) {
     if (response?.response) {
@@ -355,12 +391,11 @@ async function handleResponse(response: any, generationId: string, hasTools: boo
     throw Error(response?.response);
   }
 
-  // 检查是否有 tool_calls
-  if (hasTools) {
-    const toolCalls = extractToolCallsFromData(response);
+  if (hasTools && source) {
+    const toolCalls = extractToolCallsForSupportedSources(response, source);
     if (toolCalls) {
       const content = extractMessageFromData(response);
-      const reasoningSignature = extractReasoningSignatureFromData(response);
+      const reasoningSignature = extractReasoningSignatureForSupportedSources(response, source);
       const toolCallResult: GenerateToolCallResult = {
         content,
         tool_calls: toolCalls,
@@ -378,54 +413,8 @@ async function handleResponse(response: any, generationId: string, hasTools: boo
   return result.message;
 }
 
-/**
- * 将流式累积的 toolCalls 数组转换为 GenerateToolCallResult
- */
-function buildToolCallResult(
-  content: string,
-  toolCalls: any[],
-  extras?: { reasoningSignature?: string; toolSignatures?: Record<string, string> },
-): GenerateToolCallResult {
-  // toolCalls 可能是嵌套数组 (来自 ST 的 ToolManager 格式: toolCalls[choiceIndex][callIndex])
-  // 或扁平数组 (来自自定义 API 路径的 accumulateToolCallDeltas)
-  const flatCalls = Array.isArray(toolCalls[0]) ? toolCalls[0] : toolCalls;
-  const toolSignatures = extras?.toolSignatures ?? {};
-  return {
-    content,
-    tool_calls: flatCalls.map((tc: any) => {
-      const id = tc.id ?? crypto.randomUUID();
-      // ST 的 ToolManager 用 signature / thoughtSignature 两种命名
-      const signature = tc.thoughtSignature ?? tc.thought_signature ?? tc.signature ?? toolSignatures[id];
-      return {
-        id,
-        type: 'function' as const,
-        function: {
-          name: tc.function?.name ?? tc.name ?? '',
-          arguments: typeof tc.function?.arguments === 'string'
-            ? tc.function.arguments
-            : typeof tc.input === 'string'
-              ? tc.input
-              : JSON.stringify(tc.function?.arguments ?? tc.input ?? {}),
-        },
-        ...(signature ? { thought_signature: signature } : {}),
-      };
-    }),
-    ...(extras?.reasoningSignature ? { reasoning_signature: extras.reasoningSignature } : {}),
-  };
-}
-
-/**
- * 生成响应
- * @param generate_data 生成数据
- * @param useStream 是否使用流式传输
- * @param generationId 生成ID
- * @param imageProcessingSetup 图片数组处理设置，包含Promise和解析器
- * @param abortController 中止控制器
- * @param customApi 自定义API配置
- * @returns 生成的响应文本
- */
 export async function generateResponse(
-  generate_data: any,
+  generateData: any,
   useStream = false,
   generationId: string | undefined = undefined,
   imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined,
@@ -435,10 +424,14 @@ export async function generateResponse(
   jsonSchema?: JsonSchema,
 ): Promise<string | GenerateToolCallResult> {
   let result: string | GenerateToolCallResult = '';
-  const hasTools = !!(toolOptions?.tools?.length);
+  const {
+    supportedSource,
+    effectiveToolOptions,
+    effectiveJsonSchema,
+  } = resolveEffectiveToolCallOptions(customApi, toolOptions, jsonSchema);
+  const hasTools = !!(effectiveToolOptions?.tools?.length);
 
   try {
-    // 如果有图片处理，等待图片处理完成
     if (imageProcessingSetup) {
       try {
         await imageProcessingSetup.imageProcessingPromise;
@@ -457,37 +450,53 @@ export async function generateResponse(
       if (useStream) {
         const streamingProcessor = new StreamingProcessor(generationId, abortController);
         streamingProcessor.generator = () =>
-          sendCustomApiRequestStreaming(generate_data.prompt, abortController.signal, validCustomApi, toolOptions, jsonSchema);
+          sendCustomApiRequestStreaming(
+            generateData.prompt,
+            abortController.signal,
+            validCustomApi,
+            effectiveToolOptions,
+            effectiveJsonSchema,
+          );
         result = await streamingProcessor.generate();
         if (hasTools && streamingProcessor.toolCalls.length > 0) {
-          result = buildToolCallResult(result, streamingProcessor.toolCalls, {
-            reasoningSignature: streamingProcessor.reasoningSignature || undefined,
-            toolSignatures: streamingProcessor.toolSignatures,
-          });
+          const normalizedToolCalls = normalizeAccumulatedToolCalls(
+            Array.isArray(streamingProcessor.toolCalls[0])
+              ? streamingProcessor.toolCalls[0]
+              : streamingProcessor.toolCalls,
+          ).map(toolCall => ({
+            ...toolCall,
+            ...(toolCall.thought_signature
+              ? {}
+              : { thought_signature: streamingProcessor.toolSignatures[toolCall.id] }),
+          }));
+          result = {
+            content: result,
+            tool_calls: normalizedToolCalls,
+            ...(streamingProcessor.reasoningSignature ? { reasoning_signature: streamingProcessor.reasoningSignature } : {}),
+          };
         }
       } else {
         const response = await sendCustomApiRequestNonStreaming(
-          generate_data.prompt,
+          generateData.prompt,
           abortController.signal,
           validCustomApi,
-          toolOptions,
-          jsonSchema,
+          effectiveToolOptions,
+          effectiveJsonSchema,
         );
-        result = await handleResponse(response, generationId, hasTools);
+        result = await handleResponse(response, generationId, hasTools, supportedSource);
       }
     } else {
-      // 如果用户传了 tools/json_schema 但没有 custom_api，通过事件注入到 generate_data
-      const needsInjection = hasTools || jsonSchema;
+      const needsInjection = hasTools || effectiveJsonSchema;
       const optionsInjector = needsInjection
         ? (data: any) => {
-            if (hasTools) {
-              data.tools = toolOptions!.tools;
-              data.tool_choice = toolOptions!.tool_choice ?? 'auto';
-            }
-            if (jsonSchema) {
-              data.json_schema = jsonSchema;
-            }
+          if (hasTools) {
+            data.tools = effectiveToolOptions!.tools;
+            data.tool_choice = effectiveToolOptions!.tool_choice ?? 'auto';
           }
+          if (effectiveJsonSchema) {
+            data.json_schema = effectiveJsonSchema;
+          }
+        }
         : null;
       if (optionsInjector) {
         eventSource.once(event_types.CHAT_COMPLETION_SETTINGS_READY, optionsInjector);
@@ -496,20 +505,34 @@ export async function generateResponse(
         if (useStream) {
           oai_settings.stream_openai = true;
           const streamingProcessor = new StreamingProcessor(generationId, abortController);
-          // @ts-expect-error 类型正确
+          // @ts-expect-error ST 返回的是异步生成器
           streamingProcessor.generator = await sendOpenAIRequest(
             'normal',
-            generate_data.prompt,
+            generateData.prompt,
             abortController.signal,
           );
           result = await streamingProcessor.generate();
           if (hasTools && streamingProcessor.toolCalls.length > 0) {
-            result = buildToolCallResult(result, streamingProcessor.toolCalls);
+            const normalizedToolCalls = normalizeAccumulatedToolCalls(
+              Array.isArray(streamingProcessor.toolCalls[0])
+                ? streamingProcessor.toolCalls[0]
+                : streamingProcessor.toolCalls,
+            ).map(toolCall => ({
+              ...toolCall,
+              ...(toolCall.thought_signature
+                ? {}
+                : { thought_signature: streamingProcessor.toolSignatures[toolCall.id] }),
+            }));
+            result = {
+              content: result,
+              tool_calls: normalizedToolCalls,
+              ...(streamingProcessor.reasoningSignature ? { reasoning_signature: streamingProcessor.reasoningSignature } : {}),
+            };
           }
         } else {
           oai_settings.stream_openai = false;
-          const response = await sendOpenAIRequest('normal', generate_data.prompt, abortController.signal);
-          result = await handleResponse(response, generationId, hasTools);
+          const response = await sendOpenAIRequest('normal', generateData.prompt, abortController.signal);
+          result = await handleResponse(response, generationId, hasTools, supportedSource);
         }
       } finally {
         if (optionsInjector) {
@@ -519,7 +542,6 @@ export async function generateResponse(
       }
     }
   } catch (error) {
-    // 如果有图片处理设置但生成失败，确保拒绝Promise
     if (imageProcessingSetup) {
       imageProcessingSetup.rejectImageProcessing(error);
     }
@@ -527,5 +549,6 @@ export async function generateResponse(
   } finally {
     await clearInjectionPrompts(['INJECTION']);
   }
+
   return result;
 }

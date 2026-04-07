@@ -29,7 +29,7 @@ export type ToolDefinition = {
 /**
  * Tool choice 选项
  */
-export type ToolChoice = 'auto' | 'required' | 'none' | { type: 'function'; function: { name: string } };
+export type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; function: { name: string } };
 
 /**
  * JSON Schema 定义，用于强制模型输出符合指定 schema 的 JSON

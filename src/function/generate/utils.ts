@@ -42,14 +42,25 @@ export async function convertFileToBase64(img: File | string): Promise<string | 
   return processedImg;
 }
 
-// 纯解析函数移到 parsers.ts 以便单元测试，在此重导出以保持兼容
-export {
-  accumulateToolCallDeltas,
-  extractMessageFromData,
-  extractReasoningSignatureFromData,
-  extractToolCallsFromData,
-} from '@/function/generate/parsers';
-export type { NormalizedToolCall } from '@/function/generate/parsers';
+/**
+ * 从响应数据中提取消息内容
+ * @param data 响应数据
+ * @returns 提取的消息字符串
+ */
+export function extractMessageFromData(data: any): string {
+  if (typeof data === 'string') {
+    return data;
+  }
+
+  return (
+    data?.choices?.[0]?.message?.content ??
+    data?.choices?.[0]?.text ??
+    data?.text ??
+    data?.message?.content?.[0]?.text ??
+    data?.message?.tool_plan ??
+    ''
+  );
+}
 
 /**
  * 处理对话示例格式
@@ -337,14 +348,5 @@ export function setupImageArrayProcessing(
 
 export function normalizeBaseURL(api_url: string): string {
   api_url = api_url.trim().replace(/\/+$/, '');
-  if (!api_url) {
-    return '';
-  }
-  if (api_url.endsWith('/models')) {
-    api_url.replace(/\/models$/, '');
-  }
-  if (api_url.endsWith('/chat/completions')) {
-    api_url.replace(/\/chat\/completions$/, '');
-  }
-  return api_url.endsWith('/v1') ? api_url : `${api_url}/v1`;
+  return api_url;
 }
