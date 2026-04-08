@@ -1,4 +1,12 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.8.4
+
+### 🐛修复
+
+- 修复 `generate` 和 `generateRaw` 的自定义 API 中, 只指定url, 但未指定源时的, 默认源错误的问题
+- 修复 `generate` 和 `generateRaw` 的自定义 API 中, 指定 `custom` 源时, url和key不生效的问题
+
+
 ## 4.8.3
 
 ### 🔢变量管理器

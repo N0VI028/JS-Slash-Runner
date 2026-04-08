@@ -41,6 +41,24 @@ import {
 import { power_user } from '@sillytavern/scripts/power-user';
 import { getEventSourceStream } from '@sillytavern/scripts/sse-stream';
 import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
+import YAML from 'yaml';
+
+/**
+ * 用 YAML 形式覆盖自定义请求头中的 Authorization，保留其他已有头
+ * @param customIncludeHeaders 自定义请求头 YAML 字符串
+ * @param key 要覆盖写入的 API Key
+ * @returns 更新后的 YAML 字符串
+ */
+function overrideCustomAuthorizationHeader(customIncludeHeaders: unknown, key: string): string {
+  const parsed =
+    typeof customIncludeHeaders === 'string' && customIncludeHeaders.trim()
+      ? YAML.parse(customIncludeHeaders)
+      : undefined;
+
+  const headers = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  headers.Authorization = `Bearer ${key}`;
+  return YAML.stringify(headers).trimEnd();
+}
 
 class StreamingProcessor {
   public generator: () => AsyncGenerator<{ text: string; toolCalls?: any[]; state?: any }, void, void>;
@@ -171,8 +189,18 @@ function resolveProxyPreset(customApi: CustomApiConfig): CustomApiConfig {
 
 function applyCustomApiOverrides(generateData: any, customApi: CustomApiConfig) {
   if (customApi.apiurl) {
-    generateData.reverse_proxy = normalizeBaseURL(customApi.apiurl);
+    const normalizedApiUrl = normalizeBaseURL(customApi.apiurl);
+    generateData.reverse_proxy = normalizedApiUrl;
     generateData.proxy_password = customApi.key || '';
+    if (generateData.chat_completion_source === 'custom') {
+      generateData.custom_url = normalizedApiUrl;
+      if (customApi.key) {
+        generateData.custom_include_headers = overrideCustomAuthorizationHeader(
+          generateData.custom_include_headers,
+          customApi.key,
+        );
+      }
+    }
   }
 
   if (customApi.model) {
