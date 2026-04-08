@@ -8,6 +8,7 @@
 ### 📦函数
 
 - 新增 `getProxyPresetNames` 函数, 用于获取代理预设名称列表
+- `generate`和`generateRaw`函数现在支持工具调用, 支持的源详见[文档](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/请求生成.html#custom-api)支持的 API 源部分
 
 ## 4.8.2
 
