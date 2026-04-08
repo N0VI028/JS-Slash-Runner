@@ -60,7 +60,7 @@ export function resolveToolCallSource(input: {
   }
 
   if (input.hasCustomApiUrl) {
-    return 'custom';
+    return 'openai';
   }
 
   return input.defaultSource;
