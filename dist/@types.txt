@@ -1223,7 +1223,7 @@ type ToolDefinition = {
 /**
  * Tool choice 选项
  */
-type ToolChoice = 'auto' | 'required' | 'none' | { type: 'function'; function: { name: string } };
+type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; function: { name: string } };
 
 /**
  * 当模型返回 tool_calls 时的结构化结果。
