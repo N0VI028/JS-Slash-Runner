@@ -348,14 +348,5 @@ export function setupImageArrayProcessing(
 
 export function normalizeBaseURL(api_url: string): string {
   api_url = api_url.trim().replace(/\/+$/, '');
-  if (!api_url) {
-    return '';
-  }
-  if (api_url.endsWith('/models')) {
-    api_url.replace(/\/models$/, '');
-  }
-  if (api_url.endsWith('/chat/completions')) {
-    api_url.replace(/\/chat\/completions$/, '');
-  }
-  return api_url.endsWith('/v1') ? api_url : `${api_url}/v1`;
+  return api_url;
 }

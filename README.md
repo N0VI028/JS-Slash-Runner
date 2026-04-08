@@ -60,6 +60,16 @@ pnpm build
 
 或者, 你可以用 `pnpm watch` 来持续监听代码变动. 这样只需刷新酒馆网页, 酒馆就会使用最新的插件代码.
 
+#### 在 SillyTavern 目录外构建
+
+默认情况下, 构建脚本通过 `__dirname` 中的 `public` 路径来计算 import 的相对路径, 因此项目需要位于 SillyTavern 的 `public/scripts/extensions/third-party/` 下. 如果你希望将项目放在其他位置 (例如独立的仓库目录), 可以通过环境变量 `ST_IMPORT_DEPTH` 指定从 `dist/` 到 SillyTavern `public/` 根目录的目录层级数:
+
+```bash
+ST_IMPORT_DEPTH=5 pnpm build
+```
+
+层级数 5 对应 SillyTavern 的标准第三方扩展 URL 结构: `scripts/extensions/third-party/<name>/dist/` → 5 层 `../` 回到 `public/` 根. 构建完成后, 将 `dist/`、`lib/`、`i18n/` 和 `manifest.json` 部署到 SillyTavern 的扩展目录即可, 也可以使用符号链接.
+
 ## 许可证
 
 - [Aladdin](LICENSE)
