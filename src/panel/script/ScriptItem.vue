@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- prettier-ignore-attribute -->
   <div
     v-show="is_visible"
@@ -157,8 +157,12 @@ const { open: openMoveConfirm } = useModal({
   },
 });
 
+/**
+ * 导出时可选择是否保留变量与按钮配置。
+ */
 type ScriptExportOptions = {
-  should_strip_data: boolean;
+  include_data: boolean;
+  include_button: boolean;
 };
 
 type ScriptExportPayload = {
@@ -166,52 +170,103 @@ type ScriptExportPayload = {
   data: string;
 };
 
+/**
+ * 根据导出选项构建脚本导出内容。
+ */
 const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptExportPayload> => {
   const to_export = klona(script.value);
-  if (option.should_strip_data) {
+  _.set(to_export, 'export_with.data', option.include_data);
+  _.set(to_export, 'export_with.button', option.include_button);
+  if (!option.include_data) {
     _.set(to_export, 'data', {});
   }
+  if (!option.include_button) {
+    _.set(to_export, 'button.buttons', []);
+  }
+
   const filename = await getSanitizedFilename(t`酒馆助手脚本-${to_export.name}.json`);
   const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
 
+/**
+ * 执行脚本导出下载。
+ */
 const downloadExport = async (options: ScriptExportOptions) => {
   const { filename, data } = await createExportPayload(options);
   download(data, filename, 'application/json');
 };
 
+/**
+ * 打开导出确认弹窗，按脚本实际内容显示复选框。
+ */
 const exportScript = () => {
   const has_data = !_.isEmpty(script.value.data);
-  if (!has_data) {
-    downloadExport({ should_strip_data: false });
+  const has_button = script.value.button.buttons.length > 0;
+  if (!has_data && !has_button) {
+    void downloadExport({ include_data: true, include_button: true });
     return;
   }
+
+  const selections = reactive({
+    include_data: has_data,
+    include_button: has_button,
+  });
 
   useModal({
     component: Popup,
     attrs: {
       buttons: [
         {
-          name: t`包含数据导出`,
-          onClick: close => {
-            void downloadExport({ should_strip_data: false });
-            close();
-          },
-        },
-        {
-          name: t`清除数据导出`,
+          name: t`确认`,
           shouldEmphasize: true,
           onClick: close => {
-            void downloadExport({ should_strip_data: true });
+            void downloadExport({
+              include_data: has_data ? selections.include_data : true,
+              include_button: has_button ? selections.include_button : true,
+            });
             close();
           },
         },
         { name: t`取消`, onClick: close => close() },
       ],
+      width: 'fit',
     },
     slots: {
-      default: t`<div>'${script.value.name}' 脚本包含脚本变量，是否要清除？如有 API Key 等敏感数据，注意清除</div>`,
+      default: () =>
+        h('div', { class: 'flex min-w-[320px] flex-col gap-1 p-1.5 text-left' }, [
+          h('div', `'${script.value.name}' ${t`脚本导出将包含以下内容，请确认是否保留：`}`),
+          h('div', { class: 'flex flex-row flex-wrap gap-4' }, [
+            ...(has_data
+              ? [
+                  h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
+                    h('input', {
+                      type: 'checkbox',
+                      checked: selections.include_data,
+                      onInput: (event: Event) => {
+                        selections.include_data = (event.target as HTMLInputElement).checked;
+                      },
+                    }),
+                    h('span', t`脚本变量`),
+                  ]),
+                ]
+              : []),
+            ...(has_button
+              ? [
+                  h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
+                    h('input', {
+                      type: 'checkbox',
+                      checked: selections.include_button,
+                      onInput: (event: Event) => {
+                        selections.include_button = (event.target as HTMLInputElement).checked;
+                      },
+                    }),
+                    h('span', t`按钮`),
+                  ]),
+                ]
+              : []),
+          ]),
+        ]),
     },
   }).open();
 };

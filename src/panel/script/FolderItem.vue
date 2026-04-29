@@ -188,8 +188,11 @@ const { open: openMoveConfirm } = useModal({
   },
 });
 
+/**
+ * 文件夹导出时可选择是否保留变量与按钮配置。
+ */
 type ScriptExportOptions = {
-  should_strip_data: boolean;
+  scripts: Record<string, { include_data: boolean; include_button: boolean }>;
 };
 
 type ScriptFolderExportPayload = {
@@ -197,55 +200,120 @@ type ScriptFolderExportPayload = {
   data: string;
 };
 
+/**
+ * 根据导出选项构建文件夹导出内容。
+ */
 const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptFolderExportPayload> => {
   const to_export = klona(script_folder.value);
-  if (option.should_strip_data) {
-    to_export.scripts.forEach(script => {
+  to_export.scripts.forEach(script => {
+    const script_option = option.scripts[script.id];
+    if (!script_option) {
+      return;
+    }
+    _.set(script, 'export_with.data', script_option.include_data);
+    _.set(script, 'export_with.button', script_option.include_button);
+    if (!script_option.include_data) {
       _.set(script, 'data', {});
-    });
-  }
+    }
+    if (!script_option.include_button) {
+      _.set(script, 'button.buttons', []);
+    }
+  });
   const filename = await getSanitizedFilename(t`酒馆助手脚本-${to_export.name}.json`);
   const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
 
+/**
+ * 执行文件夹导出下载。
+ */
 const downloadExport = async (options: ScriptExportOptions) => {
   const { filename, data } = await createExportPayload(options);
   download(data, filename, 'application/json');
 };
 
+/**
+ * 打开导出确认弹窗，按文件夹内脚本实际内容显示复选框。
+ */
 const exportFolder = async () => {
-  const scripts_with_data = script_folder.value.scripts.filter(script => !_.isEmpty(script.data));
-  if (scripts_with_data.length === 0) {
-    downloadExport({ should_strip_data: false });
+  const exportable_scripts = script_folder.value.scripts.filter(script => {
+    return !_.isEmpty(script.data) || script.button.buttons.length > 0;
+  });
+  if (exportable_scripts.length === 0) {
+    void downloadExport({ scripts: {} });
     return;
   }
+
+  const selections = reactive<Record<string, { include_data: boolean; include_button: boolean }>>({});
+  exportable_scripts.forEach(script => {
+    selections[script.id] = {
+      include_data: !_.isEmpty(script.data),
+      include_button: script.button.buttons.length > 0,
+    };
+  });
 
   useModal({
     component: Popup,
     attrs: {
       buttons: [
         {
-          name: t`包含数据导出`,
-          onClick: close => {
-            void downloadExport({ should_strip_data: false });
-            close();
-          },
-        },
-        {
-          name: t`清除数据导出`,
+          name: t`确认`,
           shouldEmphasize: true,
           onClick: close => {
-            void downloadExport({ should_strip_data: true });
+            void downloadExport({ scripts: { ...selections } });
             close();
           },
         },
         { name: t`取消`, onClick: close => close() },
       ],
+      width: 'normal',
     },
     slots: {
-      // TODO: 显示脚本变量有什么?
-      default: t`<div>'${script_folder.value.name}' 文件夹中 '${JSON.stringify(scripts_with_data.map(script => script.name))}' 脚本包含脚本变量, 是否要清除? 如有 API Key 等敏感数据，注意清除</div>`,
+      default: () =>
+        h('div', { class: 'flex w-full max-w-[92vw] flex-col gap-1 p-1.5 text-left' }, [
+          h('div', `'${script_folder.value.name}' ${t`文件夹导出的脚本将包含以下内容，请确认是否保留：`}`),
+          h('div', { class: 'max-h-[45vh] overflow-y-auto overflow-x-hidden pr-1' }, [
+            ...exportable_scripts.flatMap(script => {
+              const has_data = !_.isEmpty(script.data);
+              const has_button = script.button.buttons.length > 0;
+              return [
+                h('div', { class: 'mb-1 border border-(--SmartThemeBorderColor) p-1' }, [
+                  h('div', { class: 'mb-0.5 break-all text-sm font-bold' }, script.name),
+                  h('div', { class: 'flex flex-row flex-wrap gap-4' }, [
+                    ...(has_data
+                      ? [
+                          h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
+                            h('input', {
+                              type: 'checkbox',
+                              checked: selections[script.id].include_data,
+                              onInput: (event: Event) => {
+                                selections[script.id].include_data = (event.target as HTMLInputElement).checked;
+                              },
+                            }),
+                            h('span', t`脚本变量`),
+                          ]),
+                        ]
+                      : []),
+                    ...(has_button
+                      ? [
+                          h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
+                            h('input', {
+                              type: 'checkbox',
+                              checked: selections[script.id].include_button,
+                              onInput: (event: Event) => {
+                                selections[script.id].include_button = (event.target as HTMLInputElement).checked;
+                              },
+                            }),
+                            h('span', t`按钮`),
+                          ]),
+                        ]
+                      : []),
+                  ]),
+                ]),
+              ];
+            }),
+          ]),
+        ]),
     },
   }).open();
 };
