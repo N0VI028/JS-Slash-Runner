@@ -218,11 +218,13 @@ type CharLorebooks = {
 
 export function getCharLorebooks({ name = 'current' }: GetCharLorebooksOption = {}): CharLorebooks {
   const character = RawCharacter.find({ name: name });
-  if (!character) {
-    throw Error(`未找到${name === 'current' ? '当前打开' : `名为 '${name}' `}的角色卡`);
-  }
-
   const books: CharLorebooks = { primary: null, additional: [] };
+  if (!character) {
+    if (name === 'current') {
+      return books;
+    }
+    throw Error(`未找到${`名为 '${name}' `}的角色卡`);
+  }
 
   if (character.data?.extensions?.world) {
     books.primary = character.data?.extensions?.world || null;

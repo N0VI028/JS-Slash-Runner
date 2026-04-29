@@ -26,7 +26,7 @@ export function formatAsDisplayedMessage(
 ): string {
   if (typeof message_id !== 'number' && !['last', 'last_user', 'last_char'].includes(message_id)) {
     throw Error(
-      `提供的 message_id 无效, 请提供 'last', 'last_user', 'last_char' 或楼层消息号, 你提供的是: ${message_id}`,
+      `提供的 message_id 无效, 请提供 'last', 'last_user', 'last_char' 或楼层消息号 (-1 表示倒数第一楼), 你提供的是: ${message_id}`,
     );
   }
 
