@@ -21,6 +21,12 @@ export const Script = z.object({
     })
     .prefault({}),
   data: z.record(z.string(), z.any()).default({}).catch({}),
+  export_with: z
+    .object({
+      data: z.boolean().prefault(true).catch(true),
+      button: z.boolean().prefault(true).catch(true),
+    })
+    .prefault({}),
 });
 export type Script = z.infer<typeof Script>;
 

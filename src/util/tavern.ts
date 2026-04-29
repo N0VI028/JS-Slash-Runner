@@ -185,10 +185,18 @@ export function getFirstMessage() {
 }
 
 // 酒馆自带的 writeExtensionField 会合并旧值和新值, 因此自己做一个
-export async function writeExtensionField(id: string | undefined, field: string, value: any | undefined) {
-  const character = (characters as v1CharData[])[Number(id)];
+export async function writeExtensionField(
+  id: string | undefined,
+  field: string,
+  value: any | undefined,
+  affect_memory: boolean = true,
+) {
+  let character = (characters as v1CharData[])[Number(id)];
   if (!character) {
     return;
+  }
+  if (!affect_memory) {
+    character = klona(character);
   }
 
   if (value === undefined) {

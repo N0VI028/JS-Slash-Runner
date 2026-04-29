@@ -1,6 +1,7 @@
+import { flattenScriptTree, ScriptTree } from '@/type/scripts';
 import { PresetSettings, setting_field } from '@/type/settings';
 import { preset_manager } from '@/util/tavern';
-import { eventSource, event_types, saveSettingsDebounced } from '@sillytavern/script';
+import { event_types, eventSource, saveSettingsDebounced } from '@sillytavern/script';
 import { oai_settings } from '@sillytavern/scripts/openai';
 
 function getSettings(id: string): PresetSettings {
@@ -51,6 +52,21 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
   watch([id, name], ([new_id]) => {
     ignoreUpdates(() => {
       settings.value = getSettings(new_id);
+    });
+  });
+
+  // 导出预设前清理预设脚本变量
+  eventSource.on(event_types.OAI_PRESET_EXPORT_READY, (preset: any) => {
+    _.update(preset, 'extensions.tavern_helper.scripts', (scripts: ScriptTree[]) => {
+      scripts.flatMap(flattenScriptTree).forEach(script => {
+        if (!script.export_with.data) {
+          script.data = {};
+        }
+        if (!script.export_with.button) {
+          script.button.buttons = [];
+        }
+      });
+      return scripts;
     });
   });
 

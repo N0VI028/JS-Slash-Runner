@@ -1,4 +1,5 @@
 import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward';
+import { flattenScriptTree } from '@/type/scripts';
 import { CharacterSettings, setting_field } from '@/type/settings';
 import { fromCharacterBook, updateWorldInfoList } from '@/util/compatibility';
 import { writeExtensionField } from '@/util/tavern';
@@ -40,9 +41,9 @@ function getSettings(id: string | undefined): CharacterSettings {
   return CharacterSettings.parse(parsed.data);
 }
 
-async function saveSettings(id: string, name: string, settings: CharacterSettings) {
+async function saveSettings(id: string, name: string, settings: CharacterSettings, affect_memory: boolean = true) {
   if (name === characters[id as unknown as number]?.name) {
-    await writeExtensionField(id, setting_field, settings);
+    await writeExtensionField(id, setting_field, settings, affect_memory);
   }
 }
 
@@ -95,6 +96,46 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
       await saveWorldInfo(book_name, await loadWorldInfo(book_name), true);
     }
   });
+
+  // 导出角色卡前清理角色卡脚本变量
+  {
+    const originalFetch = window.fetch;
+    window.fetch = async function (...args) {
+      const [url] = args;
+      const response = await originalFetch.apply(this, args);
+      if (typeof url === 'string' && url === '/api/characters/export') {
+        eventSource.emit('character_export_ready');
+      }
+      return response;
+    };
+    $('#export_button').on('click', async () => {
+      if (id.value !== undefined && name.value !== undefined) {
+        const cleared_settings = klona(settings.value);
+        cleared_settings.scripts.flatMap(flattenScriptTree).forEach(script => {
+          if (!script.export_with.data) {
+            script.data = {};
+          }
+          if (!script.export_with.button) {
+            script.button.buttons = [];
+          }
+        });
+        await saveSettings(id.value, name.value, cleared_settings, false);
+        const timeout_id = setTimeout(async () => {
+          if (id.value !== undefined && name.value !== undefined) {
+            await saveSettings(id.value, name.value, klona(settings.value), false);
+          }
+        }, 10000);
+        eventSource.once('character_export_ready', () => {
+          clearTimeout(timeout_id);
+        });
+      }
+    });
+    eventSource.on('character_export_ready', async () => {
+      if (id.value !== undefined && name.value !== undefined) {
+        await saveSettings(id.value, name.value, klona(settings.value), false);
+      }
+    });
+  }
 
   // 在某角色卡内修改 settings 时保存
   const { ignoreUpdates } = watchIgnorable(
