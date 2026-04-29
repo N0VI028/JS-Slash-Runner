@@ -219,7 +219,7 @@ const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptF
       _.set(script, 'button.buttons', []);
     }
   });
-  const filename = await getSanitizedFilename(t`酒馆助手脚本-${to_export.name}.json`);
+  const filename = await getSanitizedFilename(t`酒馆助手脚本文件夹-${to_export.name}.json`);
   const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
