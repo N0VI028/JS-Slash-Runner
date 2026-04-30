@@ -1,3 +1,4 @@
+import { collectExportSummaryItems, showExportSummaryToast } from '@/function/export_notice';
 import { flattenScriptTree, ScriptTree } from '@/type/scripts';
 import { PresetSettings, setting_field } from '@/type/settings';
 import { preset_manager } from '@/util/tavern';
@@ -68,6 +69,11 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
       });
       return scripts;
     });
+  });
+  eventSource.makeLast(event_types.OAI_PRESET_EXPORT_READY, (preset: any) => {
+    const original_scripts = settings.value.scripts;
+    const exported_scripts = _.get(preset, `extensions.${setting_field}.scripts`) as ScriptTree[] | undefined;
+    showExportSummaryToast(t`预设`, collectExportSummaryItems(original_scripts, exported_scripts));
   });
 
   // 在某预设内修改 settings 时保存

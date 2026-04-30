@@ -278,7 +278,7 @@ const exportFolder = async () => {
               const has_button = script.button.buttons.length > 0;
               return [
                 h('div', { class: 'mb-1 border border-(--SmartThemeBorderColor) p-1' }, [
-                  h('div', { class: 'mb-0.5 break-all text-sm font-bold' }, script.name),
+                  h('div', { class: 'mb-0.5 break-all font-bold' }, script.name),
                   h('div', { class: 'flex flex-row flex-wrap gap-4' }, [
                     ...(has_data
                       ? [
@@ -290,7 +290,7 @@ const exportFolder = async () => {
                                 selections[script.id].include_data = (event.target as HTMLInputElement).checked;
                               },
                             }),
-                            h('span', t`脚本变量`),
+                            h('span', t`变量`),
                           ]),
                         ]
                       : []),
