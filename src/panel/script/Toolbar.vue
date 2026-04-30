@@ -40,6 +40,7 @@ function openCreator(type: 'script' | 'folder') {
     const editor = useModal({
       component: type === 'script' ? ScriptEditor : FolderEditor,
       attrs: {
+        ...(type === 'script' ? { target } : {}),
         onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
           if (type === 'script') {
             onScriptEditorSubmit(target, result as ScriptForm);

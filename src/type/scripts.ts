@@ -7,6 +7,18 @@ export const ScriptButton = z.object({
 });
 export type ScriptButton = z.infer<typeof ScriptButton>;
 
+export const ScriptExportConfig = z
+  .object({
+    include: z
+      .object({
+        data: z.boolean().prefault(true).catch(true),
+        button: z.boolean().prefault(true).catch(true),
+      })
+      .prefault({}),
+  })
+  .prefault({});
+export type ScriptExportConfig = z.infer<typeof ScriptExportConfig>;
+
 export const Script = z.object({
   type: z.literal('script').default('script'),
   enabled: z.boolean().default(false),
@@ -21,12 +33,7 @@ export const Script = z.object({
     })
     .prefault({}),
   data: z.record(z.string(), z.any()).default({}).catch({}),
-  export_with: z
-    .object({
-      data: z.boolean().prefault(true).catch(true),
-      button: z.boolean().prefault(true).catch(true),
-    })
-    .prefault({}),
+  export_config: ScriptExportConfig,
 });
 export type Script = z.infer<typeof Script>;
 

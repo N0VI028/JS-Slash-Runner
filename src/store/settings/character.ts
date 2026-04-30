@@ -112,10 +112,10 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
       if (id.value !== undefined && name.value !== undefined) {
         const cleared_settings = klona(settings.value);
         cleared_settings.scripts.flatMap(flattenScriptTree).forEach(script => {
-          if (!script.export_with.data) {
+          if (!script.export_config.include.data) {
             script.data = {};
           }
-          if (!script.export_with.button) {
+          if (!script.export_config.include.button) {
             script.button.buttons = [];
           }
         });

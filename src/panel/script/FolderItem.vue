@@ -210,8 +210,8 @@ const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptF
     if (!script_option) {
       return;
     }
-    _.set(script, 'export_with.data', script_option.include_data);
-    _.set(script, 'export_with.button', script_option.include_button);
+    _.set(script, 'export_config.include.data', script_option.include_data);
+    _.set(script, 'export_config.include.button', script_option.include_button);
     if (!script_option.include_data) {
       _.set(script, 'data', {});
     }

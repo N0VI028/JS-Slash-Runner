@@ -1,4 +1,4 @@
-import { ScriptButton } from '@/type/scripts';
+import { ScriptButton, ScriptExportConfig } from '@/type/scripts';
 
 export const ScriptForm = z.object({
   name: z.string().nonempty('脚本名称不能为空'),
@@ -9,6 +9,7 @@ export const ScriptForm = z.object({
     buttons: z.array(ScriptButton),
   }),
   data: z.record(z.string(), z.any()),
+  export_config: ScriptExportConfig,
 });
 export type ScriptForm = z.infer<typeof ScriptForm>;
 

@@ -96,6 +96,7 @@ const { open: openScriptEditor } = useModal({
   component: ScriptEditor,
   attrs: {
     script: script.value,
+    target: props.target,
     onSubmit: (result: ScriptForm) => {
       const should_reload =
         script.value.enabled &&
@@ -175,8 +176,8 @@ type ScriptExportPayload = {
  */
 const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptExportPayload> => {
   const to_export = klona(script.value);
-  _.set(to_export, 'export_with.data', option.include_data);
-  _.set(to_export, 'export_with.button', option.include_button);
+  _.set(to_export, 'export_config.include.data', option.include_data);
+  _.set(to_export, 'export_config.include.button', option.include_button);
   if (!option.include_data) {
     _.set(to_export, 'data', {});
   }

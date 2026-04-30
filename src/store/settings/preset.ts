@@ -59,10 +59,10 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
   eventSource.on(event_types.OAI_PRESET_EXPORT_READY, (preset: any) => {
     _.update(preset, 'extensions.tavern_helper.scripts', (scripts: ScriptTree[]) => {
       scripts.flatMap(flattenScriptTree).forEach(script => {
-        if (!script.export_with.data) {
+        if (!script.export_config.include.data) {
           script.data = {};
         }
-        if (!script.export_with.button) {
+        if (!script.export_config.include.button) {
           script.button.buttons = [];
         }
       });
