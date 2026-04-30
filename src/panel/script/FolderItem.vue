@@ -24,7 +24,7 @@
         <div
           class="mt-0! mr-0.5 mb-0! cursor-pointer"
           :class="{ enabled: script_folder.enabled }"
-          title="批量开关文件夹内脚本"
+          :title="t`批量开关文件夹内脚本`"
           @click.stop="script_folder.enabled = !script_folder.enabled"
         >
           <i class="fa-solid" :class="[script_folder.enabled ? 'fa-toggle-on' : 'fa-toggle-off']" />
@@ -34,11 +34,11 @@
             <i class="fa-solid" :class="icon"></i>
           </div>
         </DefineScriptFolderButton>
-        <ScriptFolderButton name="编辑文件夹" icon="fa-pencil" @click.stop="openFolderEditor" />
-        <ScriptFolderButton name="移动文件夹" icon="fa-arrow-right-arrow-left" @click.stop="openMoveConfirm" />
-        <ScriptFolderButton name="导出文件夹" icon="fa-file-export" @click.stop="exportFolder" />
-        <ScriptFolderButton name="删除文件夹" icon="fa-trash" @click.stop="openDeleteConfirm" />
-        <ScriptFolderButton name="展开或折叠文件夹" :icon="is_expanded ? 'fa-chevron-up' : 'fa-chevron-down'" />
+        <ScriptFolderButton :name="t`编辑文件夹`" icon="fa-pencil" @click.stop="openFolderEditor" />
+        <ScriptFolderButton :name="t`移动文件夹`" icon="fa-arrow-right-arrow-left" @click.stop="openMoveConfirm" />
+        <ScriptFolderButton :name="t`导出文件夹`" icon="fa-file-export" @click.stop="exportFolder" />
+        <ScriptFolderButton :name="t`删除文件夹`" icon="fa-trash" @click.stop="openDeleteConfirm" />
+        <ScriptFolderButton :name="t`展开或折叠文件夹`" :icon="is_expanded ? 'fa-chevron-up' : 'fa-chevron-down'" />
       </div>
     </div>
     <VueDraggable

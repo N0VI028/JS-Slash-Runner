@@ -248,7 +248,7 @@ const exportScript = () => {
                         selections.include_data = (event.target as HTMLInputElement).checked;
                       },
                     }),
-                    h('span', t`脚本变量`),
+                    h('span', t`变量`),
                   ]),
                 ]
               : []),
