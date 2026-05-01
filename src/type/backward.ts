@@ -40,6 +40,10 @@ export const ScriptData = z
         buttons: item.buttons,
       },
       data: item.data,
+      export_with: {
+        data: true,
+        button: true,
+      }
     } satisfies NewScript);
   });
 
@@ -113,6 +117,7 @@ export const GlobalSettings = z
         collapse_code_block: 'frontend_only',
         allow_streaming: false,
         use_blob_url: settings.render.render_blob_url,
+        optimize_hljs: true,
         depth: settings.render.render_depth,
       },
       script: {
