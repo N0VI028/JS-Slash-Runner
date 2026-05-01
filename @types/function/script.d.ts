@@ -20,7 +20,10 @@ type Script = {
     buttons: Array<ScriptButton>;
   };
   data: Record<string, any>;
-  should_export_data: boolean;
+  export_with: {
+    data: boolean;
+    button: boolean;
+  };
 };
 type ScriptFolder = {
   type: 'folder';

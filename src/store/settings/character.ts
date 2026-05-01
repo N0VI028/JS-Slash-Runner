@@ -1,6 +1,6 @@
+import { collectExportSummaryItems, ScriptExportSummaryItem, showExportSummaryToast } from '@/panel/script/export_by';
 import { CharacterSettings as BackwardCharacterSettings } from '@/type/backward';
-import { collectExportSummaryItems, showExportSummaryToast } from '@/function/export_notice';
-import { flattenScriptTree, ScriptTree } from '@/type/scripts';
+import { flattenScriptTree } from '@/type/scripts';
 import { CharacterSettings, setting_field } from '@/type/settings';
 import { fromCharacterBook, updateWorldInfoList } from '@/util/compatibility';
 import { writeExtensionField } from '@/util/tavern';
@@ -100,36 +100,36 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
 
   // 导出角色卡前清理角色卡脚本变量
   {
-    let original_scripts: ScriptTree[] | undefined;
-    let exported_scripts: ScriptTree[] | undefined;
+    let scripts_summary: ScriptExportSummaryItem[] = [];
     const originalFetch = window.fetch;
     window.fetch = async function (...args) {
       const [url] = args;
       const response = await originalFetch.apply(this, args);
       if (typeof url === 'string' && url === '/api/characters/export') {
-        eventSource.emit('character_export_ready', { ok: response.ok, original_scripts, exported_scripts });
-        original_scripts = undefined;
-        exported_scripts = undefined;
+        eventSource.emit('character_export_ready', { scripts_summary });
+        scripts_summary = [];
       }
       return response;
     };
     $('#export_button').on('click', async () => {
       if (id.value !== undefined && name.value !== undefined) {
-        original_scripts = klona(settings.value.scripts);
         const cleared_settings = klona(settings.value);
         cleared_settings.scripts.flatMap(flattenScriptTree).forEach(script => {
-          if (!script.export_config.include.data) {
+          if (!script.export_with.data) {
             script.data = {};
           }
-          if (!script.export_config.include.button) {
+          if (!script.export_with.button) {
             script.button.buttons = [];
           }
         });
-        exported_scripts = cleared_settings.scripts;
+        scripts_summary = collectExportSummaryItems(settings.value.scripts, cleared_settings.scripts);
+
         await saveSettings(id.value, name.value, cleared_settings, false);
+
         const timeout_id = setTimeout(async () => {
           if (id.value !== undefined && name.value !== undefined) {
             await saveSettings(id.value, name.value, klona(settings.value), false);
+            scripts_summary = [];
           }
         }, 10000);
         eventSource.once('character_export_ready', () => {
@@ -137,25 +137,13 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
         });
       }
     });
-    eventSource.on('character_export_ready', async () => {
-      if (id.value !== undefined && name.value !== undefined) {
-        await saveSettings(id.value, name.value, klona(settings.value), false);
-      }
-    });
-    eventSource.makeLast(
+    eventSource.on(
       'character_export_ready',
-      (
-        payload:
-          | { ok: boolean; original_scripts?: ScriptTree[]; exported_scripts?: ScriptTree[] }
-          | undefined,
-      ) => {
-        if (!payload?.ok) {
-          return;
+      async ({ scripts_summary }: { scripts_summary: ScriptExportSummaryItem[] }) => {
+        if (id.value !== undefined && name.value !== undefined) {
+          await saveSettings(id.value, name.value, klona(settings.value), false);
+          showExportSummaryToast(t`角色卡`, scripts_summary);
         }
-        showExportSummaryToast(
-          t`角色卡`,
-          collectExportSummaryItems(payload.original_scripts, payload.exported_scripts),
-        );
       },
     );
   }

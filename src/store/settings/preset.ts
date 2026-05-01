@@ -1,4 +1,4 @@
-import { collectExportSummaryItems, showExportSummaryToast } from '@/function/export_notice';
+import { collectExportSummaryItems, showExportSummaryToast } from '@/panel/script/export_by';
 import { flattenScriptTree, ScriptTree } from '@/type/scripts';
 import { PresetSettings, setting_field } from '@/type/settings';
 import { preset_manager } from '@/util/tavern';
@@ -6,7 +6,7 @@ import { event_types, eventSource, saveSettingsDebounced } from '@sillytavern/sc
 import { oai_settings } from '@sillytavern/scripts/openai';
 
 function getSettings(id: string): PresetSettings {
-  const settings = _.get(preset_manager.getPresetList().presets[Number(id)], 'extensions.tavern_helper', {});
+  const settings = _.get(preset_manager.getPresetList().presets[Number(id)], `extensions.${setting_field}`, {});
   const parsed = PresetSettings.safeParse(settings);
   if (!parsed.success) {
     toastr.warning(parsed.error.message, t`[酒馆助手]读取预设数据失败, 将使用空数据`);
@@ -58,22 +58,17 @@ export const usePresetSettingsStore = defineStore('preset_settings', () => {
 
   // 导出预设前清理预设脚本变量
   eventSource.on(event_types.OAI_PRESET_EXPORT_READY, (preset: any) => {
-    _.update(preset, 'extensions.tavern_helper.scripts', (scripts: ScriptTree[]) => {
-      scripts.flatMap(flattenScriptTree).forEach(script => {
-        if (!script.export_config.include.data) {
-          script.data = {};
-        }
-        if (!script.export_config.include.button) {
-          script.button.buttons = [];
-        }
-      });
-      return scripts;
+    const script_trees = _.get(preset, `extensions.${setting_field}.scripts`, []) as ScriptTree[];
+    const original_script_trees = klona(script_trees);
+    script_trees.flatMap(flattenScriptTree).forEach(script => {
+      if (!script.export_with.data) {
+        script.data = {};
+      }
+      if (!script.export_with.button) {
+        script.button.buttons = [];
+      }
     });
-  });
-  eventSource.makeLast(event_types.OAI_PRESET_EXPORT_READY, (preset: any) => {
-    const original_scripts = settings.value.scripts;
-    const exported_scripts = _.get(preset, `extensions.${setting_field}.scripts`) as ScriptTree[] | undefined;
-    showExportSummaryToast(t`预设`, collectExportSummaryItems(original_scripts, exported_scripts));
+    showExportSummaryToast(t`预设`, collectExportSummaryItems(original_script_trees, script_trees));
   });
 
   // 在某预设内修改 settings 时保存

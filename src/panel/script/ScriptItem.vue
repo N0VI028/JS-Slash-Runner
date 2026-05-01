@@ -49,8 +49,9 @@
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
+import ScriptExport from '@/panel/script/ScriptExport.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
-import { ScriptForm } from '@/panel/script/type';
+import { ScriptExportOptions, ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
 import { Script } from '@/type/scripts';
 import { renderMarkdown } from '@/util/tavern';
@@ -158,30 +159,21 @@ const { open: openMoveConfirm } = useModal({
   },
 });
 
-/**
- * 导出时可选择是否保留变量与按钮配置。
- */
-type ScriptExportOptions = {
-  include_data: boolean;
-  include_button: boolean;
-};
-
 type ScriptExportPayload = {
   filename: string;
   data: string;
 };
 
-/**
- * 根据导出选项构建脚本导出内容。
- */
 const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptExportPayload> => {
   const to_export = klona(script.value);
-  _.set(to_export, 'export_config.include.data', option.include_data);
-  _.set(to_export, 'export_config.include.button', option.include_button);
-  if (!option.include_data) {
+
+  to_export.export_with.data = option.include_data;
+  if (!to_export.export_with.data) {
     _.set(to_export, 'data', {});
   }
-  if (!option.include_button) {
+
+  to_export.export_with.button = option.include_button;
+  if (!to_export.export_with.button) {
     _.set(to_export, 'button.buttons', []);
   }
 
@@ -190,84 +182,33 @@ const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptE
   return { filename, data };
 };
 
-/**
- * 执行脚本导出下载。
- */
 const downloadExport = async (options: ScriptExportOptions) => {
   const { filename, data } = await createExportPayload(options);
   download(data, filename, 'application/json');
 };
 
-/**
- * 打开导出确认弹窗，按脚本实际内容显示复选框。
- */
 const exportScript = () => {
   const has_data = !_.isEmpty(script.value.data);
   const has_button = script.value.button.buttons.length > 0;
   if (!has_data && !has_button) {
-    void downloadExport({ include_data: true, include_button: true });
+    downloadExport({ include_data: true, include_button: true });
     return;
   }
 
-  const selections = reactive({
-    include_data: has_data,
-    include_button: has_button,
-  });
-
   useModal({
-    component: Popup,
+    component: ScriptExport,
     attrs: {
-      buttons: [
-        {
-          name: t`确认`,
-          shouldEmphasize: true,
-          onClick: close => {
-            void downloadExport({
-              include_data: has_data ? selections.include_data : true,
-              include_button: has_button ? selections.include_button : true,
-            });
-            close();
-          },
-        },
-        { name: t`取消`, onClick: close => close() },
-      ],
-      width: 'fit',
-    },
-    slots: {
-      default: () =>
-        h('div', { class: 'flex min-w-[320px] flex-col gap-1 p-1.5 text-left' }, [
-          h('div', `'${script.value.name}' ${t`脚本导出将包含以下内容，请确认是否保留：`}`),
-          h('div', { class: 'flex flex-row flex-wrap gap-4' }, [
-            ...(has_data
-              ? [
-                  h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
-                    h('input', {
-                      type: 'checkbox',
-                      checked: selections.include_data,
-                      onInput: (event: Event) => {
-                        selections.include_data = (event.target as HTMLInputElement).checked;
-                      },
-                    }),
-                    h('span', t`变量`),
-                  ]),
-                ]
-              : []),
-            ...(has_button
-              ? [
-                  h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
-                    h('input', {
-                      type: 'checkbox',
-                      checked: selections.include_button,
-                      onInput: (event: Event) => {
-                        selections.include_button = (event.target as HTMLInputElement).checked;
-                      },
-                    }),
-                    h('span', t`按钮`),
-                  ]),
-                ]
-              : []),
-          ]),
-        ]),
+      scriptName: script.value.name,
+      hasData: has_data,
+      hasButton: has_button,
+      includeData: has_data,
+      includeButton: has_button,
+      onSubmit: (result: { include_data: boolean; include_button: boolean }) => {
+        downloadExport({
+          include_data: has_data ? result.include_data : true,
+          include_button: has_button ? result.include_button : true,
+        });
+      },
     },
   }).open();
 };

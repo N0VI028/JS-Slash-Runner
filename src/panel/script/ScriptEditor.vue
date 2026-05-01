@@ -33,6 +33,20 @@
           class="text_pole font-(family-name:--monoFontFamily)!"
         />
       </div>
+      <div v-if="props.target !== 'global'" class="TH-script-editor-container">
+        <strong>{{ t`导出选项` }}</strong>
+        <small>{{ t`控制此脚本随角色卡/预设导出时是否包含以下内容` }}</small>
+        <div class="mt-0.5 flex w-full flex-wrap items-center gap-2">
+          <label class="flex cursor-pointer items-center gap-0.25">
+            <input v-model="script.export_with.data" type="checkbox" />
+            <span>{{ t`变量` }}</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-0.25">
+            <input v-model="script.export_with.button" type="checkbox" />
+            <span>{{ t`按钮` }}</span>
+          </label>
+        </div>
+      </div>
       <div class="TH-script-editor-container">
         <div class="flex flex-wrap items-center justify-center gap-[5px]">
           <strong>{{ t`变量列表` }}</strong>
@@ -90,20 +104,6 @@
           </VueDraggable>
         </div>
       </div>
-      <div v-if="props.target !== 'global'" class="TH-script-editor-container">
-        <strong>{{ t`导出选项` }}</strong>
-        <small>{{ t`控制此脚本随角色卡/预设导出时是否包含以下内容` }}</small>
-        <div class="mt-0.5 flex w-full flex-wrap items-center gap-2">
-          <label class="flex cursor-pointer items-center gap-0.25">
-            <input v-model="script.export_config.include.data" type="checkbox" />
-            <span>{{ t`导出变量` }}</span>
-          </label>
-          <label class="flex cursor-pointer items-center gap-0.25">
-            <input v-model="script.export_config.include.button" type="checkbox" />
-            <span>{{ t`导出按钮` }}</span>
-          </label>
-        </div>
-      </div>
     </div>
   </Popup>
 </template>
@@ -136,19 +136,14 @@ const script = ref<ScriptForm>(
         buttons: [],
       },
       data: {},
-      export_config: {
-        include: {
-          data: true,
-          button: true,
-        },
+      export_with: {
+        data: true,
+        button: true,
       },
     },
   ),
 );
 
-/**
- * 校验并提交脚本表单
- */
 const submit = (close: () => void) => {
   const result = ScriptForm.safeParse(script.value);
   if (!result.success) {
@@ -197,9 +192,6 @@ function openMaximize(target: MaximizeTarget) {
   modal.open();
 }
 
-/**
- * 新增一个按钮配置项
- */
 const addButton = () => {
   script.value.button.buttons.push({
     name: '',
@@ -207,9 +199,6 @@ const addButton = () => {
   });
 };
 
-/**
- * 删除指定位置的按钮配置项
- */
 const deleteButton = (index: number) => {
   script.value.button.buttons.splice(index, 1);
 };

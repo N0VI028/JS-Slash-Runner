@@ -85,9 +85,10 @@
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
+import FolderExport from '@/panel/script/FolderExport.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
-import { ScriptFolderForm } from '@/panel/script/type';
+import { ScriptFolderExportOptions, ScriptFolderForm } from '@/panel/script/type';
 import { getScriptsStoreByType } from '@/store/scripts';
 import { ScriptFolder } from '@/type/scripts';
 import { download, getSanitizedFilename, uuidv4 } from '@sillytavern/scripts/utils';
@@ -149,6 +150,7 @@ const { open: openFolderEditor } = useModal({
   component: FolderEditor,
   attrs: {
     scriptFolder: script_folder.value,
+    target: props.target,
     onSubmit: (result: ScriptFolderForm) => {
       _.assign(script_folder.value, result);
     },
@@ -188,132 +190,65 @@ const { open: openMoveConfirm } = useModal({
   },
 });
 
-/**
- * 文件夹导出时可选择是否保留变量与按钮配置。
- */
-type ScriptExportOptions = {
-  scripts: Record<string, { include_data: boolean; include_button: boolean }>;
-};
-
 type ScriptFolderExportPayload = {
   filename: string;
   data: string;
 };
 
-/**
- * 根据导出选项构建文件夹导出内容。
- */
-const createExportPayload = async (option: ScriptExportOptions): Promise<ScriptFolderExportPayload> => {
+const createExportPayload = async (option: ScriptFolderExportOptions): Promise<ScriptFolderExportPayload> => {
   const to_export = klona(script_folder.value);
   to_export.scripts.forEach(script => {
     const script_option = option.scripts[script.id];
     if (!script_option) {
       return;
     }
-    _.set(script, 'export_config.include.data', script_option.include_data);
-    _.set(script, 'export_config.include.button', script_option.include_button);
-    if (!script_option.include_data) {
-      _.set(script, 'data', {});
+
+    script.export_with.data = script_option.include_data;
+    if (!script.export_with.data) {
+      _.set(to_export, 'data', {});
     }
-    if (!script_option.include_button) {
-      _.set(script, 'button.buttons', []);
+
+    script.export_with.button = script_option.include_button;
+    if (!script.export_with.button) {
+      _.set(to_export, 'button.buttons', []);
     }
   });
+
   const filename = await getSanitizedFilename(t`酒馆助手脚本文件夹-${to_export.name}.json`);
   const data = JSON.stringify(to_export, null, 2);
   return { filename, data };
 };
 
-/**
- * 执行文件夹导出下载。
- */
-const downloadExport = async (options: ScriptExportOptions) => {
+const downloadExport = async (options: ScriptFolderExportOptions) => {
   const { filename, data } = await createExportPayload(options);
   download(data, filename, 'application/json');
 };
 
-/**
- * 打开导出确认弹窗，按文件夹内脚本实际内容显示复选框。
- */
 const exportFolder = async () => {
-  const exportable_scripts = script_folder.value.scripts.filter(script => {
-    return !_.isEmpty(script.data) || script.button.buttons.length > 0;
-  });
-  if (exportable_scripts.length === 0) {
-    void downloadExport({ scripts: {} });
-    return;
-  }
-
-  const selections = reactive<Record<string, { include_data: boolean; include_button: boolean }>>({});
-  exportable_scripts.forEach(script => {
-    selections[script.id] = {
-      include_data: !_.isEmpty(script.data),
-      include_button: script.button.buttons.length > 0,
+  const scripts = script_folder.value.scripts.map(script => {
+    return {
+      id: script.id,
+      name: script.name,
+      has_data: !_.isEmpty(script.data),
+      has_button: script.button.buttons.length > 0,
+      include_data: script.export_with.data,
+      include_button: script.export_with.button,
     };
   });
 
+  if (scripts.filter(script => script.has_data || script.has_button).length === 0) {
+    downloadExport({ scripts: {} });
+    return;
+  }
+
   useModal({
-    component: Popup,
+    component: FolderExport,
     attrs: {
-      buttons: [
-        {
-          name: t`确认`,
-          shouldEmphasize: true,
-          onClick: close => {
-            void downloadExport({ scripts: { ...selections } });
-            close();
-          },
-        },
-        { name: t`取消`, onClick: close => close() },
-      ],
-      width: 'normal',
-    },
-    slots: {
-      default: () =>
-        h('div', { class: 'flex w-full max-w-[92vw] flex-col gap-1 p-1.5 text-left' }, [
-          h('div', `'${script_folder.value.name}' ${t`文件夹导出的脚本将包含以下内容，请确认是否保留：`}`),
-          h('div', { class: 'max-h-[45vh] overflow-y-auto overflow-x-hidden pr-1' }, [
-            ...exportable_scripts.flatMap(script => {
-              const has_data = !_.isEmpty(script.data);
-              const has_button = script.button.buttons.length > 0;
-              return [
-                h('div', { class: 'mb-1 border border-(--SmartThemeBorderColor) p-1' }, [
-                  h('div', { class: 'mb-0.5 break-all font-bold' }, script.name),
-                  h('div', { class: 'flex flex-row flex-wrap gap-4' }, [
-                    ...(has_data
-                      ? [
-                          h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
-                            h('input', {
-                              type: 'checkbox',
-                              checked: selections[script.id].include_data,
-                              onInput: (event: Event) => {
-                                selections[script.id].include_data = (event.target as HTMLInputElement).checked;
-                              },
-                            }),
-                            h('span', t`变量`),
-                          ]),
-                        ]
-                      : []),
-                    ...(has_button
-                      ? [
-                          h('label', { class: 'flex cursor-pointer items-center gap-0.5' }, [
-                            h('input', {
-                              type: 'checkbox',
-                              checked: selections[script.id].include_button,
-                              onInput: (event: Event) => {
-                                selections[script.id].include_button = (event.target as HTMLInputElement).checked;
-                              },
-                            }),
-                            h('span', t`按钮`),
-                          ]),
-                        ]
-                      : []),
-                  ]),
-                ]),
-              ];
-            }),
-          ]),
-        ]),
+      folderName: script_folder.value.name,
+      scripts: scripts,
+      onSubmit: (option: ScriptFolderExportOptions) => {
+        downloadExport(option);
+      },
     },
   }).open();
 };

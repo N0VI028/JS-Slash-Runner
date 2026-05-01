@@ -37,7 +37,7 @@ import { getSmartThemeQuoteColor } from '@/util/color';
 import { showFontAwesomePicker } from '@sillytavern/scripts/utils';
 import PickColors from 'vue-pick-colors';
 
-const props = defineProps<{ scriptFolder?: ScriptFolderForm }>();
+const props = defineProps<{ scriptFolder?: ScriptFolderForm; target: 'global' | 'character' | 'preset' }>();
 
 const emit = defineEmits<{
   submit: [script: ScriptFolderForm];
