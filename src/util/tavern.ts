@@ -195,6 +195,11 @@ export async function writeExtensionField(
   if (!character) {
     return;
   }
+
+  if (_.isEqual(_.get(character.data.extensions, field), value)) {
+    return;
+  }
+
   if (!affect_memory) {
     character = klona(character);
   }
