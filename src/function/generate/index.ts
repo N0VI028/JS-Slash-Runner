@@ -207,19 +207,31 @@ export function convertGenerateWithCustomPreset(config: GenerateConfig): Generat
       .value(),
   );
 
+  const custom_api = { ...config.custom_api };
+  const setValidly = (param: string, value: number | undefined, min: number | null =null, max: number | null =null) => {
+    if (typeof value !== 'number') {
+      return;
+    }
+    if (min !== null) {
+      value = Math.max(min, value);
+    }
+    if (max !== null) {
+      value = Math.min(max, value);
+    }
+    _.set(custom_api, param, value);
+  }
+  setValidly('max_tokens', preset.settings.max_completion_tokens);
+  setValidly('temperature', preset.settings.temperature, 0, 2);
+  setValidly('frequency_penalty', preset.settings.frequency_penalty, -2, 2);
+  setValidly('presence_penalty', preset.settings.presence_penalty, -2, 2);
+  setValidly('top_p', preset.settings.top_p, 0, 1);
+  setValidly('top_k', preset.settings.top_k, 0, 100);
+
   return {
     ...config,
     ordered_prompts,
     injects,
-    custom_api: {
-      ...config.custom_api,
-      max_tokens: preset.settings.max_completion_tokens,
-      temperature: preset.settings.temperature,
-      frequency_penalty: preset.settings.frequency_penalty,
-      presence_penalty: preset.settings.presence_penalty,
-      top_p: preset.settings.top_p,
-      top_k: preset.settings.top_k,
-    },
+    custom_api,
   };
 }
 
