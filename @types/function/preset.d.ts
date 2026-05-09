@@ -119,7 +119,7 @@ type PresetPrompt = {
 };
 type PresetNormalPrompt = SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
 type PresetSystemPrompt = SetRequired<
-  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id'>,
+  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id' | 'position'>,
   'content'
 >;
 type PresetPlaceholderPrompt = SetRequired<
@@ -133,7 +133,7 @@ type PresetPlaceholderPrompt = SetRequired<
       | 'worldInfoAfter'
       | 'dialogueExamples'
       | 'chatHistory';
-  } & Omit<PresetPrompt, 'id'>,
+  } & Omit<PresetPrompt, 'id' | 'content'>,
   'position'
 >;
 declare function isPresetNormalPrompt(prompt: PresetPrompt): prompt is PresetNormalPrompt;

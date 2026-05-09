@@ -72,7 +72,7 @@ export type PresetPrompt = {
   name: string;
   enabled: boolean;
 
-  position:
+  position?:
     | {
         type: 'relative';
         depth?: never;
@@ -87,7 +87,7 @@ export type PresetPrompt = {
 };
 export type PresetNormalPrompt = SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
 export type PresetSystemPrompt = SetRequired<
-  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id'>,
+  { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id' | 'position'>,
   'content'
 >;
 export type PresetPlaceholderPrompt = SetRequired<
@@ -101,7 +101,7 @@ export type PresetPlaceholderPrompt = SetRequired<
       | 'worldInfoAfter'
       | 'dialogueExamples'
       | 'chatHistory';
-  } & Omit<PresetPrompt, 'id'>,
+  } & Omit<PresetPrompt, 'id' | 'content'>,
   'position'
 >;
 export function isPresetNormalPrompt(prompt: PresetPrompt): prompt is PresetNormalPrompt {
