@@ -192,7 +192,7 @@ function toInChatPrompt(prompt: PresetPrompt): Omit<InjectionPrompt, 'id'> {
 export function convertGenerateWithCustomPreset(config: GenerateConfig): GenerateRawConfig {
   const preset = getPreset(config.preset_name ?? 'in_use');
   const prompts = preset.prompts.filter(prompt => prompt.enabled);
-  const [ordered, in_chat] = _.partition(prompts, prompt => prompt.position.type === 'relative');
+  const [in_chat, ordered] = _.partition(prompts, prompt => prompt.position?.type === 'in_chat');
 
   const ordered_prompts = ordered
     .map(toOrderedPrompt)

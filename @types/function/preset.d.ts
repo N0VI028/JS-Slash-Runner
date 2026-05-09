@@ -103,7 +103,7 @@ type PresetPrompt = {
    *   - `'relative'`: 按提示词相对位置插入
    *   - `'in_chat'`: 插入到聊天记录的对应深度, 需要设置对应的深度 `depth` 和顺序 `order`
    */
-  position:
+  position?:
     | {
         type: 'relative';
         depth?: never;
