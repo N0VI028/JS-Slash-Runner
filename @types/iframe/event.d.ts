@@ -289,7 +289,7 @@ interface ListenerType {
   [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
   [tavern_events.MESSAGE_RECEIVED]: (
     message_id: number,
-    type: LiteralUnion<
+    type: TypeFest.LiteralUnion<
       | 'normal'
       | 'quiet'
       | 'regenerate'

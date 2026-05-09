@@ -29,7 +29,7 @@ type CharWorldbooks = {
  *
  * @returns 角色卡绑定的世界书
  */
-declare function getCharWorldbookNames(character_name: LiteralUnion<'current' | string>): CharWorldbooks;
+declare function getCharWorldbookNames(character_name: TypeFest.LiteralUnion<'current' | string>): CharWorldbooks;
 /**
  * 重新绑定角色卡世界书
  *
@@ -176,7 +176,7 @@ declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEn
  */
 declare function createOrReplaceWorldbook(
   worldbook_name: string,
-  worldbook?: PartialDeep<WorldbookEntry>[],
+  worldbook?: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
 ): Promise<boolean>;
 
@@ -225,13 +225,13 @@ interface ReplaceWorldbookOptions {
  */
 declare function replaceWorldbook(
   worldbook_name: string,
-  worldbook: PartialDeep<WorldbookEntry>[],
+  worldbook: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
 ): Promise<void>;
 
 type WorldbookUpdater =
-  | ((worldbook: WorldbookEntry[]) => PartialDeep<WorldbookEntry>[])
-  | ((worldbook: WorldbookEntry[]) => Promise<PartialDeep<WorldbookEntry>[]>);
+  | ((worldbook: WorldbookEntry[]) => TypeFest.PartialDeep<WorldbookEntry>[])
+  | ((worldbook: WorldbookEntry[]) => Promise<TypeFest.PartialDeep<WorldbookEntry>[]>);
 /**
  * 用 `updater` 函数更新世界书 `worldbook_name`
  *
@@ -284,7 +284,7 @@ declare function updateWorldbookWith(
  */
 declare function createWorldbookEntries(
   worldbook_name: string,
-  new_entries: PartialDeep<WorldbookEntry>[],
+  new_entries: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; new_entries: WorldbookEntry[] }>;
 

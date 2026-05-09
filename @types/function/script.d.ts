@@ -56,7 +56,7 @@ declare function getScriptTrees(option: ScriptTreesOptions): ScriptTree[];
  * @param script_trees 要用于替换的酒馆助手列表
  * @param option 要操作的酒馆助手脚本类型
  */
-declare function replaceScriptTrees(script_trees: PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void;
+declare function replaceScriptTrees(script_trees: TypeFest.PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void;
 
 /**
  * 用 `updater` 函数更新酒馆助手列表
@@ -67,7 +67,7 @@ declare function replaceScriptTrees(script_trees: PartialDeep<ScriptTree>[], opt
  * @returns 更新后的酒馆助手列表
  */
 declare function updateScriptTreesWith(
-  updater: (script_trees: ScriptTree[]) => PartialDeep<ScriptTree>[],
+  updater: (script_trees: ScriptTree[]) => TypeFest.PartialDeep<ScriptTree>[],
   option: ScriptTreesOptions,
 ): ScriptTree[];
 
@@ -80,6 +80,6 @@ declare function updateScriptTreesWith(
  * @returns 更新后的酒馆助手列表
  */
 declare function updateScriptTreesWith(
-  updater: (script_trees: ScriptTree[]) => Promise<PartialDeep<ScriptTree>[]>,
+  updater: (script_trees: ScriptTree[]) => Promise<TypeFest.PartialDeep<ScriptTree>[]>,
   option: ScriptTreesOptions,
 ): Promise<ScriptTree[]>;

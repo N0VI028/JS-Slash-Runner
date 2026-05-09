@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "outDir": "dist",
+    "baseUrl": "src",
+    "types": [
+      "jquery",
+      "jqueryui",
+      "lodash",
+      "showdown",
+      "toastr",
+      "vite/client",
+    ],
+    "paths": {
+      "@sillytavern/*": [
+        "../../../../../*"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    },
+    "moduleDetection": "auto",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "importHelpers": true,
+    "allowUmdGlobalAccess": true,
+    "allowSyntheticDefaultImports": true,
+    "strictBindCallApply": true,
+    "allowJs": true,
+    "checkJs": false,
+    "sourceMap": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "*.d.ts",
+    "src/**/*.ts",
+    "../../../../**/*.js" // for intelligence
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+  ]
+}

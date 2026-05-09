@@ -21,10 +21,7 @@ const externals = {
 // ST_IMPORT_DEPTH env var lets out-of-tree builds override the depth (default: auto-detect).
 const relative_sillytavern_path = process.env.ST_IMPORT_DEPTH
   ? '../'.repeat(Number(process.env.ST_IMPORT_DEPTH)).slice(0, -1)
-  : path.relative(
-    path.join(__dirname, 'dist'),
-    __dirname.substring(0, __dirname.lastIndexOf('public') + 6),
-  );
+  : path.relative(path.join(__dirname, 'dist'), __dirname.substring(0, __dirname.lastIndexOf('public') + 6));
 
 const relative_lib_path = path.relative(path.join(__dirname, 'dist'), path.join(__dirname, 'lib'));
 
@@ -53,6 +50,7 @@ export default defineConfig(({ mode }) => ({
         { from: 'klona', imports: ['klona'] },
         { from: 'vue-final-modal', imports: ['useModal'] },
         { from: 'zod', imports: ['z'] },
+        { from: 'type-fest', imports: [['*', 'TypeFest']], type: true },
       ],
       dirs: [{ glob: 'src/panel/composable', types: true }],
     }),

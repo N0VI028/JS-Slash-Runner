@@ -1,51 +1,11 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "outDir": "dist",
-    "baseUrl": "src",
-    "types": [
-      "jquery",
-      "jqueryui",
-      "lodash",
-      "showdown",
-      "toastr",
-      "type-fest",
-      "vite/client",
-    ],
-    "paths": {
-      "@sillytavern/*": [
-        "../../../../../*"
-      ],
-      "@/*": [
-        "./*"
-      ]
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
     },
-    "moduleDetection": "auto",
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "importHelpers": true,
-    "allowUmdGlobalAccess": true,
-    "allowSyntheticDefaultImports": true,
-    "strictBindCallApply": true,
-    "allowJs": true,
-    "checkJs": false,
-    "sourceMap": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
-  },
-  "include": [
-    "*.d.ts",
-    "src/**/*.ts",
-    "../../../../**/*.js" // for intelligence
-  ],
-  "exclude": [
-    "**/node_modules/**",
-    "**/dist/**",
+    {
+      "path": "./tsconfig.types.json"
+    },
   ]
 }
