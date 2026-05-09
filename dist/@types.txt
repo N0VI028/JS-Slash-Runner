@@ -234,7 +234,7 @@ declare function getCurrentCharacterName(): string | null;
  */
 declare function createCharacter(
   character_name: Exclude<string, 'current'>,
-  character?: PartialDeep<Character>,
+  character?: TypeFest.PartialDeep<Character>,
 ): Promise<boolean>;
 
 /**
@@ -251,7 +251,7 @@ declare function createCharacter(
  */
 declare function createOrReplaceCharacter(
   character_name: Exclude<string, 'current'>,
-  character?: PartialDeep<Character>,
+  character?: TypeFest.PartialDeep<Character>,
   options?: ReplaceCharacterOptions,
 ): Promise<boolean>;
 
@@ -265,7 +265,7 @@ declare function createOrReplaceCharacter(
  * @returns 是否成功删除, 可能因角色卡不存在等原因而失败
  */
 declare function deleteCharacter(
-  character_name: LiteralUnion<'current', string>,
+  character_name: TypeFest.LiteralUnion<'current', string>,
   options?: { delete_chats?: boolean },
 ): Promise<boolean>;
 
@@ -278,7 +278,7 @@ declare function deleteCharacter(
  *
  * @throws 如果角色卡不存在, 将会抛出异常
  */
-declare function getCharacter(character_name: LiteralUnion<'current', string>): Promise<Character>;
+declare function getCharacter(character_name: TypeFest.LiteralUnion<'current', string>): Promise<Character>;
 
 type ReplaceCharacterOptions = {
   /** 酒馆网页应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
@@ -316,7 +316,7 @@ type ReplaceCharacterOptions = {
  */
 declare function replaceCharacter(
   character_name: Exclude<string, 'current'>,
-  character: PartialDeep<Character>,
+  character: TypeFest.PartialDeep<Character>,
   options?: ReplaceCharacterOptions,
 ): Promise<void>;
 
@@ -357,7 +357,7 @@ type CharacterUpdater = ((character: Character) => Character) | ((character: Cha
  * });
  */
 declare function updateCharacterWith(
-  character_name: LiteralUnion<'current', string>,
+  character_name: TypeFest.LiteralUnion<'current', string>,
   updater: CharacterUpdater,
 ): Promise<Character>;
 type ChatMessage = {
@@ -1311,7 +1311,7 @@ type BuiltinPrompt =
  * initializeGlobal('Mvu', Mvu);
  * // 此后其他前端界面或脚本中可以通过 `await waitGlobalInitialized('Mvu')` 来等待初始化完毕, 从而用 `Mvu` 为变量名访问该接口
  */
-declare function initializeGlobal(global: LiteralUnion<'Mvu', string>, value: any): void;
+declare function initializeGlobal(global: TypeFest.LiteralUnion<'Mvu', string>, value: any): void;
 
 /**
  * 等待其他前端界面或脚本中共享出来的全局接口初始化完毕, 并使之在当前前端界面或脚本中可用.
@@ -1324,7 +1324,7 @@ declare function initializeGlobal(global: LiteralUnion<'Mvu', string>, value: an
  * await waitGlobalInitialized('Mvu');
  * ...此后可以直接使用 Mvu 接口
  */
-declare function waitGlobalInitialized<T>(global: LiteralUnion<'Mvu', string>): Promise<T>;
+declare function waitGlobalInitialized<T>(global: TypeFest.LiteralUnion<'Mvu', string>): Promise<T>;
 /**
  * 像酒馆界面里那样导入新角色/更新现有角色卡
  *
@@ -1402,7 +1402,7 @@ interface Window {
     readonly pauseAudio: typeof pauseAudio;
     readonly getAudioList: typeof getAudioList;
     readonly replaceAudioList: typeof replaceAudioList;
-    readonly insertAudioList: typeof insertAudioList;
+    readonly appendAudioList: typeof appendAudioList;
     readonly getAudioSettings: typeof getAudioSettings;
     readonly setAudioSettings: typeof setAudioSettings;
 
@@ -1863,7 +1863,7 @@ type PresetPrompt = {
    * - 系统提示词 (`isPresetSystemPrompt`): 酒馆所设置的系统提示词, 但其实相比于手动添加的提示词没有任何优势, 分为 `main`、`nsfw`、`jailbreak`、`enhance_definitions`
    * - 占位符提示词 (`isPresetPlaceholderPrompt`): 用于表示世界书条目、角色卡、玩家角色、聊天记录等提示词的插入位置, 分为 `world_info_before`、`persona_description`、`char_description`、`char_personality`、`scenario`、`world_info_after`、`dialogue_examples`、`chat_history`
    */
-  id: LiteralUnion<
+  id: TypeFest.LiteralUnion<
     | 'main'
     | 'nsfw'
     | 'jailbreak'
@@ -1900,12 +1900,12 @@ type PresetPrompt = {
   /** 额外字段, 用于为预设提示词绑定额外数据 */
   extra?: Record<string, any>;
 };
-type PresetNormalPrompt = SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
-type PresetSystemPrompt = SetRequired<
+type PresetNormalPrompt = TypeFest.SetRequired<{ id: string } & Omit<PresetPrompt, 'id'>, 'position' | 'content'>;
+type PresetSystemPrompt = TypeFest.SetRequired<
   { id: 'main' | 'nsfw' | 'jailbreak' | 'enhanceDefinitions' } & Omit<PresetPrompt, 'id' | 'position'>,
   'content'
 >;
-type PresetPlaceholderPrompt = SetRequired<
+type PresetPlaceholderPrompt = TypeFest.SetRequired<
   {
     id:
       | 'worldInfoBefore'
@@ -1960,7 +1960,7 @@ declare function loadPreset(preset_name: Exclude<string, 'in_use'>): boolean;
  *
  * @throws 如果预设不存在, 将会抛出异常
  */
-declare function getPreset(preset_name: LiteralUnion<'in_use', string>): Preset;
+declare function getPreset(preset_name: TypeFest.LiteralUnion<'in_use', string>): Preset;
 
 /**
  * 新建 `preset_name` 预设, 内容为 `preset`
@@ -1985,7 +1985,7 @@ declare function createPreset(preset_name: Exclude<string, 'in_use'>, preset?: P
  * @returns 如果发生创建, 则返回 `true`; 如果发生替换, 则返回 `false`
  */
 declare function createOrReplacePreset(
-  preset_name: LiteralUnion<'in_use', string>,
+  preset_name: TypeFest.LiteralUnion<'in_use', string>,
   preset?: Preset,
   { render }?: ReplacePresetOptions,
 ): Promise<boolean>;
@@ -2057,7 +2057,7 @@ type ReplacePresetOptions = {
  * await replacePreset('预设B', preset_b);
  */
 declare function replacePreset(
-  preset_name: LiteralUnion<'in_use', string>,
+  preset_name: TypeFest.LiteralUnion<'in_use', string>,
   preset: Preset,
   { render }?: ReplacePresetOptions,
 ): Promise<void>;
@@ -2113,7 +2113,7 @@ type PresetUpdater = ((preset: Preset) => Preset) | ((preset: Preset) => Promise
  * });
  */
 declare function updatePresetWith(
-  preset_name: LiteralUnion<'in_use', string>,
+  preset_name: TypeFest.LiteralUnion<'in_use', string>,
   updater: PresetUpdater,
   { render }?: ReplacePresetOptions,
 ): Promise<Preset>;
@@ -2142,8 +2142,8 @@ declare function updatePresetWith(
  * });
  */
 declare function setPreset(
-  preset_name: LiteralUnion<'in_use', string>,
-  preset: PartialDeep<Preset>,
+  preset_name: TypeFest.LiteralUnion<'in_use', string>,
+  preset: TypeFest.PartialDeep<Preset>,
   { render }?: ReplacePresetOptions,
 ): Promise<Preset>;
 /**
@@ -2162,7 +2162,7 @@ declare class RawCharacter {
     name,
     allowAvatar,
   }?: {
-    name: LiteralUnion<'current', string>;
+    name: TypeFest.LiteralUnion<'current', string>;
     allowAvatar?: boolean;
   }): SillyTavern.v1CharData;
 
@@ -2250,7 +2250,7 @@ declare class RawCharacter {
  * @param allowAvatar 是否允许通过头像ID查找
  * @returns 角色卡数据
  */
-declare function getCharData(name: LiteralUnion<'current', string>): SillyTavern.v1CharData | null;
+declare function getCharData(name: TypeFest.LiteralUnion<'current', string>): SillyTavern.v1CharData | null;
 
 /**
  * 获取角色头像路径
@@ -2258,7 +2258,7 @@ declare function getCharData(name: LiteralUnion<'current', string>): SillyTavern
  * @param allowAvatar 是否允许通过头像ID查找
  * @returns 角色头像路径
  */
-declare function getCharAvatarPath(name: LiteralUnion<'current', string>): string | null;
+declare function getCharAvatarPath(name: TypeFest.LiteralUnion<'current', string>): string | null;
 
 /**
  * 获取角色聊天历史摘要
@@ -2267,7 +2267,7 @@ declare function getCharAvatarPath(name: LiteralUnion<'current', string>): strin
  * @returns 聊天历史摘要数组
  */
 declare function getChatHistoryBrief(
-  name: LiteralUnion<'current', string>,
+  name: TypeFest.LiteralUnion<'current', string>,
   allowAvatar?: boolean,
 ): Promise<any[] | null>;
 
@@ -2336,7 +2336,7 @@ declare function getScriptTrees(option: ScriptTreesOptions): ScriptTree[];
  * @param script_trees 要用于替换的酒馆助手列表
  * @param option 要操作的酒馆助手脚本类型
  */
-declare function replaceScriptTrees(script_trees: PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void;
+declare function replaceScriptTrees(script_trees: TypeFest.PartialDeep<ScriptTree>[], option: ScriptTreesOptions): void;
 
 /**
  * 用 `updater` 函数更新酒馆助手列表
@@ -2347,7 +2347,7 @@ declare function replaceScriptTrees(script_trees: PartialDeep<ScriptTree>[], opt
  * @returns 更新后的酒馆助手列表
  */
 declare function updateScriptTreesWith(
-  updater: (script_trees: ScriptTree[]) => PartialDeep<ScriptTree>[],
+  updater: (script_trees: ScriptTree[]) => TypeFest.PartialDeep<ScriptTree>[],
   option: ScriptTreesOptions,
 ): ScriptTree[];
 
@@ -2360,7 +2360,7 @@ declare function updateScriptTreesWith(
  * @returns 更新后的酒馆助手列表
  */
 declare function updateScriptTreesWith(
-  updater: (script_trees: ScriptTree[]) => Promise<PartialDeep<ScriptTree>[]>,
+  updater: (script_trees: ScriptTree[]) => Promise<TypeFest.PartialDeep<ScriptTree>[]>,
   option: ScriptTreesOptions,
 ): Promise<ScriptTree[]>;
 /**
@@ -2419,7 +2419,7 @@ declare function formatAsTavernRegexedString(
   source: 'user_input' | 'ai_output' | 'slash_command' | 'world_info' | 'reasoning',
   destination: 'display' | 'prompt',
   { depth, character_name }?: FormatAsTavernRegexedStringOption,
-);
+): string;
 
 type TavernRegex = {
   id: string;
@@ -2814,7 +2814,7 @@ type CharWorldbooks = {
  *
  * @returns 角色卡绑定的世界书
  */
-declare function getCharWorldbookNames(character_name: LiteralUnion<'current' | string>): CharWorldbooks;
+declare function getCharWorldbookNames(character_name: TypeFest.LiteralUnion<'current' | string>): CharWorldbooks;
 /**
  * 重新绑定角色卡世界书
  *
@@ -2961,7 +2961,7 @@ declare function createWorldbook(worldbook_name: string, worldbook?: WorldbookEn
  */
 declare function createOrReplaceWorldbook(
   worldbook_name: string,
-  worldbook?: PartialDeep<WorldbookEntry>[],
+  worldbook?: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
 ): Promise<boolean>;
 
@@ -3010,13 +3010,13 @@ interface ReplaceWorldbookOptions {
  */
 declare function replaceWorldbook(
   worldbook_name: string,
-  worldbook: PartialDeep<WorldbookEntry>[],
+  worldbook: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
 ): Promise<void>;
 
 type WorldbookUpdater =
-  | ((worldbook: WorldbookEntry[]) => PartialDeep<WorldbookEntry>[])
-  | ((worldbook: WorldbookEntry[]) => Promise<PartialDeep<WorldbookEntry>[]>);
+  | ((worldbook: WorldbookEntry[]) => TypeFest.PartialDeep<WorldbookEntry>[])
+  | ((worldbook: WorldbookEntry[]) => Promise<TypeFest.PartialDeep<WorldbookEntry>[]>);
 /**
  * 用 `updater` 函数更新世界书 `worldbook_name`
  *
@@ -3069,7 +3069,7 @@ declare function updateWorldbookWith(
  */
 declare function createWorldbookEntries(
   worldbook_name: string,
-  new_entries: PartialDeep<WorldbookEntry>[],
+  new_entries: TypeFest.PartialDeep<WorldbookEntry>[],
   { render }?: ReplaceWorldbookOptions,
 ): Promise<{ worldbook: WorldbookEntry[]; new_entries: WorldbookEntry[] }>;
 
@@ -3385,7 +3385,7 @@ interface ListenerType {
   [tavern_events.MESSAGE_SENT]: (message_id: number) => void;
   [tavern_events.MESSAGE_RECEIVED]: (
     message_id: number,
-    type: LiteralUnion<
+    type: TypeFest.LiteralUnion<
       | 'normal'
       | 'quiet'
       | 'regenerate'
