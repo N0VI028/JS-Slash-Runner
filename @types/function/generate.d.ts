@@ -313,8 +313,8 @@ type GenerateConfig = {
 type GenerateRawConfig = GenerateConfig & {
   /**
    * 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设. 该数组允许存放两种类型:
-   * - `BuiltinPrompt`: 内置提示词. 由于不使用预设, 如果需要 "角色描述" 等提示词, 你需要自己指定要用哪些并给出顺序
-   *                      如果不想自己指定, 可通过 `builtin_prompt_default_order` 得到酒馆默认预设所使用的顺序 (但对于这种情况, 也许你更应该用 `generate`).
+   * - `PlaceholderPrompt`: 内置提示词. 由于不使用预设, 如果需要 "角色描述" 等提示词, 你需要自己指定要用哪些并给出顺序
+   *                        如果不想自己指定, 可通过 `placeholder_prompt_default_order` 得到酒馆默认预设所使用的顺序 (但对于这种情况, 也许你更应该用 `generate`).
    * - `RolePrompt`: 要额外给定的提示词.
    */
   ordered_prompts?: (PlaceholderPrompt | RolePrompt)[];
