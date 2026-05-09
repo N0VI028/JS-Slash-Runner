@@ -207,20 +207,20 @@ function applyCustomApiOverrides(generateData: any, customApi: CustomApiConfig) 
     generateData.model = customApi.model;
   }
 
-  const setParam = (param: keyof CustomApiConfig) => {
+  const setParam = (param: keyof CustomApiConfig, default_value: number | null = null) => {
     const input = customApi[param] ?? 'same_as_preset';
-    if (input === 'unset') {
+    if (input === default_value || input === 'unset') {
       delete generateData[param];
     } else if (input !== 'same_as_preset') {
       generateData[param] = input;
     }
   };
   setParam('max_tokens');
-  setParam('temperature');
-  setParam('frequency_penalty');
-  setParam('presence_penalty');
-  setParam('top_p');
-  setParam('top_k');
+  setParam('temperature', 1);
+  setParam('frequency_penalty', 0);
+  setParam('presence_penalty', 0);
+  setParam('top_p', 1);
+  setParam('top_k', 0);
 }
 
 function resolveEffectiveToolCallOptions(

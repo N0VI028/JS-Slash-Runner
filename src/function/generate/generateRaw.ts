@@ -1,11 +1,11 @@
 import {
   BaseData,
   RolePrompt,
-  builtin_prompt_default_order,
   character_names_behavior,
   default_order,
   detail,
   extension_prompt_roles,
+  placeholder_prompt_default_order,
 } from '@/function/generate/types';
 import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
 import {
@@ -48,7 +48,7 @@ async function convertSystemPromptsToCollection(
   const promptCollection = new PromptCollection();
   const examplesCollection = new MessageCollection('dialogue_examples');
 
-  const orderArray = promptConfig.order || builtin_prompt_default_order;
+  const orderArray = promptConfig.order || placeholder_prompt_default_order;
 
   const builtinPromptContents = {
     world_info_before: baseData.worldInfo.worldInfoBefore,

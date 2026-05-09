@@ -88,6 +88,7 @@ export type CustomApiConfig = {
  * 生成配置接口（使用预设）
  */
 export type GenerateConfig = {
+  preset_name?: 'in_use' | string;
   generation_id?: string;
   user_input?: string;
   image?: File | string | (File | string)[];
@@ -113,7 +114,7 @@ export type GenerateRawConfig = {
   should_silence?: boolean;
   overrides?: Overrides;
   injects?: Omit<InjectionPrompt, 'id'>[];
-  ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
+  ordered_prompts?: (PlaceholderPrompt | RolePrompt)[];
   max_chat_history?: 'all' | number;
   custom_api?: CustomApiConfig;
   tools?: ToolDefinition[];
@@ -151,7 +152,7 @@ export type Overrides = {
 /**
  * 内置提示词类型
  */
-export type BuiltinPrompt =
+export type PlaceholderPrompt =
   | 'world_info_before'
   | 'persona_description'
   | 'char_description'
@@ -165,7 +166,7 @@ export type BuiltinPrompt =
 /**
  * 默认内置提示词顺序
  */
-export const builtin_prompt_default_order: BuiltinPrompt[] = [
+export const placeholder_prompt_default_order: PlaceholderPrompt[] = [
   'world_info_before',
   'persona_description',
   'char_description',

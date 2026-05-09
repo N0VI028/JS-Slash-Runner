@@ -3,8 +3,19 @@ import { handlePresetPath } from '@/function/generate/generate';
 import { handleCustomPath } from '@/function/generate/generateRaw';
 import { processUserInputWithImages } from '@/function/generate/inputProcessor';
 import { generateResponse } from '@/function/generate/responseGenerator';
-import { detail, GenerateConfig, GenerateRawConfig, GenerateToolCallResult, JsonSchema, Overrides } from '@/function/generate/types';
+import {
+  detail,
+  GenerateConfig,
+  GenerateRawConfig,
+  GenerateToolCallResult,
+  Overrides,
+  PlaceholderPrompt,
+  RolePrompt,
+} from '@/function/generate/types';
 import { normalizeBaseURL, setupImageArrayProcessing, unblockGeneration } from '@/function/generate/utils';
+import { InjectionPrompt } from '@/function/inject';
+import { getPreset, isPresetPlaceholderPrompt, PresetPrompt } from '@/function/preset';
+import { substitudeMacros } from '@/function/util';
 import {
   deactivateSendButtons,
   event_types,
@@ -154,6 +165,61 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
     tools: config.tools,
     tool_choice: config.tool_choice,
     json_schema: config.json_schema,
+  };
+}
+
+function toOrderedPrompt(prompt: PresetPrompt): PlaceholderPrompt | RolePrompt {
+  if (isPresetPlaceholderPrompt(prompt)) {
+    return _.snakeCase(prompt.id) as PlaceholderPrompt;
+  }
+  return {
+    role: prompt.role,
+    content: substitudeMacros(prompt.content!),
+  };
+}
+
+function toInChatPrompt(prompt: PresetPrompt): Omit<InjectionPrompt, 'id'> {
+  // Assert (prompt.position.type === 'in_chat' && prompt.content is string)
+  prompt.content = substitudeMacros(prompt.content!);
+  return {
+    position: 'in_chat',
+    depth: prompt.position!.depth!,
+    role: prompt.role,
+    content: substitudeMacros(prompt.content),
+  };
+}
+
+export function convertGenerateWithCustomPreset(config: GenerateConfig): GenerateRawConfig {
+  const preset = getPreset(config.preset_name ?? 'in_use');
+  const prompts = preset.prompts.filter(prompt => prompt.enabled);
+  const [ordered, in_chat] = _.partition(prompts, prompt => prompt.position.type === 'relative');
+
+  const ordered_prompts = ordered
+    .map(toOrderedPrompt)
+    .filter(prompt => typeof prompt === 'string' || prompt.content.trim() !== '');
+
+  const injects = _.concat(
+    config.injects ?? [],
+    _(in_chat)
+      .sortBy(['position.depth', 'position.order'])
+      .map(toInChatPrompt)
+      .filter(prompt => prompt.content.trim() !== '')
+      .value(),
+  );
+
+  return {
+    ...config,
+    ordered_prompts,
+    injects,
+    custom_api: {
+      ...config.custom_api,
+      max_tokens: preset.settings.max_completion_tokens,
+      temperature: preset.settings.temperature,
+      frequency_penalty: preset.settings.frequency_penalty,
+      presence_penalty: preset.settings.presence_penalty,
+      top_p: preset.settings.top_p,
+      top_k: preset.settings.top_k,
+    },
   };
 }
 
@@ -312,6 +378,10 @@ async function iframeGenerate({
 }
 
 export async function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult> {
+  if (config.preset_name && config.preset_name !== 'in_use') {
+    const converted_config = convertGenerateWithCustomPreset(config);
+    return await generateRaw(converted_config);
+  }
   const converted_config = fromGenerateConfig(config);
   return await iframeGenerate(converted_config);
 }

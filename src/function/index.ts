@@ -61,7 +61,7 @@ import {
   stopAllGeneration,
   stopGenerationById,
 } from '@/function/generate';
-import { builtin_prompt_default_order } from '@/function/generate/types';
+import { placeholder_prompt_default_order } from '@/function/generate/types';
 import { _initializeGlobal, _waitGlobalInitialized, initializeGlobal, waitGlobalInitialized } from '@/function/global';
 import {
   importRawCharacter,
@@ -315,7 +315,7 @@ function getTavernHelper() {
     uninjectPrompts,
 
     // generate
-    builtin_prompt_default_order,
+    builtin_prompt_default_order: placeholder_prompt_default_order,
     getModelList,
     getProxyPresetNames,
     generate,
