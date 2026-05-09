@@ -993,6 +993,9 @@ declare function stopGenerationById(generation_id: string): boolean;
 declare function stopAllGeneration(): boolean;
 
 type GenerateConfig = {
+  /** 要使用的预设名称, 默认为当前加载的预设 `'in_use'`; 若设置, 则会用所选预设的提示词及参数, 但不会使用所选预设的正则、酒馆助手脚本 */
+  preset_name?: 'in_use' | string;
+
   /**
    * 请求生成的唯一标识符, 不设置则默认生成一个随机标识符.
    *
@@ -1084,15 +1087,15 @@ type GenerateRawConfig = GenerateConfig & {
    *                      如果不想自己指定, 可通过 `builtin_prompt_default_order` 得到酒馆默认预设所使用的顺序 (但对于这种情况, 也许你更应该用 `generate`).
    * - `RolePrompt`: 要额外给定的提示词.
    */
-  ordered_prompts?: (BuiltinPrompt | RolePrompt)[];
+  ordered_prompts?: (PlaceholderPrompt | RolePrompt)[];
 };
 
 /**
  * 预设为内置提示词设置的默认顺序
  */
-declare const builtin_prompt_default_order: BuiltinPrompt[];
+declare const placeholder_prompt_default_order: PlaceholderPrompt[];
 
-type BuiltinPrompt =
+type PlaceholderPrompt =
   | 'world_info_before'
   | 'persona_description'
   | 'char_description'
@@ -1276,6 +1279,25 @@ type GenerateToolCallResult = {
    */
   reasoning_signature?: string;
 };
+
+//----------------------------------------------------------------------------------------------------------------------
+/**
+ * 预设为内置提示词设置的默认顺序
+ * @deprecated 请使用 `placeholder_prompt_default_order`
+ */
+declare const builtin_prompt_default_order: PlaceholderPrompt[];
+
+/** @deprecated 请使用 `PlaceholderPrompt` */
+type BuiltinPrompt =
+  | 'world_info_before'
+  | 'persona_description'
+  | 'char_description'
+  | 'char_personality'
+  | 'scenario'
+  | 'world_info_after'
+  | 'dialogue_examples'
+  | 'chat_history'
+  | 'user_input';
 /**
  * 将接口共享到全局, 使其可以在其他前端界面或脚本中使用.
  *
