@@ -103,3 +103,26 @@ declare function getAudioSettings(type: 'bgm' | 'ambient'): AudioSettings;
  * setAudioSettings('bgm', { volume: 50 });
  */
 declare function setAudioSettings(type: 'bgm' | 'ambient', settings: Partial<AudioSettings>): void;
+
+type CurrentAudio = {
+  /** 当前选中/正在播放的音频链接, 未选中曲目时为空字符串 */
+  src: string;
+  /** 当前选中音频的标题, 未匹配到时为空字符串 */
+  title: string;
+  /** 是否正在播放 */
+  playing: boolean;
+  /** 播放进度 (0-100) */
+  progress: number;
+};
+
+/**
+ * 获取当前播放的音频信息: 链接、标题、是否在播、进度
+ *
+ * @param type 背景音乐 ('bgm') 或音效 ('ambient')
+ * @returns 当前音频信息
+ *
+ * @example
+ * // 获取当前正在播放的背景音乐
+ * const { title, src, playing, progress } = getCurrentAudio('bgm');
+ */
+declare function getCurrentAudio(type: 'bgm' | 'ambient'): CurrentAudio;

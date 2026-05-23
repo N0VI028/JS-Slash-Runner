@@ -2,6 +2,7 @@ import {
   appendAudioList,
   getAudioList,
   getAudioSettings,
+  getCurrentAudio,
   pauseAudio,
   playAudio,
   replaceAudioList,
@@ -261,6 +262,7 @@ function getTavernHelper() {
     appendAudioList,
     getAudioSettings,
     setAudioSettings,
+    getCurrentAudio,
 
     // builtin
     builtin,

@@ -30,7 +30,7 @@ export function playAudio(type: 'bgm' | 'ambient', audio: AudioWithOptionalTitle
   const store = get_store_by_type(type);
 
   audio.title = audio.title || handle_url_to_title(audio.url);
-  const existing = store.playlist.find(item => item.title === audio.title || item.url === audio.url);
+  const existing = store.playlist.find((item: Audio) => item.title === audio.title || item.url === audio.url);
   if (!existing) {
     store.playlist.push(audio as Audio);
   } else {
@@ -55,13 +55,13 @@ export function getAudioList(type: 'bgm' | 'ambient'): Audio[] {
 
 export function replaceAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void {
   const store = get_store_by_type(type);
-  store.playlist = audio_list.map(item => ({ title: item.title || handle_url_to_title(item.url), url: item.url }));
+  store.playlist = audio_list.map((item: AudioWithOptionalTitle) => ({ title: item.title || handle_url_to_title(item.url), url: item.url }));
 }
 
 export function appendAudioList(type: 'bgm' | 'ambient', audio_list: AudioWithOptionalTitle[]): void {
   const store = get_store_by_type(type);
   store.playlist.push(
-    ...audio_list.map(item => ({ title: item.title || handle_url_to_title(item.url), url: item.url })),
+    ...audio_list.map((item: AudioWithOptionalTitle) => ({ title: item.title || handle_url_to_title(item.url), url: item.url })),
   );
 }
 
@@ -75,6 +75,29 @@ type AudioSettings = {
 export function getAudioSettings(type: 'bgm' | 'ambient'): AudioSettings {
   const store = get_store_by_type(type);
   return klona(_.pick(store, ['enabled', 'mode', 'muted', 'volume']));
+}
+
+type CurrentAudio = {
+  src: string;
+  title: string;
+  playing: boolean;
+  progress: number;
+};
+
+/**
+ * 获取当前播放的音频信息: 链接、标题、是否在播、进度
+ * @param type 背景音乐 ('bgm') 或音效 ('ambient')
+ * @returns 当前音频信息; 未选中曲目时 `src`/`title` 为空字符串
+ */
+export function getCurrentAudio(type: 'bgm' | 'ambient'): CurrentAudio {
+  const store = get_store_by_type(type);
+  const current = store.playlist.find((item: Audio) => item.url === store.src);
+  return {
+    src: store.src,
+    title: current?.title ?? '',
+    playing: store.playing,
+    progress: store.progress,
+  };
 }
 
 export function setAudioSettings(type: 'bgm' | 'ambient', settings: Partial<AudioSettings>): void {

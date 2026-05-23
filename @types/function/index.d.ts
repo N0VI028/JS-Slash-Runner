@@ -12,6 +12,7 @@ interface Window {
     readonly appendAudioList: typeof appendAudioList;
     readonly getAudioSettings: typeof getAudioSettings;
     readonly setAudioSettings: typeof setAudioSettings;
+    readonly getCurrentAudio: typeof getCurrentAudio;
 
     // builtin
     readonly builtin: typeof builtin;
