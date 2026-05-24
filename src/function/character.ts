@@ -311,8 +311,10 @@ export async function replaceCharacter(
   const store = useCharacterSettingsStore();
   const is_current = character_name === store.name;
 
+  // TODO: 可以直接更新 `target` 里的内容
+  await getOneCharacter(character_name + '.png');
+
   if (is_current) {
-    await getOneCharacter(character_name + '.png');
     if (character.extensions?.tavern_helper !== undefined) {
       store.forceReload();
     }
