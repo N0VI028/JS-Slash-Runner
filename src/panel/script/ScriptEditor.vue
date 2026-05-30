@@ -10,11 +10,35 @@
         <input v-model="script.name" type="text" class="text_pole" />
       </div>
       <div class="TH-script-editor-container">
-        <div class="flex items-center gap-[5px]">
+        <div class="flex min-h-[21.6px] w-full items-center gap-[5px]">
           <strong>{{ t`脚本内容` }}</strong>
           <MaximizeButton @click="() => openMaximize('content')"></MaximizeButton>
         </div>
+        <!-- 收起时：只读预览 + 展开按钮 -->
+        <div
+          v-if="!isContentExpanded && isContentTruncated"
+          class="text_pole relative w-full overflow-hidden font-(family-name:--monoFontFamily)!"
+          style="height: 67.6px"
+        >
+          <pre
+            class="m-0 p-0 text-[15px] leading-normal break-words whitespace-pre-wrap"
+            style="font-family: inherit"
+          >{{ truncatedPreview }}</pre>
+          <div
+            class="
+              pointer-events-none absolute right-0 bottom-0 left-0 flex h-[40px] items-center justify-center
+              bg-gradient-to-t from-(--black70a) to-transparent
+            "
+          >
+            <button class="menu_button interactable pointer-events-auto text-sm!" @click="toggleContent">
+              <i class="fa-solid fa-angles-down"></i>
+              <span class="ml-0.25">{{ t`展开编辑` }}</span>
+            </button>
+          </div>
+        </div>
+        <!-- 展开或内容未超阈值：可编辑 textarea -->
         <textarea
+          v-else
           v-model="script.content"
           :placeholder="t`脚本的 JavaScript 代码`"
           rows="3"
@@ -143,6 +167,31 @@ const script = ref<ScriptForm>(
     },
   ),
 );
+
+// 脚本内容编辑状态管理
+const CHAR_THRESHOLD = 300; // 字符数阈值
+const isContentExpanded = ref(false);
+
+/**
+ * 判断内容是否需要截断（基于字符数）
+ */
+const isContentTruncated = computed(() => {
+  return script.value.content.length > CHAR_THRESHOLD;
+});
+
+/**
+ * 收起时显示的截断预览内容
+ */
+const truncatedPreview = computed(() => {
+  return script.value.content.slice(0, CHAR_THRESHOLD) + '\n...';
+});
+
+/**
+ * 切换展开/收起状态
+ */
+function toggleContent() {
+  isContentExpanded.value = !isContentExpanded.value;
+}
 
 const submit = (close: () => void) => {
   const result = ScriptForm.safeParse(script.value);
