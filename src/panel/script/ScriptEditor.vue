@@ -20,10 +20,10 @@
           class="text_pole relative w-full overflow-hidden font-(family-name:--monoFontFamily)!"
           style="height: 67.6px"
         >
-          <pre
-            class="m-0 p-0 text-[15px] leading-normal break-words whitespace-pre-wrap"
-            style="font-family: inherit"
-          >{{ truncatedPreview }}</pre>
+          <pre class="m-0 p-0 leading-normal break-words whitespace-pre-wrap" style="font-family: inherit">{{
+            truncatedPreview
+          }}</pre>
+          <!-- prettier-ignore-attribute -->
           <div
             class="
               pointer-events-none absolute right-0 bottom-0 left-0 flex h-[40px] items-center justify-center
