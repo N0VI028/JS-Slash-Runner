@@ -30,7 +30,7 @@
               bg-gradient-to-t from-(--black70a) to-transparent
             "
           >
-            <button class="menu_button interactable pointer-events-auto text-sm!" @click="toggleContent">
+            <button class="menu_button interactable pointer-events-auto text-xs!" @click="toggleContent">
               <i class="fa-solid fa-angles-down"></i>
               <span class="ml-0.25">{{ t`展开编辑` }}</span>
             </button>

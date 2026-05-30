@@ -147,6 +147,7 @@
   "创建新脚本": "Create New Script",
   "脚本名称": "Script Name",
   "脚本内容": "Script Content",
+  "展开编辑": "Expand Editor",
   "脚本的 JavaScript 代码": "JavaScript code",
   "作者备注": "Author Note",
   "脚本备注, 例如作者名、版本和注意事项等, 支持简单的 markdown 和 html": "Note of this script, such as the author's name, version and notes, etc. Supports simple markdown and html",
