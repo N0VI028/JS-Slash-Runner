@@ -50,7 +50,7 @@ export function calcToRender(depth: number, ignore_hidden: boolean): number[] {
   }
   return _(_.range(min_showed_message_id, chat.length))
     .filter(message_id => !chat[message_id]?.is_system)
-    .takeRight(depth)
+    .takeRight(depth === 0 ? chat.length : depth)
     .value();
 }
 
