@@ -21,6 +21,14 @@
         </Item>
         <Divider />
         <Item type="plain">
+          <template #title>{{ t`忽略隐藏楼层` }}</template>
+          <template #description>{{ t`开启后，始终不渲染已经被设置为AI不可见的楼层，且不计入渲染深度设定的楼层数` }}</template>
+          <template #content>
+            <Toggle id="TH-render-depth-ignore-hidden" v-model="depth_ignore_hidden" />
+          </template>
+        </Item>
+        <Divider />
+        <Item type="plain">
           <template #title>{{ t`启用代码折叠` }}</template>
           <template #description>
             {{ t`折叠指定类型的代码块，当选择“仅前端”时，将只折叠可渲染成前端界面但没被渲染的代码块` }}
