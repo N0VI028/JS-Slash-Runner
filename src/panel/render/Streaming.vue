@@ -28,15 +28,19 @@ const destroy = (message_id: number) => {
 };
 
 const destroyIfInvalid = (message_id: number): boolean => {
-  const length = chat.length;
-  const min_message_id = Math.max(
-    Number($('#chat > .mes').first().attr('mesid')),
-    store.settings.render.depth === 0 ? 0 : length - store.settings.render.depth,
-  );
+  const min_showed_message_id = Number($('#chat > .mes').first().attr('mesid'));
+  const begin_message_id =
+    store.settings.render.depth === 0
+      ? min_showed_message_id
+      : Math.max(min_showed_message_id, chat.length - store.settings.render.depth);
+
   // 查找 .mes_streaming 以兼容流式楼层界面: https://github.com/StageDog/tavern_helper_template/blob/main/util/streaming.ts
   if (
     $(`#chat > .mes[mesid="${message_id}"]`).find('.mes_streaming').length > 0 ||
-    !_.inRange(message_id, min_message_id, length)
+    // 虽然两路可以合并，但是还是拆开，这样 !ignore_hidden 时性能应好一些
+    (!store.settings.render.depth_ignore_hidden && !_.inRange(message_id, begin_message_id, chat.length)) ||
+    (store.settings.render.depth_ignore_hidden &&
+      !calcToRender(store.settings.render.depth, store.settings.render.depth_ignore_hidden).includes(message_id))
   ) {
     destroy(message_id);
     return true;
@@ -81,7 +85,7 @@ async function renderAllMessages(options: { destroy_all?: boolean } = {}) {
   } else {
     destroyAllInvalid();
   }
-  calcToRender(store.settings.render.depth).forEach(message_id => {
+  calcToRender(store.settings.render.depth, store.settings.render.depth_ignore_hidden).forEach(message_id => {
     renderOneMessage(message_id);
   });
 }

@@ -67,6 +67,7 @@ export const GlobalSettings = z
         optimize_hljs: z.boolean().default(true),
         // 之前没做判定, depth 可能被设置成 "", 因此 .catch
         depth: z.number().default(0).catch(0),
+        depth_ignore_hidden: z.boolean().default(false)
       })
       .prefault({}),
     script: z

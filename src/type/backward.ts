@@ -119,6 +119,7 @@ export const GlobalSettings = z
         use_blob_url: settings.render.render_blob_url,
         optimize_hljs: true,
         depth: settings.render.render_depth,
+        depth_ignore_hidden: false,
       },
       script: {
         enabled: {

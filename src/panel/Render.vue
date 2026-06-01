@@ -90,7 +90,7 @@ import { useGlobalSettingsStore } from '@/store/settings';
 import { useModal } from 'vue-final-modal';
 
 const global_settings = useGlobalSettingsStore();
-const { enabled, collapse_code_block, allow_streaming, use_blob_url, optimize_hljs, depth } = toRefs(
+const { enabled, collapse_code_block, allow_streaming, use_blob_url, optimize_hljs, depth, depth_ignore_hidden } = toRefs(
   global_settings.settings.render,
 );
 const { enabled: macro_enabled } = toRefs(global_settings.settings.macro);

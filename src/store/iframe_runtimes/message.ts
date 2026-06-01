@@ -38,25 +38,33 @@ function renderMessages(ids: number[], reload_memo: string): Runtime[] {
   return render$mes($mes, reload_memo);
 }
 
-export function calcToRender(depth: number): number[] {
+export function calcToRender(depth: number, ignore_hidden: boolean): number[] {
   const min_showed_message_id = Number($('#chat > .mes').first().attr('mesid'));
-  return _.range(
-    depth === 0 ? min_showed_message_id : Math.max(min_showed_message_id, chat.length - depth),
-    chat.length,
-  );
+
+  // 虽然两路可以合并，但是还是拆开，这样 !ignore_hidden 时性能应好一些
+  if (!ignore_hidden) {
+    return _.range(
+      depth === 0 ? min_showed_message_id : Math.max(min_showed_message_id, chat.length - depth),
+      chat.length,
+    );
+  }
+  return _(_.range(min_showed_message_id, chat.length))
+    .filter(message_id => !chat[message_id]?.is_system)
+    .takeRight(depth)
+    .value();
 }
 
-function auditRuntimes(runtimes: Runtime[], depth: number): Runtime[] {
+function auditRuntimes(runtimes: Runtime[], depth: number, ignore_hidden: boolean): Runtime[] {
   const rendered = _.map(runtimes, runtime => runtime.message_id);
-  const to_render = calcToRender(depth);
+  const to_render = calcToRender(depth, ignore_hidden);
   return _.concat(
     _.filter(runtimes, runtime => _.includes(to_render, runtime.message_id)),
     renderMessages(_.difference(to_render, rendered), uuidv4()),
   );
 }
 
-function rerenderAll(depth: number): Runtime[] {
-  return renderMessages(calcToRender(depth), uuidv4());
+function rerenderAll(depth: number, ignore_hidden: boolean): Runtime[] {
+  return renderMessages(calcToRender(depth, ignore_hidden), uuidv4());
 }
 
 export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtimes', () => {
@@ -69,13 +77,14 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
         global_settings.settings.render.enabled,
         global_settings.settings.render.allow_streaming,
         global_settings.settings.render.depth,
+        global_settings.settings.render.depth_ignore_hidden,
       ] as const,
-    ([new_enabled, new_allow_streaming, new_depth]) => {
+    ([new_enabled, new_allow_streaming, new_depth, new_ignore_hidden]) => {
       if (new_enabled) {
         if (new_allow_streaming) {
           runtimes.value = [];
         }
-        runtimes.value = auditRuntimes(runtimes.value, new_depth);
+        runtimes.value = auditRuntimes(runtimes.value, new_depth, new_ignore_hidden);
       } else {
         runtimes.value = [];
       }
@@ -84,18 +93,27 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
   );
 
   if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
-    runtimes.value = rerenderAll(global_settings.settings.render.depth);
+    runtimes.value = rerenderAll(
+      global_settings.settings.render.depth,
+      global_settings.settings.render.depth_ignore_hidden,
+    );
   } else {
     setTimeout(() => {
       if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
-        runtimes.value = rerenderAll(global_settings.settings.render.depth);
+        runtimes.value = rerenderAll(
+          global_settings.settings.render.depth,
+          global_settings.settings.render.depth_ignore_hidden,
+        );
       }
     }, 3000);
   }
 
   eventSource.on('chatLoaded', () => {
     if (global_settings.settings.render.enabled) {
-      runtimes.value = rerenderAll(global_settings.settings.render.depth);
+      runtimes.value = rerenderAll(
+        global_settings.settings.render.depth,
+        global_settings.settings.render.depth_ignore_hidden,
+      );
     }
   });
 
@@ -111,6 +129,7 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
         runtimes.value = auditRuntimes(
           _.reject(runtimes.value, runtime => runtime.message_id === numbered_message_id),
           global_settings.settings.render.depth,
+          global_settings.settings.render.depth_ignore_hidden,
         );
       }
     });
@@ -119,7 +138,11 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
   [event_types.MESSAGE_DELETED, event_types.MORE_MESSAGES_LOADED].forEach(event => {
     eventSource.on(event, () => {
       if (global_settings.settings.render.enabled) {
-        runtimes.value = auditRuntimes(runtimes.value, global_settings.settings.render.depth);
+        runtimes.value = auditRuntimes(
+          runtimes.value,
+          global_settings.settings.render.depth,
+          global_settings.settings.render.depth_ignore_hidden,
+        );
       }
     });
   });
