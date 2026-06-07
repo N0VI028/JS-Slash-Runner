@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.8.11
+
+### 🐛修复
+
+- `replaceTavernRegexes` 和 `updateTavernRegexesWith` 在一些情况下没把修改即时保存到角色卡文件中的问题
+
 ## 4.8.10
 
 ### 🐛修复

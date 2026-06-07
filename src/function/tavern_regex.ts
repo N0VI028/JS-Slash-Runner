@@ -282,7 +282,6 @@ export async function replaceTavernRegexes(regexes: TavernRegex[], option?: Repl
       if (!character) {
         return;
       }
-      character.data.extensions.regex_scripts = character_regexes;
       await writeExtensionField(this_chid as unknown as string, 'regex_scripts', character_regexes);
     }
     return render_tavern_regexes_debounced();
@@ -319,7 +318,6 @@ export async function replaceTavernRegexes(regexes: TavernRegex[], option?: Repl
       if (!character) {
         return;
       }
-      character.data.extensions.regex_scripts = converted;
       await writeExtensionField(String(id), 'regex_scripts', converted);
       break;
     }
