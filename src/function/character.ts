@@ -53,8 +53,23 @@ export function getCharacterNames(): string[] {
   return characters.map(character => character.name);
 }
 
+/**
+ * 获取角色卡头像 id 列表
+ */
+export function getCharacterIds(): string[] {
+  return characters.map(character => character.avatar);
+}
+
 export function getCurrentCharacterName(): string | null {
   return name2 === '' ? null : name2;
+}
+
+/**
+ * 获取当前角色卡头像 id
+ */
+export function getCurrentCharacterId(): string | null {
+  const current_character = RawCharacter.find({ name: 'current' });
+  return current_character?.avatar ?? null;
 }
 
 function toCharacter(character: v1CharData): Character {

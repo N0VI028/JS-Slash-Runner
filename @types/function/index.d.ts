@@ -19,6 +19,9 @@ interface Window {
 
     // character
     readonly getCharacterNames: typeof getCharacterNames;
+    readonly getCharacterIds: typeof getCharacterIds;
+    readonly getCurrentCharacterName: typeof getCurrentCharacterName;
+    readonly getCurrentCharacterId: typeof getCurrentCharacterId;
     readonly createCharacter: typeof createCharacter;
     readonly createOrReplaceCharacter: typeof createOrReplaceCharacter;
     readonly deleteCharacter: typeof deleteCharacter;
@@ -110,6 +113,19 @@ interface Window {
     readonly replacePreset: typeof replacePreset;
     readonly updatePresetWith: typeof updatePresetWith;
     readonly setPreset: typeof setPreset;
+
+    // persona
+    readonly getPersonaNames: typeof getPersonaNames;
+    readonly getPersonaIds: typeof getPersonaIds;
+    readonly getCurrentPersonaName: typeof getCurrentPersonaName;
+    readonly getCurrentPersonaId: typeof getCurrentPersonaId;
+    readonly getPersonaAvatarPath: typeof getPersonaAvatarPath;
+    readonly createPersona: typeof createPersona;
+    readonly createOrReplacePersona: typeof createOrReplacePersona;
+    readonly deletePersona: typeof deletePersona;
+    readonly getPersona: typeof getPersona;
+    readonly replacePersona: typeof replacePersona;
+    readonly updatePersonaWith: typeof updatePersonaWith;
 
     // raw_character
     readonly RawCharacter: typeof RawCharacter;
