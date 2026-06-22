@@ -65,7 +65,7 @@ export function getPersonaIds(): string[] {
  * 获取当前 persona 的名称
  */
 export function getCurrentPersonaName(): string | null {
-  return user_avatar ? (power_user.personas[user_avatar] ?? null) : null;
+  return power_user.personas[user_avatar] ?? null;
 }
 
 /**
@@ -185,17 +185,11 @@ async function getExistingAvatarIds(): Promise<string[]> {
 }
 
 /**
- * 判断头像参数是否表示复用当前头像文件
- */
-function shouldReuseExistingAvatar(avatar: `${string}.png` | Blob | undefined, avatar_id: string): boolean {
-  return !avatar || avatar === avatar_id;
-}
-
-/**
  * 上传或补齐 persona 头像文件
  */
 async function ensurePersonaAvatar(avatar_id: string, avatar?: `${string}.png` | Blob): Promise<void> {
-  if (shouldReuseExistingAvatar(avatar, avatar_id)) {
+  // 头像参数为空或等于现有 id 时, 表示复用当前头像文件
+  if (!avatar || avatar === avatar_id) {
     const avatars = await getExistingAvatarIds();
     if (avatars.includes(avatar_id)) {
       return;
@@ -243,11 +237,11 @@ function writePersona(avatar_id: string, persona: PartialDeep<Persona>, old_data
   power_user.persona_descriptions[avatar_id] = descriptor;
 
   if (persona.is_default !== undefined) {
-    power_user.default_persona = persona.is_default
-      ? avatar_id
-      : power_user.default_persona === avatar_id
-        ? null
-        : power_user.default_persona;
+    if (persona.is_default) {
+      power_user.default_persona = avatar_id;
+    } else if (power_user.default_persona === avatar_id) {
+      power_user.default_persona = null;
+    }
   }
 
   syncCurrentPersona(avatar_id, descriptor);

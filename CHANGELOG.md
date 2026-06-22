@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
-## 
 ## 4.8.12
+
+### 📦函数
+
+- 新增用户人设相关函数, 用于查询、创建、替换、更新、删除用户人设, 详见[文档](https://n0vi028.github.io/JS-Slash-Runner-Doc/guide/功能详情/用户人设/获取用户人设.html)
+- 补充角色卡相关函数: 新增 `getCharacterIds` 和 `getCurrentCharacterId`, 用于获取角色卡唯一 id
 
 ### 🐛修复
 
