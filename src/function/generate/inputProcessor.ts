@@ -1,5 +1,5 @@
-import { substituteParams } from '@sillytavern/script';
 import { processImageArrayDirectly, processUserInput, setupImageArrayProcessing } from '@/function/generate/utils';
+import { substituteParams } from '@sillytavern/script';
 
 /**
  * 用户输入处理结果接口

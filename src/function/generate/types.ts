@@ -82,6 +82,9 @@ export type CustomApiConfig = {
   presence_penalty?: 'same_as_preset' | 'unset' | number;
   top_p?: 'same_as_preset' | 'unset' | number;
   top_k?: 'same_as_preset' | 'unset' | number;
+  custom_include_body?: Record<string, any>;
+  custom_exclude_body?: string[];
+  custom_include_headers?: Record<string, any>;
 };
 
 /**

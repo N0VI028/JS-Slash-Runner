@@ -399,6 +399,13 @@ type CustomApiConfig = {
   presence_penalty?: 'same_as_preset' | 'unset' | number;
   top_p?: 'same_as_preset' | 'unset' | number;
   top_k?: 'same_as_preset' | 'unset' | number;
+
+  /** 仅 `source === 'custom'` 时有效, 在请求体中额外覆盖参数; 如 `{ max_tokens: 1024 }` */
+  custom_include_body?: Record<string, any>;
+  /** 仅 `source === 'custom'` 时有效, 在请求体中排除参数, 由于酒馆后端限制仅能排除根参数; 如 `['max_tokens']` */
+  custom_exclude_body?: string[];
+  /** 仅 `source === 'custom'` 时有效, 在请求头中额外覆盖参数; 如 `{ Content-Type: 'application/json' }` */
+  custom_include_headers?: Record<string, any>;
 };
 
 /**

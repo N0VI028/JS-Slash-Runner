@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.8.13
+
+### 📦函数
+
+- 为 `generate` 函数新增 `custom_api.custom_include_body` 等参数, 仅在 `custom_api.source === 'custom'` 时生效
+
 ## 4.8.12
 
 ### 📦函数

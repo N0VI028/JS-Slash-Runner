@@ -2,13 +2,6 @@ import {
   createGenerationParameters,
   getChatCompletionModelCompat,
 } from '@/function/generate/createGenerationParametersCompat';
-import { CustomApiConfig, GenerateToolCallResult, JsonSchema, ToolChoice, ToolDefinition } from '@/function/generate/types';
-import {
-  clearInjectionPrompts,
-  extractMessageFromData,
-  normalizeBaseURL,
-  setupImageArrayProcessing,
-} from '@/function/generate/utils';
 import {
   accumulateToolCallDeltasForSupportedSources,
   extractReasoningSignatureForSupportedSources,
@@ -16,17 +9,24 @@ import {
   getIgnoredToolCallWarningMessage,
   hasToolCallRequestOptions,
   isSupportedToolCallSource,
-  normalizeRequestToolOptionsForSource,
   normalizeAccumulatedToolCalls,
+  normalizeRequestToolOptionsForSource,
   resolveToolCallSource,
   SupportedToolCallSource,
 } from '@/function/generate/toolCallCompat';
+import { CustomApiConfig, GenerateToolCallResult, JsonSchema, ToolChoice, ToolDefinition } from '@/function/generate/types';
+import {
+  clearInjectionPrompts,
+  extractMessageFromData,
+  normalizeBaseURL,
+  setupImageArrayProcessing,
+} from '@/function/generate/utils';
 import { saveChatConditionalDebounced } from '@/util/tavern';
 import {
   cleanUpMessage,
   countOccurrences,
-  eventSource,
   event_types,
+  eventSource,
   getRequestHeaders,
   isOdd,
 } from '@sillytavern/script';
@@ -221,6 +221,17 @@ function applyCustomApiOverrides(generateData: any, customApi: CustomApiConfig) 
   setParam('presence_penalty', 0);
   setParam('top_p', 1);
   setParam('top_k', 0);
+  if (customApi.source === 'custom') {
+    if (customApi.custom_include_body) {
+      generateData.custom_include_body = YAML.stringify(customApi.custom_include_body);
+    }
+    if (customApi.custom_exclude_body) {
+      generateData.custom_exclude_body = YAML.stringify(customApi.custom_exclude_body);
+    }
+    if (customApi.custom_include_headers) {
+      generateData.custom_include_headers = YAML.stringify(customApi.custom_include_headers);
+    }
+  }
 }
 
 function resolveEffectiveToolCallOptions(
