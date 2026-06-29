@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.8.14
+
+### 📦函数
+
+- 为酒馆正则 `TavernRegex` 补充 `source.reasoning` 选项, 用于指定正则是否用于思维链部分的处理
+
 ## 4.8.13
 
 ### 📦函数

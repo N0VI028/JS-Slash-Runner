@@ -43,6 +43,7 @@ type TavernRegex = {
     ai_output: boolean;
     slash_command: boolean;
     world_info: boolean;
+    reasoning: boolean;
   };
 
   destination: {

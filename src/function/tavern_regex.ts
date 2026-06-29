@@ -86,6 +86,7 @@ export type TavernRegex = {
     ai_output: boolean;
     slash_command: boolean;
     world_info: boolean;
+    reasoning: boolean;
   };
 
   destination: {
@@ -147,6 +148,7 @@ export function to_tavern_regex(regex_script_data: RegexScriptData): TavernRegex
       ai_output: regex_script_data.placement.includes(regex_placement.AI_OUTPUT),
       slash_command: regex_script_data.placement.includes(regex_placement.SLASH_COMMAND),
       world_info: regex_script_data.placement.includes(regex_placement.WORLD_INFO),
+      reasoning: regex_script_data.placement.includes(regex_placement.REASONING),
     },
 
     destination: {
@@ -176,6 +178,7 @@ export function from_tavern_regex(tavern_regex: TavernRegex): RegexScriptData {
       ...(tavern_regex.source.ai_output ? [regex_placement.AI_OUTPUT] : []),
       ...(tavern_regex.source.slash_command ? [regex_placement.SLASH_COMMAND] : []),
       ...(tavern_regex.source.world_info ? [regex_placement.WORLD_INFO] : []),
+      ...(tavern_regex.source.reasoning ? [regex_placement.REASONING] : []),
     ],
 
     substituteRegex: 0, // TODO: handle this?

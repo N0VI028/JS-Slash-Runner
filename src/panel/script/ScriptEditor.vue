@@ -169,7 +169,7 @@ const script = ref<ScriptForm>(
 );
 
 // 脚本内容编辑状态管理
-const CHAR_THRESHOLD = 300; // 字符数阈值
+const CHAR_THRESHOLD = 3000; // 字符数阈值
 const isContentExpanded = ref(false);
 
 /**
