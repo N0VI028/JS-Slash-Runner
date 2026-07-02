@@ -116,7 +116,7 @@ export default defineConfig(({ mode }) => ({
 
     sourcemap: mode === 'production' ? true : 'inline',
 
-    minify: mode === 'production' ? 'terser' : false,
+    minify: mode === 'production' ? 'oxc' : false,
     terserOptions:
       mode === 'production'
         ? {

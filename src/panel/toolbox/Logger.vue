@@ -151,7 +151,7 @@ const clearLogs = () => {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(-1 * var(calc(var(--mainFontSize) * 0.5)) / 2);
+  top: calc(var(--mainFontSize) * -0.25);
   height: 1px;
   background: var(--grey5020a);
   pointer-events: none;
