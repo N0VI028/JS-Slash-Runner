@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "none",
+    "rootDir": ".",
     "outDir": "dist",
-    "baseUrl": "@types",
     "types": [
       "jquery"
     ],
     "paths": {},
+    "moduleDetection": "auto",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "allowUmdGlobalAccess": true,
     "allowSyntheticDefaultImports": true,

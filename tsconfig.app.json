@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
+    "rootDir": ".",
     "outDir": "dist",
-    "baseUrl": "src",
     "types": [
       "jquery",
       "jqueryui",
@@ -14,10 +14,10 @@
     ],
     "paths": {
       "@sillytavern/*": [
-        "../../../../../*"
+        "../../../../*"
       ],
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     },
     "moduleDetection": "auto",
@@ -41,6 +41,7 @@
   "include": [
     "*.d.ts",
     "src/**/*.ts",
+    "src/**/*.vue",
     "../../../../**/*.js" // for intelligence
   ],
   "exclude": [
