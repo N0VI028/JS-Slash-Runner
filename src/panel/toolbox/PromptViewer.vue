@@ -62,6 +62,10 @@
               <input v-model="roles_to_show" type="checkbox" value="assistant" />
               🤖 assistant
             </div>
+            <div class="flex items-center gap-0.5">
+              <input v-model="roles_to_show" type="checkbox" value="tool" />
+              🔧 tool
+            </div>
           </div>
         </Teleport>
       </div>
@@ -88,6 +92,10 @@
                 <span>
                   Role:
                   <span> {{ roleIcons[item_data.role] }} {{ item_data.role }} </span>
+                  <!-- tool 消息显示关联 ID -->
+                  <template v-if="item_data.role === 'tool' && item_data.tool_call_id">
+                    | Tool Call ID: <code class="tool-call-id-code">{{ item_data.tool_call_id }}</code>
+                  </template>
                   | Tokens: <span>{{ item_data.token }}</span>
                 </span>
                 <div class="flex gap-1">
@@ -110,6 +118,26 @@
                 >
                   <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
                   <ImageGallery v-if="item_data.images && item_data.images.length" :images="item_data.images" />
+                  <!-- 工具调用信息显示 -->
+                  <template v-if="item_data.tool_calls && item_data.tool_calls.length">
+                    <div class="tool-calls-info">
+                      <details>
+                        <summary class="tool-calls-summary">
+                          <span class="fa-solid fa-wrench mr-1" />
+                          {{ t`工具调用` }} ({{ item_data.tool_calls.length }})
+                        </summary>
+                        <div class="tool-calls-list">
+                          <div v-for="tool in item_data.tool_calls" :key="tool.id" class="tool-call-item">
+                            <div class="tool-call-name">
+                              <span class="fa-solid fa-code mr-1" />
+                              <strong>{{ tool.function.name }}</strong> | ID: <code class="tool-call-id-code">{{ tool.id }}</code>
+                            </div>
+                            <pre class="tool-call-arguments">{{ tool.function.arguments }}</pre>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
+                  </template>
                 </div>
               </template>
             </div>
@@ -149,6 +177,7 @@ const roleIcons: Record<string, string> = {
   system: '⚙️',
   user: '👤',
   assistant: '🤖',
+  tool: '🔧',
 };
 
 export interface PromptData {
@@ -157,6 +186,8 @@ export interface PromptData {
   content: string;
   images?: { url: string }[];
   token: number;
+  tool_calls?: any[];
+  tool_call_id?: string;
 }
 
 const virt_list_ref = useTemplateRef('virt_list');
@@ -198,7 +229,7 @@ useEventSourceOn(event_types.CHATCOMPLETION_MODEL_CHANGED, () => {
 const preset = toRef(() => usePresetSettingsStore().name);
 
 const prompts = shallowRef<PromptData[]>([]);
-const roles_to_show = ref<string[]>(['system', 'user', 'assistant']);
+const roles_to_show = ref<string[]>(['system', 'user', 'assistant', 'tool']);
 const search_input = ref<RegExp | null>(null);
 const matched_only = useLocalStorage<boolean>('TH-PromptViewer:matched_only', false);
 const filtered_prompts = computed(() => {
@@ -268,46 +299,68 @@ function triggerRefresh(): void {
   Generate('normal');
 }
 
-function collectPrompts(data: SendingMessage[]) {
-  if (state.value === 'refreshing') {
-    stopGeneration();
-  }
+function collectPrompts(data: SendingMessage[]) 
+{
+  if (state.value === 'refreshing') { stopGeneration(); }
 
   setTimeout(async () => {
     prompts.value = await Promise.all(
-      data.map(async ({ role, content }, index) => {
-        if (typeof content === 'string') {
+      data.map(async ({ role, content, tool_calls, tool_call_id }, index) => {
+        // 配置公共字段
+        const base = { 
+          id: index, 
+          role, 
+          tool_calls, 
+          tool_call_id 
+        };
+
+        // 处理没有 content 的消息，显示 无内容提示
+        if (!content) 
+        {
+          const token = (role === 'assistant' && tool_calls)
+            ? await getTokenCountAsync(JSON.stringify(tool_calls))  // 对于 assistant 消息（有 tool_calls），tool-calls-info 区域会显示详细信息
+            : 0;                                                    // 对于 tool 消息（有 tool_call_id）和其他情况
+
           return {
-            id: index,
-            role,
+            ...base,
+            content: '[无内容]',
+            images: [],
+            token,
+          } as PromptData;
+        } 
+        else if (typeof content === 'string') 
+        {
+          return {
+            ...base,
             content,
             images: [],
             token: await getTokenCountAsync(content),
           } as PromptData;
-        }
-
-        const parsed = parseJsonContent(content as any);
-        return {
-          id: index,
-          role,
-          content: parsed.text,
-          images: parsed.images,
-          token: _.sum(
-            await Promise.all(
-              content.map(async item => {
-                switch (item.type) {
-                  case 'text':
-                    return await getTokenCountAsync(item.text);
-                  case 'image_url':
-                    return await getImageTokenCost(item.image_url.url, item.image_url.detail);
-                  case 'video_url':
-                    // TODO： 用户附加的视频文件似乎根本不计入？content中没有，AI回复的视频未知
-                    return await getVideoTokenCost(item.video_url.url);
-                }
-              }),
+        } 
+        else 
+        {
+          const parsed = parseJsonContent(content as any);
+          return {
+            ...base,
+            content: parsed.text,
+            images: parsed.images,
+            token: _.sum(
+              await Promise.all(
+                content.map(async item => {
+                  switch (item.type) {
+                    case 'text':
+                      return await getTokenCountAsync(item.text);
+                    case 'image_url':
+                      return await getImageTokenCost(item.image_url.url, item.image_url.detail);
+                    case 'video_url':
+                      // TODO： 用户附加的视频文件似乎根本不计入？content中没有，AI回复的视频未知
+                      return await getVideoTokenCost(item.video_url.url);
+                  }
+                }),
+              ),
             ),
-          ),
-        } as PromptData;
+          } as PromptData;
+        }
       }),
     );
     is_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
@@ -397,4 +450,70 @@ function copyPrompt(content: string) {
     transform: rotate(360deg);
   }
 }
+
+/* 工具调用信息样式 */
+.tool-calls-info {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 1px solid rgba(0, 123, 255, 0.3);
+}
+
+.tool-calls-summary {
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  color: rgb(var(--SmartThemeQuoteColor) || 255, 255, 255);
+  display: flex;
+  align-items: center;
+}
+
+.tool-calls-summary:hover {
+  color: rgb(var(--SmartThemeQuoteColor) || 200, 200, 255);
+}
+
+.tool-calls-list {
+  margin-top: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.tool-call-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.tool-call-item:last-child {
+  margin-bottom: 0;
+}
+
+.tool-call-name {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  font-size: 0.9em;
+}
+
+.tool-call-arguments {
+  margin: 0.25rem 0 0 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  font-size: 0.85em;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* tool_call_id 代码样式 */
+.tool-call-id-code {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
 </style>
