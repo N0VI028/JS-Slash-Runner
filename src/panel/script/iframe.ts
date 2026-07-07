@@ -1,4 +1,4 @@
-import { parent_jquery_url, predefine_url, cleanup_protector_url } from '@/iframe/script_url';
+import { cleanup_protector_url, parent_jquery_url, predefine_url } from '@/iframe/script_url';
 import third_party from '@/iframe/third_party_script.html?raw';
 
 // 由于 vue 内使用 `</script>` 存在 bug, 不得不分开写
@@ -10,7 +10,7 @@ ${use_blob_url ? `<base href="${window.location.origin}"/>` : ''}
 ${third_party}
 <script src="${parent_jquery_url}"></script>
 <script src="${predefine_url}"></script>
-${use_cleanup_protector && (content.includes('pagehide') || content.includes('unload')) ? '' : `<script src="${cleanup_protector_url}"></script>`}
+${use_cleanup_protector && !content.includes('pagehide') ? `<script src="${cleanup_protector_url}"></script>` : ''}
 <script src="https://testingcf.jsdelivr.net/gh/N0VI028/JS-Slash-Runner/src/iframe/node_modules/log.js"></script>
 </head>
 <body>
