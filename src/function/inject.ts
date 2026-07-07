@@ -47,6 +47,8 @@ export function injectPrompts(prompts: InjectionPrompt[], { once = false }: inje
     eventSource.once(tavern_events.GENERATION_STOPPED, uninject);
   }
 
+  $(window).on('pagehide', uninject);
+
   return {
     uninject,
   };
