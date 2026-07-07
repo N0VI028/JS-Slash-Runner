@@ -71,7 +71,7 @@
             {{ t`对脚本附加的界面如悬浮球等进行兜底清理, 避免脚本关闭后界面残留；但遇到这种情况更建议提醒脚本作者修复` }}
           </template>
           <template #content>
-            <Toggle id="TH-render-use-cleanup-helper" v-model="use_cleanup_helper" />
+            <Toggle id="TH-render-use-cleanup-protector" v-model="use_cleanup_protector" />
           </template>
         </Item>
         <Divider />
@@ -114,7 +114,7 @@ import { useGlobalSettingsStore } from '@/store/settings';
 import { useModal } from 'vue-final-modal';
 
 const global_settings = useGlobalSettingsStore();
-const { enabled, collapse_code_block, allow_streaming, use_blob_url, use_cleanup_helper, optimize_hljs, depth, depth_ignore_hidden } =
+const { enabled, collapse_code_block, allow_streaming, use_blob_url, use_cleanup_protector, optimize_hljs, depth, depth_ignore_hidden } =
   toRefs(global_settings.settings.render);
 const { enabled: macro_enabled } = toRefs(global_settings.settings.macro);
 

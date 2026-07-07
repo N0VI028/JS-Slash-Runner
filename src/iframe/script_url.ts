@@ -1,6 +1,6 @@
 import adjust_iframe_height from '@/iframe/adjust_iframe_height?raw';
 import adjust_viewport from '@/iframe/adjust_viewport?raw';
-import cleanup_helper from '@/iframe/cleanup_helper?raw';
+import cleanup_protector from '@/iframe/cleanup_protector?raw';
 import parent_jquery from '@/iframe/parent_jquery?raw';
 import predefine from '@/iframe/predefine?raw';
 
@@ -11,6 +11,6 @@ function createObjectURLFromScript(code: string): string {
 // 反正酒馆助手不会 unmount, 无需考虑 revoke
 export const adjust_iframe_height_url = createObjectURLFromScript(adjust_iframe_height);
 export const adjust_viewport_url = createObjectURLFromScript(adjust_viewport);
-export const cleanup_helper_url = createObjectURLFromScript(cleanup_helper);
+export const cleanup_protector_url = createObjectURLFromScript(cleanup_protector);
 export const parent_jquery_url = createObjectURLFromScript(parent_jquery);
 export const predefine_url = createObjectURLFromScript(predefine);

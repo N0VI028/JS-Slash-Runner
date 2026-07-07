@@ -33,7 +33,7 @@
         :name="script.name"
         :content="script.content"
         :use-blob-url="use_blob_url"
-        :use-cleanup-helper="use_cleanup_helper"
+        :use-cleanup-protector="use_cleanup_protector"
       />
     </Teleport>
 
@@ -86,7 +86,7 @@ useResolveIdConflict(preset_name, character_name, global_scripts, preset_scripts
 useCheckEnablementPopup(preset_name, character_name, global_settings, preset_scripts, character_scripts);
 
 const { runtimes, button_map } = toRefs(useScriptIframeRuntimesStore());
-const { use_blob_url, use_cleanup_helper } = toRefs(useGlobalSettingsStore().settings.render);
+const { use_blob_url, use_cleanup_protector } = toRefs(useGlobalSettingsStore().settings.render);
 
 const button_element = useButtonDestinationElement();
 </script>
