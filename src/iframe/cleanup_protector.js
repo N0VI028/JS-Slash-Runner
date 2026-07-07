@@ -314,4 +314,4 @@ $(window).on('pagehide', () => {
   if (iframeObserver) {
     iframeObserver.disconnect();
   }
-};);
+});
