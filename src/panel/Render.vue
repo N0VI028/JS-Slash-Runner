@@ -22,7 +22,9 @@
         <Divider />
         <Item type="plain">
           <template #title>{{ t`忽略隐藏楼层` }}</template>
-          <template #description>{{ t`开启后，始终不渲染已经被设置为AI不可见的楼层，且不计入渲染深度设定的楼层数` }}</template>
+          <template #description>{{
+            t`不渲染已经被设置为AI不可见的楼层，且不计入渲染深度设定的楼层数`
+          }}</template>
           <template #content>
             <Toggle id="TH-render-depth-ignore-hidden" v-model="depth_ignore_hidden" />
           </template>
@@ -62,18 +64,32 @@
     <!-- 实验功能 -->
     <Item type="box" class="mt-0.75">
       <template #legend><i class="fa-solid fa-flask th-text-xs!" />{{ t`实验功能` }}</template>
-      <template #title>{{ t`允许流式渲染` }}</template>
-      <template #description>
-        {{ t`在AI流式输出时就渲染，某些前端界面可能无法这样渲染。此外，这可能与某些脚本、插件、酒馆美化不兼容` }}
-      </template>
-      <template #content>
-        <Toggle
-          id="TH-render-allow-streaming"
-          :key="streaming_toggle_key"
-          :model-value="allow_streaming"
-          @update:model-value="handleStreamingChange"
-        />
-      </template>
+      <div class="flex flex-col gap-0.5">
+        <Item type="plain">
+          <template #title>{{ t`启用兜底清理` }}</template>
+          <template #description>
+            {{ t`对脚本附加的界面如悬浮球等进行兜底清理, 避免脚本关闭后界面残留；但遇到这种情况更建议提醒脚本作者修复` }}
+          </template>
+          <template #content>
+            <Toggle id="TH-render-use-cleanup-protector" v-model="use_cleanup_protector" />
+          </template>
+        </Item>
+        <Divider />
+        <Item type="plain">
+          <template #title>{{ t`允许流式渲染` }}</template>
+          <template #description>
+            {{ t`在AI流式输出时就渲染，某些前端界面可能无法这样渲染。此外，这可能与某些脚本、插件、酒馆美化不兼容` }}
+          </template>
+          <template #content>
+            <Toggle
+              id="TH-render-allow-streaming"
+              :key="streaming_toggle_key"
+              :model-value="allow_streaming"
+              @update:model-value="handleStreamingChange"
+            />
+          </template>
+        </Item>
+      </div>
     </Item>
   </div>
 
@@ -98,9 +114,8 @@ import { useGlobalSettingsStore } from '@/store/settings';
 import { useModal } from 'vue-final-modal';
 
 const global_settings = useGlobalSettingsStore();
-const { enabled, collapse_code_block, allow_streaming, use_blob_url, optimize_hljs, depth, depth_ignore_hidden } = toRefs(
-  global_settings.settings.render,
-);
+const { enabled, collapse_code_block, allow_streaming, use_blob_url, use_cleanup_protector, optimize_hljs, depth, depth_ignore_hidden } =
+  toRefs(global_settings.settings.render);
 const { enabled: macro_enabled } = toRefs(global_settings.settings.macro);
 
 const collapse_code_block_options = [
@@ -151,7 +166,9 @@ const { open: openStreamingConfirm } = useModal({
       { name: t`取消` },
     ],
   },
-  slots: { default: `<h2>⚠️${t`警告`}</h2><p>${t`启用流式渲染可能与某些脚本、插件或酒馆美化不兼容，导致界面异常或功能失效。是否继续？`}</p>` },
+  slots: {
+    default: `<h2>⚠️${t`警告`}</h2><p>${t`启用流式渲染可能与某些脚本、插件或酒馆美化不兼容，导致界面异常或功能失效。是否继续？`}</p>`,
+  },
 });
 
 /**
