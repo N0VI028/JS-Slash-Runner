@@ -177,7 +177,6 @@ import { throttleFilter, useLocalStorage, useResizeObserver } from '@vueuse/core
 import _ from 'lodash';
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, Teleport, toRef, useTemplateRef, watch } from 'vue';
 import { VirtList } from 'vue-virt-list';
-import { t } from '../../../../../../i18n';
 
 const is_filter_opened = ref<boolean>(false);
 const teleportTarget = useTemplateRef<HTMLElement>('teleportTarget');
