@@ -152,7 +152,7 @@
 import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
-import { createPromptData, type PromptData } from '@/panel/toolbox/prompt-viewer/PromptData';
+import { createPromptData, type PromptData } from '@/panel/toolbox/prompt_viewer/prompt_data';
 import { usePresetSettingsStore } from '@/store/settings';
 import { copyText } from '@/util/compatibility';
 import {
