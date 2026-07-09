@@ -50,9 +50,8 @@ async function processPromptContent(
     return await processEmptyContent(role, tool_calls);
   } else if (typeof content === 'string') {
     return await processStringContent(content);
-  } else {
-    return await processArrayContent(content);
   }
+  return await processArrayContent(content);
 }
 
 async function processEmptyContent(
@@ -60,7 +59,7 @@ async function processEmptyContent(
   tool_calls?: any[],
 ): Promise<{ processedContent: string; images: { url: string }[]; token: number }> {
   const token = role === 'assistant' && tool_calls ? await getTokenCountAsync(JSON.stringify(tool_calls)) : 0;
-  return { processedContent: '[无内容]', images: [], token };
+  return { processedContent: '', images: [], token };
 }
 
 async function processStringContent(
