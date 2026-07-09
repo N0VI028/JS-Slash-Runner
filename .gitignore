@@ -1,6 +1,5 @@
 /.claude
 /node_modules
-/dist
 
 .DS_Store
 Thumbs.db
