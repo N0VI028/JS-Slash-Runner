@@ -121,7 +121,7 @@
                   <!-- 工具调用信息显示 -->
                   <template v-if="item_data.tool_calls && item_data.tool_calls.length">
                     <div class="tool-calls-info">
-                      <details>
+                      <details :open="is_tool_calls_expanded[item_data.id]" @toggle="handleToolCallsToggle(item_data.id, $event)">
                         <summary class="tool-calls-summary">
                           <span class="fa-solid fa-wrench mr-1" />
                           {{ t`工具调用` }} ({{ item_data.tool_calls.length }})
@@ -152,9 +152,9 @@
 import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
+import { createPromptData, type PromptData } from '@/panel/toolbox/prompt-viewer/PromptData';
 import { usePresetSettingsStore } from '@/store/settings';
 import { copyText } from '@/util/compatibility';
-import { getImageTokenCost, getVideoTokenCost } from '@/util/tavern';
 import {
   event_types,
   eventSource,
@@ -165,7 +165,6 @@ import {
   stopGeneration,
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
-import { getTokenCountAsync } from '@sillytavern/scripts/tokenizers';
 import { Teleport, nextTick } from 'vue';
 import { VirtList } from 'vue-virt-list';
 import { useResizeObserver, throttleFilter } from '@vueuse/core';
@@ -179,16 +178,6 @@ const roleIcons: Record<string, string> = {
   assistant: '🤖',
   tool: '🔧',
 };
-
-export interface PromptData {
-  id: number;
-  role: string;
-  content: string;
-  images?: { url: string }[];
-  token: number;
-  tool_calls?: any[];
-  tool_call_id?: string;
-}
 
 const virt_list_ref = useTemplateRef('virt_list');
 const virt_list_container_ref = useTemplateRef<HTMLElement>('virt_list_container');
@@ -241,9 +230,16 @@ const filtered_prompts = computed(() => {
 
 const should_expand_by_default = useLocalStorage<boolean>('TH-PromptViewer:should_expand_by_default', false);
 const is_expanded = ref<boolean[]>([]);
+const is_tool_calls_expanded = ref<boolean[]>([]);
 function toggleAll(should_expand: boolean) {
   is_expanded.value = _.times(prompts.value.length, _.constant(should_expand));
+  is_tool_calls_expanded.value = _.times(prompts.value.length, _.constant(should_expand));
   should_expand_by_default.value = should_expand;
+}
+
+function handleToolCallsToggle(id: number, event: Event) {
+  const details = event.target as HTMLDetailsElement;
+  is_tool_calls_expanded.value[id] = details.open;
 }
 
 watch(
@@ -299,116 +295,19 @@ function triggerRefresh(): void {
   Generate('normal');
 }
 
-function collectPrompts(data: SendingMessage[]) 
-{
+function collectPrompts(data: SendingMessage[]) {
   if (state.value === 'refreshing') { stopGeneration(); }
 
   setTimeout(async () => {
     prompts.value = await Promise.all(
-      data.map(async ({ role, content, tool_calls, tool_call_id }, index) => {
-        // 配置公共字段
-        const base = { 
-          id: index, 
-          role, 
-          tool_calls, 
-          tool_call_id 
-        };
-
-        // 处理没有 content 的消息，显示 无内容提示
-        if (!content) 
-        {
-          const token = (role === 'assistant' && tool_calls)
-            ? await getTokenCountAsync(JSON.stringify(tool_calls))  // 对于 assistant 消息（有 tool_calls），tool-calls-info 区域会显示详细信息
-            : 0;                                                    // 对于 tool 消息（有 tool_call_id）和其他情况
-
-          return {
-            ...base,
-            content: '[无内容]',
-            images: [],
-            token,
-          } as PromptData;
-        } 
-        else if (typeof content === 'string') 
-        {
-          return {
-            ...base,
-            content,
-            images: [],
-            token: await getTokenCountAsync(content),
-          } as PromptData;
-        } 
-        else 
-        {
-          const parsed = parseJsonContent(content as any);
-          return {
-            ...base,
-            content: parsed.text,
-            images: parsed.images,
-            token: _.sum(
-              await Promise.all(
-                content.map(async item => {
-                  switch (item.type) {
-                    case 'text':
-                      return await getTokenCountAsync(item.text);
-                    case 'image_url':
-                      return await getImageTokenCost(item.image_url.url, item.image_url.detail);
-                    case 'video_url':
-                      // TODO： 用户附加的视频文件似乎根本不计入？content中没有，AI回复的视频未知
-                      return await getVideoTokenCost(item.video_url.url);
-                  }
-                }),
-              ),
-            ),
-          } as PromptData;
-        }
-      }),
+      data.map(({ role, content, tool_calls, tool_call_id }, index) =>
+        createPromptData(index, role, content, tool_calls, tool_call_id)
+      )
     );
     is_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
+    is_tool_calls_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
     state.value = 'idle';
   });
-}
-
-function parseJsonContent(content: any): { text: string; images: { url: string }[] } {
-  try {
-    const text_parts: string[] = [];
-    const images: { url: string }[] = [];
-    for (const item of content) {
-      if (!item || typeof item !== 'object') {
-        continue;
-      }
-
-      switch (item.type) {
-        case 'text': {
-          const text = item.text ?? '';
-          text_parts.push(String(text));
-          break;
-        }
-        case 'image_url': {
-          const url: string = _.get(item, 'image_url.url', '');
-          if (!url) {
-            break;
-          }
-          images.push({ url });
-          break;
-        }
-        case 'video_url': {
-          // TODO: 视频如何处理？
-          const url: string = _.get(item, 'video_url.url', '');
-          if (url) {
-            text_parts.push(`[Video] ${url}`);
-          }
-          break;
-        }
-        default: {
-          text_parts.push(JSON.stringify(item));
-        }
-      }
-    }
-    // TODO: 有没有必要严格按照显示的顺序图文穿插显示？目前把图片全部放在最后了
-    return { text: text_parts.join('\n\n'), images };
-  } catch (e) {
-    return { text: JSON.stringify(content, null, 2), images: [] };
-  }
 }
 
 useEventSourceOn(event_types.GENERATION_STARTED, (_type, _option, dry_run) => {
