@@ -264,11 +264,14 @@ export const tavern_events = {
 
 export type SendingMessage = {
   role: 'user' | 'assistant' | 'system' | 'tool';
+
   content?: string | Array<
     | { type: 'text'; text: string }
     | { type: 'image_url'; image_url: { url: string; detail: 'auto' | 'low' | 'high' } }
     | { type: 'video_url'; video_url: { url: string } }
   >;
+
+  tool_call_id?: string;
   tool_calls?: Array<{
     id: string;
     type: 'function';
@@ -277,7 +280,6 @@ export type SendingMessage = {
       arguments: string;
     };
   }>;
-  tool_call_id?: string;
 };
 
 export type ListenerType = {
