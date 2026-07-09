@@ -23,10 +23,9 @@ export async function createPromptData(
   role: string,
   content: any,
   tool_calls?: any[],
-  tool_call_id?: string
+  tool_call_id?: string,
 ): Promise<PromptData> {
-  const { processedContent, images, token } =
-    await processPromptContent(role, content, tool_calls);
+  const { processedContent, images, token } = await processPromptContent(role, content, tool_calls);
 
   return {
     id: index,
@@ -45,7 +44,7 @@ export async function createPromptData(
 async function processPromptContent(
   role: string,
   content: any,
-  tool_calls?: any[]
+  tool_calls?: any[],
 ): Promise<{ processedContent: string; images: { url: string }[]; token: number }> {
   if (!content) {
     return await processEmptyContent(role, tool_calls);
@@ -58,29 +57,26 @@ async function processPromptContent(
 
 async function processEmptyContent(
   role: string,
-  tool_calls?: any[]
+  tool_calls?: any[],
 ): Promise<{ processedContent: string; images: { url: string }[]; token: number }> {
-  const token =
-    role === 'assistant' && tool_calls
-      ? await getTokenCountAsync(JSON.stringify(tool_calls))
-      : 0;
+  const token = role === 'assistant' && tool_calls ? await getTokenCountAsync(JSON.stringify(tool_calls)) : 0;
   return { processedContent: '[无内容]', images: [], token };
 }
 
 async function processStringContent(
-  content: string
+  content: string,
 ): Promise<{ processedContent: string; images: { url: string }[]; token: number }> {
   const token = await getTokenCountAsync(content);
   return { processedContent: content, images: [], token };
 }
 
 async function processArrayContent(
-  content: any[]
+  content: any[],
 ): Promise<{ processedContent: string; images: { url: string }[]; token: number }> {
   const parsed = parseJsonContent(content);
   const token = _.sum(
     await Promise.all(
-      content.map(async (item) => {
+      content.map(async item => {
         switch (item.type) {
           case 'text':
             return await getTokenCountAsync(item.text);
@@ -92,8 +88,8 @@ async function processArrayContent(
           default:
             return 0;
         }
-      })
-    )
+      }),
+    ),
   );
   return { processedContent: parsed.text, images: parsed.images, token };
 }

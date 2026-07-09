@@ -99,7 +99,11 @@
                   | Tokens: <span>{{ item_data.token }}</span>
                 </span>
                 <div class="flex gap-1">
-                  <div class="fa-solid fa-copy cursor-pointer" title="复制" @click.stop="copyPrompt(item_data.content)" />
+                  <div
+                    class="fa-solid fa-copy cursor-pointer"
+                    title="复制"
+                    @click.stop="copyPrompt(item_data.content)"
+                  />
                   <div
                     class="fa-solid"
                     :class="is_expanded[item_data.id] ? 'fa-circle-chevron-up' : 'fa-circle-chevron-down'"
@@ -121,7 +125,10 @@
                   <!-- 工具调用信息显示 -->
                   <template v-if="item_data.tool_calls && item_data.tool_calls.length">
                     <div class="tool-calls-info">
-                      <details :open="is_tool_calls_expanded[item_data.id]" @toggle="handleToolCallsToggle(item_data.id, $event)">
+                      <details
+                        :open="is_tool_calls_expanded[item_data.id]"
+                        @toggle="handleToolCallsToggle(item_data.id, $event)"
+                      >
                         <summary class="tool-calls-summary">
                           <span class="fa-solid fa-wrench mr-1" />
                           {{ t`工具调用` }} ({{ item_data.tool_calls.length }})
@@ -130,7 +137,8 @@
                           <div v-for="tool in item_data.tool_calls" :key="tool.id" class="tool-call-item">
                             <div class="tool-call-name">
                               <span class="fa-solid fa-code mr-1" />
-                              <strong>{{ tool.function.name }}</strong> | ID: <code class="tool-call-id-code">{{ tool.id }}</code>
+                              <strong>{{ tool.function.name }}</strong> | ID:
+                              <code class="tool-call-id-code">{{ tool.id }}</code>
                             </div>
                             <pre class="tool-call-arguments">{{ tool.function.arguments }}</pre>
                           </div>
@@ -165,9 +173,11 @@ import {
   stopGeneration,
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
-import { Teleport, nextTick } from 'vue';
+import { throttleFilter, useLocalStorage, useResizeObserver } from '@vueuse/core';
+import _ from 'lodash';
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, Teleport, toRef, useTemplateRef, watch } from 'vue';
 import { VirtList } from 'vue-virt-list';
-import { useResizeObserver, throttleFilter } from '@vueuse/core';
+import { t } from '../../../../../../i18n';
 
 const is_filter_opened = ref<boolean>(false);
 const teleportTarget = useTemplateRef<HTMLElement>('teleportTarget');
@@ -186,7 +196,7 @@ const container_height = ref(0);
 
 useResizeObserver(
   virt_list_container_ref,
-  (entries) => {
+  entries => {
     const entry = entries[0];
     if (entry) {
       container_height.value = entry.contentRect.height;
@@ -296,13 +306,15 @@ function triggerRefresh(): void {
 }
 
 function collectPrompts(data: SendingMessage[]) {
-  if (state.value === 'refreshing') { stopGeneration(); }
+  if (state.value === 'refreshing') {
+    stopGeneration();
+  }
 
   setTimeout(async () => {
     prompts.value = await Promise.all(
       data.map(({ role, content, tool_calls, tool_call_id }, index) =>
-        createPromptData(index, role, content, tool_calls, tool_call_id)
-      )
+        createPromptData(index, role, content, tool_calls, tool_call_id),
+      ),
     );
     is_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
     is_tool_calls_expanded.value = _.times(data.length, _.constant(should_expand_by_default.value));
@@ -414,5 +426,4 @@ function copyPrompt(content: string) {
   font-family: monospace;
   font-size: 0.9em;
 }
-
 </style>
