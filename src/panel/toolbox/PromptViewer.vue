@@ -331,7 +331,7 @@ useEventSourceOn(event_types.CHAT_COMPLETION_SETTINGS_READY, completion => {
 });
 
 function copyAll() {
-  const all_prompts = prompts.value.map(prompt => prompt.content).join('\n\n');
+  const all_prompts = prompts.value.map(prompt => prompt.content).filter(Boolean).join('\n\n');
   copyText(all_prompts);
   toastr.success(t`已复制全部提示词到剪贴板`);
 }
