@@ -15,13 +15,17 @@ function demacroOnPrompt(
   }
 
   for (const message of event_data.prompt) {
+    // 跳过没有 content 的消息（如只有 tool_calls 的消息）
+    if (!message.content) {
+      continue;
+    }
     for (const macro of macros) {
       if (typeof message.content === 'string') {
         macro.regex.lastIndex = 0;
         message.content = message.content.replace(macro.regex, (substring: string, ...args: any[]) =>
           macro.replace({ role: message.role }, substring, ...args),
         );
-      } else {
+      } else if (Array.isArray(message.content)) {
         message.content
           .filter(item => item.type === 'text')
           .forEach(item => {
