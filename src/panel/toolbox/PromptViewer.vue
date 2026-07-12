@@ -130,7 +130,7 @@
                         @toggle="handleToolCallsToggle(item_data.id, $event)"
                       >
                         <summary class="tool-calls-summary">
-                          <span class="fa-solid fa-wrench mr-1" />
+                          <span class="fa-solid fa-wrench mr-0.5" />
                           {{ t`工具调用` }} ({{ item_data.tool_calls.length }})
                         </summary>
                         <div class="tool-calls-list">
@@ -331,7 +331,10 @@ useEventSourceOn(event_types.CHAT_COMPLETION_SETTINGS_READY, completion => {
 });
 
 function copyAll() {
-  const all_prompts = prompts.value.map(prompt => prompt.content).filter(Boolean).join('\n\n');
+  const all_prompts = prompts.value
+    .map(prompt => prompt.content)
+    .filter(Boolean)
+    .join('\n\n');
   copyText(all_prompts);
   toastr.success(t`已复制全部提示词到剪贴板`);
 }
@@ -342,7 +345,9 @@ function copyPrompt(content: string) {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@reference '../../global.css';
+
 .TH-loading-spinner {
   width: var(--mainFontSize);
   height: var(--mainFontSize);
@@ -363,66 +368,35 @@ function copyPrompt(content: string) {
 
 /* 工具调用信息样式 */
 .tool-calls-info {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  background-color: rgba(0, 123, 255, 0.1);
-  border: 1px solid rgba(0, 123, 255, 0.3);
+  @apply my-0.5 rounded-sm border border-(--SmartThemeQuoteColor)/30 bg-(--SmartThemeQuoteColor)/10 p-0.5;
 }
 
 .tool-calls-summary {
-  cursor: pointer;
-  font-weight: 600;
-  user-select: none;
-  color: rgb(var(--SmartThemeQuoteColor) || 255, 255, 255);
-  display: flex;
-  align-items: center;
-}
-
-.tool-calls-summary:hover {
-  color: rgb(var(--SmartThemeQuoteColor) || 200, 200, 255);
+  @apply flex cursor-pointer items-center font-semibold select-none text-(--SmartThemeQuoteColor);
 }
 
 .tool-calls-list {
-  margin-top: 0.5rem;
-  padding-left: 0.5rem;
+  @apply mt-0.5;
 }
 
 .tool-call-item {
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  background-color: rgba(0, 0, 0, 0.2);
+  @apply mb-0.5 rounded-sm bg-(--SmartThemeBlurTintColor)/30 p-0.5 text-(--SmartThemeBodyColor);
 }
 
 .tool-call-item:last-child {
-  margin-bottom: 0;
+  @apply mb-0;
 }
 
 .tool-call-name {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.25rem;
-  font-size: 0.9em;
+  @apply mb-0.25 flex items-center th-text-sm;
 }
 
 .tool-call-arguments {
-  margin: 0.25rem 0 0 0;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  background-color: rgba(0, 0, 0, 0.3);
-  font-size: 0.85em;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
+  @apply mt-0.25 mb-0 overflow-x-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-(--SmartThemeBlurTintColor)/50 p-0.5 th-text-sm text-(--SmartThemeBodyColor);
 }
 
 /* tool_call_id 代码样式 */
 .tool-call-id-code {
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 0.1rem 0.3rem;
-  border-radius: 0.2rem;
-  font-family: monospace;
-  font-size: 0.9em;
+  @apply rounded-sm bg-(--grey5020a) px-0.25 py-px font-mono th-text-sm text-(--SmartThemeBodyColor);
 }
 </style>

@@ -1,49 +1,52 @@
 <template>
-  <template v-if="props.searchInput !== null && props.matchedOnly">
-    <template v-for="(item, index) in match_only_blocks" :key="index">
-      <div v-if="is_expanded[index]">
-        <div class="wrap-break-word whitespace-pre-wrap">
-          <Highlighter :query="searchInput">{{ item }}</Highlighter>
+  <!-- 空 content 不渲染，避免仅工具调用时出现空白行 -->
+  <template v-if="props.content">
+    <template v-if="props.searchInput !== null && props.matchedOnly">
+      <template v-for="(item, index) in match_only_blocks" :key="index">
+        <div v-if="is_expanded[index]">
+          <div class="wrap-break-word whitespace-pre-wrap">
+            <Highlighter :query="searchInput">{{ item }}</Highlighter>
+          </div>
+          <!-- prettier-ignore-attribute -->
+          <div
+            v-if="is_collapsible[index]"
+            class="
+              my-0.5 flex cursor-pointer items-center justify-center gap-0.5 rounded-sm border
+              border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
+            "
+            @click="is_expanded[index] = false"
+          >
+            {{ t`收起内容` }}<i class="fa-solid fa-chevron-up"></i>
+          </div>
         </div>
-        <!-- prettier-ignore-attribute -->
-        <div
-          v-if="is_collapsible[index]"
-          class="
-            my-0.5 flex cursor-pointer items-center justify-center gap-0.5 rounded-sm border
-            border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
-          "
-          @click="is_expanded[index] = false"
-        >
-          {{ t`收起内容` }}<i class="fa-solid fa-chevron-up"></i>
+        <div v-else @click="is_expanded[index] = true">
+          <!-- prettier-ignore-attribute -->
+          <div
+            class="
+              my-0.5 flex cursor-pointer items-center justify-center gap-0.5 rounded-sm border
+              border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
+            "
+          >
+            {{ t`展开` }} {{ (item.match(/\n/g)?.length ?? 0) + 1 }} {{ t`行隐藏内容` }}
+            <i class="fa-solid fa-chevron-down" />
+          </div>
         </div>
-      </div>
-      <div v-else @click="is_expanded[index] = true">
-        <!-- prettier-ignore-attribute -->
-        <div
-          class="
-            my-0.5 flex cursor-pointer items-center justify-center gap-0.5 rounded-sm border
-            border-(--SmartThemeBorderColor) px-1 py-0.5 th-text-sm text-(--SmartThemeQuoteColor)
-          "
-        >
-          {{ t`展开` }} {{ (item.match(/\n/g)?.length ?? 0) + 1 }} {{ t`行隐藏内容` }}
-          <i class="fa-solid fa-chevron-down" />
-        </div>
-      </div>
+      </template>
     </template>
-  </template>
-  <template v-else>
-    <template v-for="(block, index) in normal_blocks" :key="index">
-      <div
-        class="TH-prompt-content-block wrap-break-word whitespace-pre-wrap"
-        :style="{ containIntrinsicSize: `auto ${block.intrinsicSizeLh}lh` }"
-      >
-        <Highlighter v-if="block.matched && searchInput !== null" :query="searchInput">
-          {{ block.text || ' ' }}
-        </Highlighter>
-        <template v-else>
-          {{ block.text || ' ' }}
-        </template>
-      </div>
+    <template v-else>
+      <template v-for="(block, index) in normal_blocks" :key="index">
+        <div
+          class="TH-prompt-content-block wrap-break-word whitespace-pre-wrap"
+          :style="{ containIntrinsicSize: `auto ${block.intrinsicSizeLh}lh` }"
+        >
+          <Highlighter v-if="block.matched && searchInput !== null" :query="searchInput">
+            {{ block.text || ' ' }}
+          </Highlighter>
+          <template v-else>
+            {{ block.text || ' ' }}
+          </template>
+        </div>
+      </template>
     </template>
   </template>
 </template>
@@ -64,10 +67,19 @@ const is_collapsible = ref<boolean[]>([]);
 const match_only_blocks = shallowRef<string[]>([]);
 const normal_blocks = shallowRef<{ text: string; matched: boolean; intrinsicSizeLh: number }[]>([]);
 watch(
-  () => [props.searchInput, props.matchedOnly] as const,
-  ([search_input, matched_only]) => {
+  () => [props.content, props.searchInput, props.matchedOnly] as const,
+  ([content, search_input, matched_only]) => {
+    // 空 content 不生成占位 block，避免 tool_calls 前出现空白行
+    if (!content) {
+      is_expanded.value = [];
+      is_collapsible.value = [];
+      match_only_blocks.value = [];
+      normal_blocks.value = [];
+      return;
+    }
+
     if (search_input !== null && matched_only) {
-      const line_starts = _.concat(0, [...props.content.matchAll(/\n/g)].map(match => match.index) ?? []);
+      const line_starts = _.concat(0, [...content.matchAll(/\n/g)].map(match => match.index) ?? []);
       const line_count = line_starts.length;
 
       const offsetToLine = (offset: number): number => {
@@ -88,11 +100,11 @@ watch(
         return Math.max(0, low - 1);
       };
 
-      const matches = [...props.content.matchAll(new RegExp(search_input, search_input.flags + 'g'))];
+      const matches = [...content.matchAll(new RegExp(search_input, search_input.flags + 'g'))];
       if (matches.length === 0) {
         is_expanded.value = [];
         is_collapsible.value = [];
-        match_only_blocks.value = [props.content];
+        match_only_blocks.value = [content];
         return;
       }
 
@@ -111,7 +123,7 @@ watch(
         })
         .value();
 
-      const lines = props.content.split('\n');
+      const lines = content.split('\n');
 
       const result: { is_expanded: boolean; content: string; collapsible: boolean }[] = [];
       let previous_end = -1;
@@ -149,7 +161,7 @@ watch(
     is_expanded.value = [];
     is_collapsible.value = [];
     match_only_blocks.value = [];
-    normal_blocks.value = _.chunk(props.content.split('\n'), CONTENT_BLOCK_LINE_COUNT).map((lines, id) => {
+    normal_blocks.value = _.chunk(content.split('\n'), CONTENT_BLOCK_LINE_COUNT).map((lines, id) => {
       const text = lines.join('\n');
       return {
         id,
