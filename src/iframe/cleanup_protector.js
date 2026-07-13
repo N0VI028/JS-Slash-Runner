@@ -188,12 +188,11 @@ try {
   Node.prototype.cloneNode = function (deep) {
     const cloned = originalCloneNode.call(this, deep);
     try {
-      const currentIframeId = window.__TH_IFRAME_ID || iframeId;
-      if (this.nodeType === 1 && this.closest(`[data-th-iframe-id="${currentIframeId}"]`)) {
+      if (this.nodeType === 1 && this.closest(`[data-th-iframe-id="${CSS.escape(iframeId)}"]`)) {
         if (deep) {
-          markElementTree(cloned, currentIframeId);
+          markElementTree(cloned, iframeId);
         } else {
-          cloned.setAttribute('data-th-iframe-id', currentIframeId);
+          cloned.setAttribute('data-th-iframe-id', iframeId);
         }
       }
     } catch (e) {}
@@ -212,7 +211,7 @@ try {
         const node = mutation.addedNodes[j];
         if (node.nodeType === 1) {
           // Node.ELEMENT_NODE
-          if (node.closest(`[data-th-iframe-id="${iframeId}"]`)) {
+          if (node.closest(`[data-th-iframe-id="${CSS.escape(iframeId)}"]`)) {
             continue; // 如果该节点或其祖先刚刚已经被打上过当前 iframe 的标记，跳过以避免级联重复扫描
           }
           markElementTree(node, iframeId);
