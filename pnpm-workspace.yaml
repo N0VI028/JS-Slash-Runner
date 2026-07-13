@@ -3,6 +3,8 @@ allowBuilds:
   esbuild: true
   unrs-resolver: true
   vue-demi: true
+overrides:
+  figlet: 1.11.2
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@tailwindcss/oxide'
