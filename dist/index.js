@@ -706,7 +706,7 @@ result = result.merge(
 result.value();
 
 // pinia 4.0.0+ 必须设置这个, 考虑到影响了非常多脚本/前端, 直接在这里统一设置
-_.set(window, '__VUE_PROD_DEVTOOLS__', false);
+_.set(window, '__VUE_PROD_DEVTOOLS__', true);  // 不使用 vue devtools 时不会有性能开销, 默认启用即可
 _.set(window, '__VUE_OPTIONS_API__', true);
 _.set(window, '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__', false);
 
