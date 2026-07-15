@@ -18,6 +18,10 @@ result = result.merge(
 );
 result.value();
 
+_.set(window, '__VUE_PROD_DEVTOOLS__', false);
+_.set(window, '__VUE_OPTIONS_API__', true);
+_.set(window, '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__', false);
+
 Object.defineProperty(window, 'SillyTavern', {
   get: () => {
     const SillyTavern = _.get(window.parent, 'SillyTavern');
