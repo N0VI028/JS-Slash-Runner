@@ -1,13 +1,10 @@
 import { SendingMessage } from '@/function/event';
-import { macros } from '@/function/macro_like';
+import { macros, type MacroLikeContext } from '@/function/macro_like';
 import { highlight_code, reloadAndRenderChatWithoutEvents, version } from '@/util/tavern';
 import { event_types, eventSource } from '@sillytavern/script';
 import { compare } from 'compare-versions';
 
-export function replaceMacroLike(
-  text: string,
-  context: { message_id?: number; role?: 'user' | 'assistant' | 'system' },
-) {
+export function replaceMacroLike(text: string, context: MacroLikeContext) {
   for (const macro of macros) {
     macro.regex.lastIndex = 0;
     text = text.replace(macro.regex, (substring: string, ...args: any[]) => macro.replace(context, substring, ...args));
@@ -62,15 +59,13 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
     return;
   }
 
-  const context = {
-    message_id: Number($mes.attr('mesid')),
-    role: $mes.attr('is_user') === 'true' ? ('user' as const) : ('assistant' as const),
-  };
+  const replace_html = (html: string) =>
+    replaceMacroLike(html, { role: $mes.attr('is_user') === 'true' ? 'user' : 'assistant' });
 
   // 因未知原因, 一些设备上在初次进入角色卡时会 '渲染前端界面-替换助手宏-渲染前端界面', 因此需要移除额外渲染的 iframe
   $mes_text.find('.TH-render > iframe').remove();
 
-  $mes_text.html((_index, html) => replaceMacroLike(html, context));
+  $mes_text.html((_index, html) => replace_html(html));
   $mes_text
     .find('code')
     .filter((_index, element) =>
@@ -79,7 +74,7 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
         return macro.regex.test($(element).text());
       }),
     )
-    .text((_index, text) => replaceMacroLike(text, context))
+    .text((_index, text) => replace_html(text))
     .removeClass('hljs')
     .each((_index, element) => {
       highlight_code(element);

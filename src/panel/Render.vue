@@ -111,7 +111,7 @@ import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { refreshManagedChatSurface, usesManagedChatSurface } from '@/tauritavern/chat_surface';
+import { refreshManagedChatSurface, usesManagedChatSurface } from '@/tauritavern_chat_surface';
 import { event_types } from '@sillytavern/script';
 import { useModal } from 'vue-final-modal';
 

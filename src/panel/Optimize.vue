@@ -61,7 +61,7 @@ import { useDisableIncompatibleOption } from '@/panel/optimize/disable_incompati
 import { useForceRecommendedWorldbookGlobalSettings } from '@/panel/optimize/force_recommended_worldbook_global_settings';
 import { useMaximizePresetContextLength } from '@/panel/optimize/maximize_preset_context_length';
 import { useGlobalSettingsStore } from '@/store/settings';
-import { usesManagedChatSurface } from '@/tauritavern/chat_surface';
+import { usesManagedChatSurface } from '@/tauritavern_chat_surface';
 import { renderMarkdown } from '@/util/tavern';
 import { getCurrentLocale } from '@sillytavern/scripts/i18n';
 import { createReusableTemplate } from '@vueuse/core';

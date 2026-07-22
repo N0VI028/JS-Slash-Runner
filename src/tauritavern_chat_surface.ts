@@ -17,10 +17,10 @@ function getChatSurfaceApi(): any {
 }
 
 export const usesManagedChatSurface = (() => {
-  if (!(window as any).__TAURITAVERN__) {
+  const query = getChatSurfaceApi()?.isManagedOwnershipRequired;
+  if (query === undefined) {
     return false;
   }
-  const query = getChatSurfaceApi()?.isManagedOwnershipRequired;
   if (typeof query !== 'function') {
     throw new Error('TauriTavern ChatSurface ownership query is unavailable');
   }
@@ -33,24 +33,40 @@ export const usesManagedChatSurface = (() => {
 
 function settings() {
   const value = useGlobalSettingsStore().settings;
-  if (value.render.allow_streaming) {
+  if (value.render.enabled && value.render.allow_streaming) {
     throw new Error('JS-Slash-Runner streaming rendering is not supported by managed ChatSurface');
   }
   return value;
 }
 
-function prepareContent({ mesid, content }: DetachedContext) {
-  if (!settings().macro.enabled) {
+function prepareContent({ mesid, content }: DetachedContext, claims: RuntimeClaims) {
+  const value = settings();
+  if (value.macro.enabled) {
+    const message = chat[mesid];
+    const html = content.innerHTML;
+    // Match the static renderer: ChatSurface must not change macro scope.
+    const replaced = replaceMacroLike(html, {
+      role: message?.is_user ? 'user' : 'assistant',
+    });
+    if (replaced !== html) {
+      content.innerHTML = replaced;
+    }
+  }
+
+  const { render: render_settings } = value;
+  if (
+    !render_settings.enabled ||
+    !isEligibleMessage(mesid, render_settings.depth, render_settings.depth_ignore_hidden)
+  ) {
     return;
   }
-  const message = chat[mesid];
-  const html = content.innerHTML;
-  const replaced = replaceMacroLike(html, {
-    message_id: mesid,
-    role: message?.is_user ? 'user' : 'assistant',
-  });
-  if (replaced !== html) {
-    content.innerHTML = replaced;
+
+  for (const pre of content.querySelectorAll<HTMLPreElement>('pre')) {
+    if (!isFrontend(pre.textContent ?? '')) {
+      continue;
+    }
+    runtimeContainer(pre);
+    claims.claim(pre, context => mountRuntime(context, render_settings.use_blob_url));
   }
 }
 
@@ -111,30 +127,12 @@ function mountRuntime({ source, mesid, content }: RuntimeContext, useBlobUrl: bo
   return () => render(null, container);
 }
 
-function claimRuntimes({ mesid, content }: DetachedContext, claims: RuntimeClaims) {
-  const { render: render_settings } = settings();
-  if (
-    !render_settings.enabled ||
-    !isEligibleMessage(mesid, render_settings.depth, render_settings.depth_ignore_hidden)
-  ) {
-    return;
-  }
-
-  for (const pre of content.querySelectorAll<HTMLPreElement>('pre')) {
-    if (!isFrontend(pre.textContent ?? '')) {
-      continue;
-    }
-    runtimeContainer(pre);
-    claims.claim(pre, context => mountRuntime(context, render_settings.use_blob_url));
-  }
-}
-
 function didCommitContent({ content }: DetachedContext) {
   const { render: render_settings } = settings();
   if (!render_settings.enabled || render_settings.collapse_code_block === 'none') {
     return;
   }
-  return collapseCodeBlocksInContent(content, render_settings.collapse_code_block);
+  collapseCodeBlocksInContent(content, render_settings.collapse_code_block);
 }
 
 let registration: Registration | undefined;
@@ -156,7 +154,6 @@ export function activateTauriTavernChatSurface(): void {
     id: 'js-slash-runner/message-runtime',
     protocolVersion: 1,
     prepareContent,
-    claimRuntimes,
     didCommitContent,
   });
 }

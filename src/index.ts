@@ -11,7 +11,7 @@ import { createVfm } from 'vue-final-modal';
 import 'vue-final-modal/style.css';
 import VueTippy from 'vue-tippy';
 
-export { activateTauriTavernChatSurface } from '@/tauritavern/chat_surface';
+export { activateTauriTavernChatSurface } from '@/tauritavern_chat_surface';
 
 const app = createApp(Panel);
 

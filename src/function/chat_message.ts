@@ -2,7 +2,7 @@ import { refreshOneMessage } from '@/function/displayed_message';
 import { auditChatMessages } from '@/panel/optimize/better_message_to_load';
 import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
 import { saveChatConditionalDebounced } from '@/util/tavern';
-import { usesManagedChatSurface } from '@/tauritavern/chat_surface';
+import { refreshManagedChatSurface, usesManagedChatSurface } from '@/tauritavern_chat_surface';
 import {
   addOneMessage,
   chat,
@@ -12,7 +12,6 @@ import {
   name1,
   name2,
   reloadCurrentChat,
-  redisplayChat,
   saveChatConditional,
   showSwipeButtons,
   substituteParamsExtended,
@@ -178,7 +177,7 @@ async function refreshMessages(refresh: SetChatMessagesOption['refresh'], affect
       saveChatConditionalDebounced();
     }
     if (refresh !== 'none') {
-      await redisplayChat({ startIndex: 0, fade: false });
+      await refreshManagedChatSurface();
     }
     return;
   }
@@ -599,7 +598,7 @@ export async function setChatMessage(
   await saveChatConditional();
   if (usesManagedChatSurface) {
     if (refresh !== 'none') {
-      await redisplayChat({ startIndex: 0, fade: false });
+      await refreshManagedChatSurface();
     }
     return;
   }
