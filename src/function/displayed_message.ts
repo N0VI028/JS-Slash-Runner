@@ -1,6 +1,7 @@
 import { isFrontend } from '@/util/is_frontend';
 import { inMessageRange, normalizeMessageId } from '@/util/message';
 import { highlight_code } from '@/util/tavern';
+import { usesManagedChatSurface } from '@/tauritavern/chat_surface';
 import {
   characters,
   chat,
@@ -9,6 +10,7 @@ import {
   eventSource,
   getThumbnailUrl,
   messageFormatting,
+  redisplayChat,
   showSwipeButtons,
   system_avatar,
   this_chid,
@@ -90,6 +92,11 @@ export function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElem
 
 export async function refreshOneMessage(message_id: number, $mes?: JQuery<HTMLElement>): Promise<void> {
   if ($mes && $mes.length === 0) {
+    return;
+  }
+
+  if (usesManagedChatSurface) {
+    await redisplayChat({ startIndex: 0, fade: false });
     return;
   }
 

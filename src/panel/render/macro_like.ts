@@ -4,6 +4,17 @@ import { highlight_code, reloadAndRenderChatWithoutEvents, version } from '@/uti
 import { event_types, eventSource } from '@sillytavern/script';
 import { compare } from 'compare-versions';
 
+export function replaceMacroLike(
+  text: string,
+  context: { message_id?: number; role?: 'user' | 'assistant' | 'system' },
+) {
+  for (const macro of macros) {
+    macro.regex.lastIndex = 0;
+    text = text.replace(macro.regex, (substring: string, ...args: any[]) => macro.replace(context, substring, ...args));
+  }
+  return text;
+}
+
 function demacroOnPrompt(
   event_data: {
     prompt: SendingMessage[];
@@ -51,20 +62,15 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
     return;
   }
 
-  const replace_html = (html: string) => {
-    for (const macro of macros) {
-      macro.regex.lastIndex = 0;
-      html = html.replace(macro.regex, (substring: string, ...args: any[]) =>
-        macro.replace({ role: $mes.attr('is_user') === 'true' ? 'user' : 'assistant' }, substring, ...args),
-      );
-    }
-    return html;
+  const context = {
+    message_id: Number($mes.attr('mesid')),
+    role: $mes.attr('is_user') === 'true' ? ('user' as const) : ('assistant' as const),
   };
 
   // 因未知原因, 一些设备上在初次进入角色卡时会 '渲染前端界面-替换助手宏-渲染前端界面', 因此需要移除额外渲染的 iframe
   $mes_text.find('.TH-render > iframe').remove();
 
-  $mes_text.html((_index, html) => replace_html(html));
+  $mes_text.html((_index, html) => replaceMacroLike(html, context));
   $mes_text
     .find('code')
     .filter((_index, element) =>
@@ -73,7 +79,7 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
         return macro.regex.test($(element).text());
       }),
     )
-    .text((_index, text) => replace_html(text))
+    .text((_index, text) => replaceMacroLike(text, context))
     .removeClass('hljs')
     .each((_index, element) => {
       highlight_code(element);
@@ -90,12 +96,14 @@ function demacroOnRenderAll() {
   });
 }
 
-export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
-  watch(enabled, (value, old_value) => {
-    if (value !== old_value) {
-      reloadAndRenderChatWithoutEvents();
-    }
-  });
+export function useMacroLike(enabled: Readonly<Ref<boolean>>, managed = false) {
+  if (!managed) {
+    watch(enabled, (value, old_value) => {
+      if (value !== old_value) {
+        reloadAndRenderChatWithoutEvents();
+      }
+    });
+  }
 
   if (compare(version, '1.13.5', '>=')) {
     eventSource.on(event_types.GENERATE_AFTER_DATA, (event_data: any, dry_run: boolean) => {
@@ -109,6 +117,10 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
         demacroOnPrompt({ prompt: generate_data.messages }, false);
       }
     });
+  }
+
+  if (managed) {
+    return;
   }
 
   eventSource.on('chatLoaded', () => {

@@ -111,6 +111,8 @@ import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { useGlobalSettingsStore } from '@/store/settings';
+import { refreshManagedChatSurface, usesManagedChatSurface } from '@/tauritavern/chat_surface';
+import { event_types } from '@sillytavern/script';
 import { useModal } from 'vue-final-modal';
 
 const global_settings = useGlobalSettingsStore();
@@ -142,14 +144,42 @@ const enable_collapse_code_block = computed(() => {
   return collapse_code_block.value;
 });
 const enable_allow_streaming = computed(() => {
-  if (!enabled.value) {
+  if (usesManagedChatSurface || !enabled.value) {
     return false;
   }
   return allow_streaming.value;
 });
-useCollapseCodeBlock(enable_collapse_code_block, enable_allow_streaming);
-useMacroLike(macro_enabled);
-const runtimes = toRef(useMessageIframeRuntimesStore(), 'runtimes');
+if (!usesManagedChatSurface) {
+  useCollapseCodeBlock(enable_collapse_code_block, enable_allow_streaming);
+}
+useMacroLike(macro_enabled, usesManagedChatSurface);
+const runtimes = usesManagedChatSurface
+  ? ref<Array<{ message_id: number; reload_memo: string; elements: HTMLElement[] }>>([])
+  : toRef(useMessageIframeRuntimesStore(), 'runtimes');
+
+if (usesManagedChatSurface) {
+  watch(
+    () =>
+      [
+        enabled.value,
+        collapse_code_block.value,
+        allow_streaming.value,
+        use_blob_url.value,
+        depth.value,
+        depth_ignore_hidden.value,
+        macro_enabled.value,
+      ] as const,
+    refreshManagedChatSurface,
+  );
+  useEventSourceOn(
+    [event_types.CHARACTER_MESSAGE_RENDERED, event_types.USER_MESSAGE_RENDERED, event_types.MESSAGE_DELETED],
+    async () => {
+      if (depth.value > 0) {
+        await refreshManagedChatSurface();
+      }
+    },
+  );
+}
 
 const { open: openStreamingConfirm } = useModal({
   component: Popup,
@@ -176,6 +206,10 @@ const { open: openStreamingConfirm } = useModal({
  */
 const streaming_toggle_key = ref(0);
 function handleStreamingChange(val: boolean) {
+  if (usesManagedChatSurface && val) {
+    toastr.error(t`虚拟化聊天不支持流式渲染`);
+    return;
+  }
   if (val && !allow_streaming.value) {
     streaming_toggle_key.value++;
     openStreamingConfirm();

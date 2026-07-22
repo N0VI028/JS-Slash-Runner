@@ -2,6 +2,7 @@ import { refreshOneMessage } from '@/function/displayed_message';
 import { auditChatMessages } from '@/panel/optimize/better_message_to_load';
 import { inUnnormalizedMessageRange, normalizeMessageId } from '@/util/message';
 import { saveChatConditionalDebounced } from '@/util/tavern';
+import { usesManagedChatSurface } from '@/tauritavern/chat_surface';
 import {
   addOneMessage,
   chat,
@@ -11,6 +12,7 @@ import {
   name1,
   name2,
   reloadCurrentChat,
+  redisplayChat,
   saveChatConditional,
   showSwipeButtons,
   substituteParamsExtended,
@@ -169,6 +171,18 @@ type SetChatMessagesOption = {
 };
 
 async function refreshMessages(refresh: SetChatMessagesOption['refresh'], affected_action: () => Promise<void>) {
+  if (usesManagedChatSurface) {
+    if (refresh === 'all') {
+      await saveChatConditional();
+    } else {
+      saveChatConditionalDebounced();
+    }
+    if (refresh !== 'none') {
+      await redisplayChat({ startIndex: 0, fade: false });
+    }
+    return;
+  }
+
   if (refresh === 'all') {
     await saveChatConditional();
     await reloadCurrentChat();
@@ -181,6 +195,18 @@ async function refreshMessages(refresh: SetChatMessagesOption['refresh'], affect
       $mes.removeClass('last_mes');
       $mes.last().addClass('last_mes');
     }
+  }
+}
+
+function assertManagedStructureMutationAllowed(refresh: SetChatMessagesOption['refresh']) {
+  if (!usesManagedChatSurface) {
+    return;
+  }
+  if (refresh === 'none') {
+    throw new Error('Managed ChatSurface structure mutations require refresh="affected" or refresh="all"');
+  }
+  if (document.querySelector('#chat > .mes .edit_textarea, #chat > .mes .reasoning_edit_textarea')) {
+    throw new Error('Managed ChatSurface structure mutations are unavailable while a message editor is open');
   }
 }
 
@@ -315,6 +341,7 @@ export async function createChatMessages(
   chat_messages: ChatMessageCreating[],
   { insert_at, insert_before = 'end', refresh = 'affected' }: CreateChatMessagesOption = {},
 ): Promise<void> {
+  assertManagedStructureMutationAllowed(refresh);
   insert_before = insert_at ?? insert_before;
   insert_before = insert_before === 'end' ? chat.length : _.clamp(insert_before, -chat.length, chat.length);
   const is_at_end = insert_before === chat.length;
@@ -351,6 +378,20 @@ export async function createChatMessages(
   console.info(converted);
 
   chat.splice(insert_before, 0, ...converted);
+
+  if (usesManagedChatSurface) {
+    await refreshMessages(refresh, async () => {});
+    await Promise.all(
+      converted.map((message, index) =>
+        eventSource.emit(
+          message.is_user ? event_types.MESSAGE_SENT : event_types.MESSAGE_RECEIVED,
+          insert_before + index,
+          'extension',
+        ),
+      ),
+    );
+    return;
+  }
 
   await refreshMessages(refresh, async () => {
     await Promise.all(
@@ -395,6 +436,7 @@ export async function deleteChatMessages(
   if (message_ids.length === 0) {
     return;
   }
+  assertManagedStructureMutationAllowed(refresh);
 
   _.pullAt(chat, message_ids);
 
@@ -433,6 +475,7 @@ export async function rotateChatMessages(
   begin = _.clamp(normalizeMessageId(begin), 0, chat.length);
   end = _.clamp(normalizeMessageId(end), 0, chat.length);
   middle = _.clamp(normalizeMessageId(middle), begin, end);
+  assertManagedStructureMutationAllowed(refresh);
 
   const right_part = chat.splice(middle, end - middle);
   chat.splice(begin, 0, ...right_part);
@@ -554,6 +597,12 @@ export async function setChatMessage(
   const should_update_swipe: boolean = add_swipes_if_required();
   update_chat_message();
   await saveChatConditional();
+  if (usesManagedChatSurface) {
+    if (refresh !== 'none') {
+      await redisplayChat({ startIndex: 0, fade: false });
+    }
+    return;
+  }
   if (refresh == 'all') {
     await reloadCurrentChat();
   } else {

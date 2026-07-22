@@ -7,7 +7,7 @@ function collapseCodeBlock(
   $pre: JQuery<HTMLPreElement>,
   collapse_code_block: CollapseCodeBlock,
   allow_streaming: boolean,
-) {
+): (() => void) | undefined {
   const $possible_div = $pre.parent('div.TH-render');
   if ($possible_div.children('div.TH-collapse-code-block-button').length > 0) {
     return;
@@ -22,7 +22,8 @@ function collapseCodeBlock(
     return;
   }
 
-  if ($possible_div.length === 0) {
+  const created_wrapper = $possible_div.length === 0;
+  if (created_wrapper) {
     $pre.wrap('<div class="TH-render">');
   }
   const $div = $pre.parent('div.TH-render');
@@ -44,6 +45,28 @@ function collapseCodeBlock(
     $button.addClass('hidden!');
   }
   $pre.addClass('hidden!');
+
+  return () => {
+    $button.off().remove();
+    $pre.removeClass('hidden!');
+    if (created_wrapper && $pre.parent().is($div)) {
+      $pre.unwrap();
+    }
+  };
+}
+
+export function collapseCodeBlocksInContent(
+  content: HTMLElement,
+  collapse_code_block: CollapseCodeBlock,
+): (() => void) | undefined {
+  const disposers = Array.from(content.querySelectorAll<HTMLPreElement>('pre'))
+    .map(pre => collapseCodeBlock($(pre), collapse_code_block, false))
+    .filter((dispose): dispose is () => void => dispose !== undefined);
+
+  if (disposers.length === 0) {
+    return undefined;
+  }
+  return () => disposers.reverse().forEach(dispose => dispose());
 }
 
 function collapseCodeBlockForMessageId(
