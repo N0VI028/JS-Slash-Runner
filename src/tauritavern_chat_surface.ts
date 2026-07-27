@@ -105,6 +105,43 @@ function runtimeContainer(pre: HTMLPreElement) {
   return container;
 }
 
+function holdRuntimePlaceholder(container: HTMLDivElement) {
+  const iframe = container.querySelector(':scope > iframe');
+  if (!(iframe instanceof HTMLIFrameElement)) {
+    return;
+  }
+  const containerHeight = Math.ceil(container.getBoundingClientRect().height);
+  const iframeHeight = Math.ceil(iframe.getBoundingClientRect().height);
+  if (containerHeight <= 0 || iframeHeight <= 0) {
+    return;
+  }
+  container.dataset.ttRuntimePlaceholderHeight = String(containerHeight);
+  container.dataset.ttRuntimeIframeHeight = String(iframeHeight);
+  container.style.height = `${containerHeight}px`;
+  container.style.visibility = 'hidden';
+  container.setAttribute('inert', '');
+  container.setAttribute('aria-hidden', 'true');
+}
+
+function releaseRuntimePlaceholder(container: HTMLDivElement) {
+  const containerHeight = Number(container.dataset.ttRuntimePlaceholderHeight);
+  const iframeHeight = Number(container.dataset.ttRuntimeIframeHeight);
+  if (!(containerHeight > 0) || !(iframeHeight > 0)) {
+    return;
+  }
+  const iframe = container.querySelector(':scope > iframe');
+  if (!(iframe instanceof HTMLIFrameElement)) {
+    throw new Error('JS-Slash-Runner managed runtime did not create an iframe');
+  }
+  iframe.style.height = `${iframeHeight}px`;
+  delete container.dataset.ttRuntimePlaceholderHeight;
+  delete container.dataset.ttRuntimeIframeHeight;
+  container.style.removeProperty('height');
+  container.style.removeProperty('visibility');
+  container.removeAttribute('inert');
+  container.removeAttribute('aria-hidden');
+}
+
 function mountRuntime({ source, mesid, content }: RuntimeContext, useBlobUrl: boolean) {
   if (!(source instanceof HTMLPreElement) || !isFrontend(source.textContent ?? '')) {
     throw new Error('JS-Slash-Runner managed runtime source is no longer eligible');
@@ -119,12 +156,16 @@ function mountRuntime({ source, mesid, content }: RuntimeContext, useBlobUrl: bo
 
   try {
     render(h(Iframe, { id: `${mesid}--${index}`, element: container, useBlobUrl }), container);
+    releaseRuntimePlaceholder(container);
   } catch (error) {
     render(null, container);
     throw error;
   }
 
-  return () => render(null, container);
+  return () => {
+    holdRuntimePlaceholder(container);
+    render(null, container);
+  };
 }
 
 function didCommitContent({ content }: DetachedContext) {
