@@ -46,6 +46,12 @@ function collapseCodeBlock(
   $pre.addClass('hidden!');
 }
 
+export function collapseCodeBlocksInContent(content: HTMLElement, collapse_code_block: CollapseCodeBlock) {
+  for (const pre of content.querySelectorAll<HTMLPreElement>('pre')) {
+    collapseCodeBlock($(pre), collapse_code_block, false);
+  }
+}
+
 function collapseCodeBlockForMessageId(
   message_id: number,
   collapse_code_block: CollapseCodeBlock,
