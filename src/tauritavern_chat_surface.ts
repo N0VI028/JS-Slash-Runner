@@ -1,9 +1,11 @@
 import Iframe from '@/panel/render/Iframe.vue';
-import { collapseCodeBlocksInContent } from '@/panel/render/use_collapse_code_block';
 import { replaceMacroLike } from '@/panel/render/macro_like';
+import { collapseCodeBlocksInContent } from '@/panel/render/use_collapse_code_block';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { isFrontend } from '@/util/is_frontend';
-import { chat, redisplayChat } from '@sillytavern/script';
+import { chat } from '@sillytavern/script';
+import { version } from '@/util/tavern';
+import {compare} from 'compare-versions'
 import { h, render } from 'vue';
 
 type DetachedContext = { mesid: number; content: HTMLElement };
@@ -17,6 +19,9 @@ function getChatSurfaceApi(): any {
 }
 
 export const usesManagedChatSurface = (() => {
+  if (compare(version, '1.16.0', '<')) {
+    return false;
+  }
   const query = getChatSurfaceApi()?.isManagedOwnershipRequired;
   if (query === undefined) {
     return false;
@@ -204,6 +209,8 @@ export async function refreshManagedChatSurface(): Promise<void> {
     return;
   }
   try {
+    // @ts-expect-error 低版本没有，TS会报错
+    const { redisplayChat } = await import('@sillytavern/script');
     await redisplayChat({ startIndex: 0, fade: false });
   } catch (error) {
     registration?.fault(error);
