@@ -5,6 +5,9 @@
   "optional": [],
   "js": "dist/index.js",
   "css": "dist/index.css",
+  "hooks": {
+    "activate": "activateTauriTavernChatSurface"
+  },
   "author": "KAKAA",
   "version": "4.8.19",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
