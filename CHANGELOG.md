@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.9.0
+
+### 🎨渲染器
+
+- 兼容 TauriTavern 在 2.2.0 版本引入的聊天 DOM 虚拟化功能, 解决长聊天的性能问题 (by @Darkatse)
+
 ## 4.8.19
 
 ### 🐛修复
