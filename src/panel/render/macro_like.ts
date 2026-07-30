@@ -1,16 +1,8 @@
 import { SendingMessage } from '@/function/event';
-import { macros, type MacroLikeContext } from '@/function/macro_like';
+import { macros } from '@/function/macro_like';
 import { highlight_code, reloadAndRenderChatWithoutEvents, version } from '@/util/tavern';
 import { event_types, eventSource } from '@sillytavern/script';
 import { compare } from 'compare-versions';
-
-export function replaceMacroLike(text: string, context: MacroLikeContext) {
-  for (const macro of macros) {
-    macro.regex.lastIndex = 0;
-    text = text.replace(macro.regex, (substring: string, ...args: any[]) => macro.replace(context, substring, ...args));
-  }
-  return text;
-}
 
 function demacroOnPrompt(
   event_data: {
@@ -59,8 +51,15 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
     return;
   }
 
-  const replace_html = (html: string) =>
-    replaceMacroLike(html, { role: $mes.attr('is_user') === 'true' ? 'user' : 'assistant' });
+  const replace_html = (html: string) => {
+    for (const macro of macros) {
+      macro.regex.lastIndex = 0;
+      html = html.replace(macro.regex, (substring: string, ...args: any[]) =>
+        macro.replace({ role: $mes.attr('is_user') === 'true' ? 'user' : 'assistant' }, substring, ...args),
+      );
+    }
+    return html;
+  };
 
   // 因未知原因, 一些设备上在初次进入角色卡时会 '渲染前端界面-替换助手宏-渲染前端界面', 因此需要移除额外渲染的 iframe
   $mes_text.find('.TH-render > iframe').remove();
@@ -91,14 +90,12 @@ function demacroOnRenderAll() {
   });
 }
 
-export function useMacroLike(enabled: Readonly<Ref<boolean>>, managed = false) {
-  if (!managed) {
-    watch(enabled, (value, old_value) => {
-      if (value !== old_value) {
-        reloadAndRenderChatWithoutEvents();
-      }
-    });
-  }
+export function useMacroLike(enabled: Readonly<Ref<boolean>>) {
+  watch(enabled, (value, old_value) => {
+    if (value !== old_value) {
+      reloadAndRenderChatWithoutEvents();
+    }
+  });
 
   if (compare(version, '1.13.5', '>=')) {
     eventSource.on(event_types.GENERATE_AFTER_DATA, (event_data: any, dry_run: boolean) => {
@@ -112,10 +109,6 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>, managed = false) {
         demacroOnPrompt({ prompt: generate_data.messages }, false);
       }
     });
-  }
-
-  if (managed) {
-    return;
   }
 
   eventSource.on('chatLoaded', () => {

@@ -160,7 +160,6 @@ export function _eventClearAll(this: Window): void {
       _eventRemoveListener.call(this, event_type, listener as any);
     });
   });
-  iframe_event_listener_wrapper_map.delete(_getIframeName.call(this));
 }
 
 type EventType = IframeEventType | TavernEventType | string;

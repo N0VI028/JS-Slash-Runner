@@ -1,7 +1,6 @@
 import { isFrontend } from '@/util/is_frontend';
 import { inMessageRange, normalizeMessageId } from '@/util/message';
 import { highlight_code } from '@/util/tavern';
-import { refreshManagedChatSurface, usesManagedChatSurface } from '@/tauritavern_chat_surface';
 import {
   characters,
   chat,
@@ -91,11 +90,6 @@ export function retrieveDisplayedMessage(message_id: number): JQuery<HTMLDivElem
 
 export async function refreshOneMessage(message_id: number, $mes?: JQuery<HTMLElement>): Promise<void> {
   if ($mes && $mes.length === 0) {
-    return;
-  }
-
-  if (usesManagedChatSurface) {
-    await refreshManagedChatSurface();
     return;
   }
 

@@ -102,7 +102,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       input: 'src/index.ts',
-      preserveEntrySignatures: 'strict',
       output: {
         format: 'es',
         entryFileNames: '[name].js',
