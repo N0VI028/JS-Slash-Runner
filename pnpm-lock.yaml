@@ -6,6 +6,7 @@ settings:
 
 overrides:
   figlet: 1.11.2
+  lodash: 4.18.1
 
 importers:
 
@@ -55,7 +56,7 @@ importers:
         version: 2.0.6
       lodash-omitdeep:
         specifier: ^1.10.1
-        version: 1.10.1(lodash@4.17.21)
+        version: 1.10.1(lodash@4.18.1)
       object-to-formdata:
         specifier: ^4.5.1
         version: 4.5.1
@@ -2034,10 +2035,10 @@ packages:
   lodash-omitdeep@1.10.1:
     resolution: {integrity: sha512-jOXkpZfHZaxjPlvdKBQZhb2mg7lMClIM6o8loA0tjbDjuv7N/2sGg1qUhdP9mg7zt3y2i0GOQSdqPPQL8pPy+w==}
     peerDependencies:
-      lodash: ^4
+      lodash: 4.18.1
 
-  lodash@4.17.21:
-    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+  lodash@4.18.1:
+    resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
 
   magic-string-ast@1.0.3:
     resolution: {integrity: sha512-CvkkH1i81zl7mmb94DsRiFeG9V2fR2JeuK8yDgS8oiZSFa++wWLEgZ5ufEOyLHbvSbD1gTRKv9NdX69Rnvr9JA==}
@@ -4616,11 +4617,11 @@ snapshots:
 
   lodash-es@4.18.1: {}
 
-  lodash-omitdeep@1.10.1(lodash@4.17.21):
+  lodash-omitdeep@1.10.1(lodash@4.18.1):
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.18.1
 
-  lodash@4.17.21: {}
+  lodash@4.18.1: {}
 
   magic-string-ast@1.0.3:
     dependencies:

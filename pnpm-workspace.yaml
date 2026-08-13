@@ -5,6 +5,7 @@ allowBuilds:
   vue-demi: true
 overrides:
   figlet: 1.11.2
+  lodash: 4.18.1
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@tailwindcss/oxide'
