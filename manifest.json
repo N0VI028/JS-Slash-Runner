@@ -9,7 +9,7 @@
     "activate": "activateTauriTavernChatSurface"
   },
   "author": "KAKAA",
-  "version": "4.9.2",
+  "version": "4.9.3",
   "homePage": "https://github.com/N0VI028/JS-Slash-Runner",
   "auto_update": true,
   "minimum_client_version": "1.12.13",
