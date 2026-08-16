@@ -11,6 +11,7 @@ import {
   reloadMarkdownProcessor,
   saveChatConditional,
   this_chid,
+  unshallowCharacter,
   user_avatar,
 } from '@sillytavern/script';
 import { v1CharData } from '@sillytavern/scripts/char-data';
@@ -195,6 +196,8 @@ export async function writeExtensionField(
   if (!character) {
     return;
   }
+  await unshallowCharacter(String(id));
+  character = (characters as v1CharData[])[Number(id)];
 
   if (_.isEqual(_.get(character.data.extensions, field), value)) {
     return;

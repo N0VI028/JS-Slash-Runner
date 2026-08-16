@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.9.3
+
+### 🐛修复
+
+- 修复了 `replaceTavernRegexes` 与酒馆懒加载角色卡的兼容性
+
 ## 4.9.2
 
 ### 🐛修复
