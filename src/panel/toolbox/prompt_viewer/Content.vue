@@ -34,16 +34,33 @@
       </template>
     </template>
     <template v-else>
-      <template v-for="(block, index) in normal_blocks" :key="index">
+      <template v-for="(block, index) in decorated_blocks" :key="index">
         <div
           class="TH-prompt-content-block wrap-break-word whitespace-pre-wrap"
           :style="{ containIntrinsicSize: `auto ${block.intrinsicSizeLh}lh` }"
         >
-          <Highlighter v-if="block.matched && searchInput !== null" :query="searchInput">
-            {{ block.text || ' ' }}
-          </Highlighter>
-          <template v-else>
-            {{ block.text || ' ' }}
+          <template v-for="(piece, piece_index) in block.pieces" :key="piece_index">
+            <!-- 世界书/预设/ST自收集来源片段：条目标签独占一行置于片段之前，正文本身不改动样式 -->
+            <div v-if="piece.mark" class="TH-wi-piece">
+              <div class="TH-wi-badge-row">
+                <span class="TH-wi-badge"
+                  ><i
+                    v-if="piece.mark.icon"
+                    :class="piece.mark.icon"
+                    aria-hidden="true"
+                    class="mr-0.5 align-middle text-[0.75em]!"
+                  ></i
+                  >{{ piece.mark.label }}</span
+                >
+              </div>
+              {{ piece.text }}
+            </div>
+            <Highlighter v-else-if="block.matched && searchInput !== null" :query="searchInput">
+              {{ piece.text }}
+            </Highlighter>
+            <template v-else>
+              {{ piece.text }}
+            </template>
           </template>
         </div>
       </template>
@@ -52,12 +69,15 @@
 </template>
 
 <script setup lang="ts">
+import { splitBySpans, type WiMark } from '@/panel/toolbox/prompt_viewer/wi_tracer/marks';
 import { chunkBy } from '@/util/algorithm';
 
 const props = defineProps<{
   content: string;
   searchInput: RegExp | null;
   matchedOnly: boolean;
+  /** 世界书/预设/ST内联标记（偏移基于 content 原文），无标记时为 undefined */
+  marks?: WiMark[];
 }>();
 
 const CONTENT_BLOCK_LINE_COUNT = 500;
@@ -173,11 +193,45 @@ watch(
   },
   { immediate: true },
 );
+
+/**
+ * 正常模式下按世界书/预设/ST标记切分各内容块为片段序列
+ * matched_only 折叠视图（按行收缩）不叠加标注，保持行折叠语义清晰
+ */
+const decorated_blocks = computed(() => {
+  const marks = props.marks ?? [];
+  let base = 0;
+  return normal_blocks.value.map(block => {
+    const pieces = marks.length ? splitBySpans(block.text, base, marks) : [];
+    base += block.text.length + 1; // 块间由 join('\n') 的换行分隔
+    return { ...block, pieces: pieces.length ? pieces : [{ text: block.text || ' ' }] };
+  });
+});
 </script>
 
 <style scoped>
+@reference '../../../global.css';
+
 .TH-prompt-content-block {
   content-visibility: auto;
   overflow-anchor: none;
+}
+
+/* 世界书/预设/ST来源片段：块级 wrapper 限定标签吸顶作用域（同一内容块多标签不会叠顶） */
+.TH-wi-piece {
+  @apply my-0.25;
+}
+
+/*
+ * 标签承载行：整行不透明底色（吸顶时干净遮住滚过的正文），文字色与正文一致
+ * 仅它参与 sticky（徽章本身是行内元素、不吸顶），向下与正文留 mb-0.25 间距
+ */
+.TH-wi-badge-row {
+  @apply sticky top-0 z-1 mb-0.25 bg-(--SmartThemeBlurTintColor) py-px text-(--SmartThemeBodyColor);
+}
+
+/* 世界书/预设/ST 徽章：统一主题强调色外形，置于承载行内 */
+.TH-wi-badge {
+  @apply inline-block w-fit rounded-sm bg-(--SmartThemeQuoteColor)/30 px-0.5 whitespace-nowrap text-(--SmartThemeQuoteColor);
 }
 </style>

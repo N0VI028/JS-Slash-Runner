@@ -98,54 +98,51 @@
                   </template>
                   | Tokens: <span>{{ item_data.token }}</span>
                 </span>
-                <div class="flex gap-1">
+                <div class="flex items-center gap-0.5">
                   <div
                     class="fa-solid fa-copy cursor-pointer"
                     title="复制"
                     @click.stop="copyPrompt(item_data.content)"
                   />
-                  <div
-                    class="fa-solid"
-                    :class="is_expanded[item_data.id] ? 'fa-circle-chevron-up' : 'fa-circle-chevron-down'"
-                  ></div>
+                  <div class="fa-solid fa-chevron-down duration-200" :class="{ 'rotate-180': is_expanded[item_data.id] }" />
                 </div>
               </div>
-              <template v-if="is_expanded[item_data.id]">
-                <Divider />
-                <!-- prettier-ignore-attribute -->
-                <div
-                  class="mt-0.5 rounded-b-md leading-[1.4] wrap-break-word whitespace-pre-wrap text-(--mainFontSize)"
-                  :style="expanded_content_style"
-                  tabindex="0"
-                  role="region"
-                  :aria-label="`${item_data.role} 提示词内容`"
-                >
-                  <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
-                  <ImageGallery v-if="item_data.images && item_data.images.length" :images="item_data.images" />
-                  <!-- 工具调用信息显示 -->
-                  <template v-if="item_data.tool_calls && item_data.tool_calls.length">
-                    <div class="tool-calls-info">
-                      <details
-                        :open="is_tool_calls_expanded[item_data.id]"
-                        @toggle="handleToolCallsToggle(item_data.id, $event)"
-                      >
-                        <summary class="tool-calls-summary">
-                          <span class="fa-solid fa-wrench mr-0.5" />
-                          {{ t`工具调用` }} ({{ item_data.tool_calls.length }})
-                        </summary>
-                        <div class="tool-calls-list">
-                          <div v-for="tool in item_data.tool_calls" :key="tool.id" class="tool-call-item">
-                            <div class="tool-call-name">
-                              <span class="fa-solid fa-code mr-1" />
-                              <strong>{{ tool.function.name }}</strong> | ID:
-                              <code class="tool-call-id-code">{{ tool.id }}</code>
-                            </div>
-                            <pre class="tool-call-arguments">{{ tool.function.arguments }}</pre>
-                          </div>
-                        </div>
-                      </details>
+              <!-- tool_calls 结构化折叠展示 -->
+              <details
+                v-if="item_data.tool_calls?.length"
+                class="mt-0.5 rounded-sm border border-(--SmartThemeBorderColor) p-0.5"
+                :open="is_tool_calls_expanded[item_data.id]"
+                @toggle="handleToolCallsToggle(item_data.id, $event)"
+              >
+                <summary class="cursor-pointer font-semibold text-(--SmartThemeQuoteColor) select-none">
+                  🔧 Tool Calls ({{ item_data.tool_calls.length }})
+                </summary>
+                <div class="mt-0.5 flex flex-col gap-0.5 pl-1">
+                  <div
+                    v-for="(tc, tc_index) in item_data.tool_calls"
+                    :key="tc.id || tc_index"
+                    class="border-t border-(--SmartThemeBorderColor)/50 pt-0.5 first:border-t-0 first:pt-0"
+                  >
+                    <div class="font-mono text-xs text-(--SmartThemeQuoteColor)">
+                      #{{ Number(tc_index) + 1 }} {{ tc.function.name }}
+                      <span v-if="tc.id" class="opacity-60">({{ tc.id }})</span>
                     </div>
-                  </template>
+                    <pre class="mt-0.25 overflow-x-auto rounded-xs bg-(--grey5020a) p-0.5 font-mono text-xs">{{
+                      formatToolArguments(tc.function.arguments)
+                    }}</pre>
+                  </div>
+                </div>
+              </details>
+              <template v-if="is_expanded[item_data.id]">
+                <div class="my-0.5 border-t border-(--SmartThemeBorderColor)" />
+                <div :style="expanded_content_style">
+                  <ImageGallery v-if="item_data.images.length > 0" :images="item_data.images" />
+                  <Content
+                    :content="item_data.content"
+                    :search-input="search_input"
+                    :matched-only="matched_only"
+                    :marks="wiMarksOf(item_data.id)"
+                  />
                 </div>
               </template>
             </div>
@@ -160,7 +157,9 @@
 import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
+import { toWiMarks, type WiMark } from '@/panel/toolbox/prompt_viewer/wi_tracer/marks';
 import { createPromptData, type PromptData } from '@/panel/toolbox/prompt_viewer/prompt_data';
+import { setupWorldInfoTracer, wi_trace_report } from '@/panel/toolbox/prompt_viewer/wi_tracer/trace';
 import { usePresetSettingsStore } from '@/store/settings';
 import { copyText } from '@/util/compatibility';
 import {
@@ -173,7 +172,7 @@ import {
   stopGeneration,
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
-import { throttleFilter, useLocalStorage, useResizeObserver } from '@vueuse/core';
+import { useLocalStorage, useResizeObserver, useThrottleFn } from '@vueuse/core';
 import _ from 'lodash';
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, Teleport, toRef, useTemplateRef, watch } from 'vue';
 import { VirtList } from 'vue-virt-list';
@@ -195,7 +194,7 @@ const container_height = ref(0);
 
 useResizeObserver(
   virt_list_container_ref,
-  entries => {
+  useThrottleFn(entries => {
     const entry = entries[0];
     if (entry) {
       container_height.value = entry.contentRect.height;
@@ -204,8 +203,7 @@ useResizeObserver(
         virt_list_ref.value?.forceUpdate();
       });
     }
-  },
-  { eventFilter: throttleFilter(16) },
+  }, 16),
 );
 
 const expanded_content_style = computed(() => {
@@ -225,6 +223,22 @@ useEventSourceOn(event_types.CHATCOMPLETION_MODEL_CHANGED, () => {
 });
 
 const preset = toRef(() => usePresetSettingsStore().name);
+
+// 接线世界书与预设条目追溯：仅在提示词查看器存活期间监听事件，结果经 wi_trace_report 在 UI 内联标注
+setupWorldInfoTracer();
+
+/** 世界书与预设内联标注：消息 index → 标记数组（报告发布/清空时自动重算） */
+const wi_marks = computed(() => {
+  const report = wi_trace_report.value;
+  if (!report?.segments.length) return new Map<number, WiMark[]>();
+  const groups = Map.groupBy(report.segments, segment => segment.messageIndex);
+  return new Map([...groups].map(([index, segments]) => [index, toWiMarks(segments)]));
+});
+
+/** 取某条消息的世界书/预设标记（无标记时为 undefined，传给 Content） */
+function wiMarksOf(id: number): WiMark[] | undefined {
+  return wi_marks.value.get(id);
+}
 
 const prompts = shallowRef<PromptData[]>([]);
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant', 'tool']);
@@ -252,7 +266,7 @@ function handleToolCallsToggle(id: number, event: Event) {
 }
 
 watch(
-  () => [filtered_prompts, is_expanded],
+  () => [filtered_prompts, is_expanded, wi_marks],
   () => {
     virt_list_ref.value?.forceUpdate();
   },
@@ -268,6 +282,7 @@ const hint_text = computed(() => {
     case 'loading':
       return t`正在获取生成请求中的提示词...`;
     case 'idle':
+    default:
       return '';
   }
 });
@@ -285,6 +300,7 @@ if (is_send_press) {
 } else {
   triggerRefresh();
 }
+
 function triggerRefresh(): void {
   if (state.value === 'refreshing') {
     return;
@@ -302,6 +318,16 @@ function triggerRefresh(): void {
 
   state.value = 'refreshing';
   Generate('normal');
+}
+
+/** 格式化 tool_calls 的 arguments 参数字符串为易读的 JSON 文本 */
+function formatToolArguments(raw_args: string): string {
+  try {
+    const parsed = JSON.parse(raw_args);
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    return raw_args;
+  }
 }
 
 function collectPrompts(data: SendingMessage[]) {
@@ -331,72 +357,33 @@ useEventSourceOn(event_types.CHAT_COMPLETION_SETTINGS_READY, completion => {
 });
 
 function copyAll() {
-  const all_prompts = prompts.value
-    .map(prompt => prompt.content)
-    .filter(Boolean)
+  const content = _(filtered_prompts.value)
+    .map(prompt => {
+      const tool_calls_text = prompt.tool_calls?.length
+        ? `\nTool Calls:\n${JSON.stringify(prompt.tool_calls, null, 2)}`
+        : '';
+      return `${prompt.role}:\n${prompt.content}${tool_calls_text}`;
+    })
     .join('\n\n');
-  copyText(all_prompts);
+  copyText(content);
   toastr.success(t`已复制全部提示词到剪贴板`);
 }
 
+/**
+ * 复制单个提示词内容到剪贴板
+ * @param content 提示词内容
+ */
 function copyPrompt(content: string) {
   copyText(content);
   toastr.success(t`已复制提示词到剪贴板`);
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 @reference '../../global.css';
 
-.TH-loading-spinner {
-  width: var(--mainFontSize);
-  height: var(--mainFontSize);
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* 工具调用信息样式 */
-.tool-calls-info {
-  @apply my-0.5 rounded-sm border border-(--SmartThemeQuoteColor)/30 bg-(--SmartThemeQuoteColor)/10 p-0.5;
-}
-
-.tool-calls-summary {
-  @apply flex cursor-pointer items-center font-semibold select-none text-(--SmartThemeQuoteColor);
-}
-
-.tool-calls-list {
-  @apply mt-0.5;
-}
-
-.tool-call-item {
-  @apply mb-0.5 rounded-sm bg-(--SmartThemeBlurTintColor)/30 p-0.5 text-(--SmartThemeBodyColor);
-}
-
-.tool-call-item:last-child {
-  @apply mb-0;
-}
-
-.tool-call-name {
-  @apply mb-0.25 flex items-center th-text-sm;
-}
-
-.tool-call-arguments {
-  @apply mt-0.25 mb-0 overflow-x-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-(--SmartThemeBlurTintColor)/50 p-0.5 th-text-sm text-(--SmartThemeBodyColor);
-}
-
-/* tool_call_id 代码样式 */
-.tool-call-id-code {
-  @apply rounded-sm bg-(--grey5020a) px-0.25 py-px font-mono th-text-sm text-(--SmartThemeBodyColor);
+.wrap-break-word {
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 </style>
