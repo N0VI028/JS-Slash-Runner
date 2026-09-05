@@ -3,9 +3,16 @@ import { chat, eventSource } from '@sillytavern/script';
 import { waitUntil } from 'async-wait-until';
 import { LiteralUnion } from 'type-fest';
 
-function hasMvuMessageData(): boolean {
-  // 导入或清理过的聊天可能只有后面的楼层有变量, 不要求第 0 楼保留快照。
-  return chat.some(message => _.has(message.variables?.[message.swipe_id ?? 0], 'stat_data'));
+function hasMvuData(chat_message: any): boolean {
+  return _.has(chat_message?.variables?.[chat_message.swipe_id ?? 0], 'stat_data');
+}
+
+async function waitMvu() {
+  try {
+    await waitUntil(() => hasMvuData(chat[0]) || _.takeRight(chat, 10).some(hasMvuData));
+  } catch (error) {
+    /** waitUntil 只是作为 MVU 加载的保险, 忽略超时时的报错 */
+  }
 }
 
 export function initializeGlobal(global: LiteralUnion<'Mvu', string>, value: any): void {
@@ -36,11 +43,7 @@ export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<
       configurable: true,
     });
     if (global === 'Mvu') {
-      try {
-        await waitUntil(hasMvuMessageData);
-      } catch (error) {
-        /** 只是作为保险, 忽略超时时的报错 */
-      }
+      await waitMvu();
     }
     return;
   }
@@ -51,11 +54,7 @@ export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<
         configurable: true,
       });
       if (global === 'Mvu') {
-        try {
-          await waitUntil(hasMvuMessageData);
-        } catch (error) {
-          /** 只是作为保险, 忽略超时时的报错 */
-        }
+        await waitMvu();
       }
       resolve();
     });
