@@ -54,7 +54,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   // 切换角色卡时刷新 id
   eventSource.makeFirst(event_types.CHAT_CHANGED, () => {
     const new_name = characters?.[this_chid as unknown as number]?.name;
-    if (name.value !== new_name) {
+    if (id.value !== this_chid || name.value !== new_name) {
       id.value = this_chid;
       name.value = new_name;
     }
@@ -168,7 +168,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     });
   };
 
-  // 监听 id 不能正确反映导入新角色卡时的情况, 在外应该监听 name
+  // 在外应同时监听 id 和 name: 同名角色卡的 id 不同, 导入角色卡时 id 也可能不变
   return {
     id: readonly(id),
     name: readonly(name),
