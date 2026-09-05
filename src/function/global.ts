@@ -1,8 +1,19 @@
 import { _eventEmit, _eventOnce } from '@/function/event';
-import { eventSource } from '@sillytavern/script';
+import { chat, eventSource } from '@sillytavern/script';
 import { waitUntil } from 'async-wait-until';
 import { LiteralUnion } from 'type-fest';
-import { get_variables_without_clone } from './variables';
+
+function hasMvuData(chat_message: any): boolean {
+  return _.has(chat_message?.variables?.[chat_message.swipe_id ?? 0], 'stat_data');
+}
+
+async function waitMvu() {
+  try {
+    await waitUntil(() => hasMvuData(chat[0]) || _.takeRight(chat, 10).some(hasMvuData));
+  } catch (error) {
+    /** waitUntil 只是作为 MVU 加载的保险, 忽略超时时的报错 */
+  }
+}
 
 export function initializeGlobal(global: LiteralUnion<'Mvu', string>, value: any): void {
   _.set(window, global, value);
@@ -32,11 +43,7 @@ export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<
       configurable: true,
     });
     if (global === 'Mvu') {
-      try {
-        await waitUntil(() => _.has(get_variables_without_clone({ type: 'message', message_id: 0 }), 'stat_data'));
-      } catch (error) {
-        /** 只是作为保险, 忽略超时时的报错 */
-      }
+      await waitMvu();
     }
     return;
   }
@@ -47,11 +54,7 @@ export async function _waitGlobalInitialized(this: Window, global: LiteralUnion<
         configurable: true,
       });
       if (global === 'Mvu') {
-        try {
-          await waitUntil(() => _.has(get_variables_without_clone({ type: 'message', message_id: 0 }), 'stat_data'));
-        } catch (error) {
-          /** 只是作为保险, 忽略超时时的报错 */
-        }
+        await waitMvu();
       }
       resolve();
     });

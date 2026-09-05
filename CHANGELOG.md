@@ -1,4 +1,11 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.9.4
+
+### 🐛修复
+
+- 切换同名角色卡时脚本、变量不更新的问题 (by @kazumaawawa)
+- 优化 `waitGlobalInitialized('Mvu')` 在特定情况下等待时间过长的问题 (by @kazumaawawa)
+
 ## 4.9.3
 
 ### 🐛修复
