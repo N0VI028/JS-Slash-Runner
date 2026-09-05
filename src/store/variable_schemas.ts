@@ -17,7 +17,7 @@ export const useVariableSchemasStore = defineStore('variable_schemas', () => {
   const message = ref<z.ZodType<any>>();
   const character_settings = useCharacterSettingsStore();
   watch(
-    () => character_settings.name,
+    [() => character_settings.id, () => character_settings.name],
     () => {
       character.value = undefined;
       chat.value = undefined;
