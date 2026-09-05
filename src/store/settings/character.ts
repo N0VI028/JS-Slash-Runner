@@ -54,7 +54,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   // 切换角色卡时刷新 id
   eventSource.makeFirst(event_types.CHAT_CHANGED, () => {
     const new_name = characters?.[this_chid as unknown as number]?.name;
-    if (id.value !== this_chid || name.value !== new_name) {
+    if ((id.value !== this_chid && name.value === new_name) || name.value !== new_name) {
       id.value = this_chid;
       name.value = new_name;
     }
