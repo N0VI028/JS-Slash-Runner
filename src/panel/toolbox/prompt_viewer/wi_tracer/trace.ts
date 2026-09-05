@@ -2,7 +2,7 @@
  * 提示词查看器 · 世界书与预设条目溯源（结果发布到 wi_trace_report，由查看器 UI 内联标注）
  *
  * 查看器打开时接线 ST 事件；CHAT_COMPLETION_SETTINGS_READY 到达时，
- * 以「结构重放 + 算术偏移 + 等值校验」把查看器显示的消息定位回世界书条目与预设条目。
+ * 以「结构重放 + 算术偏移 + 消息对齐 + 等值校验」把查看器显示的消息定位回世界书条目与预设条目。
  * 全程不做子串搜索（文字匹配）：偏移全部来自对 ST 构建管线（world-info.js /
  * script.js / openai.js）的确定性重放，最终仅用等值比较校验。
  *
@@ -10,16 +10,17 @@
  * flushWIInjections 将删除 customDepthWI_* 扩展提示词，故事件监听器内
  * 先同步快照 extension_prompts，溯源全程只读快照。
  */
+import type { SendingMessage } from '@/function/event';
+import { useEventSourceOn } from '@/panel/composable/use_event_source_on';
 import { chat_metadata, event_types, extension_prompt_types } from '@sillytavern/script';
-import { ChatCompletion, promptManager } from '@sillytavern/scripts/openai';
 import { metadata_keys, NOTE_MODULE_NAME, shouldWIAddPrompt } from '@sillytavern/scripts/authors-note';
 import { inject_ids } from '@sillytavern/scripts/constants';
+import { ChatCompletion, promptManager } from '@sillytavern/scripts/openai';
 import { power_user } from '@sillytavern/scripts/power-user';
-import type { SendingMessage } from '@/function/event';
 import { shallowRef } from 'vue';
-import { spansOfJoinedTexts, textContent } from './pure_replay';
+import { alignMessages, projectSegmentsToFinal } from './align';
 import { resolvePresetChannels } from './preset_tracer';
-import { resolveStChannels } from './st_tracer';
+import { spansOfJoinedTexts, textContent } from './pure_replay';
 import {
   buildExampleComposition,
   buildWiBuckets,
@@ -28,6 +29,7 @@ import {
   getWiFormatPrefixLength,
   replaySquash,
 } from './replay';
+import { resolveStChannels } from './st_tracer';
 import {
   addSegment,
   cachedExtensionPromptPart,
@@ -51,6 +53,7 @@ import type {
   FlatMessageInfo,
   InjectionPart,
   InjectionQuery,
+  MessageAlignment,
   TraceContext,
   WiBuckets,
   WiEntrySnapshot,
@@ -58,7 +61,6 @@ import type {
   WiTraceReport,
 } from './types';
 
-// 重新导出类型与管线算术辅助函数以保持外部兼容
 export {
   tracer_state,
   ROLE_NAMES,
@@ -99,6 +101,13 @@ function positionLabel(position: number): string {
   return POSITION_LABELS[position] ?? `位置 ${position}`;
 }
 
+/** 给出未定位条目的缺省原因说明 */
+function defaultUnlocatedReason(label: string): string {
+  if (label.includes('outlet')) return '未找到对应 outlet 占位符';
+  if (label.includes('depth') || label.includes('深度')) return '对应深度位置未注入或被裁剪';
+  return '未在最终提示词中找到匹配内容（可能被禁用、空内容或预算截断）';
+}
+
 /**
  * 在提示词查看器挂载时调用：注册事件监听并安装 squash 记录补丁。
  * 监听器生命周期跟随组件作用域，查看器关闭时自动清理（此后不再打印）。
@@ -106,10 +115,17 @@ function positionLabel(position: number): string {
 export function setupWorldInfoTracer(): void {
   installSquashRecorder();
   useEventSourceOn(event_types.GENERATION_STARTED, (_type, _options, dry_run) => {
-    if (!dry_run) tracer_state.entries = null;
+    if (!dry_run) {
+      tracer_state.entries = null;
+      tracer_state.t0 = null;
+      tracer_state.squash = null;
+    }
   });
   useEventSourceOn(event_types.WORLD_INFO_ACTIVATED, entries => {
     tracer_state.entries = snapshotEntries(entries);
+  });
+  useEventSourceOn(event_types.CHAT_COMPLETION_PROMPT_READY, data => {
+    tracer_state.t0 = Array.isArray(data?.chat) ? snapshotMessages(data.chat) : null;
   });
   useEventSourceOn(event_types.CHAT_COMPLETION_SETTINGS_READY, data => {
     // 必须在监听器内同步快照：下一个监听器（查看器的 collectPrompts）会立即 stopGeneration，
@@ -119,7 +135,7 @@ export function setupWorldInfoTracer(): void {
     tracer_state.type = String((data as { type?: unknown })?.type ?? 'normal');
     tracer_state.persona_description = String(power_user.persona_description ?? '');
     wi_trace_report.value = null; // 先清空旧标注，避免新消息短暂配旧报告
-    void runTrace(Array.isArray(data?.messages) ? data.messages : []);
+    void runTrace(Array.isArray(data?.messages) ? snapshotMessages(data.messages) : []);
   });
 }
 
@@ -139,6 +155,15 @@ function snapshotEntries(entries: unknown): WiEntrySnapshot[] {
       order: Number(entry.order ?? 100),
       outletName: String(entry.outletName ?? ''),
     }));
+}
+
+/**
+ * 生成消息快照：数组与消息对象均浅拷贝，content 字符串引用共享（零拷贝成本）
+ * 防活引用污染：压缩类脚本会在 SETTINGS_READY 监听器里原地清空重填 chat/messages 数组，
+ * 直接存引用会导致 T0 基准被污染成最终消息（对齐全判 exact，徽章失效）
+ */
+function snapshotMessages(messages: SendingMessage[]): SendingMessage[] {
+  return messages.map(message => ({ role: message.role, content: message.content }));
 }
 
 /** 包装 ChatCompletion.squashSystemMessages：合并执行前记录带 identifier 的扁平结构 */
@@ -218,35 +243,37 @@ async function buildReport(messages: SendingMessage[]): Promise<WiTraceReport> {
     collectUnresolved(buckets, report);
     return report;
   }
-  const flat = flattenMessages(root, false);
-  report.alignmentOk = alignByReference(flat, messages);
-  if (!report.alignmentOk) {
-    report.notes.push('最终消息与 promptManager 快照不一致（可能来自 generateRaw 路径），仅输出条目清单');
-    collectUnresolved(buckets, report);
-    return report;
-  }
-  const display = buildDisplayMapping(root, flat);
-  const by_identifier = Map.groupBy(display, item => item.info.identifier ?? '');
-  const ctx: TraceContext = {
+  const display = buildDisplayMapping(root, flattenMessages(root, false));
+  const { t0, alignments } = resolveAlignment(display, messages);
+  report.alignments = alignments;
+  report.alignmentOk = alignments.length > 0 && alignments.every(a => a.kind === 'exact');
+  const ctx = buildTraceContext(display, t0, report);
+  await resolveChannels(buckets, ctx);
+
+  // 通道定位在 T0 空间完成，最后统一投影回 T_final 空间发布
+  report.segments = projectSegmentsToFinal(report.segments, alignments, t0, messages);
+  return report;
+}
+
+/** 计算 T0 基准与消息对齐结果（缺 PROMPT_READY 快照时回退为 promptManager 展开视图） */
+function resolveAlignment(
+  display: DisplayMessage[],
+  messages: SendingMessage[],
+): { t0: SendingMessage[]; alignments: MessageAlignment[] } {
+  const t0 = tracer_state.t0 ?? display.map(d => ({ role: d.info.role, content: d.info.content }) as SendingMessage);
+  return { t0, alignments: alignMessages(t0, messages) };
+}
+
+/** 构建 T0 空间的溯源上下文（对齐基准、显示映射与报告容器） */
+function buildTraceContext(display: DisplayMessage[], t0: SendingMessage[], report: WiTraceReport): TraceContext {
+  return {
     display,
-    by_identifier,
-    messages,
+    by_identifier: Map.groupBy(display, item => item.info.identifier ?? ''),
+    messages: t0,
     report,
     generationType: tracer_state.type,
     injection_ids: new Set(),
   };
-  await resolveChannels(buckets, ctx);
-  if (entries.length) {
-    collectUnresolved(buckets, report);
-  }
-  await resolvePresetChannels(ctx);
-  resolveStChannels(ctx);
-  return report;
-}
-
-/** 结构对齐：逐条比较内容引用（===），不比较文字相似度 */
-function alignByReference(flat: FlatMessageInfo[], messages: SendingMessage[]): boolean {
-  return flat.length === messages.length && flat.every((info, index) => info.content === messages[index]?.content);
 }
 
 /**
@@ -274,18 +301,20 @@ function buildDisplayMapping(root: unknown, flat: FlatMessageInfo[]): DisplayMes
   }));
 }
 
-/** 逐通道解析：主块 / 深度注入 / 作者注释消息 / 示例对话 */
+/** 逐通道解析：主块 / 深度注入 / 作者注释消息 / 示例对话，随后汇总未定位条目并解析预设与 ST 自收集通道 */
 async function resolveChannels(buckets: WiBuckets, ctx: TraceContext): Promise<void> {
   resolveMainBlock(buckets.before, 'worldInfoBefore', ctx);
   resolveMainBlock(buckets.after, 'worldInfoAfter', ctx);
   await resolveInjections(buckets, ctx);
   resolveAuthorsNoteMessage(buckets, ctx);
   resolveExamples(buckets, ctx);
+  if (ctx.report.activatedCount) collectUnresolved(buckets, ctx.report);
+  await resolvePresetChannels(ctx);
+  resolveStChannels(ctx);
 }
 
 /**
- * 定位 worldInfoBefore/After 主块消息并按 join('\
-') 偏移还原每个条目的区间
+ * 定位 worldInfoBefore/After 主块消息并按 join('\n') 偏移还原每个条目的区间
  * 镜像 openai.js:1367 的 formatWorldInfo 包裹与 1479 的二次宏替换
  * 消息可能被 squash 吸收进相邻 system 消息，此时按子区间偏移定位
  */
@@ -303,8 +332,7 @@ function resolveMainBlock(segments: WiSegment[], identifier: string, ctx: TraceC
   }
   // 包裹校验与偏移基准都取子区间内容（未被吸收时子区间即整条消息）
   const content = textContent(target.child.info.content);
-  const joined = segments.map(segment => segment.text).join('\
-');
+  const joined = segments.map(segment => segment.text).join('\n');
   const wrapper_ok = content.slice(prefix, prefix + joined.length) === joined;
   let cursor = prefix;
   for (const segment of segments) {
@@ -355,8 +383,7 @@ function collectInjectionQueries(buckets: WiBuckets): InjectionQuery[] {
   return queries;
 }
 
-/** 把桶内段落转为「扩展提示词值 = join('\
-')」内的区间；spans/label 缺省时自行计算 */
+/** 把桶内段落转为「扩展提示词值 = join('\n')」内的区间；spans/label 缺省时自行计算 */
 function toInjectionParts(
   segments: WiSegment[],
   spans?: Array<{ start: number; end: number }>,
@@ -405,6 +432,38 @@ function getAuthorNoteInjectionQuery(buckets: WiBuckets): InjectionQuery | null 
   };
 }
 
+/** 扩展提示词原始值的前导空白长度（getExtensionPrompt 拼接时被 trim，定位偏移需回补） */
+function extLeadSkip(key: string): number {
+  const raw_value = extSnapshotValue(key);
+  return raw_value.length - raw_value.trimStart().length;
+}
+
+/**
+ * 注入通道内容回退定位：当结构定位失败时，在 T0 消息列表中按注入内容搜索并生成定位段
+ */
+function locateInjectionByContent(query: InjectionQuery, partValue: string, ctx: TraceContext): boolean {
+  if (!partValue) return false;
+  const lead_skip = extLeadSkip(query.key);
+  for (let i = 0; i < ctx.messages.length; i++) {
+    const content = textContent(ctx.messages[i]?.content);
+    const pos = content.indexOf(partValue);
+    if (pos === -1) continue;
+    for (const item of query.parts) {
+      if (!item.entry) continue;
+      addSegment(ctx.report, ctx.messages, {
+        index: i,
+        start: pos + item.rawStart - lead_skip,
+        text: item.text,
+        entry: item.entry,
+        label: item.label,
+        note: '注入消息被外部脚本移动，按内容等值定位',
+      });
+    }
+    return true;
+  }
+  return false;
+}
+
 /**
  * 解析单个注入查询：重放 populationInjectionPrompts 的注入位置编号，
  * 再经 getExtensionPrompt 重放的组成部分偏移，从消息末尾反向定位条目区间
@@ -421,7 +480,10 @@ async function resolveSingleInjection(
   const ext = await cachedExtensionPromptPart(query.depth, query.role);
   const part = ext.parts.find(item => item.key === query.key);
   if (block_index === -1 || !part) {
-    ctx.report.notes.push(`${query.label}: 该深度无对应注入内容`);
+    const targetValue = part?.value || extSnapshotValue(query.key);
+    if (!locateInjectionByContent(query, targetValue, ctx)) {
+      ctx.report.notes.push(`${query.label}: 该深度无对应注入内容`);
+    }
     return;
   }
   const before_count = await countInjectionsBefore(query.depth);
@@ -431,7 +493,9 @@ async function resolveSingleInjection(
   const identifier = `chatHistory-${max_number - distance}`;
   const target = findDisplayTarget(ctx.by_identifier, ctx.display, identifier, roleName(query.role));
   if (!target) {
-    ctx.report.notes.push(`${query.label}: 注入消息定位失败（可能被预算截断或结构漂移）`);
+    if (!locateInjectionByContent(query, part.value, ctx)) {
+      ctx.report.notes.push(`${query.label}: 注入消息定位失败（可能被预算截断或结构漂移）`);
+    }
     return;
   }
   ctx.injection_ids?.add(identifier);
@@ -451,9 +515,7 @@ function pushInjectionParts(
   const suffix_ok = content.endsWith(ext_value);
   const suffix_after = ext_value.length - part.end;
   const part_start = content.length - suffix_after - part.value.length;
-  // 扩展提示词原始值的前导空白在 getExtensionPrompt 拼接时被 trim，需回补偏移
-  const raw_value = extSnapshotValue(query.key);
-  const lead_skip = raw_value.length - raw_value.trimStart().length;
+  const lead_skip = extLeadSkip(query.key);
   for (const item of query.parts) {
     if (!item.entry) continue; // 作者注释原文段不属于世界书
     const start = target.child.start + part_start + item.rawStart - lead_skip;
@@ -523,7 +585,7 @@ function resolveExamples(buckets: WiBuckets, ctx: TraceContext): void {
   const composition = buildExampleComposition(buckets);
   const contents_cache = new Map<number, string[]>();
   for (const item of ctx.display) {
-    const match = /^dialogueExamples (\\d+)-(\\d+)$/.exec(item.info.identifier ?? '');
+    const match = /^dialogueExamples (\d+)-(\d+)$/.exec(item.info.identifier ?? '');
     if (!match) continue;
     const [group_index, message_index] = [Number(match[1]), Number(match[2])];
     const group = composition[group_index];
@@ -587,10 +649,4 @@ function collectUnresolved(buckets: WiBuckets, report: WiTraceReport): void {
       reason: defaultUnlocatedReason(label),
     });
   }
-}
-
-/** 各位置未定位时的默认原因说明 */
-function defaultUnlocatedReason(label: string): string {
-  if (label === 'outlet') return 'outlet 位置内容不直接进入聊天补全消息（仅通过 {{WIOutlet}} 宏展开）';
-  return '未出现在可定位的提示词消息中（可能被过滤、禁用或预算截断）';
 }

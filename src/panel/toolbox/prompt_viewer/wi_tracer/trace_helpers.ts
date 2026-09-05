@@ -23,6 +23,8 @@ import type {
 export const tracer_state = {
   entries: null as WiEntrySnapshot[] | null,
   squash: null as { root: unknown; pre: FlatMessageInfo[] } | null,
+  /** PROMPT_READY 时刻捕获的 T0 纯净消息基准快照引用 */
+  t0: null as SendingMessage[] | null,
   /** SETTINGS_READY 时刻同步抓取的扩展提示词快照 */
   ext: [] as ExtPromptSnapshot[],
   /** 本次生成类型（getPromptCollection 需按类型重放预设触发器） */
@@ -150,7 +152,7 @@ export function absolutePromptsAt(depth: number): Array<Record<string, unknown>>
   );
 }
 
-/** 绝对深度注入（injection_position=1 且有内容）所在的深度集合 */
+/** 绝对深度注入（injection_position=1 且有内容）所在的所有深度集合 */
 export function getAbsoluteInjectionDepths(): number[] {
   return getPresetCollection()
     .filter(prompt => prompt?.injection_position === 1 && prompt?.content)
@@ -185,7 +187,7 @@ export function getExtraOrderBlocks(depth: number): Array<{ role: number; has_ex
     .map(({ role }) => ({ role, has_extension: false }));
 }
 
-/** 收集存在注入内容的深度集合（IN_CHAT 扩展提示词深度 ∪ 绝对注入深度） */
+/** 收集存在注入内容的所有深度集合（IN_CHAT 扩展提示词深度 ∪ 绝对注入深度） */
 export function getRelevantDepths(): number[] {
   const depths = new Set<number>();
   for (const prompt of tracer_state.ext) {

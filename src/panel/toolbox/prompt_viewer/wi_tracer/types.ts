@@ -2,8 +2,18 @@ import type { SendingMessage } from '@/function/event';
 
 /**
  * 提示词查看器 · 溯源类型定义
- * 包含世界书条目快照、分桶结构、重放中间表示、预设条目快照、ST 自收集内容及最终溯源报告结构。
+ * 包含世界书条目快照、分桶结构、重放中间表示、预设条目快照、ST 自收集内容、消息对齐及最终溯源报告结构。
  */
+
+/** 消息对齐类型 */
+export type MessageAlignmentKind = 'exact' | 'modified' | 'merged' | 'injected' | 'deleted' | 'unknown';
+
+/** 消息对齐结果：最终消息 index ↔ T0 消息 index 列表及对齐类型 */
+export type MessageAlignment = {
+  finalIndex: number;
+  t0Indexes: number[];
+  kind: MessageAlignmentKind;
+};
 
 /** ST 自收集内容段的类别 */
 export type StContentKind = 'chat' | 'persona' | 'card' | 'example' | 'control';
@@ -13,7 +23,7 @@ export type StSegmentInfo = {
   kind: StContentKind;
   /** 类别中文名 */
   label: string;
-  /** 聊天记录倒数序号（仅 kind === 'chat'） */
+  /** 聊天记录倒序号（仅 kind === 'chat'） */
   ordinal?: number;
   /** 发言者名（仅 kind === 'chat'，names_behavior 为 COMPLETION 时才有） */
   speaker?: string;
@@ -218,4 +228,6 @@ export type WiTraceReport = {
   notes: string[];
   /** 预设条目溯源摘要（当开启预设溯源时提供） */
   presetSummary?: PresetTraceSummary;
+  /** 消息级对齐结果（T0 ↔ T_final 映射） */
+  alignments?: MessageAlignment[];
 };

@@ -43,7 +43,7 @@
             <!-- 世界书/预设/ST自收集来源片段：条目标签独占一行置于片段之前，正文本身不改动样式 -->
             <div v-if="piece.mark" class="TH-wi-piece">
               <div class="TH-wi-badge-row">
-                <span class="TH-wi-badge"
+                <span class="TH-wi-badge" :title="piece.mark.title"
                   ><i
                     v-if="piece.mark.icon"
                     :class="piece.mark.icon"
