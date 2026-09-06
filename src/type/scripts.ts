@@ -44,7 +44,11 @@ export const ScriptFolder = z.object({
 });
 export type ScriptFolder = z.infer<typeof ScriptFolder>;
 
-export const ScriptTree = z.discriminatedUnion('type', [Script, ScriptFolder]);
+// 默认值会让两个分支都接受 undefined，混合脚本树必须显式提供 type。
+export const ScriptTree = z.discriminatedUnion('type', [
+  Script.extend({ type: Script.shape.type.removeDefault() }),
+  ScriptFolder.extend({ type: ScriptFolder.shape.type.removeDefault() }),
+]);
 export type ScriptTree = z.infer<typeof ScriptTree>;
 export function isScript(script_tree: ScriptTree): script_tree is Script {
   return script_tree.type === 'script';

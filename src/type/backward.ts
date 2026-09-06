@@ -49,13 +49,13 @@ export const ScriptData = z
 
 const ScriptItem = z
   .object({
-    type: z.literal('script').default('script').catch('script'),
+    type: z.literal('script'),
     value: ScriptData,
   })
   .transform(item => item.value);
 const ScriptFolder = z
   .object({
-    type: z.literal('folder').default('folder').catch('folder'),
+    type: z.literal('folder'),
     id: z
       .string()
       .default(() => uuidv4())
