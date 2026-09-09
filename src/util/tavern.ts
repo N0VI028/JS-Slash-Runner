@@ -4,6 +4,7 @@ import {
   clearChat,
   event_types,
   eventSource,
+  getCurrentChatId,
   getRequestHeaders,
   getThumbnailUrl,
   name2,
@@ -69,11 +70,23 @@ export function highlight_code(element: HTMLElement) {
 export const saveChatConditionalDebounced = _.debounce(saveChatConditional, 1000);
 
 export async function reloadChatWithoutEvents() {
+  const chat_id = getCurrentChatId();
+  if (chat_id === undefined) {
+    return false;
+  }
+
+  await saveChatConditional();
+
+  if (getCurrentChatId() !== chat_id) {
+    return false;
+  }
+
   if (characters.at(this_chid as unknown as number)) {
-    await saveChatConditional();
     await clearChat();
     await printMessages();
+    return true;
   }
+  return false;
 }
 
 export function invokeMessageRenders() {
@@ -86,8 +99,10 @@ export function invokeMessageRenders() {
 }
 
 export async function reloadAndRenderChatWithoutEvents() {
-  await reloadChatWithoutEvents();
-  invokeMessageRenders();
+  const reloaded = await reloadChatWithoutEvents();
+  if (reloaded) {
+    invokeMessageRenders();
+  }
 }
 
 export function getUserAvatarPath() {
