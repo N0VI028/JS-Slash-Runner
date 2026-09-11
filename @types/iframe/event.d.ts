@@ -172,6 +172,8 @@ type IframeEventType = (typeof iframe_events)[keyof typeof iframe_events];
 declare const iframe_events: {
   MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started';
   MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended';
+  /** `generate` 函数发出请求时触发 */
+  GENERATION_REQUESTED: 'js_generation_requested';
   /** `generate` 函数开始生成 */
   GENERATION_STARTED: 'js_generation_started';
   /** 启用流式传输的 `generate` 函数传输当前完整文本: "这是", "这是一条", "这是一条流式传输" */
@@ -278,6 +280,11 @@ declare const tavern_events: {
 interface ListenerType {
   [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
   [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
+  [iframe_events.GENERATION_REQUESTED]: (
+    ...args:
+      | [generation_id: string, type: 'generate', generate_config: GenerateConfig]
+      | [generation_id: string, type: 'generateRaw', generate_config: GenerateRawConfig]
+  ) => void;
   [iframe_events.GENERATION_STARTED]: (generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string, generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string, generation_id: string) => void;

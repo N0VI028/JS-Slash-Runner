@@ -289,7 +289,7 @@ async function iframeGenerate({
   tool_choice = undefined,
   json_schema = undefined,
 }: detail.GenerateParams = {}): Promise<string | GenerateToolCallResult> {
-  const generationId = generation_id || uuidv4();
+  const generationId = generation_id!;
 
   if (generationControllers.has(generationId)) {
     throw new Error(`ID为 '${generationId}' 的请求正在进行中，无法启动用同一 ID 的生成任务`);
@@ -390,15 +390,19 @@ async function iframeGenerate({
 }
 
 export async function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult> {
+  config.generation_id = config.generation_id || uuidv4();
+  await eventSource.emit('js_generation_requested', config.generation_id, 'generate', config);
   if (config.preset_name && config.preset_name !== 'in_use') {
     const converted_config = convertGenerateWithCustomPreset(config);
-    return await generateRaw(converted_config);
+    return await iframeGenerate(fromGenerateRawConfig(converted_config));
   }
   const converted_config = fromGenerateConfig(config);
   return await iframeGenerate(converted_config);
 }
 
 export async function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult> {
+  config.generation_id = config.generation_id || uuidv4();
+  await eventSource.emit('js_generation_requested', config.generation_id, 'generateRaw', config);
   const converted_config = fromGenerateRawConfig(config);
   return await iframeGenerate(converted_config);
 }

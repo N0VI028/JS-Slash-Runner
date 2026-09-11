@@ -1,6 +1,18 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.9.6
 
+### 📦函数
+
+- 现在 `generate` 和 `generateRaw` 在调用最初时会触发 `iframe_events.GENERATION_REQUESTED` 事件, 允许你监听情况和修改生成配置
+
+  ```ts
+  eventOn(iframe_events.GENERATION_REQUESTED, (generation_id, type, generate_config) => {
+    if (generation_id === '你想要监听的生成id') {
+      generate_config.user_input = '新的用户输入'
+    }
+  });
+  ```
+
 ### 🐛修复
 
 - 在酒馆欢迎页面开关“禁用酒馆助手宏”时，酒馆版本号和最近聊天面板消失的问题

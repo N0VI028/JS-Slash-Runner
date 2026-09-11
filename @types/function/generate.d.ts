@@ -8,7 +8,8 @@ declare function getProxyPresetNames(): string[];
 /**
  * 使用酒馆当前启用的预设, 让 AI 生成一段文本.
  *
- * 该函数在执行过程中将会发送以下事件:
+ * 该函数在执行过程中将会依次发送以下事件:
+ * - `iframe_events.GENERATION_REQUESTED`: 请求开始，监听它可以了解某个生成的配置情况，并且能修改生成配置
  * - `iframe_events.GENERATION_STARTED`: 生成开始
  * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
  * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")
@@ -148,7 +149,8 @@ declare function generate(config: GenerateConfig): Promise<string | GenerateTool
 /**
  * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
  *
- * 该函数在执行过程中将会发送以下事件:
+ * 该函数在执行过程中将会依次发送以下事件:
+ * - `iframe_events.GENERATION_REQUESTED`: 请求开始，监听它可以了解某个生成的配置情况，并且能修改生成配置
  * - `iframe_events.GENERATION_STARTED`: 生成开始
  * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_FULLY`: 监听它可以得到流式传输的当前完整文本 ("这是", "这是一条", "这是一条流式传输")
  * - 若启用流式传输, `iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY`: 监听它可以得到流式传输的当前增量文本 ("这是", "一条", "流式传输")

@@ -4,6 +4,7 @@ import { _getIframeName } from '@/function/util';
 import { getOrSet } from '@/util/algorithm';
 import { eventSource } from '@sillytavern/script';
 import { LiteralUnion } from 'type-fest';
+import type { GenerateConfig, GenerateRawConfig } from '@/function/generate/types';
 
 const iframe_event_listener_wrapper_map: Map<string, Map<string, Map<Function, Function>>> = new Map();
 
@@ -170,6 +171,7 @@ type IframeEventType = (typeof iframe_events)[keyof typeof iframe_events];
 export const iframe_events = {
   MESSAGE_IFRAME_RENDER_STARTED: 'message_iframe_render_started',
   MESSAGE_IFRAME_RENDER_ENDED: 'message_iframe_render_ended',
+  GENERATION_REQUESTED: 'js_generation_requested',
   GENERATION_STARTED: 'js_generation_started',
   STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully',
   STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally',
@@ -286,6 +288,11 @@ export type SendingMessage = {
 export type ListenerType = {
   [iframe_events.MESSAGE_IFRAME_RENDER_STARTED]: (iframe_name: string) => void;
   [iframe_events.MESSAGE_IFRAME_RENDER_ENDED]: (iframe_name: string) => void;
+  [iframe_events.GENERATION_REQUESTED]: (
+    ...args:
+      | [generation_id: string, type: 'generate', generate_config: GenerateConfig]
+      | [generation_id: string, type: 'generateRaw', generate_config: GenerateRawConfig]
+  ) => void;
   [iframe_events.GENERATION_STARTED]: (generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string, generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string, generation_id: string) => void;
