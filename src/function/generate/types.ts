@@ -93,7 +93,6 @@ export type CustomApiConfig = {
 export type GenerateConfig = {
   preset_name?: 'in_use' | string;
   generation_id?: string;
-  concurrency_group?: 'default' | 'unique' | 'bypass' | string;
   user_input?: string;
   image?: File | string | (File | string)[];
   should_stream?: boolean;
@@ -112,7 +111,6 @@ export type GenerateConfig = {
  */
 export type GenerateRawConfig = {
   generation_id?: string;
-  concurrency_group?: 'default' | 'unique' | 'bypass' | string;
   user_input?: string;
   image?: File | string | (File | string)[];
   should_stream?: boolean;
