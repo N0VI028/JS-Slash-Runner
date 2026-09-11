@@ -824,20 +824,13 @@ declare function getProxyPresetNames(): string[];
  *
  * @param config 提示词和生成方式设置
  *   - `user_input?:string`: 用户输入
- *   - `generation_id?:string`: 生成请求唯一标识符
- *   - `concurrency_group?:'default'|'unique'|'bypass'|string`: 并发组设置
- *   - `preset_name?:'in_use'|string`: 要使用的预设名称
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
  *   - `should_silence?:boolean`: 是否静默生成; 默认为 'false'
- *   - `image?:File|string|(File|string)[]`: 图片输入, 支持单张或多张图片
+ *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
  *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
- *   - `custom_api?:CustomApiConfig`: 自定义API配置
- *   - `tools?:ToolDefinition[]`: 工具定义列表
- *   - `tool_choice?:ToolChoice`: 工具选择策略
- *   - `json_schema?:JsonSchema`: JSON Schema 定义
- * @returns 生成的最终文本, 或工具调用结果 `GenerateToolCallResult`
+ * @returns 生成的最终文本
  *
  * @example
  * // 请求生成
@@ -971,21 +964,15 @@ declare function generate(config: GenerateConfig): Promise<string | GenerateTool
  * - `iframe_events.GENERATION_ENDED`: 生成结束, 监听它可以得到生成的最终文本 (当然也能通过函数返回值获得)
  *
  * @param config 提示词和生成方式设置
- *   - `generation_id?:string`: 生成请求唯一标识符
- *   - `concurrency_group?:'default'|'unique'|'bypass'|string`: 并发组设置
  *   - `user_input?:string`: 用户输入
  *   - `should_stream?:boolean`: 是否启用流式传输; 默认为 'false'
  *   - `should_silence?:boolean`: 是否静默生成; 默认为 'false'
- *   - `image?:File|string|(File|string)[]`: 图片输入, 支持单张或多张图片
+ *   - `image?:File|string`: 图片输入
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
  *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
- *   - `ordered_prompts?:(PlaceholderPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设
- *   - `custom_api?:CustomApiConfig`: 自定义API配置
- *   - `tools?:ToolDefinition[]`: 工具定义列表
- *   - `tool_choice?:ToolChoice`: 工具选择策略
- *   - `json_schema?:JsonSchema`: JSON Schema 定义
- * @returns 生成的最终文本, 或工具调用结果 `GenerateToolCallResult`
+ *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设
+ * @returns 生成的最终文本
  *
  * @example
  * // 自定义内置提示词顺序, 未在 ordered_prompts 中给出的将不会被使用
@@ -1038,7 +1025,7 @@ declare function getModelList(custom_api: { apiurl: string; key?: string }): Pro
 declare function stopGenerationById(generation_id: string): boolean;
 
 /**
- * 停止所有生成请求
+ * 停止所有正在进行的生成请求
  *
  * @returns boolean 是否成功停止所有生成
  */
@@ -1049,28 +1036,11 @@ type GenerateConfig = {
   preset_name?: 'in_use' | string;
 
   /**
-   * 请求生成的唯一标识符; 不设置则默认生成一个随机标识符.
+   * 请求生成的唯一标识符, 不设置则默认生成一个随机标识符.
    *
    * 当有多个 generate/generateRaw 同时请求生成时, 可以为每个请求指定唯一标识符, 从而能用 `stopGenerationById` 停止特定生成请求, 或正确监听对应的生成事件.
    */
   generation_id?: string;
-
-  /**
-   * 并发组, 同一并发组的 `generate`/`generateRaw` 请求才能并发执行, 否则需要排队等待; 默认为 'default' 并发组
-   * - 'default': 默认并发组
-   * - 'unique': 为这个请求单独设置一个并发组, 与其他所有请求互斥, 不能同时进行
-   * - 'bypass': 特殊情况, 将会忽略并发组设置, 可以与任何请求同时进行
-   * - string: 自定义并发组; 例如 '变量解析'
-   *
-   * @example
-   * // 两个 'A' 组的请求能同时生成; 'B' 则需要排队等待 'A' 生成结束; 'bypass' 绕过并发要求因此能和 'A' 或 'B' 同时生成
-   * const generateA1     = generate({ user_input: 'A1', concurrency_group: 'A' });
-   * const generateA2     = generateRaw({ user_input: 'A2', concurrency_group: 'A' });
-   * const generateB      = generate({ user_input: 'B', concurrency_group: 'B' });
-   * const generateBypass = generateRaw({ user_input: '绕过并发组', concurrency_group: 'bypass' });
-   * await Promise.all([generateA1, generateA2, generateB, generateBypass]);
-   */
-  concurrency_group?: 'default' | 'unique' | 'bypass' | string;
 
   /** 用户输入 */
   user_input?: string;
