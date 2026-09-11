@@ -3,7 +3,18 @@
 
 ### 📦函数
 
-- 现在 `generate` 和 `generateRaw` 在调用最初时会触发 `iframe_events.GENERATION_REQUESTED` 事件, 允许你监听情况和修改生成配置
+- 为 `generate` 和 `generateRaw` 添加并发组功能, 只有同一并发组的请求才能同时生成:
+
+  ```ts
+  // 两个 'A' 组的请求能同时生成; 'B' 则需要排队等待 'A' 生成结束; 'bypass' 绕过并发要求因此能和 'A' 或 'B' 同时生成
+  const generateA1 = generate({ user_input: 'A1', concurrency_group: 'A' });
+  const generateA2 = generate({ user_input: 'A2', concurrency_group: 'A' });
+  const generateB = generate({ user_input: 'B', concurrency_group: 'B' });
+  const generateBypass = generate({ user_input: '绕过并发组', concurrency_group: 'bypass' });
+  await Promise.all([generateA1, generateA2, generateB, generateBypass]);
+  ```
+
+- 现在 `generate` 和 `generateRaw` 在调用最初时会触发 `iframe_events.GENERATION_REQUESTED` 事件, 允许你监听情况和修改生成配置:
 
   ```ts
   eventOn(iframe_events.GENERATION_REQUESTED, (generation_id, type, generate_config) => {

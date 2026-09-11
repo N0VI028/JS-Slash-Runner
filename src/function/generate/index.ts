@@ -35,6 +35,99 @@ type GenerationControllerEntry = {
 
 const generationControllers = new Map<string, GenerationControllerEntry>();
 const stopButtonBoundGenerationIds = new Set<string>();
+const reservedGenerationIds = new Set<string>();
+type Result = string | GenerateToolCallResult;
+type Admission = {
+  id: string;
+  group: string;
+  bindToStopButton: boolean;
+  cancelled: boolean;
+  run: () => Promise<Result>;
+  resolve: (value: Result) => void;
+  reject: (error: unknown) => void;
+};
+const waiting: Admission[] = [];
+const pendingAdmissions = new Map<string, Admission>();
+let activeGroup: string | undefined;
+let activeCount = 0;
+
+function normalizedGroup(value: GenerateConfig['concurrency_group']): string {
+  if (value === 'bypass') {
+    return 'bypass';
+  }
+  if (value === 'unique') {
+    return uuidv4();
+  }
+  return value && value !== 'default' ? value : 'default';
+}
+
+function releaseGroup() {
+  activeCount--;
+  if (activeCount === 0) {
+    activeGroup = undefined;
+    pump();
+  }
+}
+
+function start(item: Admission) {
+  pendingAdmissions.delete(item.id);
+  if (item.cancelled) {
+    releaseGroup();
+    return;
+  }
+  void item.run().then(item.resolve, item.reject).finally(releaseGroup);
+}
+
+function pump() {
+  if (activeGroup !== undefined) {
+    return;
+  }
+  const next = waiting[0];
+  if (!next) {
+    return;
+  }
+  activeGroup = next.group;
+  const batch = waiting.filter(item => item.group === activeGroup);
+  for (const item of batch) {
+    waiting.splice(waiting.indexOf(item), 1);
+  }
+  activeCount += batch.length;
+  for (const item of batch) {
+    start(item);
+  }
+}
+
+function admit(id: string, group: string, bindToStopButton: boolean, run: () => Promise<Result>): Promise<Result> {
+  return new Promise((resolve, reject) => {
+    const item = { id, group, bindToStopButton, cancelled: false, run, resolve, reject };
+    if (group === 'bypass') {
+      void run().then(resolve, reject);
+    } else if (activeGroup === group) {
+      activeCount++;
+      start(item);
+    } else {
+      waiting.push(item);
+      pendingAdmissions.set(id, item);
+      pump();
+    }
+  });
+}
+
+function cancelPending(id: string, reason: unknown): boolean {
+  const item = pendingAdmissions.get(id);
+  if (!item || item.cancelled) {
+    return false;
+  }
+  item.cancelled = true;
+  pendingAdmissions.delete(id);
+  const index = waiting.indexOf(item);
+  if (index >= 0) {
+    waiting.splice(index, 1);
+  }
+  item.reject(reason);
+  eventSource.emit(event_types.GENERATION_STOPPED, id);
+  return true;
+}
 
 export function getProxyPresetNames(): string[] {
   return proxies.map(proxy => proxy.name);
@@ -70,8 +163,13 @@ export async function getModelList(custom_api: { apiurl: string; key?: string })
  */
 export function stopGenerationById(id: string) {
   const entry = generationControllers.get(id);
-  if (!entry) return false;
+  if (!entry) {
+    return cancelPending(id, `生成 ID '${id}' 已停止`);
+  }
 
+  if (entry.abortController.signal.aborted) {
+    return true;
+  }
   entry.abortController.abort(`生成 ID '${id}' 已停止`);
   generationControllers.delete(id);
 
@@ -91,17 +189,13 @@ export function stopGenerationById(id: string) {
  */
 export function stopAllGeneration() {
   try {
-    const hadStopButtonBoundGeneration = stopButtonBoundGenerationIds.size > 0;
-
-    for (const [id, entry] of generationControllers.entries()) {
-      entry.abortController.abort(`生成 ID '${id}' 已停止`);
-      eventSource.emit(event_types.GENERATION_STOPPED, id);
+    const active = Array.from(generationControllers.entries());
+    const pending = Array.from(pendingAdmissions.keys());
+    for (const [id] of active) {
+      stopGenerationById(id);
     }
-    generationControllers.clear();
-
-    stopButtonBoundGenerationIds.clear();
-    if (hadStopButtonBoundGeneration) {
-      unblockGeneration();
+    for (const id of pending) {
+      cancelPending(id, `生成 ID '${id}' 已停止`);
     }
     return true;
   } catch (error) {
@@ -208,7 +302,12 @@ export function convertGenerateWithCustomPreset(config: GenerateConfig): Generat
   );
 
   const custom_api = { ...config.custom_api };
-  const setValidly = (param: string, value: number | undefined, min: number | null =null, max: number | null =null) => {
+  const setValidly = (
+    param: string,
+    value: number | undefined,
+    min: number | null = null,
+    max: number | null = null,
+  ) => {
     if (typeof value !== 'number') {
       return;
     }
@@ -219,7 +318,7 @@ export function convertGenerateWithCustomPreset(config: GenerateConfig): Generat
       value = Math.min(max, value);
     }
     _.set(custom_api, param, value);
-  }
+  };
   setValidly('max_tokens', preset.settings.max_completion_tokens);
   setValidly('temperature', preset.settings.temperature, 0, 2);
   setValidly('frequency_penalty', preset.settings.frequency_penalty, -2, 2);
@@ -273,43 +372,25 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
  * @param config.bindToStopButton 是否绑定到酒馆停止按钮；默认为 true
  * @returns Promise<string> 生成的响应文本
  */
-async function iframeGenerate({
-  generation_id,
-  user_input = '',
-  use_preset = true,
-  image = undefined,
-  overrides = undefined,
-  max_chat_history = undefined,
-  inject = [],
-  order = undefined,
-  stream = false,
-  bindToStopButton = true,
-  custom_api = undefined,
-  tools = undefined,
-  tool_choice = undefined,
-  json_schema = undefined,
-}: detail.GenerateParams = {}): Promise<string | GenerateToolCallResult> {
+async function iframeGenerate(
+  {
+    generation_id,
+    user_input = '',
+    use_preset = true,
+    image = undefined,
+    overrides = undefined,
+    max_chat_history = undefined,
+    inject = [],
+    order = undefined,
+    stream = false,
+    custom_api = undefined,
+    tools = undefined,
+    tool_choice = undefined,
+    json_schema = undefined,
+  }: detail.GenerateParams = {},
+  abortController: AbortController,
+): Promise<Result> {
   const generationId = generation_id!;
-
-  if (generationControllers.has(generationId)) {
-    throw new Error(`ID为 '${generationId}' 的请求正在进行中，无法启动用同一 ID 的生成任务`);
-  }
-
-  const abortController = new AbortController();
-  const shouldBindToStopButton = typeof bindToStopButton === 'boolean' ? bindToStopButton : true;
-
-  generationControllers.set(generationId, {
-    abortController,
-    bindToStopButton: shouldBindToStopButton,
-  });
-
-  if (shouldBindToStopButton) {
-    const shouldDeactivateSendButtons = stopButtonBoundGenerationIds.size === 0;
-    stopButtonBoundGenerationIds.add(generationId);
-    if (shouldDeactivateSendButtons) {
-      deactivateSendButtons();
-    }
-  }
 
   let imageProcessingSetup: ReturnType<typeof setupImageArrayProcessing> | undefined = undefined;
 
@@ -318,8 +399,10 @@ async function iframeGenerate({
     const inputResult = await processUserInputWithImages(user_input, use_preset, image);
     const { processedUserInput, processedImageArray } = inputResult;
     imageProcessingSetup = inputResult.imageProcessingSetup;
+    abortController.signal.throwIfAborted();
 
     await eventSource.emit(event_types.GENERATION_AFTER_COMMANDS, 'normal', {}, false);
+    abortController.signal.throwIfAborted();
 
     // 2. 准备过滤后的基础数据
     const baseData = await prepareAndOverrideData(
@@ -332,6 +415,7 @@ async function iframeGenerate({
       },
       processedUserInput,
     );
+    abortController.signal.throwIfAborted();
 
     // 3. 根据 use_preset 分流处理
     const generate_data = use_preset
@@ -354,8 +438,10 @@ async function iframeGenerate({
           },
           processedUserInput,
         );
+    abortController.signal.throwIfAborted();
 
     await eventSource.emit(event_types.GENERATE_AFTER_DATA, generate_data, false);
+    abortController.signal.throwIfAborted();
     // 4. 根据 stream 参数决定生成方式
     const toolOptions = tools?.length ? { tools, tool_choice } : undefined;
     const result = await generateResponse(
@@ -368,6 +454,7 @@ async function iframeGenerate({
       toolOptions,
       json_schema,
     );
+    abortController.signal.throwIfAborted();
 
     return result;
   } catch (error) {
@@ -378,33 +465,60 @@ async function iframeGenerate({
   } finally {
     // 清理
     cleanupImageProcessing(imageProcessingSetup);
-    generationControllers.delete(generationId);
+  }
+}
 
-    if (shouldBindToStopButton) {
-      stopButtonBoundGenerationIds.delete(generationId);
-      if (stopButtonBoundGenerationIds.size === 0) {
-        unblockGeneration();
+async function runGeneration(
+  config: GenerateConfig | GenerateRawConfig,
+  type: 'generate' | 'generateRaw',
+): Promise<Result> {
+  config.generation_id = config.generation_id || uuidv4();
+  const id = config.generation_id;
+  if (reservedGenerationIds.has(id)) {
+    throw new Error(`ID为 '${id}' 的请求正在进行中`);
+  }
+  reservedGenerationIds.add(id);
+  try {
+    return await admit(id, normalizedGroup(config.concurrency_group), !(config.should_silence ?? false), async () => {
+      const controller = new AbortController();
+      const bind = !(config.should_silence ?? false);
+      try {
+        generationControllers.set(id, { abortController: controller, bindToStopButton: bind });
+        if (bind) {
+          if (!stopButtonBoundGenerationIds.size) {
+            deactivateSendButtons();
+          }
+          stopButtonBoundGenerationIds.add(id);
+        }
+        await eventSource.emit('js_generation_requested', id, type, config);
+        controller.signal.throwIfAborted();
+        const params =
+          type === 'generate'
+            ? (config as GenerateConfig).preset_name && (config as GenerateConfig).preset_name !== 'in_use'
+              ? fromGenerateRawConfig(convertGenerateWithCustomPreset(config as GenerateConfig))
+              : fromGenerateConfig(config as GenerateConfig)
+            : fromGenerateRawConfig(config as GenerateRawConfig);
+        return await iframeGenerate(params, controller);
+      } finally {
+        if (generationControllers.get(id)?.abortController === controller) {
+          generationControllers.delete(id);
+        }
+        if (stopButtonBoundGenerationIds.delete(id) && !stopButtonBoundGenerationIds.size) {
+          unblockGeneration();
+        }
       }
-    }
+    });
+  } finally {
+    reservedGenerationIds.delete(id);
   }
 }
 
-export async function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult> {
-  config.generation_id = config.generation_id || uuidv4();
-  await eventSource.emit('js_generation_requested', config.generation_id, 'generate', config);
-  if (config.preset_name && config.preset_name !== 'in_use') {
-    const converted_config = convertGenerateWithCustomPreset(config);
-    return await iframeGenerate(fromGenerateRawConfig(converted_config));
-  }
-  const converted_config = fromGenerateConfig(config);
-  return await iframeGenerate(converted_config);
+export function generate(config: GenerateConfig): Promise<Result> {
+  return runGeneration(config, 'generate');
 }
 
-export async function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult> {
-  config.generation_id = config.generation_id || uuidv4();
-  await eventSource.emit('js_generation_requested', config.generation_id, 'generateRaw', config);
-  const converted_config = fromGenerateRawConfig(config);
-  return await iframeGenerate(converted_config);
+export function generateRaw(config: GenerateRawConfig): Promise<Result> {
+  return runGeneration(config, 'generateRaw');
 }
 
 /**
@@ -415,11 +529,10 @@ $(document)
   .on('click.tavernhelper_generate', '#mes_stop', function () {
     stopGeneration();
 
-    if (stopButtonBoundGenerationIds.size === 0) {
-      return;
-    }
-
     const idsToAbort = Array.from(stopButtonBoundGenerationIds.values());
+    const pendingIds = Array.from(pendingAdmissions.values())
+      .filter(item => item.bindToStopButton)
+      .map(item => item.id);
     for (const id of idsToAbort) {
       const entry = generationControllers.get(id);
       if (!entry) {
@@ -431,6 +544,10 @@ $(document)
       generationControllers.delete(id);
       stopButtonBoundGenerationIds.delete(id);
       eventSource.emit(event_types.GENERATION_STOPPED, id);
+    }
+
+    for (const id of pendingIds) {
+      cancelPending(id, '点击停止按钮');
     }
 
     if (stopButtonBoundGenerationIds.size === 0) {
