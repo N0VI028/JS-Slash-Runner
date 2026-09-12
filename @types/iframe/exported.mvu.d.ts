@@ -64,7 +64,7 @@ declare const Mvu: {
      *
      * @example
      * // 修复 gemini 在中文间加入的 '-'', 如将 '角色.络-络' 修复为 '角色.络络'
-     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     * eventOn(Mvu.events.COMMAND_PARSED, (_variables, commands) => {
      *   commands.forEach(command => {
      *     command.args[0] = command.args[0].replace(/-/g, '');
      *   });
@@ -72,7 +72,7 @@ declare const Mvu: {
      *
      * @example
      * // 修复繁体字, 如将 '絡絡' 修复为 '络络'
-     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     * eventOn(Mvu.events.COMMAND_PARSED, (_variables, commands) => {
      *   commands.forEach(command => {
      *     command.args[0] = command.args[0].replaceAll('絡絡', '络络');
      *   });
@@ -80,11 +80,11 @@ declare const Mvu: {
      *
      * @example
      * // 添加新的更新命令
-     * eventOn(Mvu.events.COMMAND_PARSED, commands => {
+     * eventOn(Mvu.events.COMMAND_PARSED, (_variables, commands) => {
      *   commands.push({
      *     type: 'set',
-     *     full_match: `_.set('络络.好感度', 5)`,
-     *     args: ['络络.好感度', 5],
+     *     full_match: `_.set('络络.好感度', '5')`,
+     *     args: ['络络.好感度', '5'],
      *     reason: '脚本强行更新',
      *   });
      * });
