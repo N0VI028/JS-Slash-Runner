@@ -120,7 +120,12 @@
                   role="region"
                   :aria-label="`${item_data.role} 提示词内容`"
                 >
-                  <Content :content="item_data.content" :search-input="search_input" :matched-only="matched_only" />
+                  <Content
+                    :content="item_data.content"
+                    :search-input="search_input"
+                    :matched-only="matched_only"
+                    :marks="wiMarksOf(item_data.id)"
+                  />
                   <ImageGallery v-if="item_data.images && item_data.images.length" :images="item_data.images" />
                   <!-- 工具调用信息显示 -->
                   <template v-if="item_data.tool_calls && item_data.tool_calls.length">
@@ -161,6 +166,8 @@ import { SendingMessage } from '@/function/event';
 import Content from '@/panel/toolbox/prompt_viewer/Content.vue';
 import ImageGallery from '@/panel/toolbox/prompt_viewer/ImageGallery.vue';
 import { createPromptData, type PromptData } from '@/panel/toolbox/prompt_viewer/prompt_data';
+import { toWiMarks, type WiMark } from '@/panel/toolbox/prompt_viewer/wi_tracer/marks';
+import { setupWorldInfoTracer, wi_trace_report } from '@/panel/toolbox/prompt_viewer/wi_tracer/trace';
 import { usePresetSettingsStore } from '@/store/settings';
 import { copyText } from '@/util/compatibility';
 import {
@@ -173,10 +180,12 @@ import {
   stopGeneration,
 } from '@sillytavern/script';
 import { getChatCompletionModel } from '@sillytavern/scripts/openai';
-import { throttleFilter, useLocalStorage, useResizeObserver } from '@vueuse/core';
+import { useLocalStorage, useResizeObserver } from '@vueuse/core';
 import _ from 'lodash';
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, Teleport, toRef, useTemplateRef, watch } from 'vue';
 import { VirtList } from 'vue-virt-list';
+
+setupWorldInfoTracer();
 
 const is_filter_opened = ref<boolean>(false);
 const teleportTarget = useTemplateRef<HTMLElement>('teleportTarget');
@@ -193,20 +202,16 @@ const virt_list_container_ref = useTemplateRef<HTMLElement>('virt_list_container
 
 const container_height = ref(0);
 
-useResizeObserver(
-  virt_list_container_ref,
-  entries => {
-    const entry = entries[0];
-    if (entry) {
-      container_height.value = entry.contentRect.height;
-      // 触发虚拟列表重算，避免滚动位置错位
-      nextTick(() => {
-        virt_list_ref.value?.forceUpdate();
-      });
-    }
-  },
-  { eventFilter: throttleFilter(16) },
-);
+useResizeObserver(virt_list_container_ref, entries => {
+  const entry = entries[0];
+  if (entry) {
+    container_height.value = entry.contentRect.height;
+    // 触发虚拟列表重算，避免滚动位置错位
+    nextTick(() => {
+      virt_list_ref.value?.forceUpdate();
+    });
+  }
+});
 
 const expanded_content_style = computed(() => {
   if (container_height.value <= 0) {
@@ -251,8 +256,19 @@ function handleToolCallsToggle(id: number, event: Event) {
   is_tool_calls_expanded.value[id] = details.open;
 }
 
+const wi_marks = computed(() => {
+  const report = wi_trace_report.value;
+  if (!report?.segments.length) return new Map<number, WiMark[]>();
+  const groups = Map.groupBy(report.segments, s => s.messageIndex);
+  return new Map([...groups].map(([index, segs]) => [index, toWiMarks(segs)]));
+});
+
+function wiMarksOf(id: number): WiMark[] | undefined {
+  return wi_marks.value.get(id);
+}
+
 watch(
-  () => [filtered_prompts, is_expanded],
+  () => [filtered_prompts, is_expanded, wi_marks],
   () => {
     virt_list_ref.value?.forceUpdate();
   },
@@ -270,6 +286,7 @@ const hint_text = computed(() => {
     case 'idle':
       return '';
   }
+  return '';
 });
 
 if (is_send_press) {
