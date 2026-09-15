@@ -102,7 +102,7 @@ export type WiTraceSegment = {
   end: number;
   entry?: WiEntrySnapshot;
   presetEntry?: PresetEntrySnapshot;
-  source?: 'wi' | 'preset' | 'card';
+  source?: 'wi' | 'preset' | 'card' | 'persona';
   positionLabel: string;
 };
 

@@ -235,10 +235,22 @@ const prompts = shallowRef<PromptData[]>([]);
 const roles_to_show = ref<string[]>(['system', 'user', 'assistant', 'tool']);
 const search_input = ref<RegExp | null>(null);
 const matched_only = useLocalStorage<boolean>('TH-PromptViewer:matched_only', false);
+const wi_marks = computed(() => {
+  const report = wi_trace_report.value;
+  if (!report?.segments.length) return new Map<number, WiMark[]>();
+  const groups = Map.groupBy(report.segments, s => s.messageIndex);
+  return new Map([...groups].map(([index, segs]) => [index, toWiMarks(segs)]));
+});
+
 const filtered_prompts = computed(() => {
   return _(prompts.value)
     .filter(prompt => roles_to_show.value.includes(prompt.role))
-    .filter(prompt => search_input.value === null || search_input.value.test(prompt.content))
+    .filter(
+      prompt =>
+        search_input.value === null ||
+        search_input.value.test(prompt.content) ||
+        (wi_marks.value.get(prompt.id) ?? []).some(mark => search_input.value.test(mark.label)),
+    )
     .value();
 });
 
@@ -255,13 +267,6 @@ function handleToolCallsToggle(id: number, event: Event) {
   const details = event.target as HTMLDetailsElement;
   is_tool_calls_expanded.value[id] = details.open;
 }
-
-const wi_marks = computed(() => {
-  const report = wi_trace_report.value;
-  if (!report?.segments.length) return new Map<number, WiMark[]>();
-  const groups = Map.groupBy(report.segments, s => s.messageIndex);
-  return new Map([...groups].map(([index, segs]) => [index, toWiMarks(segs)]));
-});
 
 function wiMarksOf(id: number): WiMark[] | undefined {
   return wi_marks.value.get(id);

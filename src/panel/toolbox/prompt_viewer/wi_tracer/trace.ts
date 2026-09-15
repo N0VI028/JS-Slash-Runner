@@ -2,6 +2,7 @@ import { chat_metadata, event_types, extension_prompt_types, getCharacterCardFie
 import { promptManager } from '@sillytavern/scripts/openai';
 import { metadata_keys, NOTE_MODULE_NAME, shouldWIAddPrompt } from '@sillytavern/scripts/authors-note';
 import { inject_ids } from '@sillytavern/scripts/constants';
+import { power_user } from '@sillytavern/scripts/power-user';
 import type { SendingMessage } from '@/function/event';
 import { getCurrentScope, onScopeDispose, shallowRef } from 'vue';
 import { splitBySpans, toWiMarks, type WiMark } from './marks';
@@ -197,6 +198,7 @@ async function buildReport(messages: SendingMessage[]): Promise<WiTraceReport> {
   await resolveChannels(buckets, ctx);
   await resolvePresetChannels(ctx);
   resolveCharacterDescription(ctx);
+  resolvePersonaDescription(ctx);
   return report;
 }
 
@@ -230,6 +232,28 @@ function resolveCharacterDescription(ctx: TraceContext): void {
     text: content,
     source: 'card',
     label: '角色描述',
+  });
+}
+
+/**
+ * 定位用户信息消息并标注用户信息来源徽章
+ * personaDescription 仅在 IN_PROMPT 位置注入（openai.js:1424-1425），
+ * 消息内容为 power_user.persona_description 原文，未经宏替换与 trim
+ * @param ctx 溯源共享上下文
+ */
+function resolvePersonaDescription(ctx: TraceContext): void {
+  const content = String(power_user.persona_description ?? '');
+  if (!content.trim()) return;
+
+  const target = findDisplayTarget(ctx.by_identifier, 'personaDescription', null);
+  if (!target) return;
+
+  addSegment(ctx, {
+    index: target.display.index,
+    start: target.child.start,
+    text: content,
+    source: 'persona',
+    label: '用户信息',
   });
 }
 
