@@ -2,9 +2,9 @@
  * 提示词查看器
  * 提供注入计数、深度枚举、消息定位、状态快照及分段工具。
  */
-import type { SendingMessage } from '@/function/event';
 import { extension_prompt_types, extension_prompts } from '@sillytavern/script';
 import { promptManager } from '@sillytavern/scripts/openai';
+import { projectSpan } from './align';
 import { textContent } from './pure_replay';
 import { replayExtensionPromptPart } from './replay';
 import type {
@@ -13,6 +13,7 @@ import type {
   ExtPromptPart,
   ExtPromptSnapshot,
   PresetEntrySnapshot,
+  TraceContext,
   WiEntrySnapshot,
   WiTraceReport,
 } from './types';
@@ -110,17 +111,6 @@ export function resolveDepthBlockTarget(query: DepthBlockTargetQuery): DisplayTa
   return findDisplayTarget(query.by_identifier, `chatHistory-${query.max_number - distance}`, roleName(query.role));
 }
 
-/**
- * 取查看器消息内容的切片
- * @param messages 消息数组
- * @param index 消息索引
- * @param start 起始偏移
- * @param end 结束偏移
- */
-export function sliceContent(messages: SendingMessage[], index: number, start: number, end: number): string {
-  return textContent(messages[index]?.content).slice(start, end);
-}
-
 /** addSegment 的入参 */
 export type SegmentInput = {
   index: number;
@@ -134,27 +124,31 @@ export type SegmentInput = {
 };
 
 /**
- * 插入一个定位段并进行等值校验
- * @param report 溯源报告
- * @param messages 最终消息列表
+ * 插入一个定位段：先在 EJS 前的 display 内容上等值校验，
+ * 校验通过后再把区间投影到 EJS 后的最终消息坐标系；任一环节失败即放弃该段
+ * @param ctx 溯源上下文
  * @param input 定位段参数
  */
-export function addSegment(report: WiTraceReport, messages: SendingMessage[], input: SegmentInput): void {
-  const end = input.start + input.text.length;
-  const verified =
-    input.verified_override !== undefined
-      ? input.verified_override
-      : sliceContent(messages, input.index, input.start, end) === input.text;
+export function addSegment(ctx: TraceContext, input: SegmentInput): void {
+  const display_item = ctx.display[input.index];
+  if (!display_item) return;
 
-  report.segments.push({
-    messageIndex: input.index,
-    start: input.start,
-    end,
+  const pre = textContent(display_item.info.content);
+  const end = input.start + input.text.length;
+  if (input.verified_override !== true && pre.slice(input.start, end) !== input.text) return;
+
+  const pair = ctx.pairs.get(input.index);
+  const projected = pair ? projectSpan(pair.pre, pair.post, input.start, end) : null;
+  if (!projected) return;
+
+  ctx.report.segments.push({
+    messageIndex: pair.messageIndex,
+    start: projected.start,
+    end: projected.end,
     entry: input.entry,
     presetEntry: input.presetEntry,
     source: input.source,
     positionLabel: input.label,
-    verified,
   });
 }
 

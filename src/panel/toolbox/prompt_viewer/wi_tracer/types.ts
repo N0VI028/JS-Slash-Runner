@@ -1,4 +1,4 @@
-import type { SendingMessage } from '@/function/event';
+import type { MessagePair } from './align';
 
 export type WiEntrySnapshot = {
   uid: number;
@@ -91,7 +91,7 @@ export type PipelineRecording = {
 export type TraceContext = {
   display: DisplayMessage[];
   by_identifier: Map<string, DisplayMessage[]>;
-  messages: SendingMessage[];
+  pairs: Map<number, MessagePair>;
   report: WiTraceReport;
 };
 
@@ -104,8 +104,6 @@ export type WiTraceSegment = {
   presetEntry?: PresetEntrySnapshot;
   source?: 'wi' | 'preset' | 'card';
   positionLabel: string;
-  verified: boolean;
-  note?: string;
 };
 
 /** 一次溯源完整结果报告 */

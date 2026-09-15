@@ -5,6 +5,7 @@ import { inject_ids } from '@sillytavern/scripts/constants';
 import type { SendingMessage } from '@/function/event';
 import { getCurrentScope, onScopeDispose, shallowRef } from 'vue';
 import { splitBySpans, toWiMarks, type WiMark } from './marks';
+import { alignMessages } from './align';
 import { installPipelineRecorder, takePipelineRecording } from './pipeline_recorder';
 import { buildDisplayFromRecording, textContent } from './pure_replay';
 import { resolvePresetChannels } from './preset_tracer';
@@ -154,31 +155,6 @@ function buildIdentifierMap(display: DisplayMessage[]): Map<string, DisplayMessa
 }
 
 /**
- * 校验 display 与 SETTINGS_READY 传入的 messages 是否在下标和角色上对齐
- * 发现异常时输出详细诊断，把对齐假设变为可观测
- * @param display 构筑的 display 消息数组
- * @param messages SETTINGS_READY 传入的最终消息列表
- */
-function observeAlignment(display: DisplayMessage[], messages: SendingMessage[]): void {
-  if (display.length !== messages.length) {
-    console.warn(
-      `[TavernHelper] display 长度 (${display.length}) 与最终消息长度 (${messages.length}) 不一致，可能存在未捕获的外部改写`,
-    );
-    return;
-  }
-  for (let i = 0; i < display.length; i++) {
-    const dispRole = display[i].info.role;
-    const msgRole = messages[i].role;
-    if (dispRole !== msgRole) {
-      console.warn(
-        `[TavernHelper] 消息 #${i} 角色不匹配: display 为 ${dispRole}, final 为 ${msgRole}`,
-      );
-      break;
-    }
-  }
-}
-
-/**
  * 构建溯源共享上下文
  * @param root promptManager 根消息集合
  * @param messages 最终消息列表
@@ -187,13 +163,16 @@ function observeAlignment(display: DisplayMessage[], messages: SendingMessage[])
 function createTraceContext(root: unknown, messages: SendingMessage[], report: WiTraceReport): TraceContext {
   const recording = takePipelineRecording();
   const display = buildDisplayFromRecording(recording, root);
-  observeAlignment(display, messages);
+  const pairs = alignMessages(
+    display.map(item => ({ role: item.info.role, content: textContent(item.info.content) })),
+    messages.map(message => ({ role: message.role, content: textContent(message.content) })),
+  );
   const by_identifier = buildIdentifierMap(display);
 
   return {
     display,
     by_identifier,
-    messages,
+    pairs,
     report,
   };
 }
@@ -218,8 +197,6 @@ async function buildReport(messages: SendingMessage[]): Promise<WiTraceReport> {
   await resolveChannels(buckets, ctx);
   await resolvePresetChannels(ctx);
   resolveCharacterDescription(ctx);
-
-  report.segments = report.segments.filter(segment => segment.verified);
   return report;
 }
 
@@ -247,7 +224,7 @@ function resolveCharacterDescription(ctx: TraceContext): void {
   const target = findDisplayTarget(ctx.by_identifier, 'charDescription', null);
   if (!target) return;
 
-  addSegment(ctx.report, ctx.messages, {
+  addSegment(ctx, {
     index: target.display.index,
     start: target.child.start,
     text: content,
@@ -273,7 +250,7 @@ function pushMainBlockSegments(
   const joined = joinWithSpans(segments.map(segment => segment.text));
 
   for (const [index, segment] of segments.entries()) {
-    addSegment(ctx.report, ctx.messages, {
+    addSegment(ctx, {
       index: target.display.index,
       start: target.child.start + prefix + joined.spans[index].start,
       text: segment.text,
@@ -451,7 +428,7 @@ function pushInjectionParts(
   for (const item of query.parts) {
     if (!item.entry) continue;
     const start = target.child.start + anchor - lead_skip + item.rawStart;
-    addSegment(ctx.report, ctx.messages, {
+    addSegment(ctx, {
       index: target.display.index,
       start,
       text: item.text,
@@ -500,7 +477,7 @@ function pushNoteSegments(
   ctx: TraceContext,
 ): void {
   for (const [i, segment] of segments.entries()) {
-    addSegment(ctx.report, ctx.messages, {
+    addSegment(ctx, {
       index,
       start: spans[i].start + shift,
       text: segment.text,
@@ -533,13 +510,13 @@ function resolveExamples(buckets: WiBuckets, ctx: TraceContext): void {
     const expected = contents_cache.get(group_index)?.[message_index];
     const content = textContent(item.info.content);
 
-    ctx.report.segments.push({
-      messageIndex: item.index,
+    addSegment(ctx, {
+      index: item.index,
       start: 0,
-      end: content.length,
+      text: content,
       entry: group.entry,
-      positionLabel: positionLabel(group.entry.position),
-      verified: expected !== undefined && expected === content,
+      label: positionLabel(group.entry.position),
+      verified_override: expected !== undefined && expected === content,
     });
   }
 }

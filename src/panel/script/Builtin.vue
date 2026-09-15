@@ -34,7 +34,7 @@
             flex w-full min-w-0 items-center justify-between rounded-sm border border-(--SmartThemeBorderColor) p-0.25
           "
         >
-          <div class="ml-0.5 min-w-0 grow text-left! wrap-break-word">
+          <div class="ml-0.5 min-w-0 grow text-left! overflow-hidden text-ellipsis">
             {{ script.name }}
           </div>
           <div class="flex shrink-0 items-center gap-0.5">
