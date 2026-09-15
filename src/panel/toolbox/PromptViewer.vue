@@ -114,7 +114,7 @@
                 <Divider />
                 <!-- prettier-ignore-attribute -->
                 <div
-                  class="mt-0.5 rounded-b-md leading-[1.4] wrap-break-word whitespace-pre-wrap text-(--mainFontSize)"
+                  class="mt-0.5 rounded-b-md leading-[1.4] whitespace-pre-wrap text-(--mainFontSize)"
                   :style="expanded_content_style"
                   tabindex="0"
                   role="region"
@@ -409,7 +409,7 @@ function copyPrompt(content: string) {
 }
 
 .tool-call-arguments {
-  @apply mt-0.25 mb-0 overflow-x-auto whitespace-pre-wrap wrap-break-word rounded-sm bg-(--SmartThemeBlurTintColor)/50 p-0.5 th-text-sm text-(--SmartThemeBodyColor);
+  @apply mt-0.25 mb-0 overflow-x-auto whitespace-pre-wrap rounded-sm bg-(--SmartThemeBlurTintColor)/50 p-0.5 th-text-sm text-(--SmartThemeBodyColor);
 }
 
 /* tool_call_id 代码样式 */

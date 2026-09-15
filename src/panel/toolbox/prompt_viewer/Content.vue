@@ -18,7 +18,7 @@
       <!-- 展开内容 -->
       <div
         v-else
-        class="TH-prompt-content-block wrap-break-word whitespace-pre-wrap"
+        class="TH-prompt-content-block whitespace-pre-wrap"
         :style="{ containIntrinsicSize: `auto ${block.intrinsicSizeLh}lh` }"
       >
         <template v-for="(piece, piece_index) in block.pieces" :key="piece_index">

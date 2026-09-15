@@ -12,7 +12,6 @@ export type WiMark = {
   end: number;
   label: string;
   icon?: string;
-  verified: boolean;
   source?: 'wi' | 'preset' | 'card';
 };
 
@@ -54,7 +53,6 @@ function toMark(segment: WiTraceSegment): WiMark {
       end: segment.end,
       label: segment.positionLabel,
       icon: 'fa-solid fa-id-card',
-      verified: segment.verified,
       source: 'card',
     };
   }
@@ -67,7 +65,6 @@ function toMark(segment: WiTraceSegment): WiMark {
     end: segment.end,
     label: name,
     icon: 'fa-solid fa-book-atlas',
-    verified: segment.verified,
     source: 'wi',
   };
 }

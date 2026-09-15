@@ -84,7 +84,6 @@ export function toPresetMark(segment: WiTraceSegment): WiMark {
     end: segment.end,
     label: segment.presetEntry?.name || segment.presetEntry?.identifier || '预设条目',
     icon: 'fa-solid fa-sliders',
-    verified: segment.verified,
     source: 'preset',
   };
 }

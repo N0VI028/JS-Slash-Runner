@@ -24,7 +24,6 @@ import {
   getRelevantDepths,
   resolveDepthBlockTarget,
   ROLE_NAMES,
-  sliceContent,
 } from './trace_helpers';
 import type { DisplayTarget, PresetEntrySnapshot, TraceContext } from './types';
 
@@ -132,7 +131,7 @@ function resolveSingleRelativePreset(prompt: Record<string, unknown>, ctx: Trace
 
   const display_text = textContent(target.child.info.content);
   const snapshot = toRelativePresetEntry(prompt, identifier);
-  addSegment(ctx.report, ctx.messages, {
+  addSegment(ctx, {
     index: target.display.index,
     start: target.child.start,
     text: display_text,
@@ -249,14 +248,7 @@ function dispatchAbsolutePromptSegments(
   const contents = prompts.map(prompt => String(prompt.content ?? ''));
   const offsets = calculateAbsolutePromptOffsets(contents);
 
-  for (let i = 0; i < prompts.length; i++) {
-    const prompt = prompts[i];
-    const offset = offsets[i];
-    const start = target.child.start + offset.start;
-    const end = start + offset.text.length;
-    const actual_text = sliceContent(ctx.messages, target.display.index, start, end);
-    const verified = actual_text === offset.text;
-
+  for (const [i, prompt] of prompts.entries()) {
     const snapshot: PresetEntrySnapshot = {
       identifier: String(prompt.identifier ?? ''),
       name: typeof prompt.name === 'string' ? prompt.name : undefined,
@@ -264,14 +256,13 @@ function dispatchAbsolutePromptSegments(
       injection_depth: prompt.injection_depth !== undefined ? Number(prompt.injection_depth) : undefined,
     };
 
-    ctx.report.segments.push({
-      messageIndex: target.display.index,
-      start,
-      end,
+    addSegment(ctx, {
+      index: target.display.index,
+      start: target.child.start + offsets[i].start,
+      text: offsets[i].text,
       source: 'preset',
       presetEntry: snapshot,
-      positionLabel: `绝对注入 depth=${snapshot.injection_depth} (${snapshot.role})`,
-      verified,
+      label: `depth=${snapshot.injection_depth} (${snapshot.role})`,
     });
   }
 }
