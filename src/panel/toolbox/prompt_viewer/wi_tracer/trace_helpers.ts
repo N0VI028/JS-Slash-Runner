@@ -118,7 +118,7 @@ export type SegmentInput = {
   text: string;
   entry?: WiEntrySnapshot;
   label: string;
-  source?: 'wi' | 'preset' | 'card';
+  source?: 'wi' | 'preset' | 'card' | 'persona';
   presetEntry?: PresetEntrySnapshot;
   verified_override?: boolean;
 };

@@ -12,7 +12,7 @@ export type WiMark = {
   end: number;
   label: string;
   icon?: string;
-  source?: 'wi' | 'preset' | 'card';
+  source?: 'wi' | 'preset' | 'card' | 'persona';
 };
 
 export type TextPiece = {
@@ -54,6 +54,15 @@ function toMark(segment: WiTraceSegment): WiMark {
       label: segment.positionLabel,
       icon: 'fa-solid fa-id-card',
       source: 'card',
+    };
+  }
+  if (segment.source === 'persona') {
+    return {
+      start: segment.start,
+      end: segment.end,
+      label: '用户信息',
+      icon: 'fa-solid fa-face-smile',
+      source: 'persona',
     };
   }
 

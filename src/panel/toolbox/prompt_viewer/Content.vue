@@ -24,7 +24,7 @@
         <template v-for="(piece, piece_index) in block.pieces" :key="piece_index">
           <div v-if="piece.mark" class="TH-wi-piece">
             <div class="TH-wi-badge-row">
-              <span class="TH-wi-badge"
+              <span class="TH-wi-badge" :class="{ 'TH-wi-badge--hit': isBadgeHit(piece.mark) }"
                 ><i
                   v-if="piece.mark.icon"
                   :class="piece.mark.icon"
@@ -121,8 +121,13 @@ watch(
         return Math.max(0, low - 1);
       };
 
+      // 命中来源：正文匹配 + 徽章标签命中的区间
       const matches = [...content.matchAll(new RegExp(search_input, search_input.flags + 'g'))];
-      if (matches.length === 0) {
+      const hit_spans: { start: number; end: number }[] = [
+        ...matches.map(match => ({ start: match.index, end: match.index + match.length - 1 })),
+        ...(props.marks ?? []).filter(isBadgeHit).map(mark => ({ start: mark.start, end: mark.end - 1 })),
+      ];
+      if (hit_spans.length === 0) {
         is_expanded.value = [true];
         blocks.value = [
           {
@@ -136,10 +141,10 @@ watch(
         return;
       }
 
-      const matched_ranges: { start: number; end: number }[] = _(matches)
-        .map(match => ({
-          start: Math.max(0, offsetToLine(match.index) - NEARBY_LINE_COUNT),
-          end: Math.min(line_count - 1, offsetToLine(match.index + match.length - 1) + NEARBY_LINE_COUNT),
+      const matched_ranges: { start: number; end: number }[] = _(hit_spans)
+        .map(({ start, end }) => ({
+          start: Math.max(0, offsetToLine(start) - NEARBY_LINE_COUNT),
+          end: Math.min(line_count - 1, offsetToLine(end) + NEARBY_LINE_COUNT),
         }))
         .sortBy('start')
         .thru(matches => chunkBy(matches, (lhs, rhs) => lhs.end >= rhs.start))
@@ -205,6 +210,14 @@ watch(
 );
 
 /**
+ * 徽章标签是否命中当前搜索
+ * @param mark 徽章标记
+ */
+function isBadgeHit(mark: WiMark): boolean {
+  return props.searchInput !== null && props.searchInput.test(mark.label);
+}
+
+/**
  * 按世界书/预设标记切分各内容块为片段序列，两种模式均叠加标注
  */
 const decorated_blocks = computed(() => {
@@ -235,5 +248,9 @@ const decorated_blocks = computed(() => {
 
 .TH-wi-badge {
   @apply inline-block w-fit max-w-full overflow-hidden rounded-sm bg-(--SmartThemeQuoteColor)/30 px-0.5 text-ellipsis whitespace-nowrap text-(--SmartThemeQuoteColor);
+}
+
+.TH-wi-badge--hit {
+  box-shadow: inset 0 0 0 1px var(--SmartThemeBodyColor);
 }
 </style>
