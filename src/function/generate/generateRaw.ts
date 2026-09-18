@@ -7,14 +7,13 @@ import {
   extension_prompt_roles,
   placeholder_prompt_default_order,
 } from '@/function/generate/types';
-import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
+import { clearInjectionPrompts, convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
 import {
   MAX_INJECTION_DEPTH,
   eventSource,
   event_types,
   extension_prompt_types,
   extension_prompts,
-  getExtensionPromptByName,
   substituteParams,
 } from '@sillytavern/script';
 import {
@@ -42,7 +41,7 @@ import { InjectionPrompt } from '../inject';
  * @returns Promise<{systemPrompts: PromptCollection, dialogue_examples: MessageCollection}> 返回系统提示词和对话示例的集合
  */
 async function convertSystemPromptsToCollection(
-  baseData: any,
+  baseData: BaseData,
   promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
 ) {
   const promptCollection = new PromptCollection();
@@ -129,7 +128,7 @@ async function convertSystemPromptsToCollection(
  * @returns Promise<void> 无返回值，直接修改chatCompletion对象
  */
 async function processChatHistoryAndInject(
-  baseData: any,
+  baseData: BaseData,
   promptConfig: Omit<detail.GenerateParams, 'user_input' | 'use_preset'>,
   chatCompletion: ChatCompletion,
   processedUserInput: string,
@@ -318,10 +317,9 @@ async function populationInjectionPrompts(
     const wiDepthPrompt = baseData.worldInfo.worldInfoDepth;
     if (wiDepthPrompt) {
       for (const entry of wiDepthPrompt) {
-        const content = await getExtensionPromptByName(`customDepthWI-${entry.depth}-${entry.role}`);
         injectionPrompts.push({
           role: getPromptRole(entry.role),
-          content: content,
+          content: entry.entries.join('\n'),
           injection_depth: entry.depth,
           injected: true,
         });
@@ -438,7 +436,12 @@ async function filteredGetExtensionPrompt(
   };
   const promptPromises = Object.keys(extension_prompts)
     .sort()
-    .filter(x => x !== '2_floating_prompt' && !/customDepthWI-\d+-\d+/.test(x) && !/TH-CustomInjects-.+/.test(x))
+    .filter(
+      x =>
+        x !== '2_floating_prompt' &&
+        !/customDepthWI-\d+-\d+/.test(x) &&
+        !/TH-CustomInjects-.+/.test(x),
+    )
     // @ts-expect-error 无视类型
     .map(x => extension_prompts[x])
     .filter(x => x.position == position && x.value)

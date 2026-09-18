@@ -194,16 +194,16 @@ export type BaseData = {
     jailbreak: string;
   };
   chatContext: {
-    oaiMessages: RolePrompt[];
-    oaiMessageExamples: string[];
-    promptBias: string[];
+    oaiMessages: any[];
+    oaiMessageExamples: any[];
+    promptBias: string;
   };
   worldInfo: {
-    worldInfoAfter: Array<string>;
-    worldInfoBefore: Array<string>;
-    worldInfoDepth: Array<{ entries: string; depth: number; role: number }>;
-    worldInfoExamples: Array<string>;
-    worldInfoString: Array<string>;
+    worldInfoAfter: string | null;
+    worldInfoBefore: string | null;
+    worldInfoDepth: any[] | null;
+    worldInfoExamples: any[];
+    worldInfoString: string;
   };
 };
 
