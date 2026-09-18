@@ -1,4 +1,4 @@
-import { detail, RolePrompt } from '@/function/generate/types';
+import { BaseData, detail, RolePrompt } from '@/function/generate/types';
 import {
   addTemporaryUserMessage,
   clearInjectionPrompts,
@@ -40,10 +40,12 @@ import { getWorldInfoPrompt, wi_anchor_position, world_info_include_names } from
 export async function prepareAndOverrideData(
   config: Omit<detail.GenerateParams, 'user_input'>,
   processedUserInput: string,
-) {
-  const getOverrideContent = (identifier: string): string | RolePrompt[] | undefined => {
+): Promise<BaseData> {
+  const getOverrideContent = <T extends keyof detail.OverrideConfig>(
+    identifier: T,
+  ): detail.OverrideConfig[T] | undefined => {
     if (!config.overrides) return undefined;
-    const value = config.overrides[identifier as keyof detail.OverrideConfig];
+    const value = config.overrides[identifier];
     if (typeof value === 'boolean') return undefined;
     return value;
   };
@@ -97,12 +99,11 @@ export async function prepareAndOverrideData(
     ? ''
     : ((getOverrideContent('dialogue_examples') as string) ?? rawMesExamples);
 
-  let mesExamplesArray = parseMesExamples(mesExamples);
-  let oaiMessageExamples = [];
-  oaiMessageExamples = setOpenAIMessageExamples(mesExamplesArray);
+  const mesExamplesArray = parseMesExamples(mesExamples);
+  const oaiMessageExamples = setOpenAIMessageExamples(mesExamplesArray) as any[];
 
   // 5. 获取偏置字符串
-  const { promptBias } = getBiasStrings(processedUserInput, 'normal');
+  const { promptBias } = getBiasStrings(processedUserInput, 'normal') as { promptBias: string };
 
   // 6. 处理自定义注入的提示词
   if (config.inject) {
@@ -110,11 +111,11 @@ export async function prepareAndOverrideData(
   }
 
   // 7. 处理聊天记录
-  let oaiMessages = [];
+  let oaiMessages: RolePrompt[];
   if (config.overrides?.chat_history) {
     oaiMessages = [...config.overrides.chat_history].reverse();
   } else {
-    oaiMessages = setOpenAIMessages(await processChatHistory(chat));
+    oaiMessages = setOpenAIMessages(await processChatHistory(chat)) as any[];
     if (config.max_chat_history !== undefined) {
       oaiMessages = oaiMessages.slice(0, config.max_chat_history);
     }
@@ -136,9 +137,9 @@ export async function prepareAndOverrideData(
   removeTemporaryUserMessage();
 
   // 9. 处理世界书消息示例
-  mesExamplesArray = !isPromptFiltered('dialogue_examples', config)
-    ? await processMessageExamples(mesExamplesArray, worldInfo.worldInfoExamples)
-    : [];
+  if (!isPromptFiltered('dialogue_examples', config)) {
+    await processMessageExamples(mesExamplesArray, worldInfo.worldInfoExamples);
+  }
 
   return {
     characterInfo: {
@@ -293,7 +294,7 @@ async function processWorldInfo(
     charDepthPrompt: string;
     creatorNotes: string;
   },
-) {
+): Promise<BaseData['worldInfo']> {
   const chatForWI = oaiMessages
     .filter(x => x.role !== 'system')
     .map(x => {
@@ -339,7 +340,7 @@ async function processWorldInfo(
     worldInfoBefore: finalWorldInfoBefore,
     worldInfoAfter: finalWorldInfoAfter,
     worldInfoExamples,
-    worldInfoDepth: !isPromptFiltered('with_depth_entries', config) ? worldInfoDepth : null,
+    worldInfoDepth: !isPromptFiltered('with_depth_entries', config) ? worldInfoDepth : [],
   };
 }
 
