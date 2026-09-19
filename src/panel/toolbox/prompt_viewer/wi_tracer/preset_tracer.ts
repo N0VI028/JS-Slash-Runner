@@ -18,12 +18,12 @@ import {
   countInjectionsBefore,
   enumerateInjectionBlocks,
   findDisplayTarget,
-  getExtraOrderBlocks,
   getMaxChatHistoryNumber,
   getPresetCollection,
   getRelevantDepths,
+  promptBelongsToBlock,
+  type InjectionBlock,
   resolveDepthBlockTarget,
-  ROLE_NAMES,
 } from './trace_helpers';
 import type { DisplayTarget, PresetEntrySnapshot, TraceContext } from './types';
 
@@ -158,65 +158,27 @@ async function resolveAbsolutePresets(ctx: TraceContext): Promise<void> {
 
     const before_count = await countInjectionsBefore(depth);
     const blocks = await enumerateInjectionBlocks(depth);
-    const extra_blocks = getExtraOrderBlocks(depth);
 
-    resolveExtraOrderBlocks(prompts, extra_blocks, depth, before_count, max_number, chat_count, ctx);
-    resolveDefaultOrderBlocks(prompts, blocks, extra_blocks.length, depth, before_count, max_number, chat_count, ctx);
+    resolveDepthBlocks(prompts, blocks, depth, before_count, max_number, chat_count, ctx);
   }
 }
 
 /**
- * 处理非 100 优先级的额外注入块
+ * 处理当前深度所有统一降序注入块中的预设条目
+ * 镜像 openai.js:824-855 统一按 (order, role) 定位目标消息
  */
-function resolveExtraOrderBlocks(
+function resolveDepthBlocks(
   prompts: Array<Record<string, unknown>>,
-  extra_blocks: Array<{ role: number; has_extension: boolean }>,
+  blocks: InjectionBlock[],
   depth: number,
   before_count: number,
   max_number: number,
   chat_count: number,
   ctx: TraceContext,
 ): void {
-  for (let index = 0; index < extra_blocks.length; index++) {
-    const block = extra_blocks[index];
-    const target = resolveDepthBlockTarget({
-      by_identifier: ctx.by_identifier,
-      max_number,
-      chat_count,
-      before_count,
-      depth,
-      block_index: index,
-      role: block.role,
-    });
-    if (!target) continue;
-
-    const block_prompts = prompts.filter(
-      prompt => Number(prompt.injection_order ?? 100) !== 100 && prompt.role === ROLE_NAMES[block.role],
-    );
-    dispatchAbsolutePromptSegments(block_prompts, target, ctx);
-  }
-}
-
-/**
- * 处理默认 100 优先级的注入块（system/user/assistant）
- */
-function resolveDefaultOrderBlocks(
-  prompts: Array<Record<string, unknown>>,
-  blocks: Array<{ role: number; has_extension: boolean }>,
-  extra_length: number,
-  depth: number,
-  before_count: number,
-  max_number: number,
-  chat_count: number,
-  ctx: TraceContext,
-): void {
-  for (let role_index = 0; role_index < 3; role_index++) {
-    const block_index = blocks.findIndex((block, idx) => idx >= extra_length && block.role === role_index);
-    if (block_index === -1) continue;
-
-    const block_prompts = prompts.filter(
-      prompt => String(prompt.injection_order ?? '100') === '100' && prompt.role === ROLE_NAMES[role_index],
-    );
+  for (let block_index = 0; block_index < blocks.length; block_index++) {
+    const block = blocks[block_index];
+    const block_prompts = prompts.filter(prompt => promptBelongsToBlock(prompt, block.order, block.role));
     if (!block_prompts.length) continue;
 
     const target = resolveDepthBlockTarget({
@@ -226,7 +188,7 @@ function resolveDefaultOrderBlocks(
       before_count,
       depth,
       block_index,
-      role: role_index,
+      role: block.role,
     });
     if (!target) continue;
 
