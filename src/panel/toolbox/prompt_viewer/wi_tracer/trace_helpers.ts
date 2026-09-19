@@ -30,10 +30,17 @@ export type ExtPartReplay = {
   parts: ExtPromptPart[];
 };
 
+/** 注入消息块描述 */
+export type InjectionBlock = {
+  order: number;
+  role: number;
+  has_extension: boolean;
+};
+
 /** 单次溯源内的重放缓存 */
 export const replay_cache = {
   ext_part: new Map<string, ExtPartReplay>(),
-  blocks: new Map<number, Array<{ role: number; has_extension: boolean }>>(),
+  blocks: new Map<number, InjectionBlock[]>(),
   preset: null as Array<Record<string, unknown>> | null,
 };
 
@@ -190,40 +197,49 @@ export function getAbsoluteInjectionDepths(): number[] {
 }
 
 /**
- * 检查某深度某角色是否存在默认优先级(order=100)的绝对注入
- * @param depth 目标深度
+ * 判断预设是否属于目标 order 与角色的注入块
+ * 镜像 openai.js:824-843 的 order 分组与 role 过滤规则
+ * @param prompt 预设条目
+ * @param order 注入优先级
  * @param role 角色枚举值
  */
-export function hasAbsolutePrompts(depth: number, role: number): boolean {
-  return absolutePromptsAt(depth).some(
-    prompt => String(prompt.injection_order ?? '100') === '100' && prompt.role === roleName(role),
-  );
+export function promptBelongsToBlock(prompt: Record<string, unknown>, order: number, role: number): boolean {
+  return Number(prompt.injection_order ?? 100) === order && prompt.role === roleName(role);
 }
 
 /**
- * 获取非 100 优先级的绝对注入块
- * 镜像 order 降序、role 升序规则
- * @param depth 目标深度
+ * 收集预设涉及的注入优先级集合（恒含默认 100，降序排列）
+ * 镜像 openai.js:820-833 orderGroups 恒含 '100' 键且降序遍历
+ * @param prompts 当前深度的绝对注入预设
  */
-export function getExtraOrderBlocks(depth: number): Array<{ role: number; has_extension: boolean }> {
-  const combos = new Set(
-    absolutePromptsAt(depth)
-      .filter(
-        prompt =>
-          String(prompt.injection_order ?? '100') !== '100' &&
-          typeof prompt.role === 'string' &&
-          ROLE_NAMES.includes(prompt.role as (typeof ROLE_NAMES)[number]),
-      )
-      .map(prompt => `${prompt.injection_order}:${prompt.role}`),
-  );
+function collectInjectionOrders(prompts: Array<Record<string, unknown>>): number[] {
+  const orders = new Set<number>([100]);
+  for (const prompt of prompts) {
+    orders.add(Number(prompt.injection_order ?? 100));
+  }
+  return [...orders].sort((a, b) => b - a);
+}
 
-  return [...combos]
-    .map(combo => {
-      const [order, role_name] = combo.split(':');
-      return { order: Number(order), role: ROLE_NAMES.indexOf(role_name as (typeof ROLE_NAMES)[number]) };
-    })
-    .sort((a, b) => b.order - a.order || a.role - b.role)
-    .map(({ role }) => ({ role, has_extension: false }));
+/**
+ * 收集深度 depth 处某 order 对应的注入消息块
+ * 镜像 openai.js:824-855 按 role 顺序 ['system','user','assistant']（0..2）收集；
+ * order=100 的预设与扩展提示词（世界书）合并为同一块
+ * @param depth 目标深度
+ * @param order 注入优先级
+ * @param prompts 当前深度的绝对注入预设
+ */
+async function enumerateBlocksForOrder(
+  depth: number,
+  order: number,
+  prompts: Array<Record<string, unknown>>,
+): Promise<InjectionBlock[]> {
+  const blocks: InjectionBlock[] = [];
+  for (let r = 0; r < 3; r++) {
+    const has_preset = prompts.some(p => promptBelongsToBlock(p, order, r));
+    const has_ext = order === 100 && (await getMemoizedExtPart(depth, r)).parts.length > 0;
+    if (has_preset || has_ext) blocks.push({ order, role: r, has_extension: has_ext });
+  }
+  return blocks;
 }
 
 /**
@@ -256,25 +272,20 @@ export async function getMemoizedExtPart(depth: number, role: number): Promise<E
 
 /**
  * 枚举深度 depth 处由于注入而实际插入的消息块列表
- * 镜像 openai.js:824-850 populationInjectionPrompts 的块创建规则
+ * 镜像 openai.js:824-855 populationInjectionPrompts 的块创建规则（所有 order 统一降序）
  * @param depth 目标深度
  */
-export async function enumerateInjectionBlocks(
-  depth: number,
-): Promise<Array<{ role: number; has_extension: boolean }>> {
+export async function enumerateInjectionBlocks(depth: number): Promise<InjectionBlock[]> {
   const cached = replay_cache.blocks.get(depth);
   if (cached) return cached;
 
-  const result: Array<{ role: number; has_extension: boolean }> = [];
-  result.push(...getExtraOrderBlocks(depth));
+  const prompts = absolutePromptsAt(depth);
+  const orders = collectInjectionOrders(prompts);
+  const result: InjectionBlock[] = [];
 
-  for (let r = 0; r < 3; r++) {
-    const ext = await getMemoizedExtPart(depth, r);
-    const has_preset = hasAbsolutePrompts(depth, r);
-    const has_ext = ext.parts.length > 0;
-    if (has_preset || has_ext) {
-      result.push({ role: r, has_extension: has_ext });
-    }
+  for (const order of orders) {
+    const blocks = await enumerateBlocksForOrder(depth, order, prompts);
+    result.push(...blocks);
   }
 
   replay_cache.blocks.set(depth, result);
@@ -282,7 +293,7 @@ export async function enumerateInjectionBlocks(
 }
 
 /**
- * 计算深度 depth 之前累计插入的消息块总数
+ * 计算深度 depth 之前累计插入的注入块总数
  * @param depth 目标深度
  */
 export async function countInjectionsBefore(depth: number): Promise<number> {
@@ -296,7 +307,7 @@ export async function countInjectionsBefore(depth: number): Promise<number> {
 }
 
 /**
- * 计算所有深度累计插入的消息块总数
+ * 计算所有深度累计插入的注入块总数
  */
 export async function countAllInjections(): Promise<number> {
   let count = 0;
