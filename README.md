@@ -20,7 +20,7 @@
 
 ## 文档
 
-- [文档](https://n0vi028.github.io/JS-Slash-Runner-Doc/)
+[文档](https://n0vi028.github.io/JS-Slash-Runner-Doc/)
 
 ## 参与贡献提示
 
@@ -72,7 +72,7 @@ ST_IMPORT_DEPTH=5 pnpm build
 
 ## 许可证
 
-- [Aladdin](LICENSE)
+[PolyForm NonCommercial 1.0.0](LICENSE)
 
 ## 参考
 
