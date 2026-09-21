@@ -7,7 +7,7 @@ import {
   detail,
   GenerateConfig,
   GenerateRawConfig,
-  GenerateToolCallResult,
+  GenerateResult,
   Overrides,
   PlaceholderPrompt,
   RolePrompt,
@@ -288,7 +288,7 @@ async function iframeGenerate({
   tools = undefined,
   tool_choice = undefined,
   json_schema = undefined,
-}: detail.GenerateParams = {}): Promise<string | GenerateToolCallResult> {
+}: detail.GenerateParams = {}): Promise<string | GenerateResult> {
   const generationId = generation_id!;
 
   if (generationControllers.has(generationId)) {
@@ -389,7 +389,7 @@ async function iframeGenerate({
   }
 }
 
-export async function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult> {
+export async function generate(config: GenerateConfig): Promise<string | GenerateResult> {
   config.generation_id = config.generation_id || uuidv4();
   await eventSource.emit('js_generation_requested', config.generation_id, 'generate', config);
   if (config.preset_name && config.preset_name !== 'in_use') {
@@ -400,7 +400,7 @@ export async function generate(config: GenerateConfig): Promise<string | Generat
   return await iframeGenerate(converted_config);
 }
 
-export async function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult> {
+export async function generateRaw(config: GenerateRawConfig): Promise<string | GenerateResult> {
   config.generation_id = config.generation_id || uuidv4();
   await eventSource.emit('js_generation_requested', config.generation_id, 'generateRaw', config);
   const converted_config = fromGenerateRawConfig(config);
