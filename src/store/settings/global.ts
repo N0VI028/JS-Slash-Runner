@@ -3,10 +3,6 @@ import { GlobalSettings, setting_field } from '@/type/settings';
 import { APP_READY_EVENTS } from '@/util/tavern';
 import { eventSource, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
-import { watch } from 'fs';
-import _ from 'lodash';
-import { ref } from 'vue';
-import { t } from '../../../../../../i18n';
 
 function getSettings() {
   const backward_settings = _.get(extension_settings, 'TavernHelper');
