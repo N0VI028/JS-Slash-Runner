@@ -2402,7 +2402,7 @@ declare class RawCharacter {
    * @param name 角色名称
    * @returns 角色卡数据在characters数组中的索引，未找到返回-1
    */
-  static findCharacterIndex(name: string): any;
+  static findIndex(name: string): any;
 
   /**
    * 从服务器获取每个聊天文件的聊天内容，并将其编译成字典。
