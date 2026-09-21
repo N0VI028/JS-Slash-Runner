@@ -3,6 +3,10 @@ import { GlobalSettings, setting_field } from '@/type/settings';
 import { APP_READY_EVENTS } from '@/util/tavern';
 import { eventSource, saveSettingsDebounced } from '@sillytavern/script';
 import { extension_settings } from '@sillytavern/scripts/extensions';
+import { watch } from 'fs';
+import _ from 'lodash';
+import { ref } from 'vue';
+import { t } from '../../../../../../i18n';
 
 function getSettings() {
   const backward_settings = _.get(extension_settings, 'TavernHelper');
@@ -43,13 +47,17 @@ export const useGlobalSettingsStore = defineStore('global_settings', () => {
     settings.value.script.enabled.characters.length > 0 &&
     !settings.value.script.enabled.characters[0].endsWith('.png')
   ) {
-    settings.value.script.enabled.characters = settings.value.script.enabled.characters.map(item => item + '.png');
+    settings.value.script.enabled.characters = settings.value.script.enabled.characters.map(item =>
+      item.endsWith('.png') ? item : item + '.png',
+    );
   }
   if (
     settings.value.script.popuped.characters.length > 0 &&
     !settings.value.script.popuped.characters[0].endsWith('.png')
   ) {
-    settings.value.script.popuped.characters = settings.value.script.popuped.characters.map(item => item + '.png');
+    settings.value.script.popuped.characters = settings.value.script.popuped.characters.map(item =>
+      item.endsWith('.png') ? item : item + '.png',
+    );
   }
 
   watch(
