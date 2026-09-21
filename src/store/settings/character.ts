@@ -22,7 +22,7 @@ function getSettings(id: string | undefined): CharacterSettings {
         variables: backward_variables ?? {},
       } satisfies z.infer<typeof BackwardCharacterSettings>);
       if (parsed.success) {
-        saveSettings(id as string, characters[id as unknown as number]?.name as string, parsed.data);
+        saveSettings(id as string, characters[id as unknown as number]?.avatar as string, parsed.data);
       } else {
         toastr.warning(parsed.error.message, t`[酒馆助手]迁移旧数据失败, 将使用空数据`);
       }
@@ -42,8 +42,8 @@ function getSettings(id: string | undefined): CharacterSettings {
   return CharacterSettings.parse(parsed.data);
 }
 
-async function saveSettings(id: string, name: string, settings: CharacterSettings, affect_memory: boolean = true) {
-  if (name === characters[id as unknown as number]?.name) {
+async function saveSettings(id: string, avatar: string, settings: CharacterSettings, affect_memory: boolean = true) {
+  if (avatar === characters[id as unknown as number]?.avatar) {
     await writeExtensionField(id, setting_field, settings, affect_memory);
   }
 }
@@ -51,19 +51,21 @@ async function saveSettings(id: string, name: string, settings: CharacterSetting
 export const useCharacterSettingsStore = defineStore('character_setttings', () => {
   const id = ref<string | undefined>(this_chid);
   const name = ref<string | undefined>(characters?.[this_chid as unknown as number]?.name);
+  const avatar = ref<string | undefined>(characters?.[this_chid as unknown as number]?.avatar);
   // 切换角色卡时刷新 id
   eventSource.makeFirst(event_types.CHAT_CHANGED, () => {
-    const new_name = characters?.[this_chid as unknown as number]?.name;
-    if (id.value !== this_chid || name.value !== new_name) {
+    const new_avatar = characters?.[this_chid as unknown as number]?.avatar;
+    if (avatar.value !== new_avatar) {
       id.value = this_chid;
-      name.value = new_name;
+      name.value = characters?.[this_chid as unknown as number]?.name;
+      avatar.value = new_avatar;
     }
   });
 
   const settings = ref<CharacterSettings>(getSettings(id.value));
 
   // 切换角色卡时刷新 settings, 但不触发 settings 保存
-  watch([id, name], ([new_id]) => {
+  watch([id, avatar], ([new_id]) => {
     ignoreUpdates(() => {
       settings.value = getSettings(new_id);
     });
@@ -80,7 +82,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
         if ($('#world_button').hasClass('world_set')) {
           const book = characters[Number(current_id)]?.data?.character_book;
           if (book) {
-            const book_name = book.name || `${characters[Number(current_id)]?.name}'s Lorebook`;
+            const book_name = book.name || `${characters[Number(current_id)]?.avatar?.replace('.png', '')}'s Lorebook`;
             await saveWorldInfo(book_name, fromCharacterBook(book), true);
             await updateWorldInfoList();
             $('#character_world').val(book_name).trigger('change');
@@ -112,7 +114,7 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
       return response;
     };
     $('#export_button').on('click', async () => {
-      if (id.value !== undefined && name.value !== undefined) {
+      if (id.value !== undefined && avatar.value !== undefined) {
         const cleared_settings = klona(settings.value);
         cleared_settings.scripts.flatMap(flattenScriptTree).forEach(script => {
           if (!script.export_with.data) {
@@ -124,11 +126,11 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
         });
         scripts_summary = collectExportSummaryItems(settings.value.scripts, cleared_settings.scripts);
 
-        await saveSettings(id.value, name.value, cleared_settings, false);
+        await saveSettings(id.value, avatar.value, cleared_settings, false);
 
         const timeout_id = setTimeout(async () => {
-          if (id.value !== undefined && name.value !== undefined) {
-            await saveSettings(id.value, name.value, klona(settings.value), false);
+          if (id.value !== undefined && avatar.value !== undefined) {
+            await saveSettings(id.value, avatar.value, klona(settings.value), false);
             scripts_summary = [];
           }
         }, 10000);
@@ -140,8 +142,8 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
     eventSource.on(
       'character_export_ready',
       async ({ scripts_summary }: { scripts_summary: ScriptExportSummaryItem[] }) => {
-        if (id.value !== undefined && name.value !== undefined) {
-          await saveSettings(id.value, name.value, klona(settings.value), false);
+        if (id.value !== undefined && avatar.value !== undefined) {
+          await saveSettings(id.value, avatar.value, klona(settings.value), false);
           showExportSummaryToast(t`角色卡`, scripts_summary);
         }
       },
@@ -152,9 +154,9 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
   const { ignoreUpdates } = watchIgnorable(
     settings,
     async new_settings => {
-      if (id.value !== undefined && name.value !== undefined) {
+      if (id.value !== undefined && avatar.value !== undefined) {
         // 酒馆经常读取角色卡数据, 所以这里需要立即保存
-        await saveSettings(id.value, name.value, klona(new_settings));
+        await saveSettings(id.value, avatar.value, klona(new_settings));
       }
     },
     { deep: true },
@@ -162,16 +164,17 @@ export const useCharacterSettingsStore = defineStore('character_setttings', () =
 
   const forceReload = () => {
     ignoreUpdates(() => {
-      if (id.value !== undefined && name.value !== undefined) {
+      if (id.value !== undefined && avatar.value !== undefined) {
         settings.value = getSettings(id.value);
       }
     });
   };
 
-  // 在外应同时监听 id 和 name: 同名角色卡的 id 不同, 导入角色卡时 id 也可能不变
+  // 监听 id 不能正确反映导入新角色卡时的情况, 在外应该监听 avatar
   return {
     id: readonly(id),
     name: readonly(name),
+    avatar: readonly(avatar),
     settings,
     forceReload,
   };

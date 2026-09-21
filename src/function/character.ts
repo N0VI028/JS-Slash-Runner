@@ -53,9 +53,6 @@ export function getCharacterNames(): string[] {
   return characters.map(character => character.name);
 }
 
-/**
- * 获取角色卡头像 id 列表
- */
 export function getCharacterIds(): string[] {
   return characters.map(character => character.avatar);
 }
@@ -64,9 +61,6 @@ export function getCurrentCharacterName(): string | null {
   return name2 === '' ? null : name2;
 }
 
-/**
- * 获取当前角色卡头像 id
- */
 export function getCurrentCharacterId(): string | null {
   const current_character = RawCharacter.find({ name: 'current' });
   return current_character?.avatar ?? null;
@@ -106,13 +100,13 @@ function toCharacter(character: v1CharData): Character {
   ]);
 
   return {
-    avatar: `${character.name ?? data.name}.png`,
+    avatar: (character.avatar as `${string}.png`) ?? `${data.name}.png`,
     version: data.character_version ?? '',
     creator: data.creator ?? '',
     creator_notes: character.creatorcomment ?? data.creator_notes ?? '',
     description: character.description ?? data.description ?? '',
     first_messages: first_messages,
-    worldbook: getCharWorldbookNames(character.name).primary,
+    worldbook: getCharWorldbookNames(character.avatar ?? character.name).primary,
     // @ts-expect-error 类型是正确的, extensions 里必然有 regex_scripts 和 tavern_helper
     extensions: extensions,
   };
@@ -143,7 +137,7 @@ type Payload = {
   tags?: string[];
 };
 function fromCharacterToPayload(
-  character_name: string,
+  character_name_or_id: string | `${string}.png`,
   new_data: PartialDeep<Character>,
   old_data?: v1CharData,
 ): Payload {
@@ -157,10 +151,14 @@ function fromCharacterToPayload(
     _.set(extensions, 'regex_scripts', new_data.extensions.regex_scripts.map(from_tavern_regex));
   }
 
+  const is_id = character_name_or_id.endsWith('.png');
+  const display_name = old_data?.name ?? (is_id ? character_name_or_id.replace('.png', '') : character_name_or_id);
+  const unique_name = old_data?.avatar ?? (is_id ? character_name_or_id : character_name_or_id + '.png');
+
   return {
-    ch_name: character_name,
-    avatar_url: character_name + '.png',
-    avatar: isBlob(new_data.avatar) ? new File([new_data.avatar], character_name + '.png') : undefined,
+    ch_name: display_name,
+    avatar_url: unique_name,
+    avatar: isBlob(new_data.avatar) ? new File([new_data.avatar], unique_name) : undefined,
     character_version: new_data.version ?? old_data?.data.character_version,
     creator: new_data.creator ?? old_data?.data.creator,
     creator_notes: new_data.creator_notes ?? old_data?.data.creator_notes,
@@ -182,14 +180,14 @@ function fromCharacterToPayload(
 }
 
 export async function createCharacter(
-  character_name: Exclude<string, 'current'>,
+  character_name_or_id: Exclude<string | `${string}.png`, 'current'>,
   character: PartialDeep<Character> = {},
 ): Promise<boolean> {
-  if (character_name === 'current' || RawCharacter.findIndex(character_name) !== -1) {
+  if (character_name_or_id === 'current' || RawCharacter.findIndex(character_name_or_id) !== -1) {
     return false;
   }
 
-  const payload = fromCharacterToPayload(character_name, character);
+  const payload = fromCharacterToPayload(character_name_or_id, character);
 
   const headers = getRequestHeaders();
   _.unset(headers, 'Content-Type');
@@ -202,7 +200,7 @@ export async function createCharacter(
   });
 
   if (!response.ok) {
-    throw new Error(`创建角色卡 '${character_name}' 失败: (${response.status}) ${await response.text()}`);
+    throw new Error(`创建角色卡 '${character_name_or_id}' 失败: (${response.status}) ${await response.text()}`);
   }
 
   await getCharacters();
@@ -211,25 +209,25 @@ export async function createCharacter(
 }
 
 export async function createOrReplaceCharacter(
-  character_name: Exclude<string, 'current'>,
+  character_name_or_id: LiteralUnion<'current', string | `${string}.png`>,
   character: PartialDeep<Character> = {},
   options: ReplaceCharacterOptions = {},
 ): Promise<boolean> {
-  const index = RawCharacter.findIndex(character_name);
+  const index = RawCharacter.findIndex(character_name_or_id);
   if (index !== -1) {
-    await replaceCharacter(character_name, character, options);
+    await replaceCharacter(character_name_or_id, character, options);
     return false;
   } else {
-    await createCharacter(character_name, character);
+    await createCharacter(character_name_or_id, character);
     return true;
   }
 }
 
 export async function deleteCharacter(
-  character_name: LiteralUnion<'current', string>,
+  character_name_or_id: LiteralUnion<'current', string | `${string}.png`>,
   option: { delete_chats?: boolean } = {},
 ): Promise<boolean> {
-  const character = RawCharacter.find({ name: character_name });
+  const character = RawCharacter.find({ name: character_name_or_id });
   if (!character) {
     return false;
   }
@@ -237,10 +235,12 @@ export async function deleteCharacter(
   return true;
 }
 
-export async function getCharacter(name: LiteralUnion<'current', string>): Promise<Character> {
-  const index = RawCharacter.findIndex(name);
+export async function getCharacter(
+  character_name_or_id: LiteralUnion<'current', string | `${string}.png`>,
+): Promise<Character> {
+  const index = RawCharacter.findIndex(character_name_or_id);
   if (index === -1) {
-    throw Error(`角色卡 '${name}' 不存在`);
+    throw Error(`角色卡 '${character_name_or_id}' 不存在`);
   }
 
   await unshallowCharacter(String(index));
@@ -251,9 +251,14 @@ type ReplaceCharacterOptions = {
   render?: 'debounced' | 'immediate' | 'none';
 };
 
-export async function render_character(character_name: string, character: PartialDeep<Character>, is_current: boolean) {
+export async function render_character(
+  character_name: string,
+  character_id: `${string}.png`,
+  character: PartialDeep<Character>,
+  is_current: boolean,
+) {
   if (isBlob(character.avatar)) {
-    const avatar_url = getThumbnailUrl('avatar', character_name + '.png');
+    const avatar_url = getThumbnailUrl('avatar', character_id);
     await fetch(avatar_url, {
       method: 'GET',
       cache: 'reload',
@@ -290,24 +295,24 @@ export async function render_character(character_name: string, character: Partia
   }
 
   if (is_current) {
-    await selectCharacterById(RawCharacter.findIndex(character_name));
+    await selectCharacterById(RawCharacter.findIndex(character_id));
   }
   await printCharacters(true);
 }
 const renderCharacterDebounced = _.debounce(render_character, 1000);
 
 export async function replaceCharacter(
-  character_name: Exclude<string, 'current'>,
+  character_name_or_id: LiteralUnion<'current', string | `${string}.png`>,
   character: PartialDeep<Character>,
   { render = 'debounced' }: ReplaceCharacterOptions = {},
 ): Promise<void> {
-  const index = RawCharacter.findIndex(character_name);
+  const index = RawCharacter.findIndex(character_name_or_id);
   if (index === -1) {
-    throw Error(`角色卡 '${character_name}' 不存在`);
+    throw Error(`角色卡 '${character_name_or_id}' 不存在`);
   }
 
   const target = characters[index];
-  const payload = fromCharacterToPayload(character_name, character, target);
+  const payload = fromCharacterToPayload(character_name_or_id, character, target);
 
   const headers = getRequestHeaders();
   _.unset(headers, 'Content-Type');
@@ -320,14 +325,14 @@ export async function replaceCharacter(
   });
 
   if (!response.ok) {
-    throw new Error(`修改角色卡 '${character_name}' 失败: (${response.status}) ${await response.text()}`);
+    throw new Error(`修改角色卡 '${character_name_or_id}' 失败: (${response.status}) ${await response.text()}`);
   }
 
   const store = useCharacterSettingsStore();
-  const is_current = character_name === store.name;
+  const is_current = target.avatar === store.avatar;
 
   // TODO: 可以直接更新 `target` 里的内容
-  await getOneCharacter(character_name + '.png');
+  await getOneCharacter(target.avatar);
 
   if (is_current) {
     if (character.extensions?.tavern_helper !== undefined) {
@@ -337,10 +342,10 @@ export async function replaceCharacter(
 
   switch (render) {
     case 'debounced':
-      renderCharacterDebounced(character_name, character, is_current);
+      renderCharacterDebounced(target.name, target.avatar, character, is_current);
       break;
     case 'immediate':
-      await render_character(character_name, character, is_current);
+      await render_character(target.name, target.avatar, character, is_current);
       break;
     case 'none':
       break;
@@ -350,10 +355,10 @@ export async function replaceCharacter(
 type CharacterUpdater = ((character: Character) => Character) | ((character: Character) => Promise<Character>);
 
 export async function updateCharacterWith(
-  character_name: LiteralUnion<'current', string>,
+  character_name_or_id: LiteralUnion<'current', string | `${string}.png`>,
   updater: CharacterUpdater,
 ): Promise<Character> {
-  const character = await updater(await getCharacter(character_name)!);
-  await replaceCharacter(character_name, character);
+  const character = await updater(await getCharacter(character_name_or_id)!);
+  await replaceCharacter(character_name_or_id, character);
   return character;
 }

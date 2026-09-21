@@ -12,7 +12,7 @@
     <Divider />
     <Container v-model="global_scripts" :title="t`全局脚本`" :description="t`酒馆全局可用`" target="global" />
 
-    <template v-if="character_name !== undefined">
+    <template v-if="character_avatar !== undefined">
       <Divider />
       <Container
         v-model="character_scripts"
@@ -75,15 +75,15 @@ provide('search_input', search_input);
 provide('during_sorting_item', ref(false));
 
 const { name: preset_name } = storeToRefs(usePresetSettingsStore());
-const { name: character_name } = storeToRefs(useCharacterSettingsStore());
+const { avatar: character_avatar } = storeToRefs(useCharacterSettingsStore());
 
 const global_settings = useGlobalSettingsStore();
 const global_scripts = useGlobalScriptsStore();
 const preset_scripts = usePresetScriptsStore();
 const character_scripts = useCharacterScriptsStore();
 
-useResolveIdConflict(preset_name, character_name, global_scripts, preset_scripts, character_scripts);
-useCheckEnablementPopup(preset_name, character_name, global_settings, preset_scripts, character_scripts);
+useResolveIdConflict(preset_name, character_avatar, global_scripts, preset_scripts, character_scripts);
+useCheckEnablementPopup(preset_name, character_avatar, global_settings, preset_scripts, character_scripts);
 
 const { runtimes, button_map } = toRefs(useScriptIframeRuntimesStore());
 const { use_blob_url, use_cleanup_protector } = toRefs(useGlobalSettingsStore().settings.render);

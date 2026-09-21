@@ -26,12 +26,12 @@ function resolveConflictScriptTrees(script_trees: ScriptTree[], ...stores: Retur
 
 export function useResolveIdConflict(
   preset_name: Readonly<Ref<string>>,
-  character_name: Readonly<Ref<string | undefined>>,
+  character_avatar: Readonly<Ref<string | undefined>>,
   global_scripts: ReturnType<typeof useGlobalScriptsStore>,
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,
 ) {
-  watch(character_name, () => {
+  watch(character_avatar, () => {
     resolveConflictScriptTrees(character_scripts.script_trees, global_scripts, preset_scripts);
   });
   watch(preset_name, () => {

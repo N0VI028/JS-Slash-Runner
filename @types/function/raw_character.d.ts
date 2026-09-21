@@ -10,13 +10,7 @@ declare class RawCharacter {
    * @param options 查找选项
    * @returns 找到的角色卡数据，找不到为null
    */
-  static find({
-    name,
-    allowAvatar,
-  }?: {
-    name: TypeFest.LiteralUnion<'current', string>;
-    allowAvatar?: boolean;
-  }): SillyTavern.v1CharData;
+  static find({ name }?: { name: TypeFest.LiteralUnion<'current', string> }): SillyTavern.v1CharData;
 
   /**
    * 根据名称查找角色卡数据在characters数组中的索引（类似this_chid）

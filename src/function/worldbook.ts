@@ -47,16 +47,16 @@ type CharWorldbooks = {
   primary: string | null;
   additional: string[];
 };
-export function getCharWorldbookNames(character_name: LiteralUnion<'current', string>): CharWorldbooks {
-  return getCharLorebooks({ name: character_name });
+export function getCharWorldbookNames(character_name_or_id: LiteralUnion<'current', string | `${string}.png`>): CharWorldbooks {
+  return getCharLorebooks({ name: character_name_or_id });
 }
-export async function rebindCharWorldbooks(character_name: 'current', char_worldbooks: CharWorldbooks): Promise<void> {
-  if (character_name !== 'current') {
+export async function rebindCharWorldbooks(character_name_or_id: LiteralUnion<'current', string | `${string}.png`>, char_worldbooks: CharWorldbooks): Promise<void> {
+  if (character_name_or_id !== 'current') {
     throw Error(`目前不支持对非当前角色卡调用 bindCharWorldbooks`);
   }
-  const character = RawCharacter.find({ name: character_name });
+  const character = RawCharacter.find({ name: character_name_or_id });
   if (!character) {
-    throw Error(`角色卡 '${character_name}' 不存在`);
+    throw Error(`角色卡 '${character_name_or_id}' 不存在`);
   }
   // TODO: 重做 characters.ts, 然后直接访问后端来修改这里
   return setCurrentCharLorebooks(char_worldbooks);

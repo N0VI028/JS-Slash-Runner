@@ -37,6 +37,21 @@ export const useGlobalSettingsStore = defineStore('global_settings', () => {
   );
 
   const settings = ref<GlobalSettings>(getSettings());
+
+  // 调整旧数据: 判定从 name 更换为 avatar
+  if (
+    settings.value.script.enabled.characters.length > 0 &&
+    !settings.value.script.enabled.characters[0].endsWith('.png')
+  ) {
+    settings.value.script.enabled.characters = settings.value.script.enabled.characters.map(item => item + '.png');
+  }
+  if (
+    settings.value.script.popuped.characters.length > 0 &&
+    !settings.value.script.popuped.characters[0].endsWith('.png')
+  ) {
+    settings.value.script.popuped.characters = settings.value.script.popuped.characters.map(item => item + '.png');
+  }
+
   watch(
     settings,
     new_settings => {

@@ -29,7 +29,7 @@ const target = ref<'global' | 'character' | 'preset'>(props.target);
 const options = computed(() => {
   let result = _<{ label: string; value: 'global' | 'character' | 'preset' }>([]);
   result = result.push({ label: t`全局脚本库`, value: 'global' });
-  if (useCharacterSettingsStore().name !== undefined) {
+  if (useCharacterSettingsStore().avatar !== undefined) {
     result = result.push({ label: t`角色脚本库`, value: 'character' });
   }
   result = result.push({ label: t`预设脚本库`, value: 'preset' });

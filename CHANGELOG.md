@@ -1,4 +1,22 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.11.0
+
+### 📦函数
+
+- 现在 `getCharacter`、`replaceCharacter` 等函数支持使用角色卡的头像id/文件名称作为参数. 例如如果你在酒馆网页上复制了一张 `'少女歌剧'` 角色卡, 两张角色卡虽然都显示成 `'少女歌剧'`, 但它们的头像id/文件名称将分别是 `'少女歌剧.png'` 和 `'少女歌剧_1.png'`——现在你可以使用 `'少女歌剧.png'` 或 `'少女歌剧_1.png'` 来操作对应角色卡.
+
+  ```ts
+  const character_names = getCharacterNames(); // 显示名称: ['少女歌剧', '少女歌剧']
+  const character_ids   = getCharacterIds();   // 头像id/文件名称: ['少女歌剧.png', '少女歌剧_1.png']
+
+  // 获取 '少女歌剧_1.png' 角色卡对应的数据
+  const character = getCharacter('少女歌剧_1.png');
+  ```
+
+### 🐛修复
+
+- 修复了有多张显示名称相同的角色卡时，酒馆助手脚本只会对其中一张角色卡生效的问题
+
 ## 4.10.0
 
 ### 📦函数

@@ -19,37 +19,37 @@ type Character = {
 };
 
 /**
- * 获取角色卡名称列表
+ * 获取角色卡的显示名称列表
  *
- * @returns 角色卡名称列表
+ * @returns 角色卡的显示名称列表, 如 ['少女歌剧', '少女歌剧', '神乐光']
  */
 declare function getCharacterNames(): string[];
 
 /**
- * 获取角色卡头像 id 列表
+ * 获取角色卡的头像 id 列表
  *
- * @returns 角色卡头像 id 列表
+ * @returns 角色卡的头像 id 列表, 也是角色卡的文件名称列表, 如 ['少女歌剧.png', '少女歌剧_1.png', '神乐光.png']
  */
 declare function getCharacterIds(): string[];
 
 /**
- * 获取当前角色卡名称
+ * 获取当前角色卡的显示名称
  *
- * @returns 当前角色卡名称, 如果当前没有角色卡, 则返回 `null`
+ * @returns 当前角色卡的显示名称; 如果当前没有角色卡, 则返回 `null`
  */
 declare function getCurrentCharacterName(): string | null;
 
 /**
- * 获取当前角色卡头像 id
+ * 获取当前角色卡的头像 id
  *
- * @returns 当前角色卡头像 id, 如果当前没有角色卡, 则返回 `null`
+ * @returns 当前角色卡的头像 id, 也是角色卡的文件名称; 如果当前没有角色卡, 则返回 `null`
  */
 declare function getCurrentCharacterId(): string | null;
 
 /**
- * 新建 `character_name` 角色卡, 内容为 `character`
+ * 新建 `character_name_or_id` 角色卡, 内容为 `character`
  *
- * @param character_name 角色卡名称
+ * @param character_name_or_id 角色卡显示名称如 '少女歌剧', 或头像 id 如 '少女歌剧.png'
  * @param character 角色卡数据; 不填则使用默认数据
  *
  * @returns 是否成功创建, 如果已经存在同名角色卡或尝试创建名为 `'current'` 的角色卡会失败
@@ -57,14 +57,14 @@ declare function getCurrentCharacterId(): string | null;
  * @throws 如果访问后端失败, 将会抛出异常
  */
 declare function createCharacter(
-  character_name: Exclude<string, 'current'>,
+  character_name_or_id: Exclude<string | `${string}.png`, 'current'>,
   character?: TypeFest.PartialDeep<Character>,
 ): Promise<boolean>;
 
 /**
- * 创建或替换名为 `character_name` 的角色卡, 内容为 `character`
+ * 创建或替换名为 `character_name_or_id` 的角色卡, 内容为 `character`
  *
- * @param character_name 角色卡名称
+ * @param character_name_or_id 角色卡显示名称如 '少女歌剧', 或头像 id 如 '少女歌剧.png'; 'current' 表示当前打开的角色卡
  * @param character 角色卡数据; 不填则使用默认数据
  * @param options 可选选项
  *   - `render:'debounced'|'immediate'|'none'`: 酒馆网页应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染
@@ -74,35 +74,37 @@ declare function createCharacter(
  * @throws 如果访问后端失败, 将会抛出异常
  */
 declare function createOrReplaceCharacter(
-  character_name: Exclude<string, 'current'>,
+  character_name_or_id: TypeFest.LiteralUnion<'current', string | `${string}.png`>,
   character?: TypeFest.PartialDeep<Character>,
   options?: ReplaceCharacterOptions,
 ): Promise<boolean>;
 
 /**
- * 删除 `character_name` 角色卡
+ * 删除 `character_name_or_id` 角色卡
  *
- * @param character_name 角色卡名称
+ * @param character_name_or_id 角色卡显示名称如 '少女歌剧', 或头像 id 如 '少女歌剧.png'; 'current' 表示当前打开的角色卡
  * @param options 可选选项
  *   - `delete_chats:boolean`: 是否要同时删除角色卡的聊天文件
  *
  * @returns 是否成功删除, 可能因角色卡不存在等原因而失败
  */
 declare function deleteCharacter(
-  character_name: TypeFest.LiteralUnion<'current', string>,
+  character_name_or_id: TypeFest.LiteralUnion<'current', string | `${string}.png`>,
   options?: { delete_chats?: boolean },
 ): Promise<boolean>;
 
 /**
- * 获取 `character_name` 角色卡的内容
+ * 获取 `character_name_or_id` 角色卡的内容
  *
- * @param character_name 角色卡名称
+ * @param character_name_or_id 角色卡显示名称如 '少女歌剧', 或头像 id 如 '少女歌剧.png'; 'current' 表示当前打开的角色卡
  *
  * @returns 角色卡内容
  *
  * @throws 如果角色卡不存在, 将会抛出异常
  */
-declare function getCharacter(character_name: TypeFest.LiteralUnion<'current', string>): Promise<Character>;
+declare function getCharacter(
+  character_name_or_id: TypeFest.LiteralUnion<'current', string | `${string}.png`>,
+): Promise<Character>;
 
 type ReplaceCharacterOptions = {
   /** 酒馆网页应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染 */
@@ -110,9 +112,9 @@ type ReplaceCharacterOptions = {
 };
 
 /**
- * 完全替换 `character_name` 角色卡的内容为 `character`
+ * 完全替换 `character_name_or_id` 角色卡的内容为 `character`
  *
- * @param character_name 角色卡名称
+ * @param character_name_or_id 角色卡显示名称如 '少女歌剧', 或头像 id 如 '少女歌剧.png'; 'current' 表示当前打开的角色卡
  * @param character 角色卡数据
  * @param options 可选选项
  *   - `render:'debounced'|'immediate'|'none'`: 酒馆网页应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染
@@ -122,24 +124,24 @@ type ReplaceCharacterOptions = {
  *
  * @example
  * // 为角色卡更改开场白
- * const character = await getCharacter('角色卡名称');
+ * const character = await getCharacter('角色卡显示名称');
  * character.first_messages = ['新的开场白1', '新的开场白2'];
- * await replaceCharacter('角色卡名称', character);
+ * await replaceCharacter('角色卡显示名称', character);
  *
  * @example
  * // 清空角色卡的局部正则
- * const character = await getCharacter('角色卡名称');
+ * const character = await getCharacter('角色卡头像id.png');
  * character.extensions.regex_scripts = [];
- * await replaceCharacter('角色卡名称', character);
+ * await replaceCharacter('角色卡头像id.png', character);
  *
  * @example
  * // 更换角色卡头像
- * const character = await getCharacter('角色卡名称');
+ * const character = await getCharacter('角色卡显示名称');
  * character.avatar = await fetch('https://example.com/avatar.png').then(response => response.blob());
- * await replaceCharacter('角色卡名称', character);
+ * await replaceCharacter('角色卡显示名称', character);
  */
 declare function replaceCharacter(
-  character_name: Exclude<string, 'current'>,
+  character_name_or_id: TypeFest.LiteralUnion<'current', string | `${string}.png`>,
   character: TypeFest.PartialDeep<Character>,
   options?: ReplaceCharacterOptions,
 ): Promise<void>;
@@ -147,9 +149,9 @@ declare function replaceCharacter(
 type CharacterUpdater = ((character: Character) => Character) | ((character: Character) => Promise<Character>);
 
 /**
- * 用 `updater` 函数更新 `character_name` 角色卡
+ * 用 `updater` 函数更新 `character_name_or_id` 角色卡
  *
- * @param character_name 角色卡名称
+ * @param character_name_or_id 角色卡显示名称或头像 id, 'current' 表示当前打开的角色卡
  * @param updater 用于更新角色卡的函数. 它应该接收角色卡内容作为参数, 并返回更新后的角色卡内容.
  * @param options 可选选项
  *   - `render:'debounced'|'immediate'|'none'`: 如果对角色卡进行操作, 应该防抖渲染 (debounced)、立即渲染 (immediate) 还是不刷新前端显示 (none)? 默认为性能更好的防抖渲染
@@ -168,7 +170,7 @@ type CharacterUpdater = ((character: Character) => Character) | ((character: Cha
  *
  * @example
  * // 清空角色卡的局部正则
- * await updateCharacterWith('角色卡名称', character => {
+ * await updateCharacterWith('角色卡头像id.png', character => {
  *   character.extensions.regex_scripts = [];
  *   return character;
  * });
@@ -181,6 +183,6 @@ type CharacterUpdater = ((character: Character) => Character) | ((character: Cha
  * });
  */
 declare function updateCharacterWith(
-  character_name: TypeFest.LiteralUnion<'current', string>,
+  character_name_or_id: TypeFest.LiteralUnion<'current', string | `${string}.png`>,
   updater: CharacterUpdater,
 ): Promise<Character>;

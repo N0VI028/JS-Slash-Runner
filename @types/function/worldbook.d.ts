@@ -25,18 +25,18 @@ type CharWorldbooks = {
 /**
  * 获取角色卡绑定的世界书
  *
- * @param character_name 要查询的角色卡名称, 'current' 表示当前打开的角色卡
+ * @param character_name_or_id 要查询的角色卡显示名称如 '少女歌剧', 或头像 id 如 '少女歌剧.png'; 'current' 表示当前打开的角色卡
  *
  * @returns 角色卡绑定的世界书
  */
-declare function getCharWorldbookNames(character_name: TypeFest.LiteralUnion<'current' | string>): CharWorldbooks;
+declare function getCharWorldbookNames(character_name_or_id: TypeFest.LiteralUnion<'current', string | `${string}.png`>): CharWorldbooks;
 /**
  * 重新绑定角色卡世界书
  *
- * @param character_name 角色卡名称, 'current' 表示当前打开的角色卡
+ * @param character_name_or_id 角色卡显示名称如 '少女歌剧', 或头像 id 如 '少女歌剧.png'; 'current' 表示当前打开的角色卡
  * @param char_worldbooks 要对该角色卡绑定的世界书
  */
-declare function rebindCharWorldbooks(character_name: 'current', char_worldbooks: CharWorldbooks): Promise<void>;
+declare function rebindCharWorldbooks(character_name_or_id: TypeFest.LiteralUnion<'current', string | `${string}.png`>, char_worldbooks: CharWorldbooks): Promise<void>;
 
 /**
  * 获取聊天文件绑定的世界书

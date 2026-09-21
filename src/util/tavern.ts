@@ -244,7 +244,7 @@ export async function writeExtensionField(
 
   const payload = {
     ch_name: character.name,
-    avatar_url: character.name + '.png',
+    avatar_url: character.avatar,
     character_version: character.data.character_version,
     creator: character.data.creator,
     creator_notes: character.data.creator_notes,

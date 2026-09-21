@@ -56,16 +56,16 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
         const character_store = useCharacterSettingsStore();
         enabled = computed({
           get: () =>
-            character_store.name !== undefined &&
-            global_store.settings.script.enabled.characters.includes(character_store.name),
+            character_store.avatar !== undefined &&
+            global_store.settings.script.enabled.characters.includes(character_store.avatar),
           set: value => {
-            if (character_store.name === undefined) {
+            if (character_store.avatar === undefined) {
               return;
             }
             if (value) {
-              global_store.settings.script.enabled.characters.push(character_store.name);
+              global_store.settings.script.enabled.characters.push(character_store.avatar);
             } else {
-              _.pull(global_store.settings.script.enabled.characters, character_store.name);
+              _.pull(global_store.settings.script.enabled.characters, character_store.avatar);
             }
           },
         });
@@ -75,7 +75,7 @@ function createScriptsStore(type: 'global' | 'character' | 'preset') {
             character_store.settings.scripts = value;
           },
         });
-        source = computed(() => character_store.name ?? 'unknown');
+        source = computed(() => character_store.avatar ?? 'unknown');
         break;
       }
     }

@@ -9,9 +9,10 @@ import { extension_settings } from '@sillytavern/scripts/extensions';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { convertCharacterBook, saveWorldInfo, world_names } from '@sillytavern/scripts/world-info';
 
+// TODO: name -> name_or_avatar? 但是 .json 后缀怎么办
 export async function importRawCharacter(name: string, content: Blob): Promise<Response> {
   name = name.replace(/\.(?:png|json)$/, '');
-  const avatar = name + '.png';
+  const avatar = name + '.png' as `${string}.png`;
 
   const old_worldbook_name = RawCharacter.find({ name })?.data?.extensions?.world;
 
@@ -33,11 +34,11 @@ export async function importRawCharacter(name: string, content: Blob): Promise<R
     $('#character_search_bar').val('').trigger('input');
 
     const store = useCharacterSettingsStore();
-    const is_current = store.name === name;
+    const is_current = store.avatar === avatar;
 
     await getCharacters();
     await getOneCharacter(avatar);
-    await render_character(name, await getCharacter(name), is_current);
+    await render_character(name, avatar, await getCharacter(name), is_current);
 
     if (old_worldbook_name) {
       const worldbook = (characters as any[]).find(character => character.avatar === avatar)?.data?.character_book;

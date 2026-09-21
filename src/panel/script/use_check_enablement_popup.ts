@@ -8,7 +8,7 @@ import { compare } from 'compare-versions';
 
 export function useCheckEnablementPopup(
   preset_name: Readonly<Ref<string>>,
-  character_name: Readonly<Ref<string | undefined>>,
+  character_avatar: Readonly<Ref<string | undefined>>,
   global_settings: ReturnType<typeof useGlobalSettingsStore>,
   preset_scripts: ReturnType<typeof usePresetScriptsStore>,
   character_scripts: ReturnType<typeof useCharacterScriptsStore>,
@@ -83,14 +83,14 @@ export function useCheckEnablementPopup(
 
   eventSource.once('chatLoaded', () => {
     watch(
-      character_name,
-      new_name => {
-        if (!new_name || character_scripts.script_trees.length === 0 || character_scripts.enabled) {
+      character_avatar,
+      new_avatar => {
+        if (!new_avatar || character_scripts.script_trees.length === 0 || character_scripts.enabled) {
           return;
         }
 
-        if (!global_settings.settings.script.popuped.characters.includes(new_name)) {
-          global_settings.settings.script.popuped.characters.push(new_name);
+        if (!global_settings.settings.script.popuped.characters.includes(new_avatar)) {
+          global_settings.settings.script.popuped.characters.push(new_avatar);
           useModal({
             component: Popup,
             attrs: {
@@ -107,7 +107,7 @@ export function useCheckEnablementPopup(
               ],
             },
             slots: {
-              default: `<div><h4>角色卡 '${new_name}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-角色脚本”中手动启用它们</small></div>`,
+              default: t`<div><h4>角色卡 '${new_avatar}' 中包含酒馆助手可用的嵌入式脚本</h4><h4>是否现在就启用它们?</h4><small>您可以选择否, 稍后在“酒馆助手-脚本库-角色脚本”中手动启用它们</small></div>`,
             },
           }).open();
         }
@@ -116,19 +116,17 @@ export function useCheckEnablementPopup(
     );
   });
   eventSource.on(event_types.CHARACTER_RENAMED, (old_avatar: string, new_avatar: string) => {
-    const old_name = old_avatar.replace('.png', '');
-    const new_name = new_avatar.replace('.png', '');
-    if (global_settings.settings.script.popuped.characters.includes(old_name)) {
-      _.pull(global_settings.settings.script.popuped.characters, old_name);
-      global_settings.settings.script.popuped.characters.push(new_name);
+    if (global_settings.settings.script.popuped.characters.includes(old_avatar)) {
+      _.pull(global_settings.settings.script.popuped.characters, old_avatar);
+      global_settings.settings.script.popuped.characters.push(new_avatar);
     }
-    if (global_settings.settings.script.enabled.characters.includes(old_name)) {
-      _.pull(global_settings.settings.script.enabled.characters, old_name);
-      global_settings.settings.script.enabled.characters.push(new_name);
+    if (global_settings.settings.script.enabled.characters.includes(old_avatar)) {
+      _.pull(global_settings.settings.script.enabled.characters, old_avatar);
+      global_settings.settings.script.enabled.characters.push(new_avatar);
     }
   });
   eventSource.on(event_types.CHARACTER_DELETED, ({ character }: { character: v1CharData }) => {
-    _.pull(global_settings.settings.script.popuped.characters, character.name);
-    _.pull(global_settings.settings.script.enabled.characters, character.name);
+    _.pull(global_settings.settings.script.popuped.characters, character.avatar);
+    _.pull(global_settings.settings.script.enabled.characters, character.avatar);
   });
 }

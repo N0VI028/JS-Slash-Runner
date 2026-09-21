@@ -43,7 +43,7 @@ export const ScriptData = z
       export_with: {
         data: true,
         button: true,
-      }
+      },
     } satisfies NewScript);
   });
 
@@ -101,8 +101,7 @@ export const GlobalSettings = z
           .array(z.union([z.string(), z.null()]))
           .default([])
           .catch([])
-          .transform(characters => characters.filter(character => character !== null))
-          .transform(characters => characters.map(character => character.replace('.png', ''))),
+          .transform(characters => characters.filter(character => character !== null)),
       })
       .prefault({}),
   })

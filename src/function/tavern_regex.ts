@@ -104,7 +104,7 @@ type TavernRegexOptionGlobal = {
 };
 type TavernRegexOptionCharacter = {
   type: 'character';
-  name?: string | 'current';
+  name?: string | `${string}.png` | 'current';
 };
 type TavernRegexOptionPreset = {
   type: 'preset';
