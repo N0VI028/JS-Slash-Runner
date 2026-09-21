@@ -143,8 +143,16 @@ declare function getProxyPresetNames(): string[];
  * });
  * const parsed = JSON.parse(result as string);
  * console.info(parsed.narrative, parsed.mood);
+ *
+ * @example
+ * // 读取推理模型的思考过程（reasoning）
+ * const result = await generate({ user_input: '你好' });
+ * const text = typeof result === 'string' ? result : result.content;
+ * if (result.reasoning) {
+ *   console.info('思考过程: ', result.reasoning);
+ * }
  */
-declare function generate(config: GenerateConfig): Promise<string | GenerateToolCallResult>;
+declare function generate(config: GenerateConfig): Promise<GenerateResultString | GenerateResult>;
 
 /**
  * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
@@ -198,7 +206,7 @@ declare function generate(config: GenerateConfig): Promise<string | GenerateTool
  * })
  * console.info('收到回复: ', result);
  */
-declare function generateRaw(config: GenerateRawConfig): Promise<string | GenerateToolCallResult>;
+declare function generateRaw(config: GenerateRawConfig): Promise<GenerateResultString | GenerateResult>;
 
 /**
  * 获取模型列表
@@ -468,6 +476,47 @@ type ToolDefinition = {
 type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; function: { name: string } };
 
 /**
+ * 单条 tool call（对外统一形态）
+ */
+type GenerateToolCall = {
+  id: string;
+  type: 'function';
+  function: { name: string; arguments: string };
+  thought_signature?: string;
+};
+
+/**
+ * generate / generateRaw 的统一详情对象。
+ *
+ * 函数的返回值按需包装为三种形态：
+ * - 无 reasoning、无 tool_calls（非推理模型的绝大多数场景）→ primitive string，与旧版完全一致；
+ * - 有 reasoning、无 tool_calls → String 子类实例：可直接当字符串用（模板串、`.trim()` 等），
+ *   也可读取 `.content` / `.reasoning` / `.reasoning_signature`；
+ * - 有 tool_calls → plain object（同 `GenerateToolCallResult` 形态，另有可选 `reasoning`）。
+ *
+ * 因此推荐用法：`typeof result === 'string' ? result : result.content` 或直接 `${result}`；
+ * 判断是否有思考过程用 `if (result.reasoning)`。
+ */
+type GenerateResult = {
+  readonly content: string;
+  /** 模型思维链正文（推理模型且后端返回时存在；保持原文，未做 cleanUpMessage / stopping strings 处理） */
+  readonly reasoning?: string;
+  /** 顶层 reasoning 签名（多轮 tool call 场景回传用） */
+  readonly reasoning_signature?: string;
+  readonly tool_calls?: GenerateToolCall[];
+};
+
+/**
+ * string 返回形态的交叉标注：使 `result.reasoning` 等属性无需类型收窄即可访问
+ * （string 一侧这些属性恒为 undefined，运行时就是普通字符串）
+ */
+type GenerateResultString = string & {
+  readonly reasoning?: undefined;
+  readonly reasoning_signature?: undefined;
+  readonly tool_calls?: undefined;
+};
+
+/**
  * 当模型返回 tool_calls 时的结构化结果。
  *
  * 仅在 `generate` / `generateRaw` 配置中传入了 `tools` 且模型决定调用工具时返回；
@@ -476,6 +525,8 @@ type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; fun
 type GenerateToolCallResult = {
   /** 模型返回的文本内容（可能为空字符串） */
   content: string;
+  /** 模型思维链正文，推理模型返回；与 reasoning_signature 同为多轮场景可用 */
+  reasoning?: string;
   /** 模型请求调用的工具列表 */
   tool_calls: {
     id: string;

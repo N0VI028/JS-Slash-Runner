@@ -42,30 +42,84 @@ export type JsonSchema = {
 };
 
 /**
+ * 单条 tool call（对外统一形态）
+ */
+export type GenerateToolCall = {
+  id: string;
+  type: 'function';
+  function: { name: string; arguments: string };
+  /** 加密的 reasoning/thought 签名（若 provider 返回），多轮 tool call 时需回传 */
+  thought_signature?: string;
+};
+
+/**
  * 当模型返回 tool_calls 时的结构化结果
  */
 export type GenerateToolCallResult = {
   content: string;
-  tool_calls: {
-    id: string;
-    type: 'function';
-    function: {
-      name: string;
-      arguments: string;
-    };
-    /**
-     * 加密的 reasoning/thought 签名（若 provider 返回）。
-     * 多轮 tool call 时需要原样回传给下一轮请求以维持推理上下文。
-     * 目前主要由 Google Gemini 和 OpenRouter 提供。
-     */
-    thought_signature?: string;
-  }[];
+  /** 模型思维链正文，推理模型返回 */
+  readonly reasoning?: string;
+  tool_calls: GenerateToolCall[];
   /**
    * 顶层 reasoning 签名（非绑定到具体 tool_call 的那一份）。
    * 同样用于多轮场景下把 thinking 上下文回传给下一轮请求。
    */
   reasoning_signature?: string;
 };
+
+/**
+ * generate / generateRaw 的统一详情对象：有 reasoning 或 tool_calls 时返回
+ */
+export interface GenerateResult {
+  readonly content: string;
+  /** 模型思维链正文（推理模型且后端返回时存在；保持后端原文，不做 cleanUpMessage） */
+  readonly reasoning?: string;
+  /** 顶层 reasoning 签名（多轮 tool call 场景回传用） */
+  readonly reasoning_signature?: string;
+  readonly tool_calls?: GenerateToolCall[];
+}
+
+/**
+ * 有 reasoning、无 tool call 时的 String 子类包装：
+ * 字符串方法照常可用，兼有 .content / .reasoning。
+ * 注意 declare 修饰：纯类型声明，不生成值为 undefined 的自有属性，
+ * 保证「字段不存在」语义（'reasoning' in result 不被污染）。
+ */
+export class BoxedGenerateDetails extends String implements GenerateResult {
+  declare readonly reasoning?: string;
+  declare readonly reasoning_signature?: string;
+
+  get content(): string {
+    return String.prototype.valueOf.call(this);
+  }
+}
+
+/**
+ * - 有 tool_calls → plain object（存量形态 + 可选 reasoning）
+ * - 有 reasoning / reasoning_signature、无 tool_calls → BoxedGenerateDetails
+ * - 都没有 → primitive string（与旧版逐字节一致）
+ * 字段用条件展开构造，确保「无值时字段真正不存在」而非 undefined。
+ */
+export function createGenerateResult(
+  content: string,
+  details: {
+    reasoning?: string;
+    reasoning_signature?: string;
+    tool_calls?: GenerateToolCall[];
+  } = {},
+): string | GenerateResult {
+  const metadata = {
+    ...(details.reasoning ? { reasoning: details.reasoning } : {}),
+    ...(details.reasoning_signature ? { reasoning_signature: details.reasoning_signature } : {}),
+  };
+  if (details.tool_calls?.length) {
+    return { content, tool_calls: details.tool_calls, ...metadata };
+  }
+  if (!details.reasoning && !details.reasoning_signature) {
+    return content;
+  }
+  return Object.assign(new BoxedGenerateDetails(content), metadata);
+}
 
 /**
  * 自定义API配置接口
