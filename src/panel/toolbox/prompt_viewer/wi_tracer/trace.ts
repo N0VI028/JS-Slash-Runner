@@ -7,7 +7,7 @@ import type { SendingMessage } from '@/function/event';
 import { getCurrentScope, onScopeDispose, shallowRef } from 'vue';
 import { splitBySpans, toWiMarks, type WiMark } from './marks';
 import { alignMessages } from './align';
-import { installPipelineRecorder, takePipelineRecording } from './pipeline_recorder';
+import { installPipelineRecorder, takePipelineRecording, uninstallPipelineRecorder } from './pipeline_recorder';
 import { buildDisplayFromRecording, textContent } from './pure_replay';
 import { resolvePresetChannels } from './preset_tracer';
 import {
@@ -48,43 +48,49 @@ import type {
 } from './types';
 
 // 重新导出规范要求的公共接口与类型
-export { setupWorldInfoTracer, wi_trace_report, toWiMarks, splitBySpans };
+export { setupWorldInfoTracer, wi_trace_report, wi_tracer_enabled, toWiMarks, splitBySpans };
 export type { WiMark, WiTraceReport, WiTraceSegment };
+
+/** 溯源开关：实验性功能，默认关闭，状态保存在浏览器本地存储而非酒馆设置 */
+const wi_tracer_enabled = useLocalStorage<boolean>('TH-PromptViewer:wi_tracer_enabled', false);
 
 /** 溯源结果：查看器 UI 读取内联标注与摘要 */
 const wi_trace_report = shallowRef<WiTraceReport | null>(null);
 
-/** world_info_position → 中文位置标签 */
-const POSITION_LABELS: Record<number, string> = {
-  0: '前置(before)',
-  1: '后置(after)',
-  2: '作者注释前(ANTop)',
-  3: '作者注释后(ANBottom)',
-  4: '深度注入(atDepth)',
-  5: '示例对话前(EMTop)',
-  6: '示例对话后(EMBottom)',
-  7: 'outlet',
-};
-
-/**
- * world_info_position 枚举值 → 中文位置标签
- * @param position 位置枚举值
- */
-function positionLabel(position: number): string {
-  return POSITION_LABELS[position] ?? `位置 ${position}`;
-}
+/** 溯源任务代际：递增使在途异步任务的过期报告失效 */
+let trace_epoch = 0;
 
 /**
  * 在提示词查看器挂载时调用：注册事件监听
  * 监听器生命周期跟随组件作用域
  */
 function setupWorldInfoTracer(): void {
-  const uninstall = installPipelineRecorder();
+  // 开关驱动管线补丁装卸：关闭时不 patch ChatCompletion 原型，并清空溯源状态
+  const stop_watch = watch(
+    wi_tracer_enabled,
+    enabled => {
+      if (enabled) {
+        installPipelineRecorder();
+      } else {
+        uninstallPipelineRecorder();
+        tracer_state.entries = null;
+        tracer_state.ext = [];
+        wi_trace_report.value = null;
+        trace_epoch++;
+      }
+    },
+    { immediate: true },
+  );
+
   if (getCurrentScope()) {
-    onScopeDispose(uninstall);
+    onScopeDispose(() => {
+      stop_watch();
+      uninstallPipelineRecorder();
+    });
   }
 
   useEventSourceOn(event_types.GENERATION_STARTED, (_type, _options, dry_run) => {
+    if (!wi_tracer_enabled.value) return;
     if (!dry_run) {
       tracer_state.entries = null;
       tracer_state.ext = [];
@@ -93,10 +99,12 @@ function setupWorldInfoTracer(): void {
   });
 
   useEventSourceOn(event_types.WORLD_INFO_ACTIVATED, entries => {
+    if (!wi_tracer_enabled.value) return;
     tracer_state.entries = snapshotEntries(entries);
   });
 
   useEventSourceOn(event_types.CHAT_COMPLETION_SETTINGS_READY, data => {
+    if (!wi_tracer_enabled.value) return;
     // 必须在监听器内同步快照 extension_prompts 与 type
     tracer_state.ext = snapshotExtensionPrompts();
     tracer_state.type = String((data as { type?: unknown })?.type ?? 'normal');
@@ -130,8 +138,13 @@ function snapshotEntries(entries: unknown): WiEntrySnapshot[] {
  * @param messages 补全设置中的最终消息列表
  */
 async function runTrace(messages: SendingMessage[]): Promise<void> {
+  const epoch = ++trace_epoch;
   try {
-    wi_trace_report.value = await buildReport(messages);
+    const report = await buildReport(messages);
+    // 异步期间开关已关闭或已有更新任务，丢弃过期报告
+    if (epoch === trace_epoch && wi_tracer_enabled.value) {
+      wi_trace_report.value = report;
+    }
   } catch (error) {
     console.error('[TavernHelper] 溯源过程发生异常', error);
   }
@@ -231,7 +244,7 @@ function resolveCharacterDescription(ctx: TraceContext): void {
     start: target.child.start,
     text: content,
     source: 'card',
-    label: '角色描述',
+    label: t`角色描述`,
   });
 }
 
@@ -279,7 +292,7 @@ function pushMainBlockSegments(
       start: target.child.start + prefix + joined.spans[index].start,
       text: segment.text,
       entry: segment.entry,
-      label: positionLabel(segment.entry.position),
+      label: segment.entry.comment,
     });
   }
 }
@@ -346,15 +359,11 @@ function collectInjectionQueries(buckets: WiBuckets): InjectionQuery[] {
  * @param spans 预计算区间
  * @param label 自定义标签
  */
-function toInjectionParts(
-  segments: WiSegment[],
-  spans?: Array<{ start: number; end: number }>,
-  label?: string,
-): InjectionPart[] {
+function toInjectionParts(segments: WiSegment[], spans?: Array<{ start: number; end: number }>): InjectionPart[] {
   const resolved_spans = spans ?? joinWithSpans(segments.map(segment => segment.text)).spans;
   return segments.map((segment, index) => ({
     entry: segment.entry,
-    label: label ?? positionLabel(segment.entry.position),
+    label: segment.entry.comment,
     text: segment.text,
     rawStart: resolved_spans[index].start,
   }));
@@ -382,14 +391,14 @@ function getAuthorNoteInjectionQuery(buckets: WiBuckets): InjectionQuery | null 
     role,
     label: `作者注释合并 depth=${depth}`,
     parts: [
-      ...toInjectionParts(buckets.anTop, spans.topSpans, POSITION_LABELS[2]),
+      ...toInjectionParts(buckets.anTop, spans.topSpans),
       {
         entry: null,
         label: '作者注释原文',
         text: value.slice(spans.origStart, spans.origEnd),
         rawStart: spans.origStart,
       },
-      ...toInjectionParts(buckets.anBottom, spans.bottomSpans, POSITION_LABELS[3]),
+      ...toInjectionParts(buckets.anBottom, spans.bottomSpans),
     ],
   };
 }
@@ -506,7 +515,7 @@ function pushNoteSegments(
       start: spans[i].start + shift,
       text: segment.text,
       entry: segment.entry,
-      label: positionLabel(segment.entry.position),
+      label: segment.entry.comment,
     });
   }
 }
@@ -539,7 +548,7 @@ function resolveExamples(buckets: WiBuckets, ctx: TraceContext): void {
       start: 0,
       text: content,
       entry: group.entry,
-      label: positionLabel(group.entry.position),
+      label: group.entry.comment,
       verified_override: expected !== undefined && expected === content,
     });
   }

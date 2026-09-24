@@ -82,7 +82,7 @@ export function toPresetMark(segment: WiTraceSegment): WiMark {
   return {
     start: segment.start,
     end: segment.end,
-    label: segment.presetEntry?.name || segment.presetEntry?.identifier || '预设条目',
+    label: segment.presetEntry?.name || segment.presetEntry?.identifier || t`预设条目`,
     icon: 'fa-solid fa-sliders',
     source: 'preset',
   };
