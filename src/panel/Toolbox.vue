@@ -86,12 +86,10 @@
 import Popup from '@/panel/component/Popup.vue';
 import Logger from '@/panel/toolbox/Logger.vue';
 import Player from '@/panel/toolbox/AudioPlayer.vue';
-import help_en from '@/panel/toolbox/prompt_viewer/help_en.md?raw';
-import help_zh from '@/panel/toolbox/prompt_viewer/help_zh.md?raw';
+import HelpContent from '@/panel/toolbox/prompt_viewer/HelpContent.vue';
 import PromptViewer from '@/panel/toolbox/PromptViewer.vue';
 import VariableManager from '@/panel/toolbox/VariableManager.vue';
-import { renderMarkdown } from '@/util/tavern';
-import { getCurrentLocale } from '@sillytavern/scripts/i18n';
+import { useModalSlot } from 'vue-final-modal';
 
 const enable_prompt_viewer = ref<boolean>(false);
 const enable_variable_manager = ref<boolean>(false);
@@ -106,7 +104,7 @@ const { open: showPromptViewerHelp } = useModal({
     width: 'wide',
   },
   slots: {
-    default: `<div class="text-left p-1.5">${renderMarkdown(getCurrentLocale().includes('zh') ? help_zh : help_en)}</div>`,
+    default: useModalSlot({ component: HelpContent }),
   },
 });
 </script>

@@ -9,17 +9,19 @@ let recorded_squash_before: FlatMessageInfo[] | null = null;
 
 let recorded_get_chat_flat: FlatMessageInfo[] | null = null;
 
-let is_installed = false;
+let install_count = 0;
 
 let original_squash: (() => Promise<void>) | null = null;
 
 let original_get_chat: (() => unknown[]) | null = null;
 
 /**
- * 还原 ChatCompletion 原型方法
+ * 还原 ChatCompletion 原型方法（引用计数归零时）
  */
 export function uninstallPipelineRecorder(): void {
-  if (!is_installed) return;
+  install_count = Math.max(0, install_count - 1);
+  if (install_count > 0) return;
+
   if (original_squash) {
     ChatCompletion.prototype.squashSystemMessages = original_squash;
     original_squash = null;
@@ -28,7 +30,9 @@ export function uninstallPipelineRecorder(): void {
     ChatCompletion.prototype.getChat = original_get_chat;
     original_get_chat = null;
   }
-  is_installed = false;
+  // 丢弃未消费的录制，避免残留到下一次安装后被误用
+  recorded_squash_before = null;
+  recorded_get_chat_flat = null;
 }
 
 /**
@@ -65,11 +69,12 @@ function recordGetChat(instance: unknown): void {
 }
 
 /**
- * 安装 ChatCompletion 补丁
+ * 安装 ChatCompletion 补丁（引用计数，重复安装只在首次生效）
  * 返回用于还原原型的卸载函数
  */
 export function installPipelineRecorder(): () => void {
-  if (is_installed) return uninstallPipelineRecorder;
+  install_count++;
+  if (install_count > 1) return uninstallPipelineRecorder;
 
   original_squash = ChatCompletion.prototype.squashSystemMessages;
   ChatCompletion.prototype.squashSystemMessages = async function (this: unknown): Promise<void> {
@@ -83,7 +88,6 @@ export function installPipelineRecorder(): () => void {
     return original_get_chat?.call(this) ?? [];
   };
 
-  is_installed = true;
   return uninstallPipelineRecorder;
 }
 

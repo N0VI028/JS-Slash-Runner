@@ -60,7 +60,7 @@ function toMark(segment: WiTraceSegment): WiMark {
     return {
       start: segment.start,
       end: segment.end,
-      label: '用户信息',
+      label: t`用户信息`,
       icon: 'fa-solid fa-face-smile',
       source: 'persona',
     };
