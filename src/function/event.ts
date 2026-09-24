@@ -175,6 +175,8 @@ export const iframe_events = {
   GENERATION_STARTED: 'js_generation_started',
   STREAM_TOKEN_RECEIVED_FULLY: 'js_stream_token_received_fully',
   STREAM_TOKEN_RECEIVED_INCREMENTALLY: 'js_stream_token_received_incrementally',
+  REASONING_TOKEN_RECEIVED_FULLY: 'js_reasoning_token_received_fully',
+  REASONING_TOKEN_RECEIVED_INCREMENTALLY: 'js_reasoning_token_received_incrementally',
   GENERATION_ENDED: 'js_generation_ended',
 } as const;
 
@@ -296,7 +298,9 @@ export type ListenerType = {
   [iframe_events.GENERATION_STARTED]: (generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_FULLY]: (full_text: string, generation_id: string) => void;
   [iframe_events.STREAM_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_text: string, generation_id: string) => void;
-  [iframe_events.GENERATION_ENDED]: (text: string, generation_id: string) => void;
+  [iframe_events.REASONING_TOKEN_RECEIVED_FULLY]: (full_reasoning: string, generation_id: string) => void;
+  [iframe_events.REASONING_TOKEN_RECEIVED_INCREMENTALLY]: (incremental_reasoning: string, generation_id: string) => void;
+  [iframe_events.GENERATION_ENDED]: (text: string, generation_id: string, reasoning?: string) => void;
 
   [tavern_events.APP_READY]: () => void;
   [tavern_events.EXTRAS_CONNECTED]: (modules: any) => void;
