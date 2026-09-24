@@ -81,6 +81,7 @@ class StreamingProcessor {
   public isFinished: boolean;
   public abortController: AbortController;
   private messageBuffer: string;
+  private lastEmittedReasoningLength = 0;
   private generationId: string;
 
   constructor(generationId: string, abortController: AbortController) {
@@ -97,7 +98,11 @@ class StreamingProcessor {
     this.generationId = generationId;
   }
 
-  onProgressStreaming(data: { text: string; isFinal: boolean }) {
+  /**
+   * 处理流式增量并派发事件
+   * @param data 流式数据，包含文本、结束标识与思维链内容
+   */
+  onProgressStreaming(data: { text: string; isFinal: boolean; reasoning: string }) {
     const newText = data.text.slice(this.messageBuffer.length);
     this.messageBuffer = data.text;
     // @ts-expect-error 兼容酒馆旧版本
@@ -113,12 +118,21 @@ class StreamingProcessor {
 
     eventSource.emit('js_stream_token_received_fully', data.text, this.generationId);
     eventSource.emit('js_stream_token_received_incrementally', processedText, this.generationId);
+    eventSource.emit('js_reasoning_token_received_fully', data.reasoning, this.generationId);
+    eventSource.emit(
+      'js_reasoning_token_received_incrementally',
+      data.reasoning.slice(this.lastEmittedReasoningLength),
+      this.generationId,
+    );
+    this.lastEmittedReasoningLength = data.reasoning.length;
 
     if (data.isFinal) {
       // @ts-expect-error 兼容酒馆旧版本
       const message = cleanUpMessage(data.text, false, false, false, this.stoppingStrings);
-      eventSource.emit('js_generation_before_end', { message }, this.generationId);
-      eventSource.emit('js_generation_ended', message, this.generationId);
+      const before_end_payload: { message: string; reasoning?: string } = { message };
+      if (data.reasoning) before_end_payload.reasoning = data.reasoning;
+      eventSource.emit('js_generation_before_end', before_end_payload, this.generationId);
+      eventSource.emit('js_generation_ended', message, this.generationId, data.reasoning || undefined);
       data.text = message;
     }
   }
@@ -161,11 +175,11 @@ class StreamingProcessor {
             Object.assign(this.toolSignatures, state.toolSignatures);
           }
         }
-        await sw.tick(() => this.onProgressStreaming({ text: this.result, isFinal: false }));
+        await sw.tick(() => this.onProgressStreaming({ text: this.result, isFinal: false, reasoning: this.reasoning }));
       }
 
       if (!this.isStopped) {
-        this.onProgressStreaming({ text: this.result, isFinal: true });
+        this.onProgressStreaming({ text: this.result, isFinal: true, reasoning: this.reasoning });
       } else {
         this.messageBuffer = '';
       }
@@ -473,9 +487,10 @@ async function handleResponse(
     : null;
   const toolCalls = hasTools && toolCallSource ? extractToolCallsForSupportedSources(response, toolCallSource) : null;
 
-  // 事件载荷保持现状
-  eventSource.emit('js_generation_before_end', { message: content }, generationId);
-  eventSource.emit('js_generation_ended', content, generationId);
+  const before_end_payload: { message: string; reasoning?: string } = { message: content };
+  if (reasoning) before_end_payload.reasoning = reasoning;
+  eventSource.emit('js_generation_before_end', before_end_payload, generationId);
+  eventSource.emit('js_generation_ended', content, generationId, reasoning || undefined);
 
   return createGenerateResult(content, {
     ...(reasoning ? { reasoning } : {}),
