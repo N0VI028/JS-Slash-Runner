@@ -491,8 +491,8 @@ type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; fun
  * }
  */
 type GenerateDetailedResult = {
-  readonly content: string;
-  readonly reasoning?: string;
+  content: string;
+  reasoning?: string;
   /**
    * 顶层 reasoning 签名 (不是绑定到具体 tool_call 的那一份)
    *
@@ -503,8 +503,8 @@ type GenerateDetailedResult = {
    *
    * 多轮请求时, 你可能需要将这个签名回传给下一轮请求, 以满足模型调用要求
    */
-  readonly reasoning_signature?: string;
-  readonly tool_calls?: GenerateToolCall[];
+  reasoning_signature?: string;
+  tool_calls?: GenerateToolCall[];
 };
 
 /**

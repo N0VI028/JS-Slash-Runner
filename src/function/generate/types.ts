@@ -53,10 +53,10 @@ export type GenerateToolCall = {
 };
 
 export type GenerateDetailedResult = {
-  readonly content: string;
-  readonly reasoning?: string;
-  readonly reasoning_signature?: string;
-  readonly tool_calls?: GenerateToolCall[];
+  content: string;
+  reasoning?: string;
+  reasoning_signature?: string;
+  tool_calls?: GenerateToolCall[];
 };
 
 /**
