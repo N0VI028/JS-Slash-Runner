@@ -1,4 +1,4 @@
-import { GenerateToolCallResult, ToolChoice, ToolDefinition } from '@/function/generate/types';
+import { GenerateToolCall, ToolChoice, ToolDefinition } from '@/function/generate/types';
 
 export type SupportedToolCallSource =
   | 'openai'
@@ -13,7 +13,7 @@ export type SupportedToolCallSource =
 
 type ToolCallResponseFamily = 'openai' | 'claude' | 'makersuite';
 
-type NormalizedToolCall = GenerateToolCallResult['tool_calls'][number];
+type NormalizedToolCall = GenerateToolCall;
 type RequestToolOptions = { tools?: ToolDefinition[]; tool_choice?: ToolChoice };
 type NormalizedRequestToolChoice = ToolChoice | 'any';
 type NormalizedRequestToolOptions = { tools?: ToolDefinition[]; tool_choice?: NormalizedRequestToolChoice };

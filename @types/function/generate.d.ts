@@ -23,7 +23,7 @@ declare function getProxyPresetNames(): string[];
  *   - `overrides?:Overrides`: 覆盖选项. 若设置, 则 `overrides` 中给出的字段将会覆盖对应的提示词. 如 `overrides.char_description = '覆盖的角色描述';` 将会覆盖角色描述
  *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
- * @returns 生成的最终文本
+ * @returns 默认返回原始字符串, 设置 `should_return_reasoning` 或 `tools` 时可能返回详情对象; 可以用 `typeof result === 'string'` 来判断
  *
  * @example
  * // 请求生成
@@ -117,7 +117,7 @@ declare function getProxyPresetNames(): string[];
  *   tool_choice: 'auto'
  * });
  *
- * if (typeof result === 'object' && result.tool_calls) {
+ * if (typeof result !== 'string' && result.tool_calls) {
  *   for (const call of result.tool_calls) {
  *     console.info(`模型调用了工具: ${call.function.name}(${call.function.arguments})`);
  *   }
@@ -141,18 +141,21 @@ declare function getProxyPresetNames(): string[];
  *     }
  *   }
  * });
- * const parsed = JSON.parse(result as string);
+ * const parsed = JSON.parse(result);
  * console.info(parsed.narrative, parsed.mood);
  *
  * @example
- * // 读取推理模型的思考过程（reasoning）
- * const result = await generate({ user_input: '你好' });
- * const text = typeof result === 'string' ? result : result.content;
- * if (result.reasoning) {
+ * // 获取模型的思考过程 (reasoning)
+ * const result = await generate({ user_input: '你好', should_return_reasoning: true });
+ * if (typeof result !== 'string' && result.reasoning) {
  *   console.info('思考过程: ', result.reasoning);
  * }
  */
-declare function generate(config: GenerateConfig): Promise<GenerateResultString | GenerateResult>;
+declare function generate(config: GenerateConfig & { should_return_reasoning: true }): Promise<GenerateDetailedResult>;
+declare function generate(
+  config: GenerateConfig & { should_return_reasoning?: false; tools?: [] | undefined },
+): Promise<string>;
+declare function generate(config: GenerateConfig): Promise<string | GenerateDetailedResult>;
 
 /**
  * 不使用酒馆当前启用的预设, 让 AI 生成一段文本.
@@ -173,7 +176,7 @@ declare function generate(config: GenerateConfig): Promise<GenerateResultString 
  *   - `injects?:Omit<InjectionPrompt, 'id'>[]`: 要额外注入的提示词
  *   - `max_chat_history?:'all'|number`: 最多使用多少条聊天历史
  *   - `ordered_prompts?:(BuiltinPrompt|RolePrompt)[]`: 一个提示词数组, 数组元素将会按顺序发给 AI, 因而相当于自定义预设
- * @returns 生成的最终文本
+ * @returns 默认返回原始字符串, 设置 `should_return_reasoning` 或 `tools` 时可能返回详情对象; 可以用 `typeof result === 'string'` 来判断
  *
  * @example
  * // 自定义内置提示词顺序, 未在 ordered_prompts 中给出的将不会被使用
@@ -206,7 +209,13 @@ declare function generate(config: GenerateConfig): Promise<GenerateResultString 
  * })
  * console.info('收到回复: ', result);
  */
-declare function generateRaw(config: GenerateRawConfig): Promise<GenerateResultString | GenerateResult>;
+declare function generateRaw(
+  config: GenerateRawConfig & { should_return_reasoning: true },
+): Promise<GenerateDetailedResult>;
+declare function generateRaw(
+  config: GenerateRawConfig & { should_return_reasoning?: false; tools?: [] | undefined },
+): Promise<string>;
+declare function generateRaw(config: GenerateRawConfig): Promise<string | GenerateDetailedResult>;
 
 /**
  * 获取模型列表
@@ -266,6 +275,9 @@ type GenerateConfig = {
    */
   should_stream?: boolean;
 
+  /** 是否在返回值中包含 AI 的思考过程 (reasoning), 不影响 AI 是否进行推理; 默认为 false */
+  should_return_reasoning?: boolean;
+
   /**
    * 是否静默生成; 默认为 `false`.
    * - `false`: 酒馆页面的发送按钮将会变为停止按钮, 点击停止按钮会中断所有非静默生成请求
@@ -293,12 +305,6 @@ type GenerateConfig = {
   custom_api?: CustomApiConfig;
 
   /**
-   * 工具定义列表（OpenAI 格式）。
-   * 传入后，模型可能返回 tool_calls 而非纯文本，此时函数返回 `GenerateToolCallResult` 对象。
-   */
-  tools?: ToolDefinition[];
-
-  /**
    * 工具选择策略:
    * - `'auto'`: 模型自行决定是否调用工具（默认）
    * - `'required'`: 模型必须调用工具
@@ -306,19 +312,32 @@ type GenerateConfig = {
    * - `{ type: 'function', function: { name: string } }`: 强制调用指定工具
    */
   tool_choice?: ToolChoice;
-
-  /**
-   * JSON Schema 定义，强制模型输出符合指定 schema 的 JSON。
-   * 返回值为 JSON 字符串（需自行 JSON.parse）。
-   *
-   * ST 服务端会根据 provider 自动转换格式：
-   * - OpenAI/DeepSeek/Mistral 等 → response_format.json_schema
-   * - Claude → 转为 tool + forced tool_choice
-   *
-   * 与 tools 互斥，不要同时传入。
-   */
-  json_schema?: JsonSchema;
-};
+} & (
+  | {
+      /**
+       * 工具定义列表 (OpenAI 格式)
+       * 传入后, 模型可能返回 tool_calls 而非纯文本, 此时函数将返回 `GenerateDetailedResult` 对象
+       *
+       * 与 json_schema 互斥, 不要同时传入
+       */
+      tools?: ToolDefinition[];
+      json_schema?: never;
+    }
+  | {
+      tools?: never;
+      /**
+       * JSON Schema 定义，强制模型输出符合指定 schema 的 JSON
+       * 返回值为 JSON 字符串 (需自行 JSON.parse)
+       *
+       * ST 服务端会根据 provider 自动转换格式：
+       * - OpenAI/DeepSeek/Mistral 等 → response_format.json_schema
+       * - Claude → 转为 tool + forced tool_choice
+       *
+       * 与 tools 互斥, 不要同时传入
+       */
+      json_schema?: JsonSchema;
+    }
+);
 
 type GenerateRawConfig = GenerateConfig & {
   /**
@@ -419,25 +438,7 @@ type CustomApiConfig = {
 };
 
 /**
- * JSON Schema 定义，用于强制模型输出符合指定 schema 的 JSON。
- *
- * @example
- * const result = await generateRaw({
- *   user_input: '描述场景',
- *   json_schema: {
- *     name: 'scene_output',
- *     description: '场景描述和角色状态',
- *     value: {
- *       type: 'object',
- *       properties: {
- *         narrative: { type: 'string', description: '叙事文本' },
- *         status: { type: 'object', properties: { name: { type: 'string' } } }
- *       },
- *       required: ['narrative', 'status']
- *     }
- *   }
- * });
- * const parsed = JSON.parse(result as string);
+ * JSON Schema 定义，用于强制模型输出符合指定 schema 的 JSON
  */
 type JsonSchema = {
   /** Schema 名称 */
@@ -463,7 +464,7 @@ type ToolFunction = {
 };
 
 /**
- * Tool 定义（OpenAI 格式）
+ * Tool 定义 (OpenAI 格式)
  */
 type ToolDefinition = {
   type: 'function';
@@ -476,98 +477,54 @@ type ToolDefinition = {
 type ToolChoice = 'auto' | 'required' | 'none' | 'any' | { type: 'function'; function: { name: string } };
 
 /**
- * 单条 tool call（对外统一形态）
- */
-type GenerateToolCall = {
-  id: string;
-  type: 'function';
-  function: { name: string; arguments: string };
-  thought_signature?: string;
-};
-
-/**
- * generate / generateRaw 的统一详情对象。
+ * 当 `should_return_reasoning` 为 true 或存在 tool_calls 时, generate/generateRaw 的返回值, 包含正文和思考过程、工具调用结果等元数据
  *
- * 函数的返回值按需包装为三种形态：
- * - 无 reasoning、无 tool_calls（非推理模型的绝大多数场景）→ primitive string，与旧版完全一致；
- * - 有 reasoning、无 tool_calls → String 子类实例：可直接当字符串用（模板串、`.trim()` 等），
- *   也可读取 `.content` / `.reasoning` / `.reasoning_signature`；
- * - 有 tool_calls → plain object（同 `GenerateToolCallResult` 形态，另有可选 `reasoning`）。
+ * @example
+ * const result = await generateRaw({ user_input: '你好', should_return_reasoning: true });
  *
- * 因此推荐用法：`typeof result === 'string' ? result : result.content` 或直接 `${result}`；
- * 判断是否有思考过程用 `if (result.reasoning)`。
+ * // 获取 AI 的回复正文
+ * console.log(typeof result === 'string' ? result : result.content);
+ *
+ * // 获取 AI 的思考过程 (reasoning)
+ * if (typeof result !== 'string' && result.reasoning) {
+ *   console.log(result.reasoning);
+ * }
  */
-type GenerateResult = {
+type GenerateDetailedResult = {
   readonly content: string;
-  /** 模型思维链正文（推理模型且后端返回时存在；保持原文，未做 cleanUpMessage / stopping strings 处理） */
   readonly reasoning?: string;
-  /** 顶层 reasoning 签名（多轮 tool call 场景回传用） */
+  /**
+   * 顶层 reasoning 签名 (不是绑定到具体 tool_call 的那一份)
+   *
+   * 主要出现在「模型只返回文本、没有 tool_calls」的场景:
+   *   - Gemini 会把签名挂在最后一个 text part 上 (流式终帧里可能是空字符串 text + 签名)
+   *   - OpenRouter 通过 reasoning_details 暴露非 tool 绑定的 encrypted 段
+   *   - Claude 通过 thinking 块的 signature 字段提供
+   *
+   * 多轮请求时, 你可能需要将这个签名回传给下一轮请求, 以满足模型调用要求
+   */
   readonly reasoning_signature?: string;
   readonly tool_calls?: GenerateToolCall[];
 };
 
 /**
- * string 返回形态的交叉标注：使 `result.reasoning` 等属性无需类型收窄即可访问
- * （string 一侧这些属性恒为 undefined，运行时就是普通字符串）
+ * 单条 tool call
  */
-type GenerateResultString = string & {
-  readonly reasoning?: undefined;
-  readonly reasoning_signature?: undefined;
-  readonly tool_calls?: undefined;
-};
-
-/**
- * 当模型返回 tool_calls 时的结构化结果。
- *
- * 仅在 `generate` / `generateRaw` 配置中传入了 `tools` 且模型决定调用工具时返回；
- * 否则函数仍返回普通的 `string`。
- */
-type GenerateToolCallResult = {
-  /** 模型返回的文本内容（可能为空字符串） */
-  content: string;
-  /** 模型思维链正文，推理模型返回；与 reasoning_signature 同为多轮场景可用 */
-  reasoning?: string;
-  /** 模型请求调用的工具列表 */
-  tool_calls: {
-    id: string;
-    type: 'function';
-    function: {
-      /** 工具函数名称 */
-      name: string;
-      /** JSON 字符串格式的参数 */
-      arguments: string;
-    };
-    /**
-     * 加密的 reasoning/thought 签名（若 provider 返回）。
-     *
-     * 多轮 tool call 场景下必须把签名原样回传给下一轮请求以维持推理上下文。
-     *
-     * **Gemini 3 强制要求**：不回传 thought_signature 会返回 4xx 校验错误
-     * （Gemini 2.5 及之前是可选，3.0+ 强制，见官方 thought-signatures 文档）。
-     *
-     * **并行 tool call**：Gemini 只会把签名挂在**第一个** tool_call 上，
-     * 后续并行 call 的 `thought_signature` 为 undefined——这一个签名代表整批，
-     * 回传时只需要还原到第一个 call 对应的 functionCall part 上。
-     *
-     * **多轮累积**：必须把**历史所有轮次**返回过的签名一起回传，而不是只带最后一次。
-     *
-     * **绕过校验**（仅限手动构造 tool call 的情况）：把 thought_signature 设为
-     * `"skip_thought_signature_validator"` 或 `"context_engineering_is_the_way_to_go"`
-     * 可以跳过 Gemini 服务端校验。
-     */
-    thought_signature?: string;
-  }[];
+type GenerateToolCall = {
+  id: string;
+  type: 'function';
+  function: {
+    /** 工具函数名称 */
+    name: string;
+    /** JSON 字符串格式的参数 */
+    arguments: string;
+  };
   /**
-   * 顶层 reasoning 签名（非绑定到具体 tool_call 的那一份）。
+   * 加密的 reasoning/thought 签名
    *
-   * 主要出现在「模型只返回文本、没有 tool_calls」的场景：Gemini 会把签名挂在最后一个
-   * text part 上（流式终帧里可能是空字符串 text + 签名）。OpenRouter 通过
-   * `reasoning_details` 暴露非 tool 绑定的 encrypted 段；Claude 通过 thinking 块的
-   * signature 字段提供。
-   *
-   * 同样用于多轮场景下把 thinking 上下文回传给下一轮请求。
+   * 一些 AI 要求多轮 tool call 时下必须把签名原样回传给下一轮请求以维持推理上下文, 例如 Gemini 在[官方 thought-signatures 文档](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/thinking/thought-signatures)里要求
    */
-  reasoning_signature?: string;
+  thought_signature?: string;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

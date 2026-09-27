@@ -17,7 +17,7 @@ import {
 import {
   createGenerateResult,
   CustomApiConfig,
-  GenerateResult,
+  GenerateDetailedResult,
   GenerateToolCall,
   JsonSchema,
   ToolChoice,
@@ -463,7 +463,8 @@ async function handleResponse(
   hasTools: boolean,
   reasoningSource?: string,
   toolCallSource?: SupportedToolCallSource,
-): Promise<string | GenerateResult> {
+  shouldReturnReasoning = false,
+): Promise<string | GenerateDetailedResult> {
   if (!response) {
     throw Error('未得到响应');
   }
@@ -496,13 +497,17 @@ async function handleResponse(
     ...(reasoning ? { reasoning } : {}),
     ...(reasoningSignature ? { reasoning_signature: reasoningSignature } : {}),
     ...(toolCalls ? { tool_calls: toolCalls } : {}),
-  });
+  }, shouldReturnReasoning);
 }
 
 /**
  * 把流式生成器的累积结果包装成对外返回值（custom 与 preset 两条流式路径共用）
  */
-function wrapStreamingResult(streamingProcessor: StreamingProcessor, hasTools: boolean): string | GenerateResult {
+function wrapStreamingResult(
+  streamingProcessor: StreamingProcessor,
+  hasTools: boolean,
+  shouldReturnReasoning: boolean,
+): string | GenerateDetailedResult {
   const toolCalls: GenerateToolCall[] | undefined =
     hasTools && streamingProcessor.toolCalls.length > 0
       ? normalizeAccumulatedToolCalls(
@@ -519,7 +524,7 @@ function wrapStreamingResult(streamingProcessor: StreamingProcessor, hasTools: b
     ...(streamingProcessor.reasoning ? { reasoning: streamingProcessor.reasoning } : {}),
     ...(streamingProcessor.reasoningSignature ? { reasoning_signature: streamingProcessor.reasoningSignature } : {}),
     ...(toolCalls ? { tool_calls: toolCalls } : {}),
-  });
+  }, shouldReturnReasoning);
 }
 
 export async function generateResponse(
@@ -531,8 +536,9 @@ export async function generateResponse(
   customApi?: CustomApiConfig,
   toolOptions?: { tools?: ToolDefinition[]; tool_choice?: ToolChoice },
   jsonSchema?: JsonSchema,
-): Promise<string | GenerateResult> {
-  let result: string | GenerateResult = '';
+  shouldReturnReasoning = false,
+): Promise<string | GenerateDetailedResult> {
+  let result: string | GenerateDetailedResult = '';
   const { source, supportedSource, effectiveToolOptions, effectiveJsonSchema } = resolveEffectiveToolCallOptions(
     customApi,
     toolOptions,
@@ -567,7 +573,7 @@ export async function generateResponse(
             effectiveJsonSchema,
           );
         await streamingProcessor.generate();
-        result = wrapStreamingResult(streamingProcessor, hasTools);
+        result = wrapStreamingResult(streamingProcessor, hasTools, shouldReturnReasoning);
       } else {
         const response = await sendCustomApiRequestNonStreaming(
           generateData.prompt,
@@ -576,7 +582,7 @@ export async function generateResponse(
           effectiveToolOptions,
           effectiveJsonSchema,
         );
-        result = await handleResponse(response, generationId, hasTools, source, supportedSource);
+        result = await handleResponse(response, generationId, hasTools, source, supportedSource, shouldReturnReasoning);
       }
     } else {
       const optionsInjector = (data: any) => {
@@ -603,11 +609,11 @@ export async function generateResponse(
               effectiveJsonSchema,
             );
           await streamingProcessor.generate();
-          result = wrapStreamingResult(streamingProcessor, hasTools);
+          result = wrapStreamingResult(streamingProcessor, hasTools, shouldReturnReasoning);
         } else {
           oai_settings.stream_openai = false;
           const response = await sendOpenAIRequest('normal', generateData.prompt, abortController.signal);
-          result = await handleResponse(response, generationId, hasTools, source, supportedSource);
+          result = await handleResponse(response, generationId, hasTools, source, supportedSource, shouldReturnReasoning);
         }
       } finally {
         eventSource.removeListener(event_types.CHAT_COMPLETION_SETTINGS_READY, optionsInjector);

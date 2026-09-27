@@ -7,7 +7,7 @@ import {
   detail,
   GenerateConfig,
   GenerateRawConfig,
-  GenerateResult,
+  GenerateDetailedResult,
   Overrides,
   PlaceholderPrompt,
   RolePrompt,
@@ -165,6 +165,7 @@ export function fromGenerateConfig(config: GenerateConfig): detail.GenerateParam
     tools: config.tools,
     tool_choice: config.tool_choice,
     json_schema: config.json_schema,
+    should_return_reasoning: config.should_return_reasoning,
   };
 }
 
@@ -256,6 +257,7 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
     tools: config.tools,
     tool_choice: config.tool_choice,
     json_schema: config.json_schema,
+    should_return_reasoning: config.should_return_reasoning,
   };
 }
 
@@ -271,7 +273,7 @@ export function fromGenerateRawConfig(config: GenerateRawConfig): detail.Generat
  * @param config.order 提示词顺序
  * @param config.stream 是否启用流式传输
  * @param config.bindToStopButton 是否绑定到酒馆停止按钮；默认为 true
- * @returns Promise<string> 生成的响应文本
+ * @returns 响应文本；按需为包含 reasoning 等元数据的详情对象
  */
 async function iframeGenerate({
   generation_id,
@@ -288,7 +290,8 @@ async function iframeGenerate({
   tools = undefined,
   tool_choice = undefined,
   json_schema = undefined,
-}: detail.GenerateParams = {}): Promise<string | GenerateResult> {
+  should_return_reasoning = false,
+}: detail.GenerateParams = {}): Promise<string | GenerateDetailedResult> {
   const generationId = generation_id!;
 
   if (generationControllers.has(generationId)) {
@@ -367,6 +370,7 @@ async function iframeGenerate({
       custom_api,
       toolOptions,
       json_schema,
+      should_return_reasoning,
     );
 
     return result;
@@ -389,7 +393,7 @@ async function iframeGenerate({
   }
 }
 
-export async function generate(config: GenerateConfig): Promise<string | GenerateResult> {
+export async function generate(config: GenerateConfig): Promise<string | GenerateDetailedResult> {
   config.generation_id = config.generation_id || uuidv4();
   await eventSource.emit('js_generation_requested', config.generation_id, 'generate', config);
   if (config.preset_name && config.preset_name !== 'in_use') {
@@ -400,7 +404,7 @@ export async function generate(config: GenerateConfig): Promise<string | Generat
   return await iframeGenerate(converted_config);
 }
 
-export async function generateRaw(config: GenerateRawConfig): Promise<string | GenerateResult> {
+export async function generateRaw(config: GenerateRawConfig): Promise<string | GenerateDetailedResult> {
   config.generation_id = config.generation_id || uuidv4();
   await eventSource.emit('js_generation_requested', config.generation_id, 'generateRaw', config);
   const converted_config = fromGenerateRawConfig(config);

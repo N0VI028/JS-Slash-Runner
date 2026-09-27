@@ -52,53 +52,16 @@ export type GenerateToolCall = {
   thought_signature?: string;
 };
 
-/**
- * 当模型返回 tool_calls 时的结构化结果
- */
-export type GenerateToolCallResult = {
-  content: string;
-  /** 模型思维链正文，推理模型返回 */
+export type GenerateDetailedResult = {
+  readonly content: string;
   readonly reasoning?: string;
-  tool_calls: GenerateToolCall[];
-  /**
-   * 顶层 reasoning 签名（非绑定到具体 tool_call 的那一份）。
-   * 同样用于多轮场景下把 thinking 上下文回传给下一轮请求。
-   */
-  reasoning_signature?: string;
+  readonly reasoning_signature?: string;
+  readonly tool_calls?: GenerateToolCall[];
 };
 
 /**
- * generate / generateRaw 的统一详情对象：有 reasoning 或 tool_calls 时返回
- */
-export interface GenerateResult {
-  readonly content: string;
-  /** 模型思维链正文（推理模型且后端返回时存在；保持后端原文，不做 cleanUpMessage） */
-  readonly reasoning?: string;
-  /** 顶层 reasoning 签名（多轮 tool call 场景回传用） */
-  readonly reasoning_signature?: string;
-  readonly tool_calls?: GenerateToolCall[];
-}
-
-/**
- * 有 reasoning、无 tool call 时的 String 子类包装：
- * 字符串方法照常可用，兼有 .content / .reasoning。
- * 注意 declare 修饰：纯类型声明，不生成值为 undefined 的自有属性，
- * 保证「字段不存在」语义（'reasoning' in result 不被污染）。
- */
-export class BoxedGenerateDetails extends String implements GenerateResult {
-  declare readonly reasoning?: string;
-  declare readonly reasoning_signature?: string;
-
-  get content(): string {
-    return String.prototype.valueOf.call(this);
-  }
-}
-
-/**
- * - 有 tool_calls → plain object（存量形态 + 可选 reasoning）
- * - 有 reasoning / reasoning_signature、无 tool_calls → BoxedGenerateDetails
- * - 都没有 → primitive string（与旧版逐字节一致）
- * 字段用条件展开构造，确保「无值时字段真正不存在」而非 undefined。
+ * 仅在显式要求返回 reasoning，或存在非空 tool_calls 时返回普通详情对象。
+ * 否则保持原始字符串返回；对象只包含实际存在的元数据字段。
  */
 export function createGenerateResult(
   content: string,
@@ -107,18 +70,17 @@ export function createGenerateResult(
     reasoning_signature?: string;
     tool_calls?: GenerateToolCall[];
   } = {},
-): string | GenerateResult {
+  shouldReturnReasoning = false,
+): string | GenerateDetailedResult {
   const metadata = {
     ...(details.reasoning ? { reasoning: details.reasoning } : {}),
     ...(details.reasoning_signature ? { reasoning_signature: details.reasoning_signature } : {}),
   };
-  if (details.tool_calls?.length) {
-    return { content, tool_calls: details.tool_calls, ...metadata };
-  }
-  if (!details.reasoning && !details.reasoning_signature) {
+  const toolCalls = details.tool_calls?.length ? { tool_calls: details.tool_calls } : {};
+  if (!shouldReturnReasoning && !('tool_calls' in toolCalls)) {
     return content;
   }
-  return Object.assign(new BoxedGenerateDetails(content), metadata);
+  return { content, ...metadata, ...toolCalls };
 }
 
 /**
@@ -145,6 +107,8 @@ export type CustomApiConfig = {
  * 生成配置接口（使用预设）
  */
 export type GenerateConfig = {
+  /** 是否以对象形式返回 reasoning 元数据；默认 false，不影响模型推理或 reasoning 事件 */
+  should_return_reasoning?: boolean;
   preset_name?: 'in_use' | string;
   generation_id?: string;
   user_input?: string;
@@ -164,6 +128,7 @@ export type GenerateConfig = {
  * 原始生成配置接口（不使用预设）
  */
 export type GenerateRawConfig = {
+  should_return_reasoning?: boolean;
   generation_id?: string;
   user_input?: string;
   image?: File | string | (File | string)[];
@@ -300,6 +265,7 @@ export namespace detail {
 
   // 生成参数类型
   export type GenerateParams = {
+    should_return_reasoning?: boolean;
     generation_id?: string;
     user_input?: string;
     use_preset?: boolean;
