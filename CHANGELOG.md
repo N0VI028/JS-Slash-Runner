@@ -1,4 +1,26 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.11.1
+
+### 📦函数
+
+- 为 `generate` 和 `generateRaw` 新增 `should_return_reasoning` 参数, 启用后将能在返回值中获得 AI 的思考过程和思考签名.
+
+  ```ts
+   const result = await generateRaw({ user_input: '你好', should_return_reasoning: true });
+  
+   // 获取 AI 的回复正文
+   console.log(typeof result === 'string' ? result : result.content);
+  
+   // 获取 AI 的思考过程 (reasoning)
+   if (typeof result !== 'string' && result.reasoning) {
+     console.log(result.reasoning);
+   }
+  ```
+
+### 🗣提示词查看器
+
+- 新增`启用内容溯源`实验选项, 开关放在提示词查看器里的某个神秘位置. 启用后能在提示词查看器中查看提示词内容来源于哪里, 例如来自世界书中名为 `XXX` 的条目.
+
 ## 4.11.0
 
 ### 📦函数
