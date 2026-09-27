@@ -86,10 +86,6 @@ type TavernRegexOption = TavernRegexOptionGlobal | TavernRegexOptionCharacter | 
  */
 declare function getTavernRegexes(option: TavernRegexOption): TavernRegex[];
 
-type ReplaceTavernRegexesOption = {
-  scope?: 'all' | 'global' | 'character';
-};
-
 /**
  * 完全替换酒馆正则为 `regexes`.
  * - **这是一个很慢的操作!** 尽量对正则做完所有事后再一次性 replaceTavernRegexes.
