@@ -1,15 +1,15 @@
-import { chat_metadata, event_types, extension_prompt_types, getCharacterCardFields } from '@sillytavern/script';
-import { promptManager } from '@sillytavern/scripts/openai';
-import { metadata_keys, NOTE_MODULE_NAME, shouldWIAddPrompt } from '@sillytavern/scripts/authors-note';
-import { inject_ids } from '@sillytavern/scripts/constants';
-import { power_user } from '@sillytavern/scripts/power-user';
 import type { SendingMessage } from '@/function/event';
-import { getCurrentScope, onScopeDispose, shallowRef } from 'vue';
-import { splitBySpans, toWiMarks, type WiMark } from './marks';
+import { inject_ids } from '@/util/compatibility';
+import { chat_metadata, event_types, extension_prompt_types, getCharacterCardFields } from '@sillytavern/script';
+import { metadata_keys, NOTE_MODULE_NAME, shouldWIAddPrompt } from '@sillytavern/scripts/authors-note';
+import { promptManager } from '@sillytavern/scripts/openai';
+import { power_user } from '@sillytavern/scripts/power-user';
+import { getCurrentScope, onScopeDispose, shallowRef, watch } from 'vue';
 import { alignMessages } from './align';
+import { splitBySpans, toWiMarks, type WiMark } from './marks';
 import { installPipelineRecorder, takePipelineRecording, uninstallPipelineRecorder } from './pipeline_recorder';
-import { buildDisplayFromRecording, textContent } from './pure_replay';
 import { resolvePresetChannels } from './preset_tracer';
+import { buildDisplayFromRecording, textContent } from './pure_replay';
 import {
   buildExampleComposition,
   buildWiBuckets,
@@ -48,7 +48,7 @@ import type {
 } from './types';
 
 // 重新导出规范要求的公共接口与类型
-export { setupWorldInfoTracer, wi_trace_report, wi_tracer_enabled, toWiMarks, splitBySpans };
+export { setupWorldInfoTracer, splitBySpans, toWiMarks, wi_trace_report, wi_tracer_enabled };
 export type { WiMark, WiTraceReport, WiTraceSegment };
 
 /** 溯源开关：实验性功能，默认关闭，状态保存在浏览器本地存储而非酒馆设置 */
@@ -278,12 +278,7 @@ function resolvePersonaDescription(ctx: TraceContext): void {
  * @param prefix 前缀偏移
  * @param ctx 溯源上下文
  */
-function pushMainBlockSegments(
-  segments: WiSegment[],
-  target: DisplayTarget,
-  prefix: number,
-  ctx: TraceContext,
-): void {
+function pushMainBlockSegments(segments: WiSegment[], target: DisplayTarget, prefix: number, ctx: TraceContext): void {
   const joined = joinWithSpans(segments.map(segment => segment.text));
 
   for (const [index, segment] of segments.entries()) {

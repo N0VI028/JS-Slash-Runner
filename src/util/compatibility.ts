@@ -266,3 +266,13 @@ export const settingsToUpdate = {
     type: 'none',
   },
 } as const;
+
+export const inject_ids = {
+  STORY_STRING: '__STORY_STRING__',
+  QUIET_PROMPT: 'QUIET_PROMPT',
+  DEPTH_PROMPT: 'DEPTH_PROMPT',
+  DEPTH_PROMPT_INDEX: (index: string) => `DEPTH_PROMPT_${index}`,
+  CUSTOM_WI_DEPTH: 'customDepthWI',
+  CUSTOM_WI_DEPTH_ROLE: (depth: number, role: string) => `customDepthWI_${depth}_${role}`,
+  CUSTOM_WI_OUTLET: (key: string) => `customWIOutlet_${key}`,
+};
