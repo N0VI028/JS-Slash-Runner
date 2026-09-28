@@ -7,7 +7,7 @@ import {
   extension_prompt_roles,
   placeholder_prompt_default_order,
 } from '@/function/generate/types';
-import { clearInjectionPrompts, convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
+import { convertFileToBase64, getPromptRole, isPromptFiltered } from '@/function/generate/utils';
 import {
   MAX_INJECTION_DEPTH,
   eventSource,
@@ -26,7 +26,7 @@ import {
 } from '@sillytavern/scripts/openai';
 import { persona_description_positions, power_user } from '@sillytavern/scripts/power-user';
 import { Prompt, PromptCollection } from '@sillytavern/scripts/PromptManager';
-import { InjectionPrompt } from '../inject';
+import { InjectionPrompt } from '@/function/inject';
 
 /**
  * @fileoverview 原始生成路径处理模块 - 不使用预设的生成逻辑
@@ -436,12 +436,7 @@ async function filteredGetExtensionPrompt(
   };
   const promptPromises = Object.keys(extension_prompts)
     .sort()
-    .filter(
-      x =>
-        x !== '2_floating_prompt' &&
-        !/customDepthWI-\d+-\d+/.test(x) &&
-        !/TH-CustomInjects-.+/.test(x),
-    )
+    .filter(x => x !== '2_floating_prompt' && !/customDepthWI-\d+-\d+/.test(x) && !/TH-CustomInjects-.+/.test(x))
     // @ts-expect-error 无视类型
     .map(x => extension_prompts[x])
     .filter(x => x.position == position && x.value)

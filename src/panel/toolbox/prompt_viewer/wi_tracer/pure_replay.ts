@@ -2,8 +2,8 @@
  * 世界书条目追踪
  * 镜像 SillyTavern 源码中字符串拼接与偏移计算的算术逻辑
  */
-import { joinWithSpans, type Span } from './spans';
-import type { DisplayMessage, FlatMessageInfo, PipelineRecording } from './types';
+import { joinWithSpans, type Span } from '@/panel/toolbox/prompt_viewer/wi_tracer/spans';
+import type { DisplayMessage, FlatMessageInfo, PipelineRecording } from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 /** 不参与 squash 合并的消息标识符列表（镜像 openai.js:3848） */
 export const EXCLUDE_LIST = ['newMainChat', 'newChat', 'groupNudge'];
@@ -184,9 +184,7 @@ export function toMergedDisplayMessage(index: number, members: FlatMessageInfo[]
 export function buildSquashedDisplay(flat: FlatMessageInfo[]): DisplayMessage[] {
   const groups = groupSquashMessages(flat);
   return groups.map((members, index) =>
-    members.length === 1
-      ? toSingleDisplayMessage(index, members[0])
-      : toMergedDisplayMessage(index, members),
+    members.length === 1 ? toSingleDisplayMessage(index, members[0]) : toMergedDisplayMessage(index, members),
   );
 }
 

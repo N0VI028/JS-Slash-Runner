@@ -1,4 +1,4 @@
-import type { MessagePair } from './align';
+import type { MessagePair } from '@/panel/toolbox/prompt_viewer/wi_tracer/align';
 
 export type WiEntrySnapshot = {
   uid: number;

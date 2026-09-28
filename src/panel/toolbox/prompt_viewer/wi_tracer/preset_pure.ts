@@ -2,9 +2,9 @@
  * 预设条目溯源
  * 处理预设条目判定、相对条目内容校验、绝对注入块内拼接偏移计算与内联标记生成
  */
-import type { WiMark } from './marks';
-import { joinWithSpans } from './spans';
-import type { WiTraceSegment } from './types';
+import type { WiMark } from '@/panel/toolbox/prompt_viewer/wi_tracer/marks';
+import { joinWithSpans } from '@/panel/toolbox/prompt_viewer/wi_tracer/spans';
+import type { WiTraceSegment } from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 /** 预设内容标记条目的标识符集合 */
 export const PRESET_MARKER_IDENTIFIERS = new Set(['main', 'nsfw', 'jailbreak', 'enhanceDefinitions']);

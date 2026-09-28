@@ -5,19 +5,23 @@ import { metadata_keys, NOTE_MODULE_NAME, shouldWIAddPrompt } from '@sillytavern
 import { promptManager } from '@sillytavern/scripts/openai';
 import { power_user } from '@sillytavern/scripts/power-user';
 import { getCurrentScope, onScopeDispose, shallowRef, watch } from 'vue';
-import { alignMessages } from './align';
-import { splitBySpans, toWiMarks, type WiMark } from './marks';
-import { installPipelineRecorder, takePipelineRecording, uninstallPipelineRecorder } from './pipeline_recorder';
-import { resolvePresetChannels } from './preset_tracer';
-import { buildDisplayFromRecording, textContent } from './pure_replay';
+import { alignMessages } from '@/panel/toolbox/prompt_viewer/wi_tracer/align';
+import { splitBySpans, toWiMarks, type WiMark } from '@/panel/toolbox/prompt_viewer/wi_tracer/marks';
+import {
+  installPipelineRecorder,
+  takePipelineRecording,
+  uninstallPipelineRecorder,
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/pipeline_recorder';
+import { resolvePresetChannels } from '@/panel/toolbox/prompt_viewer/wi_tracer/preset_tracer';
+import { buildDisplayFromRecording, textContent } from '@/panel/toolbox/prompt_viewer/wi_tracer/pure_replay';
 import {
   buildExampleComposition,
   buildWiBuckets,
   decomposeAuthorNote,
   getExampleMessageContents,
   getWiFormatPrefixLength,
-} from './replay';
-import { joinWithSpans, leadingTrimLength, locateFromEnd } from './spans';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/replay';
+import { joinWithSpans, leadingTrimLength, locateFromEnd } from '@/panel/toolbox/prompt_viewer/wi_tracer/spans';
 import {
   addSegment,
   countAllInjections,
@@ -32,7 +36,7 @@ import {
   roleName,
   snapshotExtensionPrompts,
   tracer_state,
-} from './trace_helpers';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/trace_helpers';
 import type {
   DisplayMessage,
   DisplayTarget,
@@ -45,7 +49,7 @@ import type {
   WiSegment,
   WiTraceReport,
   WiTraceSegment,
-} from './types';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 // 重新导出规范要求的公共接口与类型
 export { setupWorldInfoTracer, splitBySpans, toWiMarks, wi_trace_report, wi_tracer_enabled };

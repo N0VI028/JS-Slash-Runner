@@ -4,9 +4,9 @@
  */
 import { extension_prompt_types, extension_prompts } from '@sillytavern/script';
 import { promptManager } from '@sillytavern/scripts/openai';
-import { projectSpan } from './align';
-import { textContent } from './pure_replay';
-import { replayExtensionPromptPart } from './replay';
+import { projectSpan } from '@/panel/toolbox/prompt_viewer/wi_tracer/align';
+import { textContent } from '@/panel/toolbox/prompt_viewer/wi_tracer/pure_replay';
+import { replayExtensionPromptPart } from '@/panel/toolbox/prompt_viewer/wi_tracer/replay';
 import type {
   DisplayMessage,
   DisplayTarget,
@@ -16,7 +16,7 @@ import type {
   TraceContext,
   WiEntrySnapshot,
   WiTraceReport,
-} from './types';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 /** 溯源器运行时状态 */
 export const tracer_state = {

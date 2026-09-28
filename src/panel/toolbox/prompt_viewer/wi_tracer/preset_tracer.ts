@@ -9,8 +9,8 @@ import {
   calculateAbsolutePromptOffsets,
   isPresetPrompt,
   verifyRelativePresetContentPure,
-} from './preset_pure';
-import { textContent } from './pure_replay';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/preset_pure';
+import { textContent } from '@/panel/toolbox/prompt_viewer/wi_tracer/pure_replay';
 import {
   absolutePromptsAt,
   addSegment,
@@ -24,8 +24,8 @@ import {
   promptBelongsToBlock,
   type InjectionBlock,
   resolveDepthBlockTarget,
-} from './trace_helpers';
-import type { DisplayTarget, PresetEntrySnapshot, TraceContext } from './types';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/trace_helpers';
+import type { DisplayTarget, PresetEntrySnapshot, TraceContext } from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 /**
  * 运行预设条目溯源全流程

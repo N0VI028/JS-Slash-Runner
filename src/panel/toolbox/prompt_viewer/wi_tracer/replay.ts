@@ -14,8 +14,8 @@ import { DEFAULT_DEPTH, wi_anchor_position, world_info_position } from '@sillyta
 import {
   decomposeAuthorNote as decomposeAuthorNotePure,
   getWiFormatPrefixLength as getWiFormatPrefixLengthPure,
-} from './pure_replay';
-import { joinWithSpans } from './spans';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/pure_replay';
+import { joinWithSpans } from '@/panel/toolbox/prompt_viewer/wi_tracer/spans';
 import type {
   ExtPromptPart,
   ExtPromptSnapshot,
@@ -23,7 +23,7 @@ import type {
   WiDepthBucket,
   WiEntrySnapshot,
   WiSegment,
-} from './types';
+} from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 /** world-info.js:88 的排序函数：order 降序 */
 const WI_SORT_FN = (a: { order: number }, b: { order: number }) => b.order - a.order;

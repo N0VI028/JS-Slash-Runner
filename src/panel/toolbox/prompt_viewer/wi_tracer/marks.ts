@@ -3,8 +3,8 @@
  * 把 WiTraceReport.segments 转换为消息内容上的内联标记（WiMark），
  * 并提供按标记区间切分文本块的纯函数，供 Content.vue 分片渲染。
  */
-import { toPresetMark } from './preset_pure';
-import type { WiTraceSegment } from './types';
+import { toPresetMark } from '@/panel/toolbox/prompt_viewer/wi_tracer/preset_pure';
+import type { WiTraceSegment } from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 /** 消息内容上的一个内联标记：[start, end) 区间 + 徽章标签 */
 export type WiMark = {

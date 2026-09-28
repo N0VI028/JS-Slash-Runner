@@ -2,8 +2,8 @@
  * 包装 ChatCompletion 的 squashSystemMessages 与 getChat 原型方法，
  */
 import { ChatCompletion } from '@sillytavern/scripts/openai';
-import { toFlatInfo } from './pure_replay';
-import type { FlatMessageInfo, PipelineRecording } from './types';
+import { toFlatInfo } from '@/panel/toolbox/prompt_viewer/wi_tracer/pure_replay';
+import type { FlatMessageInfo, PipelineRecording } from '@/panel/toolbox/prompt_viewer/wi_tracer/types';
 
 let recorded_squash_before: FlatMessageInfo[] | null = null;
 
