@@ -57,6 +57,23 @@ function applyFormatVariable(
   );
 }
 
+const format_message_variable_quoted_regex = /^(.*)\{\{format_message_variable_quoted::(.*?)\}\}/im;
+function applyFormatMessageVariableQuoted(context: MacroLikeContext, _substring: string, prefix: string, path: string) {
+  const match = prefix.match(format_message_variable_quoted_regex);
+  if (match) {
+    prefix = applyFormatMessageVariableQuoted(context, '', match[1], match[2]) + prefix.slice(match[0].length);
+  }
+
+  const variables = get_variables_without_clone(getVariableOption(context, 'message'));
+  const value = getWithout$(variables, path);
+  return (
+    prefix +
+    YAML.stringify(value, { defaultKeyType: 'PLAIN', defaultStringType: 'QUOTE_DOUBLE' })
+      .trimEnd()
+      .replaceAll('\n', '\n' + ' '.repeat(prefix.length))
+  );
+}
+
 export const macros: MacroLike[] = [
   {
     regex: /\{\{get_(message|chat|character|preset|global)_variable::(.*?)\}\}/gi,
@@ -74,6 +91,10 @@ export const macros: MacroLike[] = [
   {
     regex: /^(.*)\{\{format_(message|chat|character|preset|global)_variable::(.*?)\}\}/gim,
     replace: applyFormatVariable,
+  },
+  {
+    regex: /^(.*)\{\{format_message_variable_quoted::(.*?)\}\}/gim,
+    replace: applyFormatMessageVariableQuoted,
   },
 ];
 
