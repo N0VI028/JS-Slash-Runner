@@ -1,4 +1,12 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.11.3
+
+### 💬酒馆助手宏
+
+- 新增 `{{format_message|chat|character|preset|global_variable_quoted::}}` 宏 (by @fengzgk).
+  相比起 `{{format_message_variable::}}` 宏, 它会始终给字符串两边添加双引号.
+  例如 `体力值: 100/100` 用 `{{format_message_variable_quoted::体力值}}` 替换后将显示成 `体力值: "100/100"`, 避免 AI 误认为是 100 除以 100.
+
 ## 4.11.2
 
 ### 🐛修复

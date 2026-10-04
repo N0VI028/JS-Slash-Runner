@@ -57,20 +57,39 @@ function applyFormatVariable(
   );
 }
 
-const format_message_variable_quoted_regex = /^(.*)\{\{format_message_variable_quoted::(.*?)\}\}/im;
-function applyFormatMessageVariableQuoted(context: MacroLikeContext, _substring: string, prefix: string, path: string) {
+const format_message_variable_quoted_regex =
+  /^(.*)\{\{format_(message|chat|character|preset|global)_variable_quoted::(.*?)\}\}/im;
+function applyFormatMessageVariableQuoted(
+  context: MacroLikeContext,
+  _substring: string,
+  prefix: string,
+  type: 'message' | 'chat' | 'character' | 'preset' | 'global',
+  path: string,
+) {
   const match = prefix.match(format_message_variable_quoted_regex);
   if (match) {
-    prefix = applyFormatMessageVariableQuoted(context, '', match[1], match[2]) + prefix.slice(match[0].length);
+    prefix =
+      applyFormatMessageVariableQuoted(
+        context,
+        '',
+        match[1],
+        match[2] as 'message' | 'chat' | 'character' | 'preset' | 'global',
+        match[3],
+      ) + prefix.slice(match[0].length);
   }
 
-  const variables = get_variables_without_clone(getVariableOption(context, 'message'));
+  const variables = get_variables_without_clone(getVariableOption(context, type));
   const value = getWithout$(variables, path);
   return (
     prefix +
-    YAML.stringify(value, { defaultKeyType: 'PLAIN', defaultStringType: 'QUOTE_DOUBLE' })
-      .trimEnd()
-      .replaceAll('\n', '\n' + ' '.repeat(prefix.length))
+    (typeof value === 'string'
+      ? value
+      : YAML.stringify(value, {
+          blockQuote: 'literal',
+          defaultKeyType: 'PLAIN',
+          defaultStringType: 'QUOTE_DOUBLE',
+        }).trimEnd()
+    ).replaceAll('\n', '\n' + ' '.repeat(prefix.length))
   );
 }
 
@@ -89,12 +108,12 @@ export const macros: MacroLike[] = [
     },
   },
   {
-    regex: /^(.*)\{\{format_(message|chat|character|preset|global)_variable::(.*?)\}\}/gim,
-    replace: applyFormatVariable,
+    regex: /^(.*)\{\{format_(message|chat|character|preset|global)_variable_quoted::(.*?)\}\}/gim,
+    replace: applyFormatMessageVariableQuoted,
   },
   {
-    regex: /^(.*)\{\{format_message_variable_quoted::(.*?)\}\}/gim,
-    replace: applyFormatMessageVariableQuoted,
+    regex: /^(.*)\{\{format_(message|chat|character|preset|global)_variable::(.*?)\}\}/gim,
+    replace: applyFormatVariable,
   },
 ];
 
