@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "rootDir": ".",
+    "ignoreDeprecations": "6.0",
+    "rootDir": "../../../../../",
+    "baseUrl": "src",
     "outDir": "dist",
     "types": [
       "jquery",
@@ -14,10 +16,10 @@
     ],
     "paths": {
       "@sillytavern/*": [
-        "../../../../*"
+        "../../../../../*"
       ],
       "@/*": [
-        "./src/*"
+        "./*"
       ]
     },
     "moduleDetection": "auto",
