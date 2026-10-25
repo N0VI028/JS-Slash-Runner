@@ -1,4 +1,16 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.12.0
+
+### 📦函数
+
+- 新增 `getTavernFile`、`uploadTavernFile`、`deleteTavernFile` 函数, 用于获取、上传、删除酒馆文件
+
+  ```ts
+  // 获取 `酒馆存档文件夹/users/files/CV-vibes.json` 文件
+  const response = await getTavernFile('CV-vibes.json');
+  const json = await response.json();
+  ```
+
 ## 4.11.3
 
 ### 💬酒馆助手宏

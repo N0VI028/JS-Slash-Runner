@@ -56,6 +56,7 @@ import {
   uninstallExtension,
   updateExtension,
 } from '@/function/extension';
+import { deleteTavernFile, getTavernFile, uploadTavernFile } from '@/function/file';
 import {
   generate,
   generateRaw,
@@ -99,6 +100,19 @@ import {
 } from '@/function/lorebook_entry';
 import { _registerMacroLike, registerMacroLike, unregisterMacroLike } from '@/function/macro_like';
 import {
+  createOrReplacePersona,
+  createPersona,
+  deletePersona,
+  getCurrentPersonaId,
+  getCurrentPersonaName,
+  getPersona,
+  getPersonaAvatarPath,
+  getPersonaIds,
+  getPersonaNames,
+  replacePersona,
+  updatePersonaWith,
+} from '@/function/persona';
+import {
   createOrReplacePreset,
   createPreset,
   default_preset,
@@ -115,19 +129,6 @@ import {
   setPreset,
   updatePresetWith,
 } from '@/function/preset';
-import {
-  createOrReplacePersona,
-  createPersona,
-  deletePersona,
-  getCurrentPersonaId,
-  getCurrentPersonaName,
-  getPersona,
-  getPersonaAvatarPath,
-  getPersonaIds,
-  getPersonaNames,
-  replacePersona,
-  updatePersonaWith,
-} from '@/function/persona';
 import {
   getCharAvatarPath,
   getCharData,
@@ -321,6 +322,11 @@ function getTavernHelper() {
     uninstallExtension,
     reinstallExtension,
     updateExtension,
+
+    // file
+    getTavernFile,
+    uploadTavernFile,
+    deleteTavernFile,
 
     // import_raw
     importRawCharacter,

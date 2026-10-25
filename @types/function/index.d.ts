@@ -51,6 +51,11 @@ interface Window {
     readonly reinstallExtension: typeof reinstallExtension;
     readonly updateExtension: typeof updateExtension;
 
+    // file
+    readonly uploadTavernFile: typeof uploadTavernFile;
+    readonly deleteTavernFile: typeof deleteTavernFile;
+    readonly getTavernFile: typeof getTavernFile;
+
     // generate
     readonly builtin_prompt_default_order: typeof builtin_prompt_default_order;
     readonly generate: typeof generate;
