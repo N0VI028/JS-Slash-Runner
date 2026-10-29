@@ -1,7 +1,7 @@
 <template>
   <StreamingOne
     v-for="runtime in runtimes"
-    :key="runtime.message_id"
+    :key="runtime.mount_key"
     :message-id="runtime.message_id"
     :html="runtime.html"
     :during-streaming="runtime.during_streaming"
@@ -10,17 +10,27 @@
 </template>
 
 <script setup lang="ts">
+import { registerMessageRenderer } from '@/panel/render/message_recovery';
+import type { RenderContext } from '@/util/message_render_coordinator';
 import StreamingOne from '@/panel/render/StreamingOne.vue';
 import { calcToRender } from '@/store/iframe_runtimes/message';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { containsFrontendElement } from '@/util/is_frontend';
-import { chat, event_types } from '@sillytavern/script';
+import { chat } from '@sillytavern/script';
 
 const props = defineProps<{ enableAllowStreaming: boolean }>();
 
 const store = useGlobalSettingsStore();
 
-type Runtime = { message_id: number; html: string; during_streaming: boolean };
+type Runtime = {
+  message_id: number;
+  html: string;
+  during_streaming: boolean;
+  element: HTMLElement;
+  source_element: HTMLElement;
+  mount_key: number;
+};
+let mount_key = 0;
 const runtimes = ref<Runtime[]>([]);
 
 const destroy = (message_id: number) => {
@@ -52,12 +62,13 @@ const destroyAllInvalid = () => {
   runtimes.value.forEach(({ message_id }) => destroyIfInvalid(message_id));
 };
 
-function renderOneMessage(message_id: number, during_streaming: boolean = false) {
+function renderOneMessage(element: HTMLElement, during_streaming: boolean = false) {
+  const message_id = Number(element.getAttribute('mesid'));
   if (destroyIfInvalid(message_id)) {
     return;
   }
 
-  const $mes_text = $(`.mes[mesid="${message_id}"]`).find('.mes_text');
+  const $mes_text = $(element).find('.mes_text');
   $mes_text.find('code[data-highlighted="yes"]').css('position', 'relative');
   if (
     $mes_text.length === 0 ||
@@ -70,64 +81,65 @@ function renderOneMessage(message_id: number, during_streaming: boolean = false)
   const html = $mes_text.html();
 
   const runtime = runtimes.value.find(runtime => runtime.message_id === message_id);
-  if (runtime) {
+  if (
+    runtime &&
+    runtime.element === element &&
+    runtime.source_element === $mes_text[0] &&
+    $mes_text.siblings('.TH-streaming').length > 0
+  ) {
     runtime.html = html;
     runtime.during_streaming = during_streaming;
   } else {
-    runtimes.value.push({ message_id, html, during_streaming });
-  }
-}
-
-async function renderAllMessages(options: { destroy_all?: boolean } = {}) {
-  if (options.destroy_all) {
-    runtimes.value = [];
-    await nextTick();
-  } else {
-    destroyAllInvalid();
-  }
-  calcToRender(store.settings.render.depth, store.settings.render.depth_ignore_hidden).forEach(message_id => {
-    renderOneMessage(message_id);
-  });
-}
-
-watch(
-  () => [props.enableAllowStreaming, store.settings.render.depth] as const,
-  async ([new_enabled]) => {
-    if (new_enabled) {
-      await renderAllMessages();
-    } else {
-      runtimes.value = [];
-    }
-  },
-  { immediate: true },
-);
-
-useEventSourceOn('chatLoaded', async () => {
-  await renderAllMessages({ destroy_all: true });
-});
-
-useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) => {
-  destroyAllInvalid();
-  renderOneMessage(message_id);
-});
-
-[event_types.MESSAGE_EDITED, event_types.MESSAGE_SWIPED].forEach(event => {
-  useEventSourceOn(event, async (message_id: number) => {
-    destroyAllInvalid();
     destroy(message_id);
+    runtimes.value.push({
+      message_id,
+      html,
+      during_streaming,
+      element,
+      source_element: $mes_text[0],
+      mount_key: ++mount_key,
+    });
+  }
+}
+
+registerMessageRenderer({
+  order: 40,
+  streaming: true,
+  isAttached: element => {
+    const id = Number(element.getAttribute('mesid'));
+    if (
+      !props.enableAllowStreaming ||
+      !calcToRender(store.settings.render.depth, store.settings.render.depth_ignore_hidden).includes(id)
+    )
+      return true;
+    const text = element.querySelector<HTMLElement>('.mes_text');
+    if (!text || element.querySelector('.mes_streaming') || !containsFrontendElement(text)) return true;
+    return (
+      runtimes.value.some(runtime => runtime.element === element) &&
+      !!element.querySelector('.TH-streaming iframe[id^="TH-message--"]')
+    );
+  },
+  audit: () => {
+    runtimes.value = runtimes.value.filter(runtime => runtime.element.isConnected);
+    destroyAllInvalid();
+  },
+  revision: element =>
+    calcToRender(store.settings.render.depth, store.settings.render.depth_ignore_hidden).includes(
+      Number(element.getAttribute('mesid')),
+    ),
+  reset: () => {
+    runtimes.value = [];
+  },
+  render: async (element: HTMLElement, context: RenderContext, during_streaming: boolean) => {
+    if (!props.enableAllowStreaming || !context.isCurrent()) return;
+    // Keep the existing post-edit/swipe delay inside the reserved transaction.
     await nextTick();
-    // 延迟以等待编辑后 mes_text 内 DOM 已经更新
-    setTimeout(() => renderOneMessage(message_id));
-  });
+    if (!context.isCurrent() || !(await context.delay())) return;
+    destroyAllInvalid();
+    if (!context.isCurrent()) return;
+    renderOneMessage(element, during_streaming);
+    context.acceptChanges();
+    await nextTick();
+  },
 });
-
-useEventSourceOn(event_types.STREAM_TOKEN_RECEIVED, () => {
-  renderOneMessage(Number($('#chat').children('.mes.last_mes').attr('mesid')), true);
-});
-
-[event_types.MORE_MESSAGES_LOADED, event_types.MESSAGE_DELETED].forEach(event =>
-  useEventSourceOn(event, () => {
-    renderAllMessages();
-  }),
-);
 </script>

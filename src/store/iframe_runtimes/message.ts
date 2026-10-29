@@ -1,6 +1,7 @@
+import { refreshMessageRenders, registerMessageRenderer } from '@/panel/render/message_recovery';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { isFrontend } from '@/util/is_frontend';
-import { chat, event_types, eventSource } from '@sillytavern/script';
+import { chat } from '@sillytavern/script';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 
 type Runtime = { message_id: number; reload_memo: string; elements: HTMLElement[] };
@@ -33,11 +34,6 @@ function render$mes($mes: JQuery<HTMLElement>, reload_memo: string): Runtime[] {
     .value();
 }
 
-function renderMessages(ids: number[], reload_memo: string): Runtime[] {
-  const $mes = $('#chat > .mes').filter((_index, div) => _.includes(ids, Number($(div).attr('mesid'))));
-  return render$mes($mes, reload_memo);
-}
-
 export function calcToRender(depth: number, ignore_hidden: boolean): number[] {
   const min_showed_message_id = Number($('#chat > .mes').first().attr('mesid'));
 
@@ -54,103 +50,59 @@ export function calcToRender(depth: number, ignore_hidden: boolean): number[] {
     .value();
 }
 
-function auditRuntimes(runtimes: Runtime[], depth: number, ignore_hidden: boolean): Runtime[] {
-  const rendered = _.map(runtimes, runtime => runtime.message_id);
-  const to_render = calcToRender(depth, ignore_hidden);
-  return _.concat(
-    _.filter(runtimes, runtime => _.includes(to_render, runtime.message_id)),
-    renderMessages(_.difference(to_render, rendered), uuidv4()),
-  );
-}
-
-function rerenderAll(depth: number, ignore_hidden: boolean): Runtime[] {
-  return renderMessages(calcToRender(depth, ignore_hidden), uuidv4());
-}
-
 export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtimes', () => {
   const global_settings = useGlobalSettingsStore();
-
   const runtimes = ref<Runtime[]>([]);
-  watch(
-    () =>
-      [
-        global_settings.settings.render.enabled,
-        global_settings.settings.render.allow_streaming,
-        global_settings.settings.render.depth,
-        global_settings.settings.render.depth_ignore_hidden,
-      ] as const,
-    ([new_enabled, new_allow_streaming, new_depth, new_ignore_hidden]) => {
-      if (new_enabled) {
-        if (new_allow_streaming) {
-          runtimes.value = [];
-        }
-        runtimes.value = auditRuntimes(runtimes.value, new_depth, new_ignore_hidden);
-      } else {
-        runtimes.value = [];
-      }
-    },
-    { immediate: true },
-  );
-
-  if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
-    runtimes.value = rerenderAll(
-      global_settings.settings.render.depth,
-      global_settings.settings.render.depth_ignore_hidden,
+  const eligible = (element: HTMLElement) =>
+    calcToRender(global_settings.settings.render.depth, global_settings.settings.render.depth_ignore_hidden).includes(
+      Number(element.getAttribute('mesid')),
     );
-  } else {
-    setTimeout(() => {
-      if (global_settings.settings.render.enabled && $('#chat > .welcomePanel').length > 0) {
-        runtimes.value = rerenderAll(
-          global_settings.settings.render.depth,
-          global_settings.settings.render.depth_ignore_hidden,
-        );
-      }
-    }, 3000);
-  }
-
-  eventSource.on('chatLoaded', () => {
-    if (global_settings.settings.render.enabled) {
-      runtimes.value = rerenderAll(
+  registerMessageRenderer({
+    order: 30,
+    revision: eligible,
+    isAttached: element => {
+      if (!global_settings.settings.render.enabled || !eligible(element)) return true;
+      return $(element)
+        .find('pre')
+        .toArray()
+        .filter(
+          pre =>
+            isFrontend($(pre).text()) &&
+            (!global_settings.settings.render.allow_streaming || !$(pre).closest('.mes_text, .TH-streaming').length),
+        )
+        .every(pre => pre.parentElement?.querySelector('iframe[id^="TH-message--"]'));
+    },
+    audit: () => {
+      const ids = calcToRender(
         global_settings.settings.render.depth,
         global_settings.settings.render.depth_ignore_hidden,
       );
-    }
-  });
-
-  [
-    event_types.CHARACTER_MESSAGE_RENDERED,
-    event_types.USER_MESSAGE_RENDERED,
-    event_types.MESSAGE_UPDATED,
-    event_types.MESSAGE_SWIPED,
-  ].forEach(event => {
-    eventSource.on(event, (message_id: number | string) => {
-      if (global_settings.settings.render.enabled) {
-        const numbered_message_id = Number(message_id);
-        runtimes.value = auditRuntimes(
-          _.reject(runtimes.value, runtime => runtime.message_id === numbered_message_id),
-          global_settings.settings.render.depth,
-          global_settings.settings.render.depth_ignore_hidden,
-        );
+      runtimes.value = runtimes.value.filter(
+        runtime => ids.includes(runtime.message_id) && runtime.elements.every(el => el.isConnected),
+      );
+    },
+    reset: () => {
+      runtimes.value = [];
+    },
+    render: (element, context) => {
+      if (!context.isCurrent()) return;
+      if (!global_settings.settings.render.enabled) {
+        runtimes.value = [];
+        return;
       }
-    });
+      const id = Number(element.getAttribute('mesid'));
+      const to_render = calcToRender(
+        global_settings.settings.render.depth,
+        global_settings.settings.render.depth_ignore_hidden,
+      );
+      runtimes.value = runtimes.value.filter(
+        runtime =>
+          runtime.message_id !== id &&
+          to_render.includes(runtime.message_id) &&
+          runtime.elements.every(el => el.isConnected),
+      );
+      if (eligible(element)) runtimes.value.push(...render$mes($(element), uuidv4()));
+    },
   });
-
-  [event_types.MESSAGE_DELETED, event_types.MORE_MESSAGES_LOADED].forEach(event => {
-    eventSource.on(event, () => {
-      if (global_settings.settings.render.enabled) {
-        runtimes.value = auditRuntimes(
-          runtimes.value,
-          global_settings.settings.render.depth,
-          global_settings.settings.render.depth_ignore_hidden,
-        );
-      }
-    });
-  });
-
-  const reloadAll = () => {
-    const reload_memo = uuidv4();
-    runtimes.value = runtimes.value.map(runtime => ({ ...runtime, reload_memo }));
-  };
-
-  return { runtimes, reloadAll };
+  return { runtimes, reloadAll: refreshMessageRenders };
 });

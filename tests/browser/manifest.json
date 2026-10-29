@@ -1,0 +1,9 @@
+{
+  "display_name": "Render recovery QA (disposable profiles only)",
+  "loading_order": 99,
+  "requires": [],
+  "optional": [],
+  "js": "render-recovery-fixture.js",
+  "author": "Tavern Helper contributors",
+  "version": "1.0.0"
+}

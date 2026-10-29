@@ -1,4 +1,5 @@
 import '@/panel/render/use_collapse_code_block.scss';
+import { registerMessageRenderer } from '@/panel/render/message_recovery';
 import { CollapseCodeBlock } from '@/type/settings';
 import { isFrontend } from '@/util/is_frontend';
 import { chat, event_types, eventSource } from '@sillytavern/script';
@@ -124,24 +125,15 @@ export function useCollapseCodeBlock(
     });
   });
 
-  ['chatLoaded', event_types.MORE_MESSAGES_LOADED].forEach(event => {
-    eventSource.on(event, () => {
-      if (collapse_code_block.value !== 'none') {
-        collapseCodeBlockForAll(collapse_code_block.value, allow_streaming.value);
-      }
-    });
-  });
-
-  [
-    event_types.CHARACTER_MESSAGE_RENDERED,
-    event_types.USER_MESSAGE_RENDERED,
-    event_types.MESSAGE_UPDATED,
-    event_types.MESSAGE_SWIPED,
-  ].forEach(event => {
-    eventSource.on(event, (message_id: number | string) => {
-      if (collapse_code_block.value !== 'none') {
-        collapseCodeBlockForMessageId(Number(message_id), collapse_code_block.value, allow_streaming.value);
-      }
-    });
+  registerMessageRenderer({
+    order: 20,
+    render: element => {
+      if (collapse_code_block.value !== 'none')
+        $(element)
+          .find('pre')
+          .each(function () {
+            collapseCodeBlock($(this), collapse_code_block.value, allow_streaming.value);
+          });
+    },
   });
 }

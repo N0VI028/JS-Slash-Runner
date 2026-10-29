@@ -22,9 +22,7 @@
         <Divider />
         <Item type="plain">
           <template #title>{{ t`忽略隐藏楼层` }}</template>
-          <template #description>{{
-            t`不渲染已经被设置为AI不可见的楼层，且不计入渲染深度设定的楼层数`
-          }}</template>
+          <template #description>{{ t`不渲染已经被设置为AI不可见的楼层，且不计入渲染深度设定的楼层数` }}</template>
           <template #content>
             <Toggle id="TH-render-depth-ignore-hidden" v-model="depth_ignore_hidden" />
           </template>
@@ -68,7 +66,9 @@
         <Item type="plain">
           <template #title>{{ t`启用兜底清理` }}</template>
           <template #description>
-            {{ t`对脚本附加的界面如悬浮球等进行兜底清理, 避免脚本关闭后界面残留；但遇到这种情况更建议提醒脚本作者修复` }}
+            {{
+              t`对脚本附加的界面如悬浮球等进行兜底清理, 避免脚本关闭后界面残留；但遇到这种情况更建议提醒脚本作者修复`
+            }}
           </template>
           <template #content>
             <Toggle id="TH-render-use-cleanup-protector" v-model="use_cleanup_protector" />
@@ -103,6 +103,7 @@
 </template>
 
 <script setup lang="ts">
+import { useMessageRecovery } from '@/panel/render/message_recovery';
 import Popup from '@/panel/component/Popup.vue';
 import Iframe from '@/panel/render/Iframe.vue';
 import Streaming from '@/panel/render/Streaming.vue';
@@ -116,8 +117,16 @@ import { event_types } from '@sillytavern/script';
 import { useModal } from 'vue-final-modal';
 
 const global_settings = useGlobalSettingsStore();
-const { enabled, collapse_code_block, allow_streaming, use_blob_url, use_cleanup_protector, optimize_hljs, depth, depth_ignore_hidden } =
-  toRefs(global_settings.settings.render);
+const {
+  enabled,
+  collapse_code_block,
+  allow_streaming,
+  use_blob_url,
+  use_cleanup_protector,
+  optimize_hljs,
+  depth,
+  depth_ignore_hidden,
+} = toRefs(global_settings.settings.render);
 const { enabled: macro_enabled } = toRefs(global_settings.settings.macro);
 
 const collapse_code_block_options = [
@@ -156,6 +165,22 @@ useMacroLike(macro_enabled, usesManagedChatSurface);
 const runtimes = usesManagedChatSurface
   ? ref<Array<{ message_id: number; reload_memo: string; elements: HTMLElement[] }>>([])
   : toRef(useMessageIframeRuntimesStore(), 'runtimes');
+
+if (!usesManagedChatSurface) {
+  useMessageRecovery(
+    computed(() => enabled.value || macro_enabled.value),
+    () => [
+      enabled.value,
+      allow_streaming.value,
+      depth.value,
+      depth_ignore_hidden.value,
+      use_blob_url.value,
+      collapse_code_block.value,
+      macro_enabled.value,
+    ],
+    enabled,
+  );
+}
 
 if (usesManagedChatSurface) {
   watch(

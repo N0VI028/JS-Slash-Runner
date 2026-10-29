@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.12.0
 
+### 🐛修复
+
+- 修复生成候选回复后在输出正文前取消时，恢复的原回复不再渲染前端界面的问题；普通与流式渲染均适用，且不会因重复的消息恢复事件额外初始化 iframe。
+
 ### 📦函数
 
 - 新增 `getTavernFile`、`uploadTavernFile`、`deleteTavernFile` 函数, 用于获取、上传、删除酒馆文件

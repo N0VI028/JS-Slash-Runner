@@ -1,3 +1,4 @@
+import { registerMessageRenderer } from '@/panel/render/message_recovery';
 import { SendingMessage } from '@/function/event';
 import { macros, type MacroLikeContext } from '@/function/macro_like';
 import { highlight_code, reloadAndRenderChatWithoutEvents, version } from '@/util/tavern';
@@ -81,16 +82,6 @@ function demacroOnRender($mes: JQuery<HTMLDivElement>) {
     });
 }
 
-function demacroOnRenderOne(message_id: number) {
-  demacroOnRender($(`#chat > .mes[mesid="${message_id}"]`));
-}
-
-function demacroOnRenderAll() {
-  $('#chat > .mes').each((_index, node) => {
-    demacroOnRender($(node as HTMLDivElement));
-  });
-}
-
 export function useMacroLike(enabled: Readonly<Ref<boolean>>, managed = false) {
   if (!managed) {
     watch(enabled, (value, old_value) => {
@@ -118,21 +109,10 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>, managed = false) {
     return;
   }
 
-  eventSource.on('chatLoaded', () => {
-    if (enabled.value) {
-      demacroOnRenderAll();
-    }
-  });
-  [
-    event_types.CHARACTER_MESSAGE_RENDERED,
-    event_types.USER_MESSAGE_RENDERED,
-    event_types.MESSAGE_UPDATED,
-    event_types.MESSAGE_SWIPED,
-  ].forEach(event => {
-    eventSource.on(event, (message_id: number | string) => {
-      if (enabled.value) {
-        demacroOnRenderOne(Number(message_id));
-      }
-    });
+  registerMessageRenderer({
+    order: 10,
+    render: element => {
+      if (enabled.value) demacroOnRender($(element as HTMLDivElement));
+    },
   });
 }
