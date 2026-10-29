@@ -1,3 +1,4 @@
+import { REQUEST_RENDER_MESSAGE_EVENT } from '@/panel/render/message_recovery';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { isFrontend } from '@/util/is_frontend';
 import { chat, event_types, eventSource } from '@sillytavern/script';
@@ -122,6 +123,7 @@ export const useMessageIframeRuntimesStore = defineStore('message_iframe_runtime
     event_types.USER_MESSAGE_RENDERED,
     event_types.MESSAGE_UPDATED,
     event_types.MESSAGE_SWIPED,
+    REQUEST_RENDER_MESSAGE_EVENT,
   ].forEach(event => {
     eventSource.on(event, (message_id: number | string) => {
       if (global_settings.settings.render.enabled) {

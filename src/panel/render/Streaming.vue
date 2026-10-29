@@ -10,6 +10,7 @@
 </template>
 
 <script setup lang="ts">
+import { REQUEST_RENDER_MESSAGE_EVENT } from '@/panel/render/message_recovery';
 import StreamingOne from '@/panel/render/StreamingOne.vue';
 import { calcToRender } from '@/store/iframe_runtimes/message';
 import { useGlobalSettingsStore } from '@/store/settings';
@@ -111,7 +112,7 @@ useEventSourceOn(event_types.CHARACTER_MESSAGE_RENDERED, (message_id: number) =>
   renderOneMessage(message_id);
 });
 
-[event_types.MESSAGE_EDITED, event_types.MESSAGE_SWIPED].forEach(event => {
+[event_types.MESSAGE_EDITED, event_types.MESSAGE_SWIPED, REQUEST_RENDER_MESSAGE_EVENT].forEach(event => {
   useEventSourceOn(event, async (message_id: number) => {
     destroyAllInvalid();
     destroy(message_id);

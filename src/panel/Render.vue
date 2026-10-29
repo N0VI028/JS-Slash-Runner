@@ -107,6 +107,7 @@ import Popup from '@/panel/component/Popup.vue';
 import Iframe from '@/panel/render/Iframe.vue';
 import Streaming from '@/panel/render/Streaming.vue';
 import { useMacroLike } from '@/panel/render/macro_like';
+import { useMessageRecovery } from '@/panel/render/message_recovery';
 import { useOptimizeHljs } from '@/panel/render/optimize_hljs';
 import { useCollapseCodeBlock } from '@/panel/render/use_collapse_code_block';
 import { useMessageIframeRuntimesStore } from '@/store/iframe_runtimes';
@@ -156,6 +157,9 @@ useMacroLike(macro_enabled, usesManagedChatSurface);
 const runtimes = usesManagedChatSurface
   ? ref<Array<{ message_id: number; reload_memo: string; elements: HTMLElement[] }>>([])
   : toRef(useMessageIframeRuntimesStore(), 'runtimes');
+if (!usesManagedChatSurface) {
+  useMessageRecovery(computed(() => enabled.value || macro_enabled.value));
+}
 
 if (usesManagedChatSurface) {
   watch(

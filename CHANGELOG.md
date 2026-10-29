@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
 ## 4.12.0
 
+### 🐛修复
+
+- 修复通过消息楼层右箭头请求新候选回复时, 若在 AI 回复正文之前中止掉请求，恢复到原来回复时前端界面不渲染的问题
+
 ### 📦函数
 
 - 新增 `getTavernFile`、`uploadTavernFile`、`deleteTavernFile` 函数, 用于获取、上传、删除酒馆文件

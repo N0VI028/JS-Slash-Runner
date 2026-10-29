@@ -1,5 +1,6 @@
 import { SendingMessage } from '@/function/event';
 import { macros, type MacroLikeContext } from '@/function/macro_like';
+import { REQUEST_RENDER_MESSAGE_EVENT } from '@/panel/render/message_recovery';
 import { highlight_code, reloadAndRenderChatWithoutEvents, version } from '@/util/tavern';
 import { event_types, eventSource } from '@sillytavern/script';
 import { compare } from 'compare-versions';
@@ -128,6 +129,7 @@ export function useMacroLike(enabled: Readonly<Ref<boolean>>, managed = false) {
     event_types.USER_MESSAGE_RENDERED,
     event_types.MESSAGE_UPDATED,
     event_types.MESSAGE_SWIPED,
+    REQUEST_RENDER_MESSAGE_EVENT,
   ].forEach(event => {
     eventSource.on(event, (message_id: number | string) => {
       if (enabled.value) {
