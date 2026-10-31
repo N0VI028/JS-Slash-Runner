@@ -14,6 +14,10 @@
   "auto_update": true,
   "minimum_client_version": "1.13.0",
   "i18n": {
-    "en": "i18n/en.json"
+    "en": "i18n/en.json",
+    "en-us": "i18n/en.json",
+    "en-gb": "i18n/en.json",
+    "en-ca": "i18n/en.json",
+    "en-au": "i18n/en.json"
   }
 }
