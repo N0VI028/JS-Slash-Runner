@@ -1,6 +1,6 @@
 <template>
   <Popup :buttons="[{ name: t`关闭` }]">
-    <div class="my-1.25 flex flex-col flex-wrap gap-0.5">
+    <div class="my-1.25 flex w-full min-w-0 flex-col gap-0.5">
       <h3 class="my-0!">{{ t`内置库` }}</h3>
       <div class="mb-0.75 flex flex-col gap-0.75">
         <span class="inline-block text-left">
@@ -31,10 +31,11 @@
         <!-- prettier-ignore-attribute -->
         <div
           class="
-            flex w-full min-w-0 items-center justify-between rounded-sm border border-(--SmartThemeBorderColor) p-0.25
+            flex w-full min-w-0 items-center justify-between gap-0.5 rounded-sm border border-(--SmartThemeBorderColor)
+            p-0.25
           "
         >
-          <div class="ml-0.5 min-w-0 grow text-left! overflow-hidden text-ellipsis">
+          <div class="ml-0.5 min-w-0 grow text-left! wrap-break-word">
             {{ script.name }}
           </div>
           <div class="flex shrink-0 items-center gap-0.5">
