@@ -1,15 +1,8 @@
 import { GenerateToolCall, ToolChoice, ToolDefinition } from '@/function/generate/types';
+import { uuidv4 } from '@sillytavern/scripts/utils';
 
 export type SupportedToolCallSource =
-  | 'openai'
-  | 'claude'
-  | 'openrouter'
-  | 'makersuite'
-  | 'vertexai'
-  | 'azure_openai'
-  | 'custom'
-  | 'deepseek'
-  | 'xai';
+  'openai' | 'claude' | 'openrouter' | 'makersuite' | 'vertexai' | 'azure_openai' | 'custom' | 'deepseek' | 'xai';
 
 type ToolCallResponseFamily = 'openai' | 'claude' | 'makersuite';
 
@@ -109,7 +102,9 @@ export function normalizeRequestToolOptionsForSource(
     if (forcedFunctionName) {
       const forcedTools = tools.filter(tool => tool.function?.name === forcedFunctionName);
       if (forcedTools.length > 0) {
-        warnings.push(`Claude 不兼容 OpenAI 风格的指定函数 tool_choice，已改为仅暴露目标工具 ${forcedFunctionName} 并强制 tool use。`);
+        warnings.push(
+          `Claude 不兼容 OpenAI 风格的指定函数 tool_choice，已改为仅暴露目标工具 ${forcedFunctionName} 并强制 tool use。`,
+        );
         return {
           toolOptions: { tools: forcedTools, tool_choice: 'any' },
           warnings,
@@ -141,7 +136,9 @@ export function normalizeRequestToolOptionsForSource(
     if (forcedFunctionName) {
       const forcedTools = tools.filter(tool => tool.function?.name === forcedFunctionName);
       if (forcedTools.length > 0) {
-        warnings.push(`${source} 不兼容 OpenAI 风格的指定函数 tool_choice，已改为仅暴露目标工具 ${forcedFunctionName}。`);
+        warnings.push(
+          `${source} 不兼容 OpenAI 风格的指定函数 tool_choice，已改为仅暴露目标工具 ${forcedFunctionName}。`,
+        );
         return {
           toolOptions: { tools: forcedTools },
           warnings,
@@ -195,7 +192,7 @@ function normalizeToolCall(input: {
 }): NormalizedToolCall {
   const thoughtSignature = input.thought_signature ?? input.thoughtSignature ?? input.signature;
   return {
-    id: input.id ?? crypto.randomUUID(),
+    id: input.id ?? uuidv4(),
     type: 'function',
     function: {
       name: input.name ?? '',
