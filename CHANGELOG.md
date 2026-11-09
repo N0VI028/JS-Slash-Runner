@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.12.1
+
+### 🐛修复
+
+- `generate` 的工具调用在一些环境下会因 `crypto.randomUUID is not a function` 失败的问题
+
 ## 4.12.0
 
 ### 🐛修复
