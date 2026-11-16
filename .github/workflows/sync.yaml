@@ -15,7 +15,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: keninkujovic/gitlab-sync@2.0.0
+      - uses: kujov/gitlab-sync@ec05efff6dfa33ffb5398d31caf3a256e5a9ea34
         with:
           gitlab_url: https://gitlab.com/novi028/JS-Slash-Runner.git
           username: novi028
