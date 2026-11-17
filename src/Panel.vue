@@ -8,7 +8,7 @@
       <div class="flex flex-col gap-0.5">
         <div class="flex items-center justify-between th-text-xs text-(--grey50)">
           <span>{{ t`Ver ${current_version}` }}</span>
-          <div class="flex cursor-pointer items-center justify-end gap-0.25 leading-[1.5]" @click="openInfoModal">
+          <div class="flex cursor-pointer items-center justify-end gap-0.25 leading-normal" @click="openInfoModal">
             <i class="fa-solid fa-circle-info text-[calc(var(--mainFontSize)*0.7)]" :title="t`扩展信息`"></i>
             <span>{{ t`扩展信息` }}</span>
           </div>
@@ -32,7 +32,7 @@
             @click="active_tab = key"
           >
             <div
-              class="flex items-center justify-center gap-[3px] leading-[1.5]"
+              class="flex items-center justify-center gap-[3px] leading-normal"
               :style="{
                 color:
                   active_tab === key

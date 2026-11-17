@@ -190,7 +190,7 @@ export function getCharData(name: LiteralUnion<'current', string>): v1CharData |
     return character.getCardData();
   } catch (err) {
     const error = err as Error;
-    throw Error(`获取${name ? ` '${name}' ` : '未知'}角色卡数据失败: ${error.message}`);
+    throw Error(`获取${name ? ` '${name}' ` : '未知'}角色卡数据失败: ${error.message}`, { cause: err });
   }
 }
 

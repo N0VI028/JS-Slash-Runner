@@ -46,8 +46,8 @@
 
 <script setup lang="ts">
 import { get_variables_without_clone, replaceVariables } from '@/function/variables';
-import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
-import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
+import Editor from '@/panel/toolbox/variable_manager_deprecated/Editor.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
 import { fromBackwardMessageId, toBackwardMessageId } from '@/util/message';
 import { chat } from '@sillytavern/script';
 

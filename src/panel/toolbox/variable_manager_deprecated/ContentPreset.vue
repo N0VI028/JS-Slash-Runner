@@ -9,9 +9,9 @@
 </template>
 
 <script setup lang="ts">
-import Editor from '@/panel/toolbox/variable_manager/Editor.vue';
-import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
-import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
+import Editor from '@/panel/toolbox/variable_manager_deprecated/Editor.vue';
+import type { RootVariablePayload } from '@/panel/toolbox/variable_manager_deprecated/types';
+import type { FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
 import { usePresetSettingsStore } from '@/store/settings';
 
 const props = defineProps<{

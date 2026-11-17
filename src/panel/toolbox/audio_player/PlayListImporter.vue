@@ -83,7 +83,7 @@ const items = ref<{ title: string; url: string }[]>([{ url: '', title: '' }]);
 const batch_text = ref('');
 
 const submit = (close: () => void) => {
-  let validItems: { title: string; url: string }[] = [];
+  let validItems: { title: string; url: string }[];
 
   if (active_tab.value === 'single') {
     // 单个添加模式：过滤出有效的项（至少有 URL）

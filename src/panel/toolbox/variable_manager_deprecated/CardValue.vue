@@ -30,7 +30,7 @@
     <div
       v-show="!isCollapsed"
       class="
-        mt-0.25 th-text-xs leading-snug break-words break-all whitespace-normal text-(--SmartThemeBodyColor)
+        mt-0.25 th-text-xs leading-snug wrap-break-word break-all whitespace-normal text-(--SmartThemeBodyColor)
         sm:th-text-sm sm:leading-relaxed
         md:th-text-base md:leading-normal
       "
@@ -38,7 +38,7 @@
       <template v-if="!isEditingValue">
         <div
           ref="valueDisplayRef"
-          class="cursor-text break-words break-all whitespace-pre-wrap"
+          class="cursor-text wrap-break-word break-all whitespace-pre-wrap"
           @dblclick.stop.prevent="startValueEditing"
           @touchend="handleValueTouchEnd"
         >
@@ -51,8 +51,8 @@
           v-model="valueDraft"
           :style="valueInputInlineStyle"
           class="
-            w-full resize-none rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.5 py-0.25 th-text-xs
-            text-(--SmartThemeQuoteColor)
+            w-full resize-none rounded-sm border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.5 py-0.25
+            th-text-xs text-(--SmartThemeQuoteColor)
             focus:border-(--SmartThemeQuoteColor) focus:outline-none
             sm:th-text-sm
             md:th-text-base
@@ -65,9 +65,9 @@
 </template>
 
 <script setup lang="ts">
-import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
-import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { isSearching as isSearchingUtil, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
+import CardBase from '@/panel/toolbox/variable_manager_deprecated/Card.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import { isSearching as isSearchingUtil, nodeMatchesSearch } from '@/panel/toolbox/variable_manager_deprecated/search';
 import { onClickOutside } from '@vueuse/core';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 

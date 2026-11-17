@@ -97,7 +97,7 @@ async function createGenerationParametersFallback(
   // getChatCompletionModel 在不同版本中签名不同
   // 新版本 (>= 1.15.0): getChatCompletionModel(settings)  接收 settings 对象
   // 旧版本 (< 1.15.0): getChatCompletionModel(source)    接收 source 字符串
-  let currentModel = model;
+  let currentModel;
   try {
     currentModel = getChatCompletionModelCompat(getChatCompletionModel, settings);
   } catch {

@@ -32,11 +32,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
-import CardMode from '@/panel/toolbox/variable_manager/CardMode.vue';
-import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
-import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
+import CardBase from '@/panel/toolbox/variable_manager_deprecated/Card.vue';
+import CardMode from '@/panel/toolbox/variable_manager_deprecated/CardMode.vue';
+import RootVariableCreator from '@/panel/toolbox/variable_manager_deprecated/RootVariableCreator.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager_deprecated/search';
 import { useModal } from 'vue-final-modal';
 
 const name = defineModel<number | string>('name', { required: true });

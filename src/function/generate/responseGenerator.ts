@@ -50,7 +50,7 @@ import { power_user } from '@sillytavern/scripts/power-user';
 import { extractReasoningFromData } from '@sillytavern/scripts/reasoning';
 import { getEventSourceStream } from '@sillytavern/scripts/sse-stream';
 import { Stopwatch, uuidv4 } from '@sillytavern/scripts/utils';
-import YAML from 'yaml';
+import * as YAML from 'yaml';
 
 /**
  * 用 YAML 形式覆盖自定义请求头中的 Authorization，保留其他已有头
@@ -186,7 +186,7 @@ class StreamingProcessor {
     } catch (err) {
       if (!this.isFinished) {
         this.onErrorStreaming();
-        throw Error(`Generate method error: ${err}`);
+        throw Error(`Generate method error: ${err}`, { cause: err });
       }
       this.messageBuffer = '';
       return this.result;
@@ -538,7 +538,7 @@ export async function generateResponse(
   jsonSchema?: JsonSchema,
   shouldReturnReasoning = false,
 ): Promise<string | GenerateDetailedResult> {
-  let result: string | GenerateDetailedResult = '';
+  let result: string | GenerateDetailedResult;
   const { source, supportedSource, effectiveToolOptions, effectiveJsonSchema } = resolveEffectiveToolCallOptions(
     customApi,
     toolOptions,
@@ -551,7 +551,7 @@ export async function generateResponse(
       try {
         await imageProcessingSetup.imageProcessingPromise;
       } catch (imageError: any) {
-        throw new Error(`图片处理失败: ${imageError?.message || '未知错误'}`);
+        throw new Error(`图片处理失败: ${imageError?.message || '未知错误'}`, { cause: imageError });
       }
     }
     if (generationId === undefined || generationId === '') {

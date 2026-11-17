@@ -1,12 +1,12 @@
 <template>
   <!-- prettier-ignore -->
-  <div class="relative h-full w-full overflow-hidden">
+  <div class="relative size-full overflow-hidden">
     <!-- 文本编辑：正常模式显示 textarea -->
     <textarea
       v-show="!isSearching"
       ref="textareaRef"
       v-model="textContent"
-      class="absolute inset-0 h-full w-full resize-none! th-text-sm!"
+      class="absolute inset-0 size-full resize-none! th-text-sm!"
       spellcheck="false"
       @blur="handleSave"
     ></textarea>

@@ -45,6 +45,8 @@ export default [
             'qr--buttons',
             'text_pole',
             'note-link-span',
+            '^th-question-blink$',
+            '^(?:tool-calls-info|tool-calls-summary|tool-call-item|tool-call-name|tool-call-arguments|tool-call-id-code)$',
           ],
         },
       ],
@@ -94,6 +96,23 @@ export default [
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },
+  {
+    files: ['vitest.config.ts'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      'import-x/no-nodejs-modules': 'off',
+    },
+  },
   eslintConfigPrettier,
-  globalIgnores(['dist/**', 'node_modules/**', 'eslint.config.mjs', 'postcss.config.js', 'vite.config.ts']),
+  globalIgnores([
+    'dist/**',
+    'node_modules/**',
+    'eslint.config.mjs',
+    'postcss.config.js',
+    'vite.config.ts',
+    'lib/jsoneditor.js',
+    'lib/tailwindcss.min.js',
+  ]),
 ];

@@ -1,7 +1,7 @@
 ﻿<template>
   <!-- prettier-ignore -->
   <div class="flex-1 overflow-y-auto p-1">
-    <div class="flex h-full w-full flex-col gap-0.5">
+    <div class="flex size-full flex-col gap-0.5">
       <template v-if="writable_variables.length > 0 || props.currentView === 'text' || props.currentView === 'card'">
         <TreeMode
           v-if="props.currentView === 'tree'"
@@ -12,13 +12,13 @@
         <template v-else-if="props.currentView === 'card'">
           <div
             class="
-              flex items-center justify-center gap-0.5 rounded border border-(--SmartThemeQuoteColor)/40
+              flex items-center justify-center gap-0.5 rounded-sm border border-(--SmartThemeQuoteColor)/40
               bg-(--SmartThemeBGColor)/60 px-0.5 py-0.25 th-text-sm
             "
           >
             <div
               class="
-                inline-flex cursor-pointer items-center gap-0.25 rounded px-0.5 py-0.25 text-(--SmartThemeQuoteColor)
+                inline-flex cursor-pointer items-center gap-0.25 rounded-sm px-0.5 py-0.25 text-(--SmartThemeQuoteColor)
                 transition-colors
                 hover:bg-(--SmartThemeQuoteColor)/15
               "
@@ -29,7 +29,7 @@
             </div>
             <div
               :class="[
-                'inline-flex items-center gap-0.25 rounded px-0.5 py-0.25 transition-colors',
+                'inline-flex items-center gap-0.25 rounded-sm px-0.5 py-0.25 transition-colors',
                 hasVariables
                   ? 'cursor-pointer text-(--warning) hover:bg-(--warning)/15'
                   : 'cursor-not-allowed text-(--warning)/60 opacity-60',
@@ -57,7 +57,7 @@
           <div
             v-else
             class="
-              flex items-center justify-center rounded border border-dashed border-(--SmartThemeQuoteColor)/40 py-1
+              flex items-center justify-center rounded-sm border border-dashed border-(--SmartThemeQuoteColor)/40 py-1
               th-text-sm text-(--SmartThemeBodyColor)/70
             "
           >
@@ -74,13 +74,13 @@
 import { useRefHistory } from '@vueuse/core';
 import { computed } from 'vue';
 
-import CardMode from '@/panel/toolbox/variable_manager/CardMode.vue';
-import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
-import TextMode from '@/panel/toolbox/variable_manager/TextMode.vue';
-import TreeMode from '@/panel/toolbox/variable_manager/TreeMode.vue';
-import type { RootVariablePayload } from '@/panel/toolbox/variable_manager/types';
-import { rootVariableKeySchema } from '@/panel/toolbox/variable_manager/types';
+import CardMode from '@/panel/toolbox/variable_manager_deprecated/CardMode.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import RootVariableCreator from '@/panel/toolbox/variable_manager_deprecated/RootVariableCreator.vue';
+import TextMode from '@/panel/toolbox/variable_manager_deprecated/TextMode.vue';
+import TreeMode from '@/panel/toolbox/variable_manager_deprecated/TreeMode.vue';
+import type { RootVariablePayload } from '@/panel/toolbox/variable_manager_deprecated/types';
+import { rootVariableKeySchema } from '@/panel/toolbox/variable_manager_deprecated/types';
 import { useModal } from 'vue-final-modal';
 
 const props = defineProps<{

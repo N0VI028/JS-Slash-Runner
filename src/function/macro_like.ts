@@ -1,7 +1,7 @@
 import { get_variables_without_clone } from '@/function/variables';
 import { chat } from '@sillytavern/script';
 import { omitDeepBy } from 'lodash-omitdeep';
-import YAML from 'yaml';
+import * as YAML from 'yaml';
 
 export interface MacroLike {
   regex: RegExp;

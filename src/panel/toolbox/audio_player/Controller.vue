@@ -30,7 +30,7 @@
             type="range"
             min="0"
             max="100"
-            class="absolute top-0 left-0 h-full w-full cursor-pointer opacity-0"
+            class="absolute top-0 left-0 size-full cursor-pointer opacity-0"
             :disabled="!props.enabled || !model.enabled"
           />
         </div>

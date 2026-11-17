@@ -13,12 +13,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import CardArray from '@/panel/toolbox/variable_manager/CardArray.vue';
-import CardObject from '@/panel/toolbox/variable_manager/CardObject.vue';
-import CardValue from '@/panel/toolbox/variable_manager/CardValue.vue';
-import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { matchesFilters } from '@/panel/toolbox/variable_manager/filter';
-import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
+import CardArray from '@/panel/toolbox/variable_manager_deprecated/CardArray.vue';
+import CardObject from '@/panel/toolbox/variable_manager_deprecated/CardObject.vue';
+import CardValue from '@/panel/toolbox/variable_manager_deprecated/CardValue.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import { matchesFilters } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager_deprecated/search';
 
 const name = defineModel<number | string>('name', { required: true });
 const content = defineModel<any>('content', { required: true });

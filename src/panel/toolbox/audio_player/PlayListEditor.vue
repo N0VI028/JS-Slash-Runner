@@ -29,9 +29,9 @@
           <span class="TH-handle shrink-0 cursor-grab select-none active:cursor-grabbing">☰</span>
           <!-- prettier-ignore-attribute -->
           <div
-            class="flex min-w-0 grow items-center gap-0.5 rounded border border-(--SmartThemeBorderColor) px-0.5 py-px"
+            class="flex min-w-0 grow items-center gap-0.5 rounded-sm border border-(--SmartThemeBorderColor) px-0.5 py-px"
           >
-            <span class="overflow-hidden break-all text-ellipsis whitespace-nowrap hover:whitespace-normal">
+            <span class="truncate break-all hover:whitespace-normal">
               {{ item.title }}
             </span>
           </div>

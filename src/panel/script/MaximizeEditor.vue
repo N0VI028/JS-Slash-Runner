@@ -7,7 +7,7 @@
     width="wide"
     @closed="() => emit('closed')"
   >
-    <div class="flex h-full max-h-[80vh] w-full flex-col gap-1 overflow-y-auto text-left">
+    <div class="flex size-full max-h-[80vh] flex-col gap-1 overflow-y-auto text-left">
       <template v-if="props.target === 'content' || props.target === 'info'">
         <textarea
           v-model="text"

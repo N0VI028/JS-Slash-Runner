@@ -10,7 +10,7 @@
     <div class="flex flex-col gap-0.5 bg-(--grey5020a) p-0.5">
       <div class="flex items-center gap-0.5">
         <div
-          class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
+          class="flex size-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
           :title="t`过滤`"
           @click="is_filter_opened = !is_filter_opened"
         >
@@ -21,7 +21,7 @@
           class="grow rounded-sm bg-transparent th-text-base text-(--mainTextColor)"
           :placeholder="t`搜索日志内容...`"
         />
-        <div class="flex h-2 w-2 cursor-pointer items-center justify-center" :title="t`清除日志`" @click="clearLogs">
+        <div class="flex size-2 cursor-pointer items-center justify-center" :title="t`清除日志`" @click="clearLogs">
           <i class="fa-solid fa-brush" />
         </div>
       </div>

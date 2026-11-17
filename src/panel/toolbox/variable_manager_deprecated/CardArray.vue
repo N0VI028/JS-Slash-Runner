@@ -33,10 +33,10 @@
       >
         <div
           class="
-            inline-flex shrink-0 cursor-grab items-center justify-center rounded th-text-sm
-            text-[var(--SmartThemeBodyColor)] transition-colors duration-200 ease-in-out select-none
+            inline-flex shrink-0 cursor-grab items-center justify-center rounded-sm th-text-sm
+            text-(--SmartThemeBodyColor) transition-colors duration-200 ease-in-out select-none
             hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)]
-            hover:text-[var(--SmartThemeQuoteColor)]
+            hover:text-(--SmartThemeQuoteColor)
           "
           title="拖拽调整顺序"
         >
@@ -53,7 +53,7 @@
           @delete="removeItem(index)"
         />
       </div>
-      <div v-if="content.length === 0" class="px-0 py-2 text-center text-[var(--SmartThemeBodyColor)] opacity-60">
+      <div v-if="content.length === 0" class="px-0 py-2 text-center text-(--SmartThemeBodyColor) opacity-60">
         暂无元素
       </div>
     </VueDraggable>
@@ -64,12 +64,12 @@
 import { computed, ref, watch } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 
-import CardBase from '@/panel/toolbox/variable_manager/Card.vue';
-import CardMode from '@/panel/toolbox/variable_manager/CardMode.vue';
-import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
-import type { FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { matchesFilters } from '@/panel/toolbox/variable_manager/filter';
-import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager/search';
+import CardBase from '@/panel/toolbox/variable_manager_deprecated/Card.vue';
+import CardMode from '@/panel/toolbox/variable_manager_deprecated/CardMode.vue';
+import RootVariableCreator from '@/panel/toolbox/variable_manager_deprecated/RootVariableCreator.vue';
+import type { FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import { matchesFilters } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import { isSearching, nodeMatchesSearch } from '@/panel/toolbox/variable_manager_deprecated/search';
 import { useModal } from 'vue-final-modal';
 
 const name = defineModel<number | string>('name', { required: true });

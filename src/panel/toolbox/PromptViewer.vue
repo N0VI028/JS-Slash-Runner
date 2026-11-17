@@ -25,7 +25,7 @@
       <div class="flex flex-col gap-0.5 bg-(--grey5020a) p-0.5">
         <div class="flex items-center gap-0.5">
           <div
-            class="flex h-2 w-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
+            class="flex size-2 cursor-pointer items-center justify-center text-(--SmartThemeQuoteColor)"
             @click="is_filter_opened = !is_filter_opened"
           >
             <i class="fa-solid fa-filter" />
@@ -43,7 +43,7 @@
               text-(--SmartThemeBodyColor)
             "
           >
-            <input v-model="matched_only" type="checkbox" class="mr-0.25 mb-0 h-0.75 w-0.75" />
+            <input v-model="matched_only" type="checkbox" class="mr-0.25 mb-0 size-0.75" />
             <label for="prompt-search-compact-mode">{{ t`仅显示匹配` }}</label>
           </div>
         </div>
@@ -70,8 +70,8 @@
         </Teleport>
       </div>
       <div class="flex items-center justify-between gap-1 border-b border-(--SmartThemeBorderColor) py-0.25">
-        <span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`模型` }}: {{ model }}</span>
-        <span class="overflow-hidden th-text-sm text-ellipsis whitespace-nowrap">{{ t`预设` }}: {{ preset }}</span>
+        <span class="truncate th-text-sm">{{ t`模型` }}: {{ model }}</span>
+        <span class="truncate th-text-sm">{{ t`预设` }}: {{ preset }}</span>
       </div>
     </div>
     <template v-if="state !== 'idle'">

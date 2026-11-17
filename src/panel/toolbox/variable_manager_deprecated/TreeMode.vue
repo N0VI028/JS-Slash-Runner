@@ -21,7 +21,7 @@
   <div
     v-if="isRoot"
     class="
-      flex flex-wrap items-center justify-between gap-0.5 rounded border border-(--SmartThemeQuoteColor)/40
+      flex flex-wrap items-center justify-between gap-0.5 rounded-sm border border-(--SmartThemeQuoteColor)/40
       bg-(--SmartThemeBGColor)/60 px-0.5 py-0.25 th-text-sm
     "
   >
@@ -102,7 +102,7 @@
             v-model="keyDraft"
             :style="keyInputInlineStyle"
             class="
-              rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm!
+              rounded-sm border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm!
               text-(--SmartThemeQuoteColor)
               focus:border-(--SmartThemeQuoteColor) focus:outline-none
             "
@@ -116,7 +116,7 @@
         <span
           v-if="!isEditingValue"
           ref="valueDisplayRef"
-          :class="['cursor-text break-words break-all whitespace-pre-wrap', valueTypeClass]"
+          :class="['cursor-text wrap-break-word break-all whitespace-pre-wrap', valueTypeClass]"
           @dblclick.stop.prevent="startValueEditing"
           @touchend="handleValueTouchEnd"
         >
@@ -137,7 +137,7 @@
           v-model="valueDraft"
           :style="valueInputInlineStyle"
           class="
-            resize-none rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm!
+            resize-none rounded-sm border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm!
             text-(--SmartThemeBodyColor)
             focus:border-(--SmartThemeQuoteColor) focus:outline-none
           "
@@ -210,9 +210,9 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import RootVariableCreator from '@/panel/toolbox/variable_manager/RootVariableCreator.vue';
-import { treeControlKey, treeSelectionKey } from '@/panel/toolbox/variable_manager/types';
+import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import RootVariableCreator from '@/panel/toolbox/variable_manager_deprecated/RootVariableCreator.vue';
+import { treeControlKey, treeSelectionKey } from '@/panel/toolbox/variable_manager_deprecated/types';
 import { createReusableTemplate, onClickOutside, useToggle, whenever } from '@vueuse/core';
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, toRef, watch } from 'vue';
 import { useModal } from 'vue-final-modal';

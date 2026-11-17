@@ -35,7 +35,7 @@
         <textarea
           v-model="form.arrayValue"
           rows="4"
-          class="text_pole font-[family-name:var(--monoFontFamily)]!"
+          class="text_pole font-(family-name:--monoFontFamily)!"
           placeholder="请输入 JSON 数组，例如 [1, 2, 3]"
         ></textarea>
       </div>
@@ -44,7 +44,7 @@
         <textarea
           v-model="form.objectValue"
           rows="4"
-          class="text_pole font-[family-name:var(--monoFontFamily)]!"
+          class="text_pole font-(family-name:--monoFontFamily)!"
           placeholder='请输入 JSON 对象，例如 {"name": "Tavern"}'
         ></textarea>
       </div>
@@ -54,8 +54,8 @@
 
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
-import type { RootVariablePayload, RootVariableType } from '@/panel/toolbox/variable_manager/types';
-import { rootVariableTypes } from '@/panel/toolbox/variable_manager/types';
+import type { RootVariablePayload, RootVariableType } from '@/panel/toolbox/variable_manager_deprecated/types';
+import { rootVariableTypes } from '@/panel/toolbox/variable_manager_deprecated/types';
 
 const props = defineProps<{
   onSubmit?: (payload: RootVariablePayload) => boolean | Promise<boolean>;

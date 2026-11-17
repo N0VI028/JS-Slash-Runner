@@ -1,4 +1,4 @@
-import YAML_object from 'yaml';
+import * as YAML_object from 'yaml';
 import * as z_object from 'zod';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace

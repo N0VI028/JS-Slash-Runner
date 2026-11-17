@@ -4,8 +4,8 @@
       <!-- prettier-ignore-attribute -->
       <button
         class="
-          flex w-full cursor-pointer items-center justify-between rounded-t-sm border-none bg-(--SmartThemeQuoteColor)/20
-          px-0.5 py-0.25 th-text-sm
+          flex w-full cursor-pointer items-center justify-between rounded-t-sm border-none
+          bg-(--SmartThemeQuoteColor)/20 px-0.5 py-0.25 th-text-sm
         "
         @click="toggleCollapse"
       >

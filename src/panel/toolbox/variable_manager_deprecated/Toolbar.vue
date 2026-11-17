@@ -21,7 +21,7 @@
   <div class="mx-0.75 flex flex-col flex-wrap rounded-sm bg-(--SmartThemeQuoteColor)/50 p-0.5 pr-0.75 th-text-sm">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-1">
-        <div class="inline-flex overflow-hidden rounded border border-white">
+        <div class="inline-flex overflow-hidden rounded-sm border border-white">
           <div
             v-for="option in viewOptions"
             :key="option.value"
@@ -112,8 +112,8 @@
 </template>
 
 <script setup lang="ts">
-import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager/filter';
-import { createDefaultFilters } from '@/panel/toolbox/variable_manager/filter';
+import type { FilterType, FiltersState } from '@/panel/toolbox/variable_manager_deprecated/filter';
+import { createDefaultFilters } from '@/panel/toolbox/variable_manager_deprecated/filter';
 import { createReusableTemplate, useToggle } from '@vueuse/core';
 import { computed, ref, toRefs } from 'vue';
 

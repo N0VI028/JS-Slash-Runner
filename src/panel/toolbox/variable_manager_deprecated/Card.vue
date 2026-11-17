@@ -2,9 +2,9 @@
   <!-- prettier-ignore -->
   <div
     class="
-      relative flex w-full rounded border border-solid
+      relative flex w-full rounded-sm border border-solid
       border-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_25%,transparent)] transition-all duration-200 ease-in-out
-      hover:border-[var(--SmartThemeQuoteColor)]
+      hover:border-(--SmartThemeQuoteColor)
       hover:bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_5%,transparent)]
       hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--SmartThemeQuoteColor)_45%,transparent)]
     "
@@ -18,8 +18,8 @@
           <div
             v-if="collapsible"
             class="
-              inline-flex shrink-0 cursor-pointer items-center justify-center rounded border-none bg-none th-text-xs
-              text-[var(--SmartThemeBodyColor)] transition-all duration-200 ease-in-out
+              inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-none th-text-xs
+              text-(--SmartThemeBodyColor) transition-all duration-200 ease-in-out
             "
             type="button"
             :title="isCollapsed ? t`展开` : t`折叠`"
@@ -49,8 +49,8 @@
               v-model="nameDraft"
               :style="nameInputInlineStyle"
               class="
-                inline-flex min-w-0 rounded border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm
-                text-[var(--SmartThemeQuoteColor)]
+                inline-flex min-w-0 rounded-sm border border-(--SmartThemeQuoteColor)/40 bg-transparent px-0.25 th-text-sm
+                text-(--SmartThemeQuoteColor)
                 focus:border-(--SmartThemeQuoteColor) focus:outline-none
               "
               @keydown="handleNameInputKeydown"
@@ -61,9 +61,8 @@
               v-if="typeLabel"
               class="
                 inline-flex items-center rounded-full
-                bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)] px-0.25
-                text-[length:8px]
-                text-[var(--SmartThemeQuoteColor)]
+                bg-[color-mix(in_srgb,var(--SmartThemeQuoteColor)_15%,transparent)] px-0.25 text-[8px]
+                text-(--SmartThemeQuoteColor)
               "
               >{{ typeLabel }}</span
             >
@@ -74,7 +73,7 @@
             <div
               class="
                 inline-flex cursor-pointer items-center justify-center border-none bg-none
-                text-[var(--SmartThemeBodyColor)]
+                text-(--SmartThemeBodyColor)
               "
               :title="t`菜单`"
             >
@@ -110,7 +109,7 @@
       >
         <div
           v-show="!isCollapsed"
-          class="overflow-visible text-[var(--SmartThemeBodyColor)]"
+          class="overflow-visible text-(--SmartThemeBodyColor)"
         >
           <slot />
         </div>
@@ -123,7 +122,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Tippy, TippyComponent } from 'vue-tippy';
 
-import { treeControlKey } from '@/panel/toolbox/variable_manager/types';
+import { treeControlKey } from '@/panel/toolbox/variable_manager_deprecated/types';
 import { onClickOutside, whenever } from '@vueuse/core';
 
 const nameModel = defineModel<number | string | undefined>('name');
@@ -260,7 +259,7 @@ const nameInputInlineStyle = computed(() => {
 });
 
 const nameDisplayClass = computed(() => {
-  const classes = ['overflow-hidden font-semibold text-ellipsis whitespace-nowrap text-[var(--SmartThemeQuoteColor)]'];
+  const classes = ['truncate font-semibold text-(--SmartThemeQuoteColor)'];
   if (canEditName.value) {
     classes.push('cursor-text select-text');
   } else if (props.collapsible) {

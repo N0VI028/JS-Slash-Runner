@@ -4,14 +4,14 @@
       <input
         ref="internal"
         :placeholder="placeholder"
-        class="text_pole m-0! w-full pr-2! pl-2!"
+        class="text_pole m-0! w-full px-2!"
         type="text"
         @input="onInput"
       />
       <!-- prettier-ignore-attribute -->
       <i
         class="
-          fa-solid fa-search pointer-events-none absolute top-1/2 left-0.5 z-1 -translate-y-[50%]
+          fa-solid fa-search pointer-events-none absolute top-1/2 left-0.5 z-1 translate-y-[-50%]
           text-(--SmartThemeBodyColor) opacity-60
         "
       ></i>
@@ -19,7 +19,7 @@
       <button
         v-if="clearable && input !== null"
         class="
-          absolute top-1/2 right-0.5 z-2 flex h-1.5 w-1.5 -translate-y-[50%] cursor-pointer border-none bg-transparent
+          absolute top-1/2 right-0.5 z-2 flex size-1.5 translate-y-[-50%] cursor-pointer border-none bg-transparent
           text-(--SmartThemeBodyColor) opacity-80
         "
         title="清除"

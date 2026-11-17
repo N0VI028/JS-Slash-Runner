@@ -30,7 +30,7 @@ function isHtmlString(str) {
 function convertHtmlArguments(args, methodName) {
   const converted = [];
   for (let i = 0; i < args.length; i++) {
-    let arg = args[i];
+    const arg = args[i];
     if (isHtmlString(arg) && parentJQuery) {
       try {
         const jq = parentJQuery(arg);
@@ -195,7 +195,9 @@ try {
           cloned.setAttribute('data-th-iframe-id', iframeId);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // 标记失败不应影响原生克隆行为。
+    }
     return cloned;
   };
 } catch (e) {
@@ -230,12 +232,8 @@ const isLocalJQueryValid = localJQuery && localJQuery !== parentJQuery;
 
 if (parentJQuery) {
   customJQuery = function (selector, context) {
-    let result;
-    try {
-      result = parentJQuery(selector, context);
-    } catch (e) {
-      throw e; // 如果是无效选择器报错，保留 jQuery 原生异常抛出行为
-    }
+    // 无效选择器仍直接抛出 jQuery 原生异常。
+    const result = parentJQuery(selector, context);
     Object.setPrototypeOf(result, customJQuery.fn);
 
     // 如果 selector 是创建 HTML 元素的字符串，说明返回的是全新创建的元素，深度打标
