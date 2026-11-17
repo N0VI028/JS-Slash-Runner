@@ -37,8 +37,8 @@ type ScriptFolder = {
 type ScriptTree = Script | ScriptFolder;
 
 type ScriptTreesOptions = {
-  /** 对全局脚本 (`'chat'`)、当前预设脚本 (`'preset'`) 或当前角色卡脚本 (`'global'`) 进行操作 */
-  type: 'global' | 'preset' | 'character';
+  /** 对全局、当前预设、当前角色卡或管理界面当前选中的世界书脚本进行操作；世界书选择不影响运行绑定 */
+  type: 'global' | 'preset' | 'character' | 'worldbook';
 };
 
 /**

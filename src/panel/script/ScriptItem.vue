@@ -20,7 +20,7 @@
         <i class="fa-solid" :class="[script.enabled ? 'fa-toggle-on' : 'fa-toggle-off']" />
       </div>
       <DefineToolButton v-slot="{ name, icon }">
-        <div class="menu_button interactable mt-0! mr-0.5 mb-0! p-[5px]!" :title="name">
+        <div class="menu_button interactable my-0! mr-0.5 p-[5px]!" :title="name">
           <i class="fa-solid" :class="icon"></i>
         </div>
       </DefineToolButton>
@@ -51,8 +51,10 @@ import Popup from '@/panel/component/Popup.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import ScriptExport from '@/panel/script/ScriptExport.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
+import { useWorldbookSelectionLock } from '@/panel/script/use_worldbook_selection_lock';
 import { ScriptExportOptions, ScriptForm } from '@/panel/script/type';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes/script';
+import { getWorldbookScriptRuntimeId, useWorldbookScriptsStore } from '@/store/worldbook_scripts';
 import { Script } from '@/type/scripts';
 import { renderMarkdown } from '@/util/tavern';
 import { download, getSanitizedFilename } from '@sillytavern/scripts/utils';
@@ -72,7 +74,7 @@ const [DefineToolButton, ToolButton] = createReusableTemplate<{
 const script = defineModel<Script>({ required: true });
 const props = withDefaults(
   defineProps<{
-    target: 'global' | 'character' | 'preset';
+    target: 'global' | 'character' | 'preset' | 'worldbook';
     folderEnabled?: boolean;
   }>(),
   { folderEnabled: true },
@@ -80,9 +82,17 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   delete: [id: string];
-  move: [id: string, target: 'global' | 'character' | 'preset'];
-  copy: [id: string, target: 'global' | 'character' | 'preset'];
+  move: [id: string, target: 'global' | 'character' | 'preset' | 'worldbook'];
+  copy: [id: string, target: 'global' | 'character' | 'preset' | 'worldbook'];
 }>();
+
+const worldbook_scripts = useWorldbookScriptsStore();
+const runtime_id = computed(() =>
+  props.target === 'worldbook'
+    ? getWorldbookScriptRuntimeId(worldbook_scripts.selected_name, script.value.id)
+    : script.value.id,
+);
+const { lock: lockWorldbookSelection, unlock: unlockWorldbookSelection } = useWorldbookSelectionLock();
 
 const container_enabled = inject<Ref<boolean>>('container_enabled', ref(true));
 const actually_enabled = computed(() => container_enabled.value && props.folderEnabled && script.value.enabled);
@@ -93,11 +103,12 @@ const is_visible = computed(() => {
   return search_input.value === null || search_input.value.test(script.value.name);
 });
 
-const { open: openScriptEditor } = useModal({
+const { open: openScriptEditorModal } = useModal({
   component: ScriptEditor,
   attrs: {
     script: script.value,
     target: props.target,
+    onClosed: unlockWorldbookSelection,
     onSubmit: (result: ScriptForm) => {
       const should_reload =
         script.value.enabled &&
@@ -108,11 +119,16 @@ const { open: openScriptEditor } = useModal({
           ));
       _.assign(script.value, result);
       if (should_reload) {
-        useScriptIframeRuntimesStore().reload(script.value.id);
+        useScriptIframeRuntimesStore().reload(runtime_id.value);
       }
     },
   },
 });
+
+function openScriptEditor() {
+  lockWorldbookSelection();
+  openScriptEditorModal();
+}
 
 const openScriptInfo = () =>
   useModal({
@@ -126,9 +142,10 @@ const openScriptInfo = () =>
     },
   }).open();
 
-const { open: openDeleteConfirm } = useModal({
+const { open: openDeleteConfirmModal } = useModal({
   component: Popup,
   attrs: {
+    onClosed: unlockWorldbookSelection,
     buttons: [
       {
         name: t`确定`,
@@ -146,11 +163,17 @@ const { open: openDeleteConfirm } = useModal({
   },
 });
 
-const { open: openMoveConfirm } = useModal({
+function openDeleteConfirm() {
+  lockWorldbookSelection();
+  openDeleteConfirmModal();
+}
+
+const { open: openMoveConfirmModal } = useModal({
   component: TargetSelector,
   attrs: {
     target: props.target,
-    onSubmit: (target: 'global' | 'character' | 'preset') => {
+    onClosed: unlockWorldbookSelection,
+    onSubmit: (target: 'global' | 'character' | 'preset' | 'worldbook') => {
       if (props.target === target) {
         return;
       }
@@ -158,6 +181,11 @@ const { open: openMoveConfirm } = useModal({
     },
   },
 });
+
+function openMoveConfirm() {
+  lockWorldbookSelection();
+  openMoveConfirmModal();
+}
 
 type ScriptExportPayload = {
   filename: string;
@@ -214,10 +242,12 @@ const exportScript = () => {
 };
 
 const copyScript = () => {
+  lockWorldbookSelection();
   useModal({
     component: TargetSelector,
     attrs: {
-      onSubmit: (target: 'global' | 'character' | 'preset') => {
+      onClosed: unlockWorldbookSelection,
+      onSubmit: (target: 'global' | 'character' | 'preset' | 'worldbook') => {
         emit('copy', script.value.id, target);
       },
     },

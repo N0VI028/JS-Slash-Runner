@@ -1,5 +1,5 @@
 <template>
-  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]">
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: close => submit(close) }, { name: t`取消` }]" @closed="emit('closed')">
     <DefineMaximizeButton v-slot="{ activate }">
       <i class="fa-solid fa-maximize interactable cursor-pointer" @click="activate"></i>
     </DefineMaximizeButton>
@@ -20,14 +20,14 @@
           class="text_pole relative w-full overflow-hidden font-(family-name:--monoFontFamily)!"
           style="height: 67.6px"
         >
-          <pre class="m-0 p-0 leading-normal break-words whitespace-pre-wrap" style="font-family: inherit">{{
+          <pre class="m-0 p-0 leading-normal wrap-break-word whitespace-pre-wrap" style="font-family: inherit">{{
             truncatedPreview
           }}</pre>
           <!-- prettier-ignore-attribute -->
           <div
             class="
-              pointer-events-none absolute right-0 bottom-0 left-0 flex h-[40px] items-center justify-center
-              bg-gradient-to-t from-(--black70a) to-transparent
+              pointer-events-none absolute inset-x-0 bottom-0 flex h-[40px] items-center justify-center bg-linear-to-t
+              from-(--black70a) to-transparent
             "
           >
             <button class="menu_button interactable pointer-events-auto text-xs!" @click="toggleContent">
@@ -57,7 +57,7 @@
           class="text_pole font-(family-name:--monoFontFamily)!"
         />
       </div>
-      <div v-if="props.target !== 'global'" class="TH-script-editor-container">
+      <div v-if="props.target !== 'global' && props.target !== 'worldbook'" class="TH-script-editor-container">
         <strong>{{ t`导出选项` }}</strong>
         <small>{{ t`控制此脚本随角色卡/预设导出时是否包含以下内容` }}</small>
         <div class="mt-0.5 flex w-full flex-wrap items-center gap-2">
@@ -142,10 +142,11 @@ const [DefineMaximizeButton, MaximizeButton] = createReusableTemplate();
 
 const props = defineProps<{
   script?: ScriptForm;
-  target: 'global' | 'character' | 'preset';
+  target: 'global' | 'character' | 'preset' | 'worldbook';
 }>();
 
 const emit = defineEmits<{
+  closed: [];
   submit: [script: ScriptForm];
 }>();
 

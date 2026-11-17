@@ -1,13 +1,13 @@
 import { _getScriptId } from '@/function/util';
 import { useScriptIframeRuntimesStore } from '@/store/iframe_runtimes';
 import { getButtonId } from '@/store/iframe_runtimes/script';
-import { getScriptsStoreByType } from '@/store/scripts';
+import { getScriptsStoreByType, useWorldbookScriptsStore } from '@/store/scripts';
 import { ScriptTree } from '@/type/scripts';
 import isPromise from 'is-promise';
 import { PartialDeep } from 'type-fest';
 
 type ScriptTreesOptions = {
-  type: 'global' | 'preset' | 'character';
+  type: 'global' | 'preset' | 'character' | 'worldbook';
 };
 
 export function getScriptTrees(option: ScriptTreesOptions): ScriptTree[] {
@@ -35,12 +35,26 @@ export function updateScriptTreesWith(
   option: ScriptTreesOptions,
 ): ScriptTree[] | Promise<ScriptTree[]> {
   const script_trees = getScriptTrees(option);
+  const worldbook = option.type === 'worldbook' ? useWorldbookScriptsStore() : undefined;
+  const worldbook_name = worldbook?.selected_name;
   const result = updater(script_trees);
   if (isPromise(result)) {
     return result.then((result: PartialDeep<ScriptTree>[]) => {
+      if (worldbook) {
+        if (!worldbook_name) throw Error('尚未选择世界书');
+        const parsed = result.map(tree => ScriptTree.parse(tree));
+        worldbook.replaceScripts(worldbook_name, parsed);
+        return klona(parsed);
+      }
       replaceScriptTrees(result, option);
       return getScriptTrees(option);
     });
+  }
+  if (worldbook) {
+    if (!worldbook_name) throw Error('尚未选择世界书');
+    const parsed = result.map(tree => ScriptTree.parse(tree));
+    worldbook.replaceScripts(worldbook_name, parsed);
+    return klona(parsed);
   }
   replaceScriptTrees(result, option);
   return getScriptTrees(option);

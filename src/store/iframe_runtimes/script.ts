@@ -1,4 +1,4 @@
-import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore } from '@/store/scripts';
+import { useCharacterScriptsStore, useGlobalScriptsStore, usePresetScriptsStore, useWorldbookScriptsStore } from '@/store/scripts';
 import { useGlobalSettingsStore } from '@/store/settings';
 import { Script } from '@/type/scripts';
 import { getStringHash, uuidv4 } from '@sillytavern/scripts/utils';
@@ -13,6 +13,7 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
   const global_scripts = useGlobalScriptsStore();
   const preset_scripts = usePresetScriptsStore();
   const character_scripts = useCharacterScriptsStore();
+  const worldbook_scripts = useWorldbookScriptsStore();
 
   const reload_memos = ref<{ [id: string]: string }>({});
   const reload = (id: string) => {
@@ -26,7 +27,10 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
   const enabled_scripts_with_source = computed(() => {
     return global_settings.app_ready
       ? _([global_scripts, preset_scripts, character_scripts])
-          .flatMap(store => store.enabled_scripts.map(script => ({ source: store.source, script })))
+          .flatMap(store => store.enabled_scripts.map(script => ({ source: store.source, script, runtime_id: script.id })))
+          .concat(worldbook_scripts.enabled_scripts_with_source)
+          // Existing scopes win collisions; a copied id must never mount two runtimes.
+          .uniqBy(item => item.runtime_id)
           .value()
       : [];
   });
@@ -34,11 +38,11 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
   const runtimes = computed(() => {
     return _(enabled_scripts_with_source.value)
       .map(item => ({
-        id: item.script.id,
+        id: item.runtime_id,
         name: item.script.name,
         source: unref(item.source),
         content: item.script.content,
-        reload_memo: _.get(reload_memos.value, item.script.id, ''),
+        reload_memo: _.get(reload_memos.value, item.runtime_id, ''),
       }))
       .sortBy(script => script.id)
       .value();
@@ -48,11 +52,11 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
     return _(enabled_scripts_with_source.value)
       .filter(item => item.script.button.enabled && item.script.button.buttons.some(button => button.visible))
       .map(item => [
-        item.script.id,
+        item.runtime_id,
         item.script.button.buttons
           .filter(button => button.visible)
           .map(button => ({
-            button_id: getButtonId(item.script.id, button.name),
+            button_id: getButtonId(item.runtime_id, button.name),
             button_name: button.name,
           })),
       ])
@@ -61,7 +65,7 @@ export const useScriptIframeRuntimesStore = defineStore('script_iframe_runtimes'
   });
 
   const get = (script_id: string): Script | undefined => {
-    return enabled_scripts_with_source.value.find(item => item.script.id === script_id)?.script;
+    return enabled_scripts_with_source.value.find(item => item.runtime_id === script_id)?.script;
   };
 
   return {

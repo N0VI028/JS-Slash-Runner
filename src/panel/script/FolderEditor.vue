@@ -1,5 +1,5 @@
 <template>
-  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]" :focus-trap="false">
+  <Popup :buttons="[{ name: t`确认`, shouldEmphasize: true, onClick: submit }, { name: t`取消` }]" :focus-trap="false" @closed="emit('closed')">
     <div class="my-0.5 th-text-md font-bold">
       {{ props.scriptFolder !== undefined ? t`编辑文件夹` : t`创建新文件夹` }}
     </div>
@@ -37,9 +37,13 @@ import { getSmartThemeQuoteColor } from '@/util/color';
 import { showFontAwesomePicker } from '@sillytavern/scripts/utils';
 import PickColors from 'vue-pick-colors';
 
-const props = defineProps<{ scriptFolder?: ScriptFolderForm; target: 'global' | 'character' | 'preset' }>();
+const props = defineProps<{
+  scriptFolder?: ScriptFolderForm;
+  target: 'global' | 'character' | 'preset' | 'worldbook';
+}>();
 
 const emit = defineEmits<{
+  closed: [];
   submit: [script: ScriptFolderForm];
 }>();
 

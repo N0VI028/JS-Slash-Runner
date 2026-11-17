@@ -7,6 +7,13 @@ import {
 } from '@/function/lorebook';
 import { RawCharacter } from '@/function/raw_character';
 import { reloadEditor, reloadEditorDebounced } from '@/util/compatibility';
+import {
+  DUMMY_NAME,
+  MAX_UID,
+  normalizeWorldbookScriptData,
+  preserveWorldbookScriptData,
+} from '@/util/worldbook_script_data';
+export { DUMMY_NAME, MAX_UID } from '@/util/worldbook_script_data';
 import { saveSettingsDebounced } from '@sillytavern/script';
 import {
   createNewWorldInfo,
@@ -47,10 +54,15 @@ type CharWorldbooks = {
   primary: string | null;
   additional: string[];
 };
-export function getCharWorldbookNames(character_name_or_id: LiteralUnion<'current', string | `${string}.png`>): CharWorldbooks {
+export function getCharWorldbookNames(
+  character_name_or_id: LiteralUnion<'current', string | `${string}.png`>,
+): CharWorldbooks {
   return getCharLorebooks({ name: character_name_or_id });
 }
-export async function rebindCharWorldbooks(character_name_or_id: LiteralUnion<'current', string | `${string}.png`>, char_worldbooks: CharWorldbooks): Promise<void> {
+export async function rebindCharWorldbooks(
+  character_name_or_id: LiteralUnion<'current', string | `${string}.png`>,
+  char_worldbooks: CharWorldbooks,
+): Promise<void> {
   if (character_name_or_id !== 'current') {
     throw Error(`目前不支持对非当前角色卡调用 bindCharWorldbooks`);
   }
@@ -162,14 +174,14 @@ type _ImplicitKeys = {
   matchWholeWords: null;
   useGroupScoring: null;
   automationId: '';
-  ignoreBudget: false,
-  outletName: '',
-  triggers: [],
+  ignoreBudget: false;
+  outletName: '';
+  triggers: [];
   characterFilter: {
-    isExclude: false,
-    names: [],
-    tags: [],
-  },
+    isExclude: false;
+    names: [];
+    tags: [];
+  };
 };
 type _OriginalWorldbookEntry = {
   uid: number;
@@ -326,42 +338,47 @@ function fromWorldbookEntry(
 function handleWorldbookEntriesCollision(
   entries: PartialDeep<WorldbookEntry>[],
 ): Array<Pick<WorldbookEntry, 'uid'> & PartialDeep<WorldbookEntry & _ImplicitKeys>> {
-  const MAX_UID = 1_000_000 as const;
-
-  const uid_set = new Set<number>();
+  const uid_set = new Set<number>([MAX_UID]);
+  const reserved = new Set(entries.filter(entry => entry.name !== DUMMY_NAME).map(entry => entry.uid));
   const handle_uid_collision = (index: number | undefined) => {
-    if (index === undefined) {
+    const arguments_uid = index;
+    if (index === undefined || !Number.isInteger(index) || index < 0 || index >= MAX_UID) {
       index = _.random(0, MAX_UID - 1);
     }
 
-    let i = 1;
-    while (true) {
-      if (!uid_set.has(index)) {
+    for (let attempts = 0; attempts < MAX_UID; ++attempts) {
+      if (!uid_set.has(index) && (index === arguments_uid || !reserved.has(index))) {
         uid_set.add(index);
         return index;
       }
 
-      index = (index + i * i) % MAX_UID;
-      ++i;
+      index = (index + 1) % MAX_UID;
     }
+    throw Error('无法找到可用的世界书条目 uid');
   };
 
   return entries.map(entry => ({
     ...entry,
-    uid: handle_uid_collision(entry.uid),
+    uid: entry.name === DUMMY_NAME ? MAX_UID : handle_uid_collision(entry.uid),
   }));
 }
-
 
 export async function getWorldbook(worldbook_name: string): Promise<WorldbookEntry[]> {
   if (!getWorldbookNames().includes(worldbook_name)) {
     throw Error(`未能找到世界书 '${worldbook_name}'`);
   }
-  const original_worldbook_entries = await loadWorldInfo(worldbook_name).then(
-    data => (data! as { entries: { [uid: number]: _OriginalWorldbookEntry & _ImplicitKeys } }) ?? {},
+  const original_worldbook_entries = await loadWorldInfo(worldbook_name).then(data =>
+    normalizeWorldbookScriptData(
+      klona((data! as { entries: { [uid: number]: _OriginalWorldbookEntry & _ImplicitKeys } }) ?? { entries: {} }),
+    ),
   );
 
-  return klona(_(original_worldbook_entries.entries).values().sortBy('displayIndex').map(toWorldbookEntry).value());
+  const entries = Object.values(original_worldbook_entries.entries);
+  const sorted = _.sortBy(entries, [
+    (entry: _OriginalWorldbookEntry & _ImplicitKeys) => entry.comment === DUMMY_NAME,
+    (entry: _OriginalWorldbookEntry & _ImplicitKeys) => entry.displayIndex,
+  ]);
+  return klona(sorted.map(entry => toWorldbookEntry(entry)));
 }
 
 export async function createWorldbook(worldbook_name: string, worldbook: WorldbookEntry[] = []): Promise<boolean> {
@@ -387,15 +404,14 @@ export async function createOrReplaceWorldbook(
     }
   }
   if (is_existing || worldbook.length > 0) {
-    await saveWorldInfo(worldbook_name, {
-      entries: _.merge(
-        {},
-        ..._(handleWorldbookEntriesCollision(worldbook))
-          .map(fromWorldbookEntry)
-          .map(entry => ({ [entry.uid]: entry }))
-          .value(),
-      ),
-    });
+    const previous = is_existing ? ((await loadWorldInfo(worldbook_name)) ?? { entries: {} }) : { entries: {} };
+    const entries = Object.fromEntries(
+      handleWorldbookEntriesCollision(worldbook).map((entry, index) => {
+        const raw = fromWorldbookEntry(entry, index);
+        return [entry.name === DUMMY_NAME ? `dummy-${index}` : String(raw.uid), raw];
+      }),
+    );
+    await saveWorldInfo(worldbook_name, preserveWorldbookScriptData({ ...previous, entries }, previous));
     switch (render) {
       case 'debounced':
         reloadEditorDebounced(worldbook_name);
@@ -447,12 +463,12 @@ export async function createWorldbookEntries(
   const worldbook = await updateWorldbookWith(
     worldbook_name,
     data => {
-      slice_start = data.length;
+      slice_start = data.filter(entry => entry.name !== DUMMY_NAME).length;
       return [...data, ...new_entries];
     },
     options,
   );
-  return { worldbook, new_entries: worldbook.slice(slice_start) };
+  return { worldbook, new_entries: worldbook.filter(entry => entry.name !== DUMMY_NAME).slice(slice_start) };
 }
 
 export async function deleteWorldbookEntries(

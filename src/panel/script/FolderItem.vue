@@ -22,7 +22,7 @@
       <div class="flex shrink-0 flex-wrap items-center">
         <!-- prettier-ignore-attribute -->
         <div
-          class="mt-0! mr-0.5 mb-0! cursor-pointer"
+          class="my-0! mr-0.5 cursor-pointer"
           :class="{ enabled: script_folder.enabled }"
           :title="t`批量开关文件夹内脚本`"
           @click.stop="script_folder.enabled = !script_folder.enabled"
@@ -88,6 +88,7 @@ import FolderEditor from '@/panel/script/FolderEditor.vue';
 import FolderExport from '@/panel/script/FolderExport.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
+import { useWorldbookSelectionLock } from '@/panel/script/use_worldbook_selection_lock';
 import { ScriptFolderExportOptions, ScriptFolderForm } from '@/panel/script/type';
 import { getScriptsStoreByType } from '@/store/scripts';
 import { ScriptFolder } from '@/type/scripts';
@@ -101,14 +102,15 @@ const [DefineScriptFolderButton, ScriptFolderButton] = createReusableTemplate<{
 }>();
 
 const script_folder = defineModel<ScriptFolder>({ required: true });
+const { lock: lockWorldbookSelection, unlock: unlockWorldbookSelection } = useWorldbookSelectionLock();
 
 const props = defineProps<{
-  target: 'global' | 'character' | 'preset';
+  target: 'global' | 'character' | 'preset' | 'worldbook';
 }>();
 
 const emit = defineEmits<{
   delete: [id: string];
-  move: [id: string, target: 'global' | 'character' | 'preset'];
+  move: [id: string, target: 'global' | 'character' | 'preset' | 'worldbook'];
 }>();
 
 const container_enabled = inject<Ref<boolean>>('container_enabled', ref(true));
@@ -146,20 +148,27 @@ const is_visible = computed(() => {
   return script_folder.value.scripts.some(script => search_input.value!.test(script.name));
 });
 
-const { open: openFolderEditor } = useModal({
+const { open: openFolderEditorModal } = useModal({
   component: FolderEditor,
   attrs: {
     scriptFolder: script_folder.value,
     target: props.target,
+    onClosed: unlockWorldbookSelection,
     onSubmit: (result: ScriptFolderForm) => {
       _.assign(script_folder.value, result);
     },
   },
 });
 
-const { open: openDeleteConfirm } = useModal({
+function openFolderEditor() {
+  lockWorldbookSelection();
+  openFolderEditorModal();
+}
+
+const { open: openDeleteConfirmModal } = useModal({
   component: Popup,
   attrs: {
+    onClosed: unlockWorldbookSelection,
     buttons: [
       {
         name: t`确定`,
@@ -177,11 +186,17 @@ const { open: openDeleteConfirm } = useModal({
   },
 });
 
-const { open: openMoveConfirm } = useModal({
-  component: TargetSelector,
-  attrs: {
-    target: props.target,
-    onSubmit: (target: 'global' | 'character' | 'preset') => {
+function openDeleteConfirm() {
+  lockWorldbookSelection();
+  openDeleteConfirmModal();
+}
+
+const { open: openMoveConfirmModal } = useModal({
+    component: TargetSelector,
+    attrs: {
+      target: props.target,
+      onClosed: unlockWorldbookSelection,
+      onSubmit: (target: 'global' | 'character' | 'preset' | 'worldbook') => {
       if (props.target === target) {
         return;
       }
@@ -189,6 +204,11 @@ const { open: openMoveConfirm } = useModal({
     },
   },
 });
+
+function openMoveConfirm() {
+  lockWorldbookSelection();
+  openMoveConfirmModal();
+}
 
 type ScriptFolderExportPayload = {
   filename: string;
@@ -258,13 +278,13 @@ const handleScriptDelete = (id: string) => {
 };
 
 // TODO: 这里的和 Container 的明显重复, 应该合并
-const handleScriptMove = (id: string, target: 'global' | 'character' | 'preset') => {
+const handleScriptMove = (id: string, target: 'global' | 'character' | 'preset' | 'worldbook') => {
   const removed = _.remove(script_folder.value.scripts, script => script.id === id);
   getScriptsStoreByType(target).script_trees.push(...removed);
 };
 
 // TODO: 这里的和 Container 的明显重复, 应该合并
-const handleScriptCopy = (id: string, target: 'global' | 'character' | 'preset') => {
+const handleScriptCopy = (id: string, target: 'global' | 'character' | 'preset' | 'worldbook') => {
   const script = _.find(script_folder.value.scripts, script => script.id === id);
   if (!script) {
     return;

@@ -24,55 +24,66 @@ import Builtin from '@/panel/script/Builtin.vue';
 import FolderEditor from '@/panel/script/FolderEditor.vue';
 import ScriptEditor from '@/panel/script/ScriptEditor.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
+import { appendScriptTree, captureWorldbookName, ScriptTarget } from '@/panel/script/script_target';
 import { ScriptFolderForm, ScriptForm } from '@/panel/script/type';
-import { getScriptsStoreByType } from '@/store/scripts';
+import { useWorldbookSelectionLock } from '@/panel/script/use_worldbook_selection_lock';
 import { ScriptData as BackwardScriptData } from '@/type/backward';
 import { isScriptFolder, Script, ScriptFolder, ScriptTree } from '@/type/scripts';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { useFileDialog } from '@vueuse/core';
 
 const props = defineProps<{
-  target?: 'global' | 'character' | 'preset';
+  target?: ScriptTarget;
 }>();
+const { lock: lockWorldbookSelection, unlock: unlockWorldbookSelection } = useWorldbookSelectionLock();
 
 function openCreator(type: 'script' | 'folder') {
-  const openEditor = (target: 'global' | 'character' | 'preset') => {
+  const openEditor = (target: ScriptTarget, worldbookName = captureWorldbookName(target)) => {
+    if (target === 'worldbook' && !worldbookName) {
+      toastr.info(t`请先选择一个世界书`);
+      return;
+    }
     const editor = useModal({
       component: type === 'script' ? ScriptEditor : FolderEditor,
       attrs: {
         target,
+        onClosed: unlockWorldbookSelection,
         onSubmit: async (result: ScriptForm | ScriptFolderForm) => {
           if (type === 'script') {
-            onScriptEditorSubmit(target, result as ScriptForm);
+            onScriptEditorSubmit(target, result as ScriptForm, worldbookName);
           } else {
-            onFolderEditorSubmit(target, result as ScriptFolderForm);
+            onFolderEditorSubmit(target, result as ScriptFolderForm, worldbookName);
           }
         },
       },
     });
+    lockWorldbookSelection();
     editor.open();
   };
 
   if (props.target) {
     openEditor(props.target);
   } else {
-    useModal({
+    const selector = useModal({
       component: TargetSelector,
       attrs: {
-        onSubmit: (target: 'global' | 'character' | 'preset') => {
+        onClosed: unlockWorldbookSelection,
+        onSubmit: (target: ScriptTarget) => {
           openEditor(target);
         },
       },
-    }).open();
+    });
+    lockWorldbookSelection();
+    selector.open();
   }
 }
 
-function onScriptEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptForm) {
-  getScriptsStoreByType(target).script_trees.push(Script.parse(result));
+function onScriptEditorSubmit(target: ScriptTarget, result: ScriptForm, worldbookName?: string) {
+  appendScriptTree(target, Script.parse(result), worldbookName);
 }
 
-function onFolderEditorSubmit(target: 'global' | 'character' | 'preset', result: ScriptFolderForm) {
-  getScriptsStoreByType(target).script_trees.push(ScriptFolder.parse(result));
+function onFolderEditorSubmit(target: ScriptTarget, result: ScriptFolderForm, worldbookName?: string) {
+  appendScriptTree(target, ScriptFolder.parse(result), worldbookName);
 }
 
 const { open: openFileDialog, onChange, reset } = useFileDialog({
@@ -81,7 +92,7 @@ const { open: openFileDialog, onChange, reset } = useFileDialog({
   directory: false,
 });
 
-async function handleImport(target: 'global' | 'character' | 'preset', files_list: FileList | null) {
+async function handleImport(target: ScriptTarget, files_list: FileList | null, worldbookName?: string) {
   if (!files_list) {
     return;
   }
@@ -101,7 +112,7 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
         } else {
           toastr.success(t`成功导入脚本 '${script_tree.name}'`);
         }
-        getScriptsStoreByType(target).script_trees.push(script_tree);
+        appendScriptTree(target, script_tree, worldbookName);
       } catch (err) {
         const error = err as Error;
         console.error(error);
@@ -115,10 +126,14 @@ async function handleImport(target: 'global' | 'character' | 'preset', files_lis
 let importDisposer: ReturnType<typeof onChange> | null = null;
 function openImport() {
   importDisposer?.off();
-  const doImport = (target: 'global' | 'character' | 'preset') => {
+  const doImport = (target: ScriptTarget, worldbookName = captureWorldbookName(target)) => {
+    if (target === 'worldbook' && !worldbookName) {
+      toastr.info(t`请先选择一个世界书`);
+      return;
+    }
     reset();
     importDisposer = onChange(selected => {
-      handleImport(target, selected);
+      handleImport(target, selected, worldbookName);
       importDisposer?.off();
       importDisposer = null;
     });
@@ -128,14 +143,17 @@ function openImport() {
   if (props.target) {
     doImport(props.target);
   } else {
-    useModal({
+    const selector = useModal({
       component: TargetSelector,
       attrs: {
-        onSubmit: (target: 'global' | 'character' | 'preset') => {
+        onClosed: unlockWorldbookSelection,
+        onSubmit: (target: ScriptTarget) => {
           doImport(target);
         },
       },
-    }).open();
+    });
+    lockWorldbookSelection();
+    selector.open();
   }
 }
 

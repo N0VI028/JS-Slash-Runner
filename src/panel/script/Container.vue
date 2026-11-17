@@ -6,7 +6,13 @@
       </div>
       <div v-if="description" class="mt-0.25 th-text-sm opacity-70">{{ description }}</div>
     </div>
-    <Toggle :id="`${title}-script-enable-toggle`" v-model="store.enabled" />
+    <Toggle
+      v-if="target !== 'worldbook'"
+      :id="`${title}-script-enable-toggle`"
+      :model-value="store.enabled"
+      @update:model-value="setContainerEnabled"
+    />
+    <span v-else class="th-text-sm opacity-70">{{ store.enabled ? t`已启用` : t`未启用` }}</span>
   </div>
 
   <div class="flex h-full flex-col">
@@ -47,24 +53,36 @@
 <script setup lang="ts">
 import FolderItem from '@/panel/script/FolderItem.vue';
 import ScriptItem from '@/panel/script/ScriptItem.vue';
-import { getScriptsStoreByType, useGlobalScriptsStore } from '@/store/scripts';
+import {
+  getScriptsStoreByType,
+  useCharacterScriptsStore,
+  useGlobalScriptsStore,
+  usePresetScriptsStore,
+} from '@/store/scripts';
+import { useWorldbookScriptsStore } from '@/store/worldbook_scripts';
 import { isScript } from '@/type/scripts';
 import { uuidv4 } from '@sillytavern/scripts/utils';
 import { SortableEvent, VueDraggable } from 'vue-draggable-plus';
 
-const store = defineModel<ReturnType<typeof useGlobalScriptsStore>>({ required: true });
+type ScriptsStore =
+  | ReturnType<typeof useGlobalScriptsStore>
+  | ReturnType<typeof useCharacterScriptsStore>
+  | ReturnType<typeof usePresetScriptsStore>
+  | ReturnType<typeof useWorldbookScriptsStore>;
+
+const store = defineModel<ScriptsStore>({ required: true });
 
 const props = defineProps<{
   title: string;
   description?: string;
-  target: 'global' | 'character' | 'preset';
+  target: 'global' | 'character' | 'preset' | 'worldbook';
   group?: string;
 }>();
 
 const actual_group = computed(() => props.group ?? `TH-scripts-${props.target}`);
 
 const emit = defineEmits<{
-  move: [id: string, target: 'global' | 'character' | 'preset'];
+  move: [id: string, target: 'global' | 'character' | 'preset' | 'worldbook'];
 }>();
 
 provide<Ref<boolean>>('container_enabled', toRef(store.value, 'enabled'));
@@ -79,16 +97,20 @@ function onSortingItemStart(event: SortableEvent) {
 
 const script_trees = toRef(store.value, 'script_trees');
 
+const setContainerEnabled = (enabled: boolean) => {
+  if (props.target !== 'worldbook') getScriptsStoreByType(props.target).enabled = enabled;
+};
+
 const handleDelete = (id: string) => {
   _.remove(store.value.script_trees, script => script.id === id);
 };
 
-const handleMove = (id: string, target: 'global' | 'character' | 'preset') => {
+const handleMove = (id: string, target: 'global' | 'character' | 'preset' | 'worldbook') => {
   const removed = _.remove(store.value.script_trees, script => script.id === id);
   getScriptsStoreByType(target).script_trees.push(...removed);
 };
 
-const handleCopy = (id: string, target: 'global' | 'character' | 'preset') => {
+const handleCopy = (id: string, target: 'global' | 'character' | 'preset' | 'worldbook') => {
   const script = _.find(store.value.script_trees, script => script.id === id);
   if (!script) {
     return;

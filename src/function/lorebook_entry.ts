@@ -1,7 +1,14 @@
 import { reloadEditorDebounced } from '@/util/compatibility';
+import {
+  DUMMY_NAME,
+  MAX_UID,
+  normalizeWorldbookScriptData,
+  preserveWorldbookScriptData,
+} from '@/util/worldbook_script_data';
 import { loadWorldInfo, saveWorldInfo, world_names } from '@sillytavern/scripts/world-info';
 
 type LorebookEntry = {
+  extra?: Record<string, any>;
   uid: number;
   display_index: number;
 
@@ -51,6 +58,7 @@ type LorebookEntry = {
 };
 
 type _OriginalLorebookEntry = {
+  extra?: Record<string, any>;
   uid: number;
   key: string[];
   keysecondary: string[];
@@ -132,6 +140,7 @@ const default_original_lorebook_entry: Omit<_OriginalLorebookEntry, 'uid' | 'dis
 
 function toLorebookEntry(entry: _OriginalLorebookEntry): LorebookEntry {
   return {
+    ...(entry.extra ? { extra: entry.extra } : {}),
     uid: entry.uid,
     display_index: entry.displayIndex,
 
@@ -200,7 +209,9 @@ export async function getLorebookEntries(
     throw Error(`未能找到世界书 '${lorebook}'`);
   }
 
-  const data = (await loadWorldInfo(lorebook)) as { entries: { [uid: number]: _OriginalLorebookEntry } };
+  const data = normalizeWorldbookScriptData(
+    klona((await loadWorldInfo(lorebook)) ?? { entries: {} }) as { entries: { [uid: number]: _OriginalLorebookEntry } },
+  );
   let entries: LorebookEntry[] = _(data.entries).values().map(toLorebookEntry).value();
   if (filter !== 'none') {
     entries = entries.filter(entry =>
@@ -224,6 +235,7 @@ function fromPartialLorebookEntry(
   entry: Pick<LorebookEntry, 'uid' | 'display_index'> & Partial<LorebookEntry>,
 ): Pick<_OriginalLorebookEntry, 'uid' | 'displayIndex'> & Partial<_OriginalLorebookEntry> {
   const transformers = {
+    extra: (value: LorebookEntry['extra']) => ({ extra: value }),
     uid: (value: LorebookEntry['uid']) => ({ uid: value }),
     display_index: (value: LorebookEntry['display_index']) => ({ displayIndex: value }),
 
@@ -306,33 +318,32 @@ function fromPartialLorebookEntry(
   );
 }
 
-const MAX_UID = 1_000_000;
-
 function handleLorebookEntriesCollision(
   entries: Partial<LorebookEntry>[],
 ): Array<Pick<LorebookEntry, 'uid' | 'display_index'> & Partial<LorebookEntry>> {
-  const uid_set = new Set<number>();
+  const uid_set = new Set<number>([MAX_UID]);
+  const reserved = new Set(entries.filter(entry => entry.comment !== DUMMY_NAME).map(entry => entry.uid));
   const handle_uid_collision = (index: number | undefined) => {
-    if (index === undefined) {
+    const arguments_uid = index;
+    if (index === undefined || !Number.isInteger(index) || index < 0 || index >= MAX_UID) {
       index = _.random(0, MAX_UID - 1);
     }
 
-    let i = 1;
-    while (true) {
-      if (!uid_set.has(index)) {
+    for (let attempts = 0; attempts < MAX_UID; ++attempts) {
+      if (!uid_set.has(index) && (index === arguments_uid || !reserved.has(index))) {
         uid_set.add(index);
         return index;
       }
 
-      index = (index + i * i) % MAX_UID;
-      ++i;
+      index = (index + 1) % MAX_UID;
     }
+    throw Error('无法找到可用的世界书条目 uid');
   };
 
   let max_display_index = _.max(entries.map(entry => entry.display_index ?? -1)) ?? -1;
   return entries.map(entry => ({
     ...entry,
-    uid: handle_uid_collision(entry.uid),
+    uid: entry.comment === DUMMY_NAME ? MAX_UID : handle_uid_collision(entry.uid),
     display_index: entry.display_index ?? ++max_display_index,
   }));
 }
@@ -342,14 +353,19 @@ export async function replaceLorebookEntries(lorebook: string, entries: Partial<
     throw Error(`未能找到世界书 '${lorebook}'`);
   }
 
-  const data = {
-    entries: _.merge(
-      {},
-      ...handleLorebookEntriesCollision(entries)
-        .map(fromPartialLorebookEntry)
-        .map(entry => ({ [entry.uid]: entry })),
-    ),
-  };
+  const previous = (await loadWorldInfo(lorebook)) ?? { entries: {} };
+  const data = preserveWorldbookScriptData(
+    {
+      ...previous,
+      entries: Object.fromEntries(
+        handleLorebookEntriesCollision(entries).map((entry, index) => {
+          const raw = fromPartialLorebookEntry(entry);
+          return [entry.comment === DUMMY_NAME ? `dummy-${index}` : String(raw.uid), raw];
+        }),
+      ),
+    },
+    previous,
+  );
   await saveWorldInfo(lorebook, data);
   reloadEditorDebounced(lorebook);
 }
@@ -375,6 +391,9 @@ export async function setLorebookEntries(
       const data_entry = data.find(entry => entry.uid === entry_to_set.uid);
       if (data_entry) {
         _.merge(data_entry, entry_to_set);
+        if (Array.isArray(entry_to_set.extra?.tavern_helper?.scripts)) {
+          _.set(data_entry, 'extra.tavern_helper.scripts', entry_to_set.extra.tavern_helper.scripts);
+        }
       }
     }
     return data;

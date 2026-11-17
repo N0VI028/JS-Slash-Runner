@@ -65,7 +65,8 @@
 <script setup lang="ts">
 import Popup from '@/panel/component/Popup.vue';
 import TargetSelector from '@/panel/script/TargetSelector.vue';
-import { getScriptsStoreByType } from '@/store/scripts';
+import { appendScriptTree, captureWorldbookName, ScriptTarget } from '@/panel/script/script_target';
+import { useWorldbookSelectionLock } from '@/panel/script/use_worldbook_selection_lock';
 import { Script } from '@/type/scripts';
 import { renderMarkdown } from '@/util/tavern';
 import { uuidv4 } from '@sillytavern/scripts/utils';
@@ -223,6 +224,7 @@ const categories: Category[] = [
     ],
   },
 ];
+const { lock: lockWorldbookSelection, unlock: unlockWorldbookSelection } = useWorldbookSelectionLock();
 
 async function getInfo(script: BuiltinScript): Promise<string> {
   const response = await fetch(script.info_url);
@@ -266,15 +268,19 @@ async function toScript(script: BuiltinScript): Promise<Script> {
 }
 
 async function importScript(builtin: BuiltinScript) {
-  useModal({
+  const selector = useModal({
     component: TargetSelector,
     attrs: {
-      onSubmit: async (target: 'global' | 'character' | 'preset') => {
+      onClosed: unlockWorldbookSelection,
+      onSubmit: async (target: ScriptTarget) => {
+        const worldbookName = captureWorldbookName(target);
         const script = await toScript(builtin);
-        getScriptsStoreByType(target).script_trees.push(script);
+        appendScriptTree(target, script, worldbookName);
         toastr.success(t`成功导入脚本: '${script.name}'`);
       },
     },
-  }).open();
+  });
+  lockWorldbookSelection();
+  selector.open();
 }
 </script>

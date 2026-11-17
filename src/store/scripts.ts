@@ -1,5 +1,7 @@
 import { useCharacterSettingsStore, useGlobalSettingsStore, usePresetSettingsStore } from '@/store/settings';
 import { isScript, ScriptTree } from '@/type/scripts';
+import { useWorldbookScriptsStore } from '@/store/worldbook_scripts';
+export { useWorldbookScriptsStore } from '@/store/worldbook_scripts';
 
 function createScriptsStore(type: 'global' | 'character' | 'preset') {
   return defineStore(`${type}_scripts`, () => {
@@ -99,8 +101,12 @@ export const useGlobalScriptsStore = createScriptsStore('global');
 export const useCharacterScriptsStore = createScriptsStore('character');
 export const usePresetScriptsStore = createScriptsStore('preset');
 
-export function getScriptsStoreByType(target: 'global' | 'character' | 'preset'): ReturnType<typeof useGlobalScriptsStore> {
+type ScriptsAccess = Pick<ReturnType<typeof useGlobalScriptsStore>, 'enabled' | 'script_trees' | 'source' | 'enabled_scripts'>;
+
+export function getScriptsStoreByType(target: 'global' | 'character' | 'preset' | 'worldbook'): ScriptsAccess {
   switch (target) {
+    case 'worldbook':
+      return useWorldbookScriptsStore();
     case 'global':
       return useGlobalScriptsStore();
     case 'character':
