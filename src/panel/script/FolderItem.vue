@@ -205,12 +205,12 @@ const createExportPayload = async (option: ScriptFolderExportOptions): Promise<S
 
     script.export_with.data = script_option.include_data;
     if (!script.export_with.data) {
-      _.set(to_export, 'data', {});
+      _.set(script, 'data', {});
     }
 
     script.export_with.button = script_option.include_button;
     if (!script.export_with.button) {
-      _.set(to_export, 'button.buttons', []);
+      _.set(script, 'button.buttons', []);
     }
   });
 

@@ -7,11 +7,11 @@
           <div class="mb-0.5 font-bold break-all">{{ script.name }}</div>
           <div class="flex flex-row flex-wrap gap-4">
             <label v-if="script.has_data" class="flex cursor-pointer items-center gap-0.5">
-              <input v-model="option.scripts[script.id]" type="checkbox" />
+              <input v-model="option.scripts[script.id].include_data" type="checkbox" />
               <span>{{ t`变量` }}</span>
             </label>
             <label v-if="script.has_button" class="flex cursor-pointer items-center gap-0.5">
-              <input v-model="option.scripts[script.id]" type="checkbox" />
+              <input v-model="option.scripts[script.id].include_button" type="checkbox" />
               <span>{{ t`按钮` }}</span>
             </label>
           </div>
