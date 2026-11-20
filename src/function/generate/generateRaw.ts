@@ -436,7 +436,7 @@ async function filteredGetExtensionPrompt(
   };
   const promptPromises = Object.keys(extension_prompts)
     .sort()
-    .filter(x => x !== '2_floating_prompt' && !/customDepthWI-\d+-\d+/.test(x) && !/TH-CustomInjects-.+/.test(x))
+    .filter(x => x !== '2_floating_prompt' && !/^customDepthWI(?:-\d+-\d+|_\d+_\d+)$/.test(x) && !/TH-CustomInjects-.+/.test(x))
     // @ts-expect-error 无视类型
     .map(x => extension_prompts[x])
     .filter(x => x.position == position && x.value)
