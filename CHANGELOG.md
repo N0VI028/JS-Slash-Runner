@@ -1,4 +1,10 @@
 <!-- markdownlint-disable MD041 MD036 -->
+## 4.12.2
+
+### 🐛修复
+
+- `generateRaw` 在较新酒馆中有时发送两遍深度世界书条目的问题 (by @NLKASHEI)
+
 ## 4.12.1
 
 ### 🐛修复
